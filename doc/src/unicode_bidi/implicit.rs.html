@@ -251,15 +251,15 @@
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">core::cmp::max</a>;
 
-<span class="kw">use </span><span class="kw">super</span>::char_data::BidiClass::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>};
-<span class="kw">use </span><a href="../../src/unicode_bidi/level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
-<span class="kw">use </span><span class="kw">super</span>::prepare::{<a href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>, <a href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>, <a href="../../src/unicode_bidi/prepare.rs.html#28">IsolatingRunSequence</a>, <a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>};
+<span class="kw">use </span><span class="kw">super</span>::char_data::BidiClass::{<a class="self" href="char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>};
+<span class="kw">use </span><a href="level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
+<span class="kw">use </span><span class="kw">super</span>::prepare::{<a href="prepare.rs.html#173">not_removed_by_x9</a>, <a href="prepare.rs.html#165">removed_by_x9</a>, <a href="prepare.rs.html#28">IsolatingRunSequence</a>, <a href="prepare.rs.html#24">LevelRun</a>};
 
 <span class="doccomment">/// 3.3.4 Resolving Weak Types
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#Resolving_Weak_Types&gt;
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
-</span><span class="kw">pub fn </span>resolve_weak(sequence: <span class="kw-2">&amp;</span><a href="../../src/unicode_bidi/prepare.rs.html#28">IsolatingRunSequence</a>, processing_classes: <span class="kw-2">&amp;mut </span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>]) {
+</span><span class="kw">pub fn </span>resolve_weak(sequence: <span class="kw-2">&amp;</span><a href="prepare.rs.html#28">IsolatingRunSequence</a>, processing_classes: <span class="kw-2">&amp;mut </span>[<a href="char_data/tables.rs.html#18">BidiClass</a>]) {
     <span class="comment">// FIXME (#8): This function applies steps W1-W6 in a single pass.  This can produce
     // incorrect results in cases where a &quot;later&quot; rule changes the value of `prev_class` seen
     // by an &quot;earlier&quot; rule.  We should either split this into separate passes, or preserve
@@ -268,19 +268,19 @@
     // FIXME: Also, this could be the cause of increased failure for using longer-UTF-8 chars in
     // conformance tests, like BidiTest:69635 (AL ET EN)
 
-    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_class = <a href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.sos;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_class = <a href="#23">sequence</a>.sos;
     <span class="kw">let </span><span class="kw-2">mut </span>last_strong_is_al = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>et_run_indices = Vec::new(); <span class="comment">// for W5
 
     // Like sequence.runs.iter().flat_map(Clone::clone), but make indices itself clonable.
-    </span><span class="kw">fn </span>id(x: <a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>) -&gt; <a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a> {
-        <a href="../../src/unicode_bidi/implicit.rs.html#37">x</a>
+    </span><span class="kw">fn </span>id(x: <a href="prepare.rs.html#24">LevelRun</a>) -&gt; <a href="prepare.rs.html#24">LevelRun</a> {
+        <a href="#37">x</a>
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>
+    <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="#23">sequence</a>
         .runs
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a href="../../src/unicode_bidi/implicit.rs.html#37">id</a> <span class="kw">as fn</span>(<a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>) -&gt; <a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>);
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a href="#37">id</a> <span class="kw">as fn</span>(<a href="prepare.rs.html#24">LevelRun</a>) -&gt; <a href="prepare.rs.html#24">LevelRun</a>);
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(i) = indices.next() {
         <span class="kw">match </span>processing_classes[i] {
@@ -353,7 +353,7 @@
     }
 
     <span class="comment">// W7. If the previous strong char was L, change EN to L.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>last_strong_is_l = <a href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.sos == <a href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>last_strong_is_l = <a href="#23">sequence</a>.sos == <a href="char_data/tables.rs.html#28">L</a>;
     <span class="kw">for </span>run <span class="kw">in </span><span class="kw-2">&amp;</span>sequence.runs {
         <span class="kw">for </span>i <span class="kw">in </span>run.clone() {
             <span class="kw">match </span>processing_classes[i] {
@@ -377,13 +377,13 @@
 /// &lt;http://www.unicode.org/reports/tr9/#Resolving_Neutral_Types&gt;
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
 </span><span class="kw">pub fn </span>resolve_neutral(
-    sequence: <span class="kw-2">&amp;</span><a href="../../src/unicode_bidi/prepare.rs.html#28">IsolatingRunSequence</a>,
-    levels: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/level.rs.html#34">Level</a>],
-    processing_classes: <span class="kw-2">&amp;mut </span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>],
+    sequence: <span class="kw-2">&amp;</span><a href="prepare.rs.html#28">IsolatingRunSequence</a>,
+    levels: <span class="kw-2">&amp;</span>[<a href="level.rs.html#34">Level</a>],
+    processing_classes: <span class="kw-2">&amp;mut </span>[<a href="char_data/tables.rs.html#18">BidiClass</a>],
 ) {
-    <span class="kw">let </span>e: <a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a> = <a href="../../src/unicode_bidi/implicit.rs.html#142">levels</a>[<a href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.runs[<span class="number">0</span>].start].<a href="../../src/unicode_bidi/level.rs.html#186">bidi_class</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.runs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>prev_class = <a href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.sos;
+    <span class="kw">let </span>e: <a href="char_data/tables.rs.html#18">BidiClass</a> = <a href="#142">levels</a>[<a href="#141">sequence</a>.runs[<span class="number">0</span>].start].<a href="level.rs.html#186">bidi_class</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="#141">sequence</a>.runs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>prev_class = <a href="#141">sequence</a>.sos;
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>i) = indices.next() {
         <span class="comment">// N0. Process bracket pairs.
@@ -448,7 +448,7 @@
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#Resolving_Implicit_Levels&gt;
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
-</span><span class="kw">pub fn </span>resolve_levels(original_classes: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>], levels: <span class="kw-2">&amp;mut </span>[<a href="../../src/unicode_bidi/level.rs.html#34">Level</a>]) -&gt; <a href="../../src/unicode_bidi/level.rs.html#34">Level</a> {
+</span><span class="kw">pub fn </span>resolve_levels(original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>], levels: <span class="kw-2">&amp;mut </span>[<a href="level.rs.html#34">Level</a>]) -&gt; <a href="level.rs.html#34">Level</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>max_level = Level::ltr();
 
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(original_classes.len(), levels.len());
@@ -463,18 +463,18 @@
         max_level = max(max_level, levels[i]);
     }
 
-    <a href="../../src/unicode_bidi/implicit.rs.html#213">max_level</a>
+    <a href="#213">max_level</a>
 }
 
 <span class="doccomment">/// Neutral or Isolate formatting character (B, S, WS, ON, FSI, LRI, RLI, PDI)
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#NI&gt;
 </span><span class="attribute">#[allow(non_snake_case)]
-</span><span class="kw">fn </span>is_NI(class: <a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="../../src/unicode_bidi/implicit.rs.html#234">class</a> {
-        <a href="../../src/unicode_bidi/char_data/tables.rs.html#21">B</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#40">S</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#41">WS</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#35">PDI</a> =&gt; <span class="bool-val">true</span>,
+</span><span class="kw">fn </span>is_NI(class: <a href="char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">match </span><a href="#234">class</a> {
+        <a href="char_data/tables.rs.html#21">B</a> | <a href="char_data/tables.rs.html#40">S</a> | <a href="char_data/tables.rs.html#41">WS</a> | <a href="char_data/tables.rs.html#33">ON</a> | <a href="char_data/tables.rs.html#27">FSI</a> | <a href="char_data/tables.rs.html#30">LRI</a> | <a href="char_data/tables.rs.html#38">RLI</a> | <a href="char_data/tables.rs.html#35">PDI</a> =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

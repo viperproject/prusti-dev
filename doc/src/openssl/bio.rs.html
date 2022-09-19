@@ -88,21 +88,21 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 
-<span class="kw">use </span><a href="../../src/openssl/lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 
 <span class="kw">pub struct </span>MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            ffi::BIO_free_all(<a class="self" href="../../src/openssl/bio.rs.html#13">self</a>.<span class="number">0</span>);
+            ffi::BIO_free_all(<a class="self" href="#13">self</a>.<span class="number">0</span>);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    <span class="kw">pub fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
@@ -113,46 +113,46 @@
             ))<span class="question-mark">?
         </span>};
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>(<a href="../../src/openssl/bio.rs.html#25">bio</a>, PhantomData))
+        <span class="prelude-val">Ok</span>(<a href="#10">MemBioSlice</a>(<a href="#25">bio</a>, PhantomData))
     }
 
     <span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
-        <a class="self" href="../../src/openssl/bio.rs.html#35">self</a>.<span class="number">0
+        <a class="self" href="#35">self</a>.<span class="number">0
     </span>}
 }
 
 <span class="kw">pub struct </span>MemBio(<span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#40">MemBio</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            ffi::BIO_free_all(<a class="self" href="../../src/openssl/bio.rs.html#43">self</a>.<span class="number">0</span>);
+            ffi::BIO_free_all(<a class="self" href="#43">self</a>.<span class="number">0</span>);
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
-    <span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+<span class="kw">impl </span><a href="#40">MemBio</a> {
+    <span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#40">MemBio</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <span class="kw">let </span>bio = <span class="kw">unsafe </span>{ cvt_p(ffi::BIO_new(ffi::BIO_s_mem()))<span class="question-mark">? </span>};
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a href="../../src/openssl/bio.rs.html#54">bio</a>))
+        <span class="prelude-val">Ok</span>(<a href="#40">MemBio</a>(<a href="#54">bio</a>))
     }
 
     <span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
-        <a class="self" href="../../src/openssl/bio.rs.html#58">self</a>.<span class="number">0
+        <a class="self" href="#58">self</a>.<span class="number">0
     </span>}
 
     <span class="kw">pub fn </span>get_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>ptr = ptr::null_mut();
-            <span class="kw">let </span>len = ffi::BIO_get_mem_data(<a class="self" href="../../src/openssl/bio.rs.html#62">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/bio.rs.html#64">ptr</a>);
-            slice::from_raw_parts(<a href="../../src/openssl/bio.rs.html#64">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../src/openssl/bio.rs.html#65">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="kw">let </span>len = ffi::BIO_get_mem_data(<a class="self" href="#62">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="#64">ptr</a>);
+            slice::from_raw_parts(<a href="#64">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="#65">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
-    <span class="kw">pub unsafe fn </span>from_ptr(bio: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>) -&gt; <a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
-        <a href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a href="../../src/openssl/bio.rs.html#70">bio</a>)
+    <span class="kw">pub unsafe fn </span>from_ptr(bio: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>) -&gt; <a href="#40">MemBio</a> {
+        <a href="#40">MemBio</a>(<a href="#70">bio</a>)
     }
 }
 
@@ -167,4 +167,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

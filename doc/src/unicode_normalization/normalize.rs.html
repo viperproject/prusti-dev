@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.21/src/normalize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>normalize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.22/src/normalize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>normalize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container">
                     <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
                         <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -213,8 +213,8 @@
 
 </span><span class="doccomment">//! Functions for computing canonical and compatible decompositions for Unicode characters.
 </span><span class="kw">use </span><span class="kw">crate</span>::lookups::{
-    <a href="../../src/unicode_normalization/lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="../../src/unicode_normalization/lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>,
-    <a href="../../src/unicode_normalization/lookups.rs.html#57">compatibility_fully_decomposed</a>, <a href="../../src/unicode_normalization/lookups.rs.html#30">composition_table</a>,
+    <a href="lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>,
+    <a href="lookups.rs.html#57">compatibility_fully_decomposed</a>, <a href="lookups.rs.html#30">composition_table</a>,
 };
 
 <span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/char/index.html">char</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnMut.html">ops::FnMut</a>};
@@ -227,7 +227,7 @@
 <span class="kw">where
     </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
 {
-    <a href="../../src/unicode_normalization/normalize.rs.html#74-77">decompose</a>(<a href="../../src/unicode_normalization/normalize.rs.html#23">c</a>, <a href="../../src/unicode_normalization/lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="../../src/unicode_normalization/normalize.rs.html#23">emit_char</a>)
+    <a href="#74-77">decompose</a>(<a href="#23">c</a>, <a href="lookups.rs.html#45">canonical_fully_decomposed</a>, <a href="#23">emit_char</a>)
 }
 
 <span class="doccomment">/// Compute canonical or compatible Unicode decomposition for character.
@@ -236,8 +236,8 @@
 </span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>decompose_compatible&lt;F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt;(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, emit_char: F) {
     <span class="kw">let </span>decompose_char =
-        |c| <a href="../../src/unicode_normalization/lookups.rs.html#57">compatibility_fully_decomposed</a>(<a href="../../src/unicode_normalization/normalize.rs.html#36">c</a>).or_else(|| <a href="../../src/unicode_normalization/lookups.rs.html#45">canonical_fully_decomposed</a>(<a href="../../src/unicode_normalization/normalize.rs.html#36">c</a>));
-    <a href="../../src/unicode_normalization/normalize.rs.html#74-77">decompose</a>(<a href="../../src/unicode_normalization/normalize.rs.html#34">c</a>, <a href="../../src/unicode_normalization/normalize.rs.html#35">decompose_char</a>, <a href="../../src/unicode_normalization/normalize.rs.html#34">emit_char</a>)
+        |c| <a href="lookups.rs.html#57">compatibility_fully_decomposed</a>(<a href="#36">c</a>).or_else(|| <a href="lookups.rs.html#45">canonical_fully_decomposed</a>(<a href="#36">c</a>));
+    <a href="#74-77">decompose</a>(<a href="#34">c</a>, <a href="#35">decompose_char</a>, <a href="#34">emit_char</a>)
 }
 
 <span class="doccomment">/// Compute standard-variation decomposition for character.
@@ -256,13 +256,13 @@
 {
     <span class="comment">// 7-bit ASCII never decomposes
     </span><span class="kw">if </span>c &lt;= <span class="string">&#39;\x7f&#39; </span>{
-        <a href="../../src/unicode_normalization/normalize.rs.html#50">emit_char</a>(<a href="../../src/unicode_normalization/normalize.rs.html#50">c</a>);
+        <a href="#50">emit_char</a>(<a href="#50">c</a>);
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Don&#39;t perform decomposition for Hangul
 
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="../../src/unicode_normalization/lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>(<a href="../../src/unicode_normalization/normalize.rs.html#50">c</a>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="lookups.rs.html#69">cjk_compat_variants_fully_decomposed</a>(<a href="#50">c</a>) {
         <span class="kw">for </span><span class="kw-2">&amp;</span>d <span class="kw">in </span>decomposed {
             emit_char(d);
         }
@@ -270,7 +270,7 @@
     }
 
     <span class="comment">// Finally bottom out.
-    </span><a href="../../src/unicode_normalization/normalize.rs.html#50">emit_char</a>(<a href="../../src/unicode_normalization/normalize.rs.html#50">c</a>);
+    </span><a href="#50">emit_char</a>(<a href="#50">c</a>);
 }
 
 <span class="attribute">#[inline]
@@ -281,17 +281,17 @@
 {
     <span class="comment">// 7-bit ASCII never decomposes
     </span><span class="kw">if </span>c &lt;= <span class="string">&#39;\x7f&#39; </span>{
-        <a href="../../src/unicode_normalization/normalize.rs.html#74">emit_char</a>(<a href="../../src/unicode_normalization/normalize.rs.html#74">c</a>);
+        <a href="#74">emit_char</a>(<a href="#74">c</a>);
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Perform decomposition for Hangul
     </span><span class="kw">if </span>is_hangul_syllable(c) {
-        <a href="../../src/unicode_normalization/normalize.rs.html#137-139">decompose_hangul</a>(<a href="../../src/unicode_normalization/normalize.rs.html#74">c</a>, <a href="../../src/unicode_normalization/normalize.rs.html#74">emit_char</a>);
+        <a href="#137-139">decompose_hangul</a>(<a href="#74">c</a>, <a href="#74">emit_char</a>);
         <span class="kw">return</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="../../src/unicode_normalization/normalize.rs.html#74">decompose_char</a>(<a href="../../src/unicode_normalization/normalize.rs.html#74">c</a>) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(decomposed) = <a href="#74">decompose_char</a>(<a href="#74">c</a>) {
         <span class="kw">for </span><span class="kw-2">&amp;</span>d <span class="kw">in </span>decomposed {
             emit_char(d);
         }
@@ -299,14 +299,14 @@
     }
 
     <span class="comment">// Finally bottom out.
-    </span><a href="../../src/unicode_normalization/normalize.rs.html#74">emit_char</a>(<a href="../../src/unicode_normalization/normalize.rs.html#74">c</a>);
+    </span><a href="#74">emit_char</a>(<a href="#74">c</a>);
 }
 
 <span class="doccomment">/// Compose two characters into a single character, if possible.
 /// See [Unicode Standard Annex #15](http://www.unicode.org/reports/tr15/)
 /// for more information.
 </span><span class="kw">pub fn </span>compose(a: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-    <a href="../../src/unicode_normalization/normalize.rs.html#171">compose_hangul</a>(<a href="../../src/unicode_normalization/normalize.rs.html#105">a</a>, <a href="../../src/unicode_normalization/normalize.rs.html#105">b</a>).or_else(|| <a href="../../src/unicode_normalization/lookups.rs.html#30">composition_table</a>(<a href="../../src/unicode_normalization/normalize.rs.html#105">a</a>, <a href="../../src/unicode_normalization/normalize.rs.html#105">b</a>))
+    <a href="#171">compose_hangul</a>(<a href="#105">a</a>, <a href="#105">b</a>).or_else(|| <a href="lookups.rs.html#30">composition_table</a>(<a href="#105">a</a>, <a href="#105">b</a>))
 }
 
 <span class="comment">// Constants from Unicode 9.0.0 Section 3.12 Conjoining Jamo Behavior
@@ -318,20 +318,20 @@
 <span class="kw">const </span>L_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">19</span>;
 <span class="kw">const </span>V_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">21</span>;
 <span class="kw">const </span>T_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">28</span>;
-<span class="kw">const </span>N_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#116">V_COUNT</a> * <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a>;
-<span class="kw">const </span>S_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#115">L_COUNT</a> * <a href="../../src/unicode_normalization/normalize.rs.html#118">N_COUNT</a>;
+<span class="kw">const </span>N_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#116">V_COUNT</a> * <a href="#117">T_COUNT</a>;
+<span class="kw">const </span>S_COUNT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#115">L_COUNT</a> * <a href="#118">N_COUNT</a>;
 
-<span class="kw">const </span>S_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#119">S_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>L_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#112">L_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#115">L_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>V_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#113">V_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#116">V_COUNT</a> - <span class="number">1</span>;
-<span class="kw">const </span>T_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#114">T_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a> - <span class="number">1</span>;
+<span class="kw">const </span>S_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#111">S_BASE</a> + <a href="#119">S_COUNT</a> - <span class="number">1</span>;
+<span class="kw">const </span>L_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#112">L_BASE</a> + <a href="#115">L_COUNT</a> - <span class="number">1</span>;
+<span class="kw">const </span>V_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#113">V_BASE</a> + <a href="#116">V_COUNT</a> - <span class="number">1</span>;
+<span class="kw">const </span>T_LAST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#114">T_BASE</a> + <a href="#117">T_COUNT</a> - <span class="number">1</span>;
 
 <span class="comment">// Composition only occurs for `TPart`s in `U+11A8 ... U+11C2`,
 // i.e. `T_BASE + 1 ... T_LAST`.
-</span><span class="kw">const </span>T_FIRST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="../../src/unicode_normalization/normalize.rs.html#114">T_BASE</a> + <span class="number">1</span>;
+</span><span class="kw">const </span>T_FIRST: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <a href="#114">T_BASE</a> + <span class="number">1</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_hangul_syllable(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    (<a href="../../src/unicode_normalization/normalize.rs.html#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &gt;= <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a> &amp;&amp; (<a href="../../src/unicode_normalization/normalize.rs.html#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt; (<a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#119">S_COUNT</a>)
+    (<a href="#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &gt;= <a href="#111">S_BASE</a> &amp;&amp; (<a href="#130">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt; (<a href="#111">S_BASE</a> + <a href="#119">S_COUNT</a>)
 }
 
 <span class="comment">// Decompose a precomposed Hangul syllable
@@ -341,25 +341,25 @@
 <span class="kw">where
     </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
 {
-    <span class="kw">let </span>s_index = <a href="../../src/unicode_normalization/normalize.rs.html#137">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a>;
-    <span class="kw">let </span>l_index = <a href="../../src/unicode_normalization/normalize.rs.html#141">s_index</a> / <a href="../../src/unicode_normalization/normalize.rs.html#118">N_COUNT</a>;
+    <span class="kw">let </span>s_index = <a href="#137">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="#111">S_BASE</a>;
+    <span class="kw">let </span>l_index = <a href="#141">s_index</a> / <a href="#118">N_COUNT</a>;
     <span class="kw">unsafe </span>{
-        <a href="../../src/unicode_normalization/normalize.rs.html#137">emit_char</a>(char::from_u32_unchecked(<a href="../../src/unicode_normalization/normalize.rs.html#112">L_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#142">l_index</a>));
+        <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#112">L_BASE</a> + <a href="#142">l_index</a>));
 
-        <span class="kw">let </span>v_index = (<a href="../../src/unicode_normalization/normalize.rs.html#141">s_index</a> % <a href="../../src/unicode_normalization/normalize.rs.html#118">N_COUNT</a>) / <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a>;
-        <a href="../../src/unicode_normalization/normalize.rs.html#137">emit_char</a>(char::from_u32_unchecked(<a href="../../src/unicode_normalization/normalize.rs.html#113">V_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#146">v_index</a>));
+        <span class="kw">let </span>v_index = (<a href="#141">s_index</a> % <a href="#118">N_COUNT</a>) / <a href="#117">T_COUNT</a>;
+        <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#113">V_BASE</a> + <a href="#146">v_index</a>));
 
-        <span class="kw">let </span>t_index = <a href="../../src/unicode_normalization/normalize.rs.html#141">s_index</a> % <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a>;
+        <span class="kw">let </span>t_index = <a href="#141">s_index</a> % <a href="#117">T_COUNT</a>;
         <span class="kw">if </span>t_index &gt; <span class="number">0 </span>{
-            <a href="../../src/unicode_normalization/normalize.rs.html#137">emit_char</a>(char::from_u32_unchecked(<a href="../../src/unicode_normalization/normalize.rs.html#114">T_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#149">t_index</a>));
+            <a href="#137">emit_char</a>(char::from_u32_unchecked(<a href="#114">T_BASE</a> + <a href="#149">t_index</a>));
         }
     }
 }
 
 <span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hangul_decomposition_length(s: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>si = <a href="../../src/unicode_normalization/normalize.rs.html#157">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a>;
-    <span class="kw">let </span>ti = <a href="../../src/unicode_normalization/normalize.rs.html#158">si</a> % <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a>;
+    <span class="kw">let </span>si = <a href="#157">s</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <a href="#111">S_BASE</a>;
+    <span class="kw">let </span>ti = <a href="#158">si</a> % <a href="#117">T_COUNT</a>;
     <span class="kw">if </span>ti &gt; <span class="number">0 </span>{
         <span class="number">3
     </span>} <span class="kw">else </span>{
@@ -372,19 +372,19 @@
 #[inline(always)]
 #[allow(ellipsis_inclusive_range_patterns)]
 </span><span class="kw">fn </span>compose_hangul(a: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
-    <span class="kw">let </span>(a, b) = (<a href="../../src/unicode_normalization/normalize.rs.html#171">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/unicode_normalization/normalize.rs.html#171">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-    <span class="kw">match </span>(<a href="../../src/unicode_normalization/normalize.rs.html#172">a</a>, <a href="../../src/unicode_normalization/normalize.rs.html#172">b</a>) {
+    <span class="kw">let </span>(a, b) = (<a href="#171">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="#171">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+    <span class="kw">match </span>(<a href="#172">a</a>, <a href="#172">b</a>) {
         <span class="comment">// Compose a leading consonant and a vowel together into an LV_Syllable
-        </span>(<a href="../../src/unicode_normalization/normalize.rs.html#112">L_BASE</a>...<a href="../../src/unicode_normalization/normalize.rs.html#122">L_LAST</a>, <a href="../../src/unicode_normalization/normalize.rs.html#113">V_BASE</a>...<a href="../../src/unicode_normalization/normalize.rs.html#123">V_LAST</a>) =&gt; {
-            <span class="kw">let </span>l_index = <a href="../../src/unicode_normalization/normalize.rs.html#172">a</a> - <a href="../../src/unicode_normalization/normalize.rs.html#112">L_BASE</a>;
-            <span class="kw">let </span>v_index = <a href="../../src/unicode_normalization/normalize.rs.html#172">b</a> - <a href="../../src/unicode_normalization/normalize.rs.html#113">V_BASE</a>;
-            <span class="kw">let </span>lv_index = <a href="../../src/unicode_normalization/normalize.rs.html#176">l_index</a> * <a href="../../src/unicode_normalization/normalize.rs.html#118">N_COUNT</a> + <a href="../../src/unicode_normalization/normalize.rs.html#177">v_index</a> * <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a>;
-            <span class="kw">let </span>s = <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a> + <a href="../../src/unicode_normalization/normalize.rs.html#178">lv_index</a>;
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="../../src/unicode_normalization/normalize.rs.html#179">s</a>) })
+        </span>(<a href="#112">L_BASE</a>...<a href="#122">L_LAST</a>, <a href="#113">V_BASE</a>...<a href="#123">V_LAST</a>) =&gt; {
+            <span class="kw">let </span>l_index = <a href="#172">a</a> - <a href="#112">L_BASE</a>;
+            <span class="kw">let </span>v_index = <a href="#172">b</a> - <a href="#113">V_BASE</a>;
+            <span class="kw">let </span>lv_index = <a href="#176">l_index</a> * <a href="#118">N_COUNT</a> + <a href="#177">v_index</a> * <a href="#117">T_COUNT</a>;
+            <span class="kw">let </span>s = <a href="#111">S_BASE</a> + <a href="#178">lv_index</a>;
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="#179">s</a>) })
         }
         <span class="comment">// Compose an LV_Syllable and a trailing consonant into an LVT_Syllable
-        </span>(<a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a>...<a href="../../src/unicode_normalization/normalize.rs.html#121">S_LAST</a>, <a href="../../src/unicode_normalization/normalize.rs.html#128">T_FIRST</a>...<a href="../../src/unicode_normalization/normalize.rs.html#124">T_LAST</a>) <span class="kw">if </span>(<a href="../../src/unicode_normalization/normalize.rs.html#172">a</a> - <a href="../../src/unicode_normalization/normalize.rs.html#111">S_BASE</a>) % <a href="../../src/unicode_normalization/normalize.rs.html#117">T_COUNT</a> == <span class="number">0 </span>=&gt; {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="../../src/unicode_normalization/normalize.rs.html#172">a</a> + (<a href="../../src/unicode_normalization/normalize.rs.html#172">b</a> - <a href="../../src/unicode_normalization/normalize.rs.html#114">T_BASE</a>)) })
+        </span>(<a href="#111">S_BASE</a>...<a href="#121">S_LAST</a>, <a href="#128">T_FIRST</a>...<a href="#124">T_LAST</a>) <span class="kw">if </span>(<a href="#172">a</a> - <a href="#111">S_BASE</a>) % <a href="#117">T_COUNT</a> == <span class="number">0 </span>=&gt; {
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ char::from_u32_unchecked(<a href="#172">a</a> + (<a href="#172">b</a> - <a href="#114">T_BASE</a>)) })
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
@@ -403,4 +403,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_normalization" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_normalization" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

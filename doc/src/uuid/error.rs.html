@@ -176,7 +176,7 @@
 
 <span class="doccomment">/// A general error that can occur when working with UUIDs.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-</span><span class="kw">pub struct </span>Error(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="../../src/uuid/error.rs.html#8">ErrorKind</a>);
+</span><span class="kw">pub struct </span>Error(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="#8">ErrorKind</a>);
 
 <span class="attribute">#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ErrorKind {
@@ -220,19 +220,19 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InvalidUuid&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Converts the lightweight error type into detailed diagnostics.
-    </span><span class="kw">pub fn </span>into_err(<span class="self">self</span>) -&gt; <a href="../../src/uuid/error.rs.html#5">Error</a> {
+    </span><span class="kw">pub fn </span>into_err(<span class="self">self</span>) -&gt; <a href="#5">Error</a> {
         <span class="comment">// Check whether or not the input was ever actually a valid UTF8 string
-        </span><span class="kw">let </span>input_str = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">std::str::from_utf8</a>(<a class="self" href="../../src/uuid/error.rs.html#49">self</a>.<span class="number">0</span>) {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../src/uuid/error.rs.html#52">s</a>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="../../src/uuid/error.rs.html#5">Error</a>(<a href="../../src/uuid/error.rs.html#32">ErrorKind::InvalidUTF8</a>),
+        </span><span class="kw">let </span>input_str = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">std::str::from_utf8</a>(<a class="self" href="#49">self</a>.<span class="number">0</span>) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#52">s</a>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="#5">Error</a>(<a href="#32">ErrorKind::InvalidUTF8</a>),
         };
 
-        <span class="kw">let </span>(uuid_str, offset, simple) = <span class="kw">match </span><a href="../../src/uuid/error.rs.html#51">input_str</a>.as_bytes() {
-            [<span class="string">b&#39;{&#39;</span>, s @ .., <span class="string">b&#39;}&#39;</span>] =&gt; (<a href="../../src/uuid/error.rs.html#57">s</a>, <span class="number">1</span>, <span class="bool-val">false</span>),
+        <span class="kw">let </span>(uuid_str, offset, simple) = <span class="kw">match </span><a href="#51">input_str</a>.as_bytes() {
+            [<span class="string">b&#39;{&#39;</span>, s @ .., <span class="string">b&#39;}&#39;</span>] =&gt; (<a href="#57">s</a>, <span class="number">1</span>, <span class="bool-val">false</span>),
             [<span class="string">b&#39;u&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="string">b&#39;n&#39;</span>, <span class="string">b&#39;:&#39;</span>, <span class="string">b&#39;u&#39;</span>, <span class="string">b&#39;u&#39;</span>, <span class="string">b&#39;i&#39;</span>, <span class="string">b&#39;d&#39;</span>, <span class="string">b&#39;:&#39;</span>, s @ ..] =&gt; {
-                (<a href="../../src/uuid/error.rs.html#58">s</a>, <span class="string">&quot;urn:uuid:&quot;</span>.len(), <span class="bool-val">false</span>)
+                (<a href="#58">s</a>, <span class="string">&quot;urn:uuid:&quot;</span>.len(), <span class="bool-val">false</span>)
             }
-            s =&gt; (<a href="../../src/uuid/error.rs.html#61">s</a>, <span class="number">0</span>, <span class="bool-val">true</span>),
+            s =&gt; (<a href="#61">s</a>, <span class="number">0</span>, <span class="bool-val">true</span>),
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>hyphen_count = <span class="number">0</span>;
@@ -240,7 +240,7 @@
 
         <span class="comment">// SAFETY: the byte array came from a valid utf8 string,
         // and is aligned along char boundaries.
-        </span><span class="kw">let </span>uuid_str = <span class="kw">unsafe </span>{ std::str::from_utf8_unchecked(<a href="../../src/uuid/error.rs.html#56">uuid_str</a>) };
+        </span><span class="kw">let </span>uuid_str = <span class="kw">unsafe </span>{ std::str::from_utf8_unchecked(<a href="#56">uuid_str</a>) };
 
         <span class="kw">for </span>(index, character) <span class="kw">in </span>uuid_str.char_indices() {
             <span class="kw">let </span>byte = character <span class="kw">as </span>u8;
@@ -269,14 +269,14 @@
             <span class="comment">// This means that we tried and failed to parse a simple uuid.
             // Since we verified that all the characters are valid, this means
             // that it MUST have an invalid length.
-            </span><a href="../../src/uuid/error.rs.html#5">Error</a>(<a href="../../src/uuid/error.rs.html#16">ErrorKind::SimpleLength</a> {
-                len: <a href="../../src/uuid/error.rs.html#51">input_str</a>.len(),
+            </span><a href="#5">Error</a>(<a href="#16">ErrorKind::SimpleLength</a> {
+                len: <a href="#51">input_str</a>.len(),
             })
         } <span class="kw">else if </span>hyphen_count != <span class="number">4 </span>{
             <span class="comment">// We tried to parse a hyphenated variant, but there weren&#39;t
             // 5 groups (4 hyphen splits).
-            </span><a href="../../src/uuid/error.rs.html#5">Error</a>(<a href="../../src/uuid/error.rs.html#22">ErrorKind::GroupCount</a> {
-                count: <a href="../../src/uuid/error.rs.html#64">hyphen_count</a> + <span class="number">1</span>,
+            </span><a href="#5">Error</a>(<a href="#22">ErrorKind::GroupCount</a> {
+                count: <a href="#64">hyphen_count</a> + <span class="number">1</span>,
             })
         } <span class="kw">else </span>{
             <span class="comment">// There are 5 groups, one of them has an incorrect length
@@ -292,47 +292,47 @@
             }
 
             <span class="comment">// The last group must be too long
-            </span><a href="../../src/uuid/error.rs.html#5">Error</a>(<a href="../../src/uuid/error.rs.html#26">ErrorKind::GroupLength</a> {
+            </span><a href="#5">Error</a>(<a href="#26">ErrorKind::GroupLength</a> {
                 group: <span class="number">4</span>,
-                len: <a href="../../src/uuid/error.rs.html#51">input_str</a>.len() - <a href="../../src/uuid/error.rs.html#109">BLOCK_STARTS</a>[<span class="number">4</span>],
-                index: <a href="../../src/uuid/error.rs.html#56">offset</a> + <a href="../../src/uuid/error.rs.html#109">BLOCK_STARTS</a>[<span class="number">4</span>] + <span class="number">1</span>,
+                len: <a href="#51">input_str</a>.len() - <a href="#109">BLOCK_STARTS</a>[<span class="number">4</span>],
+                index: <a href="#56">offset</a> + <a href="#109">BLOCK_STARTS</a>[<span class="number">4</span>] + <span class="number">1</span>,
             })
         }
     }
 }
 
 <span class="comment">// NOTE: This impl is part of the public API. Breaking changes to it should be carefully considered
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/uuid/error.rs.html#5">Error</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#5">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="../../src/uuid/error.rs.html#132">self</a>.<span class="number">0 </span>{
-            <a href="../../src/uuid/error.rs.html#12">ErrorKind::Char</a> {
+        <span class="kw">match </span><a class="self" href="#132">self</a>.<span class="number">0 </span>{
+            <a href="#12">ErrorKind::Char</a> {
                 character, index, ..
             } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/uuid/error.rs.html#132">f</a>, <span class="string">&quot;invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-zA-Z], found `{}` at {}&quot;</span>, character, index)
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#132">f</a>, <span class="string">&quot;invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-zA-Z], found `{}` at {}&quot;</span>, character, index)
             }
-            <a href="../../src/uuid/error.rs.html#16">ErrorKind::SimpleLength</a> { len } =&gt; {
+            <a href="#16">ErrorKind::SimpleLength</a> { len } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                    <a href="../../src/uuid/error.rs.html#132">f</a>,
+                    <a href="#132">f</a>,
                     <span class="string">&quot;invalid length: expected length 32 for simple format, found {}&quot;</span>,
                     len
                 )
             }
-            <a href="../../src/uuid/error.rs.html#18">ErrorKind::ByteLength</a> { len } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/uuid/error.rs.html#132">f</a>, <span class="string">&quot;invalid length: expected 16 bytes, found {}&quot;</span>, len)
+            <a href="#18">ErrorKind::ByteLength</a> { len } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#132">f</a>, <span class="string">&quot;invalid length: expected 16 bytes, found {}&quot;</span>, len)
             }
-            <a href="../../src/uuid/error.rs.html#22">ErrorKind::GroupCount</a> { count } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/uuid/error.rs.html#132">f</a>, <span class="string">&quot;invalid group count: expected 5, found {}&quot;</span>, count)
+            <a href="#22">ErrorKind::GroupCount</a> { count } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#132">f</a>, <span class="string">&quot;invalid group count: expected 5, found {}&quot;</span>, count)
             }
-            <a href="../../src/uuid/error.rs.html#26">ErrorKind::GroupLength</a> { group, len, .. } =&gt; {
-                <span class="kw">let </span>expected = [<span class="number">8</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">12</span>][<a href="../../src/uuid/error.rs.html#152">group</a>];
+            <a href="#26">ErrorKind::GroupLength</a> { group, len, .. } =&gt; {
+                <span class="kw">let </span>expected = [<span class="number">8</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">12</span>][<a href="#152">group</a>];
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                    <a href="../../src/uuid/error.rs.html#132">f</a>,
+                    <a href="#132">f</a>,
                     <span class="string">&quot;invalid group length in group {}: expected {}, found {}&quot;</span>,
                     group, expected, len
                 )
             }
-            <a href="../../src/uuid/error.rs.html#32">ErrorKind::InvalidUTF8</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/uuid/error.rs.html#132">f</a>, <span class="string">&quot;non-UTF8 input&quot;</span>),
-            <a href="../../src/uuid/error.rs.html#34">ErrorKind::Other</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/uuid/error.rs.html#132">f</a>, <span class="string">&quot;failed to parse a UUID&quot;</span>),
+            <a href="#32">ErrorKind::InvalidUTF8</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#132">f</a>, <span class="string">&quot;non-UTF8 input&quot;</span>),
+            <a href="#34">ErrorKind::Other</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#132">f</a>, <span class="string">&quot;failed to parse a UUID&quot;</span>),
         }
     }
 }
@@ -342,7 +342,7 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html"><span class="kw">crate</span>::std::error</a>;
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../src/uuid/error.rs.html#5">Error</a> {}
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#5">Error</a> {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="uuid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="uuid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -128,70 +128,70 @@
     <span class="kw">fn </span>successors(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <span class="kw-2">&amp;</span><span class="self">Self</span>::BasicBlockId) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::BasicBlockId&gt;;
 
     <span class="kw">fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BTreeMap&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::BasicBlockId, Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>::BasicBlockId&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>predecessors: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <span class="self"><a href="../../../../src/vir/common/cfg/mod.rs.html#23">self</a>
-            </span>.<a href="../../../../src/vir/common/cfg/mod.rs.html#19">iter_basic_block_ids</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bb| (<a href="../../../../src/vir/common/cfg/mod.rs.html#26">bb</a>, Vec::new()))
+        <span class="kw">let </span><span class="kw-2">mut </span>predecessors: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <span class="self"><a href="#23">self</a>
+            </span>.<a href="#19">iter_basic_block_ids</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bb| (<a href="#26">bb</a>, Vec::new()))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">for </span>bb <span class="kw">in </span><span class="self">self</span>.iter_basic_block_ids() {
             <span class="kw">for </span>successor <span class="kw">in </span><span class="self">self</span>.successors(bb) {
                 predecessors.get_mut(successor).unwrap().push(bb);
             }
         }
-        <a href="../../../../src/vir/common/cfg/mod.rs.html#24">predecessors</a>
+        <a href="#24">predecessors</a>
     }
 
     <span class="kw">fn </span>predecessors_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BTreeMap&lt;<span class="self">Self</span>::BasicBlockId, Vec&lt;<span class="self">Self</span>::BasicBlockId&gt;&gt; {
-        <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#36">self</a>.<a href="../../../../src/vir/common/cfg/mod.rs.html#23">predecessors</a>()
+        <a class="self" href="#36">self</a>.<a href="#23">predecessors</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(label, predecessors)| {
-                (<a href="../../../../src/vir/common/cfg/mod.rs.html#39">label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/vir/common/cfg/mod.rs.html#39">predecessors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+                (<a href="#39">label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#39">predecessors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="kw">fn </span>iter_basic_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CfgBasicBlockIterator&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt; {
-        <span class="kw">let </span>basic_block_id_iterator = <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#45">self</a>.<a href="../../../../src/vir/common/cfg/mod.rs.html#19">iter_basic_block_ids</a>();
-        <a href="../../../../src/vir/common/cfg/mod.rs.html#65">CfgBasicBlockIterator</a> {
-            cfg: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#45">self</a>,
-            <a href="../../../../src/vir/common/cfg/mod.rs.html#46">basic_block_id_iterator</a>,
+        <span class="kw">let </span>basic_block_id_iterator = <a class="self" href="#45">self</a>.<a href="#19">iter_basic_block_ids</a>();
+        <a href="#65">CfgBasicBlockIterator</a> {
+            cfg: <a class="self" href="#45">self</a>,
+            <a href="#46">basic_block_id_iterator</a>,
         }
     }
 
     <span class="kw">fn </span>iter_statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CfgStatementIterator&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>basic_block_iterator = <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#53">self</a>.<a href="../../../../src/vir/common/cfg/mod.rs.html#45">iter_basic_blocks</a>();
-        <span class="kw">let </span>current_block = <a href="../../../../src/vir/common/cfg/mod.rs.html#54">basic_block_iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-        <a href="../../../../src/vir/common/cfg/mod.rs.html#80">CfgStatementIterator</a> {
-            cfg: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#53">self</a>,
-            <a href="../../../../src/vir/common/cfg/mod.rs.html#54">basic_block_iterator</a>,
-            <a href="../../../../src/vir/common/cfg/mod.rs.html#55">current_block</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>basic_block_iterator = <a class="self" href="#53">self</a>.<a href="#45">iter_basic_blocks</a>();
+        <span class="kw">let </span>current_block = <a href="#54">basic_block_iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <a href="#80">CfgStatementIterator</a> {
+            cfg: <a class="self" href="#53">self</a>,
+            <a href="#54">basic_block_iterator</a>,
+            <a href="#55">current_block</a>,
             current_statement: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">pub struct </span>CfgBasicBlockIterator&lt;<span class="lifetime">&#39;a</span>, C: <a href="../../../../src/vir/common/cfg/mod.rs.html#3">Cfg</a>&gt; {
+<span class="kw">pub struct </span>CfgBasicBlockIterator&lt;<span class="lifetime">&#39;a</span>, C: <a href="#3">Cfg</a>&gt; {
     cfg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C,
     basic_block_id_iterator: &lt;C <span class="kw">as </span>Cfg&gt;::BasicBlockIdIterator&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: <a href="../../../../src/vir/common/cfg/mod.rs.html#3">Cfg</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CfgBasicBlockIterator&lt;<span class="lifetime">&#39;a</span>, C&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: <a href="#3">Cfg</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CfgBasicBlockIterator&lt;<span class="lifetime">&#39;a</span>, C&gt; {
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::BasicBlockId, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::BasicBlock);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#73">self</a>.basic_block_id_iterator
+        <a class="self" href="#73">self</a>.basic_block_id_iterator
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|bb| (<a href="../../../../src/vir/common/cfg/mod.rs.html#76">bb</a>, <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#73">self</a>.cfg.<a href="../../../../src/vir/common/cfg/mod.rs.html#11">get_basic_block</a>(<a href="../../../../src/vir/common/cfg/mod.rs.html#76">bb</a>).unwrap()))
+            .map(|bb| (<a href="#76">bb</a>, <a class="self" href="#73">self</a>.cfg.<a href="#11">get_basic_block</a>(<a href="#76">bb</a>).unwrap()))
     }
 }
 
-<span class="kw">pub struct </span>CfgStatementIterator&lt;<span class="lifetime">&#39;a</span>, C: <a href="../../../../src/vir/common/cfg/mod.rs.html#3">Cfg</a>&gt; {
+<span class="kw">pub struct </span>CfgStatementIterator&lt;<span class="lifetime">&#39;a</span>, C: <a href="#3">Cfg</a>&gt; {
     cfg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C,
     basic_block_iterator: CfgBasicBlockIterator&lt;<span class="lifetime">&#39;a</span>, C&gt;,
     current_block: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::BasicBlockId, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::BasicBlock)&gt;,
     current_statement: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: <a href="../../../../src/vir/common/cfg/mod.rs.html#3">Cfg</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CfgStatementIterator&lt;<span class="lifetime">&#39;a</span>, C&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: <a href="#3">Cfg</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CfgStatementIterator&lt;<span class="lifetime">&#39;a</span>, C&gt; {
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::BasicBlockId, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>C::Statement);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -213,4 +213,4 @@
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

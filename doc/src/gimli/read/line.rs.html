@@ -3034,12 +3034,12 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">core::result</a>;
 
 <span class="kw">use </span><span class="kw">crate</span>::common::{
-    <a href="../../../src/gimli/common.rs.html#112">DebugLineOffset</a>, <a href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#3">Format</a>,
-    <a href="../../../src/gimli/common.rs.html#52">LineEncoding</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>,
+    <a href="../common.rs.html#112">DebugLineOffset</a>, <a href="../common.rs.html#116">DebugLineStrOffset</a>, <a href="../common.rs.html#162">DebugStrOffset</a>, <a href="../common.rs.html#170">DebugStrOffsetsIndex</a>, <a href="../common.rs.html#37">Encoding</a>, <a href="../common.rs.html#3">Format</a>,
+    <a href="../common.rs.html#52">LineEncoding</a>, <a href="../common.rs.html#245">SectionId</a>,
 };
-<span class="kw">use </span><a href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use </span><a href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/unit.rs.html#944">AttributeValue</a>, <a href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
+<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+<span class="kw">use </span><a href="../endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="unit.rs.html#944">AttributeValue</a>, <a href="endian_slice.rs.html#17">EndianSlice</a>, <a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="mod.rs.html#612">Section</a>};
 
 <span class="doccomment">/// The `DebugLine` struct contains the source location to instruction mapping
 /// found in the `.debug_line` section.
@@ -3050,7 +3050,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugLine&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
 <span class="kw">where
-    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugLine` instance from the data in the `.debug_line`
     /// section.
@@ -3067,11 +3067,11 @@
     /// let debug_line = DebugLine::new(read_debug_line_section_somehow(), LittleEndian);
     /// ```
     </span><span class="kw">pub fn </span>new(debug_line_section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from(EndianSlice::new(<a href="../../../src/gimli/read/line.rs.html#39">debug_line_section</a>, <a href="../../../src/gimli/read/line.rs.html#39">endian</a>))
+        <span class="self">Self</span>::from(EndianSlice::new(<a href="#39">debug_line_section</a>, <a href="#39">endian</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugLine&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; DebugLine&lt;R&gt; {
     <span class="doccomment">/// Parse the line number program whose header is at the given `offset` in the
     /// `.debug_line` section.
     ///
@@ -3103,11 +3103,11 @@
         comp_dir: <span class="prelude-ty">Option</span>&lt;R&gt;,
         comp_name: <span class="prelude-ty">Option</span>&lt;R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;IncompleteLineProgram&lt;R&gt;&gt; {
-        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/line.rs.html#70">self</a>.debug_line_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="#70">self</a>.debug_line_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         input.skip(offset.<span class="number">0</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>header = LineProgramHeader::parse(input, offset, address_size, comp_dir, comp_name)<span class="question-mark">?</span>;
-        <span class="kw">let </span>program = <a href="../../../src/gimli/read/line.rs.html#1431">IncompleteLineProgram</a> { <a href="../../../src/gimli/read/line.rs.html#78">header</a> };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#79">program</a>)
+        <span class="kw">let </span>program = <a href="#1431">IncompleteLineProgram</a> { <a href="#78">header</a> };
+        <span class="prelude-val">Ok</span>(<a href="#79">program</a>)
     }
 }
 
@@ -3131,23 +3131,23 @@
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a href="../../../src/gimli/read/line.rs.html#100">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#100">self</a>.debug_line_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="#100">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="#100">self</a>.debug_line_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugLine&lt;R&gt; {
-    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a href="../../../src/gimli/common.rs.html#263">SectionId::DebugLine</a>
+    <span class="kw">fn </span>id() -&gt; <a href="../common.rs.html#245">SectionId</a> {
+        <a href="../common.rs.html#263">SectionId::DebugLine</a>
     }
 
     <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#113">self</a>.debug_line_section
+        <span class="kw-2">&amp;</span><a class="self" href="#113">self</a>.debug_line_section
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugLine&lt;R&gt; {
     <span class="kw">fn </span>from(debug_line_section: R) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/gimli/read/line.rs.html#17">DebugLine</a> { <a href="../../../src/gimli/read/line.rs.html#119">debug_line_section</a> }
+        <a href="#17">DebugLine</a> { <a href="#119">debug_line_section</a> }
     }
 }
 
@@ -3161,7 +3161,7 @@
 </span><span class="kw">pub trait </span>LineProgram&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// Get a reference to the held `LineProgramHeader`.
     </span><span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt;;
@@ -3172,23 +3172,23 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; LineProgram&lt;R, Offset&gt; <span class="kw">for </span>IncompleteLineProgram&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#147">self</a>.header
+        <span class="kw-2">&amp;</span><a class="self" href="#147">self</a>.header
     }
     <span class="kw">fn </span>add_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file: FileEntry&lt;R, Offset&gt;) {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#150">self</a>.header.file_names.push(<a href="../../../src/gimli/read/line.rs.html#150">file</a>);
+        <a class="self" href="#150">self</a>.header.file_names.push(<a href="#150">file</a>);
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;program</span>, R, Offset&gt; LineProgram&lt;R, Offset&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;program </span>CompleteLineProgram&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#160">self</a>.header
+        <span class="kw-2">&amp;</span><a class="self" href="#160">self</a>.header
     }
     <span class="kw">fn </span>add_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: FileEntry&lt;R, Offset&gt;) {
         <span class="comment">// Nop. Our file table is already complete.
@@ -3209,10 +3209,10 @@
 <span class="kw">where
     </span>Program: LineProgram&lt;R, Offset&gt;,
     R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     program: Program,
-    row: <a href="../../../src/gimli/read/line.rs.html#637">LineRow</a>,
+    row: <a href="#637">LineRow</a>,
     instructions: LineInstructions&lt;R&gt;,
 }
 
@@ -3226,18 +3226,18 @@
 <span class="kw">where
     </span>Program: LineProgram&lt;R, Offset&gt;,
     R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="attribute">#[allow(clippy::new_ret_no_self)]
     </span><span class="kw">fn </span>new(program: IncompleteLineProgram&lt;R, Offset&gt;) -&gt; OneShotLineRows&lt;R, Offset&gt; {
-        <span class="kw">let </span>row = LineRow::new(<a href="../../../src/gimli/read/line.rs.html#202">program</a>.<a href="../../../src/gimli/read/line.rs.html#1445">header</a>());
-        <span class="kw">let </span>instructions = <a href="../../../src/gimli/read/line.rs.html#585">LineInstructions</a> {
-            input: <a href="../../../src/gimli/read/line.rs.html#202">program</a>.<a href="../../../src/gimli/read/line.rs.html#1445">header</a>().program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let </span>row = LineRow::new(<a href="#202">program</a>.<a href="#1445">header</a>());
+        <span class="kw">let </span>instructions = <a href="#585">LineInstructions</a> {
+            input: <a href="#202">program</a>.<a href="#1445">header</a>().program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         };
-        <a href="../../../src/gimli/read/line.rs.html#178">LineRows</a> {
-            <a href="../../../src/gimli/read/line.rs.html#202">program</a>,
-            <a href="../../../src/gimli/read/line.rs.html#203">row</a>,
-            <a href="../../../src/gimli/read/line.rs.html#204">instructions</a>,
+        <a href="#178">LineRows</a> {
+            <a href="#202">program</a>,
+            <a href="#203">row</a>,
+            <a href="#204">instructions</a>,
         }
     }
 
@@ -3245,12 +3245,12 @@
         program: <span class="kw-2">&amp;</span><span class="lifetime">&#39;program </span>CompleteLineProgram&lt;R, Offset&gt;,
         sequence: <span class="kw-2">&amp;</span>LineSequence&lt;R&gt;,
     ) -&gt; ResumedLineRows&lt;<span class="lifetime">&#39;program</span>, R, Offset&gt; {
-        <span class="kw">let </span>row = LineRow::new(<a href="../../../src/gimli/read/line.rs.html#215">program</a>.<a href="../../../src/gimli/read/line.rs.html#1538">header</a>());
-        <span class="kw">let </span>instructions = <a href="../../../src/gimli/read/line.rs.html#216">sequence</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../../src/gimli/read/line.rs.html#178">LineRows</a> {
-            <a href="../../../src/gimli/read/line.rs.html#215">program</a>,
-            <a href="../../../src/gimli/read/line.rs.html#218">row</a>,
-            <a href="../../../src/gimli/read/line.rs.html#219">instructions</a>,
+        <span class="kw">let </span>row = LineRow::new(<a href="#215">program</a>.<a href="#1538">header</a>());
+        <span class="kw">let </span>instructions = <a href="#216">sequence</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#178">LineRows</a> {
+            <a href="#215">program</a>,
+            <a href="#218">row</a>,
+            <a href="#219">instructions</a>,
         }
     }
 
@@ -3258,7 +3258,7 @@
     /// program.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt; {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#230">self</a>.program.<a href="../../../src/gimli/read/line.rs.html#137">header</a>()
+        <a class="self" href="#230">self</a>.program.<a href="#137">header</a>()
     }
 
     <span class="doccomment">/// Parse and execute the next instructions in the line number program until
@@ -3271,18 +3271,18 @@
     ///
     /// Unfortunately, the references mean that this cannot be a
     /// `FallibleIterator`.
-    </span><span class="kw">pub fn </span>next_row(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt;, <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/line.rs.html#637">LineRow</a>)&gt;&gt; {
+    </span><span class="kw">pub fn </span>next_row(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt;, <span class="kw-2">&amp;</span><a href="#637">LineRow</a>)&gt;&gt; {
         <span class="comment">// Perform any reset that was required after copying the previous row.
-        </span><a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.row.<a href="../../../src/gimli/read/line.rs.html#908">reset</a>(<a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.program.<a href="../../../src/gimli/read/line.rs.html#137">header</a>());
+        </span><a class="self" href="#244">self</a>.row.<a href="#908">reset</a>(<a class="self" href="#244">self</a>.program.<a href="#137">header</a>());
 
         <span class="kw">loop </span>{
             <span class="comment">// Split the borrow here, rather than calling `self.header()`.
-            </span><span class="kw">match </span><a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.instructions.<a href="../../../src/gimli/read/line.rs.html#611-614">next_instruction</a>(<a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.program.<a href="../../../src/gimli/read/line.rs.html#137">header</a>()) {
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/line.rs.html#251">err</a>),
+            </span><span class="kw">match </span><a class="self" href="#244">self</a>.instructions.<a href="#611-614">next_instruction</a>(<a class="self" href="#244">self</a>.program.<a href="#137">header</a>()) {
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#251">err</a>),
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(instruction)) =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.row.execute(instruction, <span class="kw-2">&amp;mut </span><span class="self">self</span>.program) {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.<a href="../../../src/gimli/read/line.rs.html#230">header</a>(), <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#244">self</a>.row)));
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="self" href="#244">self</a>.<a href="#230">header</a>(), <span class="kw-2">&amp;</span><a class="self" href="#244">self</a>.row)));
                     }
                     <span class="comment">// Fall through, parse the next instruction, and see if that
                     // yields a row.
@@ -3301,7 +3301,7 @@
 </span><span class="kw">pub enum </span>LineInstruction&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// &gt; ### 6.2.5.1 Special Opcodes
     /// &gt;
@@ -3392,13 +3392,13 @@
     </span>SetIsa(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
 
     <span class="doccomment">/// An unknown standard opcode with zero operands.
-    </span>UnknownStandard0(<a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DwLns</a>),
+    </span>UnknownStandard0(<a href="../constants.rs.html#1002-1019">constants::DwLns</a>),
 
     <span class="doccomment">/// An unknown standard opcode with one operand.
-    </span>UnknownStandard1(<a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DwLns</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+    </span>UnknownStandard1(<a href="../constants.rs.html#1002-1019">constants::DwLns</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
 
     <span class="doccomment">/// An unknown standard opcode with multiple operands.
-    </span>UnknownStandardN(<a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DwLns</a>, R),
+    </span>UnknownStandardN(<a href="../constants.rs.html#1002-1019">constants::DwLns</a>, R),
 
     <span class="doccomment">/// &gt; [`LineInstruction::EndSequence`] sets the end_sequence register of the state
     /// &gt; machine to “true” and appends a row to the matrix using the current
@@ -3429,13 +3429,13 @@
     </span>SetDiscriminator(<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
 
     <span class="doccomment">/// An unknown extended opcode and the slice of its unparsed operands.
-    </span>UnknownExtended(<a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DwLne</a>, R),
+    </span>UnknownExtended(<a href="../constants.rs.html#1021-1033">constants::DwLne</a>, R),
 }
 
 <span class="kw">impl</span>&lt;R, Offset&gt; LineInstruction&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="kw">fn </span>parse&lt;<span class="lifetime">&#39;header</span>&gt;(
         header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;header </span>LineProgramHeader&lt;R&gt;,
@@ -3450,98 +3450,98 @@
             <span class="kw">let </span><span class="kw-2">mut </span>instr_rest = input.split(length)<span class="question-mark">?</span>;
             <span class="kw">let </span>opcode = instr_rest.read_u8()<span class="question-mark">?</span>;
 
-            <span class="kw">match </span><a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DwLne</a>(<a href="../../../src/gimli/read/line.rs.html#421">opcode</a>) {
-                <a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DW_LNE_end_sequence</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#380">LineInstruction::EndSequence</a>),
+            <span class="kw">match </span><a href="../constants.rs.html#1021-1033">constants::DwLne</a>(<a href="#421">opcode</a>) {
+                <a href="../constants.rs.html#1021-1033">constants::DW_LNE_end_sequence</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#380">LineInstruction::EndSequence</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DW_LNE_set_address</a> =&gt; {
+                <a href="../constants.rs.html#1021-1033">constants::DW_LNE_set_address</a> =&gt; {
                     <span class="kw">let </span>address = instr_rest.read_address(header.address_size())<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#390">LineInstruction::SetAddress</a>(<a href="../../../src/gimli/read/line.rs.html#427">address</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#390">LineInstruction::SetAddress</a>(<a href="#427">address</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DW_LNE_define_file</a> =&gt; {
+                <a href="../constants.rs.html#1021-1033">constants::DW_LNE_define_file</a> =&gt; {
                     <span class="kw">if </span>header.version() &lt;= <span class="number">4 </span>{
                         <span class="kw">let </span>path_name = instr_rest.read_null_terminated_slice()<span class="question-mark">?</span>;
                         <span class="kw">let </span>entry = FileEntry::parse(<span class="kw-2">&amp;mut </span>instr_rest, path_name)<span class="question-mark">?</span>;
-                        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#394">LineInstruction::DefineFile</a>(<a href="../../../src/gimli/read/line.rs.html#434">entry</a>))
+                        <span class="prelude-val">Ok</span>(<a href="#394">LineInstruction::DefineFile</a>(<a href="#434">entry</a>))
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#402">LineInstruction::UnknownExtended</a>(
-                            <a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DW_LNE_define_file</a>,
-                            <a href="../../../src/gimli/read/line.rs.html#420">instr_rest</a>,
+                        <span class="prelude-val">Ok</span>(<a href="#402">LineInstruction::UnknownExtended</a>(
+                            <a href="../constants.rs.html#1021-1033">constants::DW_LNE_define_file</a>,
+                            <a href="#420">instr_rest</a>,
                         ))
                     }
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1021-1033">constants::DW_LNE_set_discriminator</a> =&gt; {
+                <a href="../constants.rs.html#1021-1033">constants::DW_LNE_set_discriminator</a> =&gt; {
                     <span class="kw">let </span>discriminator = instr_rest.read_uleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#399">LineInstruction::SetDiscriminator</a>(<a href="../../../src/gimli/read/line.rs.html#445">discriminator</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#399">LineInstruction::SetDiscriminator</a>(<a href="#445">discriminator</a>))
                 }
 
-                otherwise =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#402">LineInstruction::UnknownExtended</a>(<a href="../../../src/gimli/read/line.rs.html#449">otherwise</a>, <a href="../../../src/gimli/read/line.rs.html#420">instr_rest</a>)),
+                otherwise =&gt; <span class="prelude-val">Ok</span>(<a href="#402">LineInstruction::UnknownExtended</a>(<a href="#449">otherwise</a>, <a href="#420">instr_rest</a>)),
             }
         } <span class="kw">else if </span>opcode &gt;= header.opcode_base {
-            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#299">LineInstruction::Special</a>(<a href="../../../src/gimli/read/line.rs.html#417">opcode</a>))
+            <span class="prelude-val">Ok</span>(<a href="#299">LineInstruction::Special</a>(<a href="#417">opcode</a>))
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DwLns</a>(<a href="../../../src/gimli/read/line.rs.html#417">opcode</a>) {
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_copy</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#305">LineInstruction::Copy</a>),
+            <span class="kw">match </span><a href="../constants.rs.html#1002-1019">constants::DwLns</a>(<a href="#417">opcode</a>) {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_copy</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#305">LineInstruction::Copy</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_advance_pc</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_advance_pc</a> =&gt; {
                     <span class="kw">let </span>advance = input.read_uleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#310">LineInstruction::AdvancePc</a>(<a href="../../../src/gimli/read/line.rs.html#458">advance</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#310">LineInstruction::AdvancePc</a>(<a href="#458">advance</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_advance_line</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_advance_line</a> =&gt; {
                     <span class="kw">let </span>increment = input.read_sleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#314">LineInstruction::AdvanceLine</a>(<a href="../../../src/gimli/read/line.rs.html#463">increment</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#314">LineInstruction::AdvanceLine</a>(<a href="#463">increment</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_file</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_file</a> =&gt; {
                     <span class="kw">let </span>file = input.read_uleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#318">LineInstruction::SetFile</a>(<a href="../../../src/gimli/read/line.rs.html#468">file</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#318">LineInstruction::SetFile</a>(<a href="#468">file</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_column</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_column</a> =&gt; {
                     <span class="kw">let </span>column = input.read_uleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#322">LineInstruction::SetColumn</a>(<a href="../../../src/gimli/read/line.rs.html#473">column</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#322">LineInstruction::SetColumn</a>(<a href="#473">column</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_negate_stmt</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#327">LineInstruction::NegateStatement</a>),
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_negate_stmt</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#327">LineInstruction::NegateStatement</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_basic_block</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#331">LineInstruction::SetBasicBlock</a>),
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_basic_block</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#331">LineInstruction::SetBasicBlock</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_const_add_pc</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#344">LineInstruction::ConstAddPc</a>),
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_const_add_pc</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#344">LineInstruction::ConstAddPc</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_fixed_advance_pc</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_fixed_advance_pc</a> =&gt; {
                     <span class="kw">let </span>advance = input.read_u16()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#351">LineInstruction::FixedAddPc</a>(<a href="../../../src/gimli/read/line.rs.html#484">advance</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#351">LineInstruction::FixedAddPc</a>(<a href="#484">advance</a>))
                 }
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_prologue_end</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#354">LineInstruction::SetPrologueEnd</a>),
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_prologue_end</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#354">LineInstruction::SetPrologueEnd</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_epilogue_begin</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#358">LineInstruction::SetEpilogueBegin</a>),
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_epilogue_begin</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#358">LineInstruction::SetEpilogueBegin</a>),
 
-                <a href="../../../src/gimli/constants.rs.html#1002-1019">constants::DW_LNS_set_isa</a> =&gt; {
+                <a href="../constants.rs.html#1002-1019">constants::DW_LNS_set_isa</a> =&gt; {
                     <span class="kw">let </span>isa = input.read_uleb128()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#362">LineInstruction::SetIsa</a>(<a href="../../../src/gimli/read/line.rs.html#493">isa</a>))
+                    <span class="prelude-val">Ok</span>(<a href="#362">LineInstruction::SetIsa</a>(<a href="#493">isa</a>))
                 }
 
                 otherwise =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>opcode_lengths = <a href="../../../src/gimli/read/line.rs.html#411">header</a>.<a href="../../../src/gimli/read/line.rs.html#1159">standard_opcode_lengths</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>opcode_lengths = <a href="#411">header</a>.<a href="#1159">standard_opcode_lengths</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                     opcode_lengths.skip(R::Offset::from_u8(opcode - <span class="number">1</span>))<span class="question-mark">?</span>;
                     <span class="kw">let </span>num_args = opcode_lengths.read_u8()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-                    <span class="kw">match </span><a href="../../../src/gimli/read/line.rs.html#500">num_args</a> {
-                        <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#365">LineInstruction::UnknownStandard0</a>(<a href="../../../src/gimli/read/line.rs.html#497">otherwise</a>)),
+                    <span class="kw">match </span><a href="#500">num_args</a> {
+                        <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#365">LineInstruction::UnknownStandard0</a>(<a href="#497">otherwise</a>)),
                         <span class="number">1 </span>=&gt; {
                             <span class="kw">let </span>arg = input.read_uleb128()<span class="question-mark">?</span>;
-                            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#368">LineInstruction::UnknownStandard1</a>(<a href="../../../src/gimli/read/line.rs.html#497">otherwise</a>, <a href="../../../src/gimli/read/line.rs.html#504">arg</a>))
+                            <span class="prelude-val">Ok</span>(<a href="#368">LineInstruction::UnknownStandard1</a>(<a href="#497">otherwise</a>, <a href="#504">arg</a>))
                         }
                         <span class="kw">_ </span>=&gt; {
-                            <span class="kw">let </span><span class="kw-2">mut </span>args = <a href="../../../src/gimli/read/line.rs.html#412">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                            <span class="kw">let </span><span class="kw-2">mut </span>args = <a href="#412">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                             <span class="kw">for _ in </span><span class="number">0</span>..num_args {
                                 input.read_uleb128()<span class="question-mark">?</span>;
                             }
-                            <span class="kw">let </span>len = <a href="../../../src/gimli/read/line.rs.html#412">input</a>.<a href="../../../src/gimli/read/reader.rs.html#239">offset_from</a>(<span class="kw-2">&amp;</span><a href="../../../src/gimli/read/line.rs.html#508">args</a>);
+                            <span class="kw">let </span>len = <a href="#412">input</a>.<a href="reader.rs.html#239">offset_from</a>(<span class="kw-2">&amp;</span><a href="#508">args</a>);
                             args.truncate(len)<span class="question-mark">?</span>;
-                            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#371">LineInstruction::UnknownStandardN</a>(<a href="../../../src/gimli/read/line.rs.html#497">otherwise</a>, <a href="../../../src/gimli/read/line.rs.html#508">args</a>))
+                            <span class="prelude-val">Ok</span>(<a href="#371">LineInstruction::UnknownStandardN</a>(<a href="#497">otherwise</a>, <a href="#508">args</a>))
                         }
                     }
                 }
@@ -3553,51 +3553,51 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>LineInstruction&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; result::Result&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/gimli/read/line.rs.html#528">self</a> </span>{
-            <a href="../../../src/gimli/read/line.rs.html#299">LineInstruction::Special</a>(opcode) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;Special opcode {}&quot;</span>, opcode),
-            <a href="../../../src/gimli/read/line.rs.html#305">LineInstruction::Copy</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_copy),
-            <a href="../../../src/gimli/read/line.rs.html#310">LineInstruction::AdvancePc</a>(advance) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_advance_pc, advance)
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#528">self</a> </span>{
+            <a href="#299">LineInstruction::Special</a>(opcode) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;Special opcode {}&quot;</span>, opcode),
+            <a href="#305">LineInstruction::Copy</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_copy),
+            <a href="#310">LineInstruction::AdvancePc</a>(advance) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_advance_pc, advance)
             }
-            <a href="../../../src/gimli/read/line.rs.html#314">LineInstruction::AdvanceLine</a>(increment) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_advance_line, increment)
+            <a href="#314">LineInstruction::AdvanceLine</a>(increment) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_advance_line, increment)
             }
-            <a href="../../../src/gimli/read/line.rs.html#318">LineInstruction::SetFile</a>(file) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_file, file)
+            <a href="#318">LineInstruction::SetFile</a>(file) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_file, file)
             }
-            <a href="../../../src/gimli/read/line.rs.html#322">LineInstruction::SetColumn</a>(column) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_column, column)
+            <a href="#322">LineInstruction::SetColumn</a>(column) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_column, column)
             }
-            <a href="../../../src/gimli/read/line.rs.html#327">LineInstruction::NegateStatement</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_negate_stmt),
-            <a href="../../../src/gimli/read/line.rs.html#331">LineInstruction::SetBasicBlock</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_basic_block),
-            <a href="../../../src/gimli/read/line.rs.html#344">LineInstruction::ConstAddPc</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_const_add_pc),
-            <a href="../../../src/gimli/read/line.rs.html#351">LineInstruction::FixedAddPc</a>(advance) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_fixed_advance_pc, advance)
+            <a href="#327">LineInstruction::NegateStatement</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_negate_stmt),
+            <a href="#331">LineInstruction::SetBasicBlock</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_basic_block),
+            <a href="#344">LineInstruction::ConstAddPc</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_const_add_pc),
+            <a href="#351">LineInstruction::FixedAddPc</a>(advance) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} by {}&quot;</span>, constants::DW_LNS_fixed_advance_pc, advance)
             }
-            <a href="../../../src/gimli/read/line.rs.html#354">LineInstruction::SetPrologueEnd</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_prologue_end),
-            <a href="../../../src/gimli/read/line.rs.html#358">LineInstruction::SetEpilogueBegin</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_epilogue_begin)
+            <a href="#354">LineInstruction::SetPrologueEnd</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_prologue_end),
+            <a href="#358">LineInstruction::SetEpilogueBegin</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNS_set_epilogue_begin)
             }
-            <a href="../../../src/gimli/read/line.rs.html#362">LineInstruction::SetIsa</a>(isa) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_isa, isa),
-            <a href="../../../src/gimli/read/line.rs.html#365">LineInstruction::UnknownStandard0</a>(opcode) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;Unknown {}&quot;</span>, opcode),
-            <a href="../../../src/gimli/read/line.rs.html#368">LineInstruction::UnknownStandard1</a>(opcode, arg) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;Unknown {} with operand {}&quot;</span>, opcode, arg)
+            <a href="#362">LineInstruction::SetIsa</a>(isa) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNS_set_isa, isa),
+            <a href="#365">LineInstruction::UnknownStandard0</a>(opcode) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;Unknown {}&quot;</span>, opcode),
+            <a href="#368">LineInstruction::UnknownStandard1</a>(opcode, arg) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;Unknown {} with operand {}&quot;</span>, opcode, arg)
             }
-            <a href="../../../src/gimli/read/line.rs.html#371">LineInstruction::UnknownStandardN</a>(opcode, <span class="kw-2">ref </span>args) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;Unknown {} with operands {:?}&quot;</span>, opcode, args)
+            <a href="#371">LineInstruction::UnknownStandardN</a>(opcode, <span class="kw-2">ref </span>args) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;Unknown {} with operands {:?}&quot;</span>, opcode, args)
             }
-            <a href="../../../src/gimli/read/line.rs.html#380">LineInstruction::EndSequence</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNE_end_sequence),
-            <a href="../../../src/gimli/read/line.rs.html#390">LineInstruction::SetAddress</a>(address) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNE_set_address, address)
+            <a href="#380">LineInstruction::EndSequence</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNE_end_sequence),
+            <a href="#390">LineInstruction::SetAddress</a>(address) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNE_set_address, address)
             }
-            <a href="../../../src/gimli/read/line.rs.html#394">LineInstruction::DefineFile</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNE_define_file),
-            <a href="../../../src/gimli/read/line.rs.html#399">LineInstruction::SetDiscriminator</a>(discr) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNE_set_discriminator, discr)
+            <a href="#394">LineInstruction::DefineFile</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{}&quot;</span>, constants::DW_LNE_define_file),
+            <a href="#399">LineInstruction::SetDiscriminator</a>(discr) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;{} to {}&quot;</span>, constants::DW_LNE_set_discriminator, discr)
             }
-            <a href="../../../src/gimli/read/line.rs.html#402">LineInstruction::UnknownExtended</a>(opcode, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/gimli/read/line.rs.html#528">f</a>, <span class="string">&quot;Unknown {}&quot;</span>, opcode),
+            <a href="#402">LineInstruction::UnknownExtended</a>(opcode, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#528">f</a>, <span class="string">&quot;Unknown {}&quot;</span>, opcode),
         }
     }
 }
@@ -3612,20 +3612,20 @@
 /// [`LineProgramHeader::instructions`](./struct.LineProgramHeader.html#method.instructions)
 /// for more details.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>LineInstructions&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>LineInstructions&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
     input: R,
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; LineInstructions&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; LineInstructions&lt;R&gt; {
     <span class="kw">fn </span>remove_trailing(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>LineInstructions&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;LineInstructions&lt;R&gt;&gt; {
-        <span class="kw">let </span>offset = <a href="../../../src/gimli/read/line.rs.html#590">other</a>.input.<a href="../../../src/gimli/read/reader.rs.html#239">offset_from</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#590">self</a>.input);
-        <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="self" href="../../../src/gimli/read/line.rs.html#590">self</a>.input.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>offset = <a href="#590">other</a>.input.<a href="reader.rs.html#239">offset_from</a>(<span class="kw-2">&amp;</span><a class="self" href="#590">self</a>.input);
+        <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="self" href="#590">self</a>.input.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         input.truncate(offset)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#585">LineInstructions</a> { <a href="../../../src/gimli/read/line.rs.html#592">input</a> })
+        <span class="prelude-val">Ok</span>(<a href="#585">LineInstructions</a> { <a href="#592">input</a> })
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; LineInstructions&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; LineInstructions&lt;R&gt; {
     <span class="doccomment">/// Advance the iterator and return the next instruction.
     ///
     /// Returns the newly parsed instruction as `Ok(Some(instruction))`. Returns
@@ -3646,11 +3646,11 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">match </span>LineInstruction::parse(<a href="../../../src/gimli/read/line.rs.html#613">header</a>, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/line.rs.html#612">self</a>.input) {
-            <span class="prelude-val">Ok</span>(instruction) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/line.rs.html#620">instruction</a>)),
+        <span class="kw">match </span>LineInstruction::parse(<a href="#613">header</a>, <span class="kw-2">&amp;mut </span><a class="self" href="#612">self</a>.input) {
+            <span class="prelude-val">Ok</span>(instruction) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#620">instruction</a>)),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#612">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/line.rs.html#621">e</a>)
+                <a class="self" href="#612">self</a>.input.<a href="reader.rs.html#229">empty</a>();
+                <span class="prelude-val">Err</span>(<a href="#621">e</a>)
             }
         }
     }
@@ -3658,7 +3658,7 @@
 
 <span class="doccomment">/// Deprecated. `LineNumberRow` has been renamed to `LineRow`.
 </span><span class="attribute">#[deprecated(note = <span class="string">&quot;LineNumberRow has been renamed to LineRow, use that instead.&quot;</span>)]
-</span><span class="kw">pub type </span>LineNumberRow = <a href="../../../src/gimli/read/line.rs.html#637">LineRow</a>;
+</span><span class="kw">pub type </span>LineNumberRow = <a href="#637">LineRow</a>;
 
 <span class="doccomment">/// A row in the line number program&#39;s resulting matrix.
 ///
@@ -3679,10 +3679,10 @@
     discriminator: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/line.rs.html#637">LineRow</a> {
+<span class="kw">impl </span><a href="#637">LineRow</a> {
     <span class="doccomment">/// Create a line number row in the initial state for the given program.
-    </span><span class="kw">pub fn </span>new&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/gimli/read/line.rs.html#637">LineRow</a> {
+    </span><span class="kw">pub fn </span>new&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) -&gt; <span class="self">Self </span>{
+        <a href="#637">LineRow</a> {
             <span class="comment">// &quot;At the beginning of each sequence within a line number program, the
             // state of the registers is:&quot; -- Section 6.2.2
             </span>address: Wrapping(<span class="number">0</span>),
@@ -3691,7 +3691,7 @@
             line: Wrapping(<span class="number">1</span>),
             column: <span class="number">0</span>,
             <span class="comment">// &quot;determined by default_is_stmt in the line number program header&quot;
-            </span>is_stmt: <a href="../../../src/gimli/read/line.rs.html#654">header</a>.line_encoding.default_is_stmt,
+            </span>is_stmt: <a href="#654">header</a>.line_encoding.default_is_stmt,
             basic_block: <span class="bool-val">false</span>,
             end_sequence: <span class="bool-val">false</span>,
             prologue_end: <span class="bool-val">false</span>,
@@ -3709,7 +3709,7 @@
     /// generated by the compiler.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#681">self</a>.address.<span class="number">0
+        <a class="self" href="#681">self</a>.address.<span class="number">0
     </span>}
 
     <span class="doccomment">/// &gt; An unsigned integer representing the index of an operation within a VLIW
@@ -3721,23 +3721,23 @@
     /// &gt; instruction stream.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>op_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#693">self</a>.op_index.<span class="number">0
+        <a class="self" href="#693">self</a>.op_index.<span class="number">0
     </span>}
 
     <span class="doccomment">/// &quot;An unsigned integer indicating the identity of the source file
     /// corresponding to a machine instruction.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>file_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#700">self</a>.file
+        <a class="self" href="#700">self</a>.file
     }
 
     <span class="doccomment">/// The source file corresponding to the current machine instruction.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>file&lt;<span class="lifetime">&#39;header</span>, R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+    </span><span class="kw">pub fn </span>file&lt;<span class="lifetime">&#39;header</span>, R: <a href="reader.rs.html#215">Reader</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;header </span>LineProgramHeader&lt;R&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;header </span>FileEntry&lt;R&gt;&gt; {
-        <a href="../../../src/gimli/read/line.rs.html#708">header</a>.<a href="../../../src/gimli/read/line.rs.html#1238">file</a>(<a class="self" href="../../../src/gimli/read/line.rs.html#707">self</a>.file)
+        <a href="#708">header</a>.<a href="#1238">file</a>(<a class="self" href="#707">self</a>.file)
     }
 
     <span class="doccomment">/// &quot;An unsigned integer indicating a source line number. Lines are numbered
@@ -3746,17 +3746,17 @@
     /// Line number values of 0 are represented as `None`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a>&gt; {
-        NonZeroU64::new(<a class="self" href="../../../src/gimli/read/line.rs.html#718">self</a>.line.<span class="number">0</span>)
+        NonZeroU64::new(<a class="self" href="#718">self</a>.line.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// &quot;An unsigned integer indicating a column number within a source
     /// line. Columns are numbered beginning at 1. The value 0 is reserved to
     /// indicate that a statement begins at the “left edge” of the line.&quot;
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>column(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/read/line.rs.html#989">ColumnType</a> {
-        NonZeroU64::new(<a class="self" href="../../../src/gimli/read/line.rs.html#726">self</a>.column)
-            .map(<a href="../../../src/gimli/read/line.rs.html#994">ColumnType::Column</a>)
-            .unwrap_or(<a href="../../../src/gimli/read/line.rs.html#992">ColumnType::LeftEdge</a>)
+    </span><span class="kw">pub fn </span>column(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#989">ColumnType</a> {
+        NonZeroU64::new(<a class="self" href="#726">self</a>.column)
+            .map(<a href="#994">ColumnType::Column</a>)
+            .unwrap_or(<a href="#992">ColumnType::LeftEdge</a>)
     }
 
     <span class="doccomment">/// &quot;A boolean indicating that the current instruction is a recommended
@@ -3765,14 +3765,14 @@
     /// of a statement.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#737">self</a>.is_stmt
+        <a class="self" href="#737">self</a>.is_stmt
     }
 
     <span class="doccomment">/// &quot;A boolean indicating that the current instruction is the beginning of a
     /// basic block.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#744">self</a>.basic_block
+        <a class="self" href="#744">self</a>.basic_block
     }
 
     <span class="doccomment">/// &quot;A boolean indicating that the current address is that of the first byte
@@ -3781,7 +3781,7 @@
     /// row is not meaningful.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>end_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#753">self</a>.end_sequence
+        <a class="self" href="#753">self</a>.end_sequence
     }
 
     <span class="doccomment">/// &quot;A boolean indicating that the current address is one (of possibly many)
@@ -3789,7 +3789,7 @@
     /// function.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>prologue_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#761">self</a>.prologue_end
+        <a class="self" href="#761">self</a>.prologue_end
     }
 
     <span class="doccomment">/// &quot;A boolean indicating that the current address is one (of possibly many)
@@ -3797,7 +3797,7 @@
     /// function.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>epilogue_begin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#769">self</a>.epilogue_begin
+        <a class="self" href="#769">self</a>.epilogue_begin
     }
 
     <span class="doccomment">/// Tag for the current instruction set architecture.
@@ -3810,7 +3810,7 @@
     /// &gt; the ABI authoring committee for each architecture.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>isa(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#782">self</a>.isa
+        <a class="self" href="#782">self</a>.isa
     }
 
     <span class="doccomment">/// &quot;An unsigned integer identifying the block to which the current
@@ -3821,7 +3821,7 @@
     /// value should be zero.&quot;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>discriminator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#793">self</a>.discriminator
+        <a class="self" href="#793">self</a>.discriminator
     }
 
     <span class="doccomment">/// Execute the given instruction, and return true if a new row in the
@@ -3836,181 +3836,181 @@
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>
     <span class="kw">where
         </span>Program: LineProgram&lt;R&gt;,
-        R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+        R: <a href="reader.rs.html#215">Reader</a>,
     {
-        <span class="kw">match </span><a href="../../../src/gimli/read/line.rs.html#804">instruction</a> {
-            <a href="../../../src/gimli/read/line.rs.html#299">LineInstruction::Special</a>(opcode) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.<a href="../../../src/gimli/read/line.rs.html#971">exec_special_opcode</a>(<a href="../../../src/gimli/read/line.rs.html#812">opcode</a>, <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#137">header</a>());
+        <span class="kw">match </span><a href="#804">instruction</a> {
+            <a href="#299">LineInstruction::Special</a>(opcode) =&gt; {
+                <a class="self" href="#803">self</a>.<a href="#971">exec_special_opcode</a>(<a href="#812">opcode</a>, <a href="#805">program</a>.<a href="#137">header</a>());
                 <span class="bool-val">true
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#305">LineInstruction::Copy</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#305">LineInstruction::Copy</a> =&gt; <span class="bool-val">true</span>,
 
-            <a href="../../../src/gimli/read/line.rs.html#310">LineInstruction::AdvancePc</a>(operation_advance) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.<a href="../../../src/gimli/read/line.rs.html#940-944">apply_operation_advance</a>(<a href="../../../src/gimli/read/line.rs.html#819">operation_advance</a>, <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#137">header</a>());
+            <a href="#310">LineInstruction::AdvancePc</a>(operation_advance) =&gt; {
+                <a class="self" href="#803">self</a>.<a href="#940-944">apply_operation_advance</a>(<a href="#819">operation_advance</a>, <a href="#805">program</a>.<a href="#137">header</a>());
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#314">LineInstruction::AdvanceLine</a>(line_increment) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.<a href="../../../src/gimli/read/line.rs.html#926">apply_line_advance</a>(<a href="../../../src/gimli/read/line.rs.html#824">line_increment</a>);
+            <a href="#314">LineInstruction::AdvanceLine</a>(line_increment) =&gt; {
+                <a class="self" href="#803">self</a>.<a href="#926">apply_line_advance</a>(<a href="#824">line_increment</a>);
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#318">LineInstruction::SetFile</a>(file) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.file = <a href="../../../src/gimli/read/line.rs.html#829">file</a>;
+            <a href="#318">LineInstruction::SetFile</a>(file) =&gt; {
+                <a class="self" href="#803">self</a>.file = <a href="#829">file</a>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#322">LineInstruction::SetColumn</a>(column) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.column = <a href="../../../src/gimli/read/line.rs.html#834">column</a>;
+            <a href="#322">LineInstruction::SetColumn</a>(column) =&gt; {
+                <a class="self" href="#803">self</a>.column = <a href="#834">column</a>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#327">LineInstruction::NegateStatement</a> =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.is_stmt = !<a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.is_stmt;
+            <a href="#327">LineInstruction::NegateStatement</a> =&gt; {
+                <a class="self" href="#803">self</a>.is_stmt = !<a class="self" href="#803">self</a>.is_stmt;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#331">LineInstruction::SetBasicBlock</a> =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.basic_block = <span class="bool-val">true</span>;
+            <a href="#331">LineInstruction::SetBasicBlock</a> =&gt; {
+                <a class="self" href="#803">self</a>.basic_block = <span class="bool-val">true</span>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#344">LineInstruction::ConstAddPc</a> =&gt; {
-                <span class="kw">let </span>adjusted = <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.<a href="../../../src/gimli/read/line.rs.html#966">adjust_opcode</a>(<span class="number">255</span>, <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#137">header</a>());
-                <span class="kw">let </span>operation_advance = <a href="../../../src/gimli/read/line.rs.html#850">adjusted</a> / <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#137">header</a>().line_encoding.line_range;
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.<a href="../../../src/gimli/read/line.rs.html#940-944">apply_operation_advance</a>(u64::from(<a href="../../../src/gimli/read/line.rs.html#851">operation_advance</a>), <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#137">header</a>());
+            <a href="#344">LineInstruction::ConstAddPc</a> =&gt; {
+                <span class="kw">let </span>adjusted = <a class="self" href="#803">self</a>.<a href="#966">adjust_opcode</a>(<span class="number">255</span>, <a href="#805">program</a>.<a href="#137">header</a>());
+                <span class="kw">let </span>operation_advance = <a href="#850">adjusted</a> / <a href="#805">program</a>.<a href="#137">header</a>().line_encoding.line_range;
+                <a class="self" href="#803">self</a>.<a href="#940-944">apply_operation_advance</a>(u64::from(<a href="#851">operation_advance</a>), <a href="#805">program</a>.<a href="#137">header</a>());
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#351">LineInstruction::FixedAddPc</a>(operand) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.address += Wrapping(u64::from(<a href="../../../src/gimli/read/line.rs.html#856">operand</a>));
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
+            <a href="#351">LineInstruction::FixedAddPc</a>(operand) =&gt; {
+                <a class="self" href="#803">self</a>.address += Wrapping(u64::from(<a href="#856">operand</a>));
+                <a class="self" href="#803">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#354">LineInstruction::SetPrologueEnd</a> =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.prologue_end = <span class="bool-val">true</span>;
+            <a href="#354">LineInstruction::SetPrologueEnd</a> =&gt; {
+                <a class="self" href="#803">self</a>.prologue_end = <span class="bool-val">true</span>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#358">LineInstruction::SetEpilogueBegin</a> =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.epilogue_begin = <span class="bool-val">true</span>;
+            <a href="#358">LineInstruction::SetEpilogueBegin</a> =&gt; {
+                <a class="self" href="#803">self</a>.epilogue_begin = <span class="bool-val">true</span>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#362">LineInstruction::SetIsa</a>(isa) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.isa = <a href="../../../src/gimli/read/line.rs.html#872">isa</a>;
+            <a href="#362">LineInstruction::SetIsa</a>(isa) =&gt; {
+                <a class="self" href="#803">self</a>.isa = <a href="#872">isa</a>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#380">LineInstruction::EndSequence</a> =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.end_sequence = <span class="bool-val">true</span>;
+            <a href="#380">LineInstruction::EndSequence</a> =&gt; {
+                <a class="self" href="#803">self</a>.end_sequence = <span class="bool-val">true</span>;
                 <span class="bool-val">true
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#390">LineInstruction::SetAddress</a>(address) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.address.<span class="number">0 </span>= <a href="../../../src/gimli/read/line.rs.html#882">address</a>;
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
+            <a href="#390">LineInstruction::SetAddress</a>(address) =&gt; {
+                <a class="self" href="#803">self</a>.address.<span class="number">0 </span>= <a href="#882">address</a>;
+                <a class="self" href="#803">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#394">LineInstruction::DefineFile</a>(entry) =&gt; {
-                <a href="../../../src/gimli/read/line.rs.html#805">program</a>.<a href="../../../src/gimli/read/line.rs.html#139">add_file</a>(<a href="../../../src/gimli/read/line.rs.html#888">entry</a>);
+            <a href="#394">LineInstruction::DefineFile</a>(entry) =&gt; {
+                <a href="#805">program</a>.<a href="#139">add_file</a>(<a href="#888">entry</a>);
                 <span class="bool-val">false
             </span>}
 
-            <a href="../../../src/gimli/read/line.rs.html#399">LineInstruction::SetDiscriminator</a>(discriminator) =&gt; {
-                <a class="self" href="../../../src/gimli/read/line.rs.html#803">self</a>.discriminator = <a href="../../../src/gimli/read/line.rs.html#893">discriminator</a>;
+            <a href="#399">LineInstruction::SetDiscriminator</a>(discriminator) =&gt; {
+                <a class="self" href="#803">self</a>.discriminator = <a href="#893">discriminator</a>;
                 <span class="bool-val">false
             </span>}
 
             <span class="comment">// Compatibility with future opcodes.
-            </span><a href="../../../src/gimli/read/line.rs.html#365">LineInstruction::UnknownStandard0</a>(<span class="kw">_</span>)
-            | <a href="../../../src/gimli/read/line.rs.html#368">LineInstruction::UnknownStandard1</a>(<span class="kw">_</span>, <span class="kw">_</span>)
-            | <a href="../../../src/gimli/read/line.rs.html#371">LineInstruction::UnknownStandardN</a>(<span class="kw">_</span>, <span class="kw">_</span>)
-            | <a href="../../../src/gimli/read/line.rs.html#402">LineInstruction::UnknownExtended</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            </span><a href="#365">LineInstruction::UnknownStandard0</a>(<span class="kw">_</span>)
+            | <a href="#368">LineInstruction::UnknownStandard1</a>(<span class="kw">_</span>, <span class="kw">_</span>)
+            | <a href="#371">LineInstruction::UnknownStandardN</a>(<span class="kw">_</span>, <span class="kw">_</span>)
+            | <a href="#402">LineInstruction::UnknownExtended</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Perform any reset that was required after copying the previous row.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>reset&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) {
+    </span><span class="kw">pub fn </span>reset&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) {
         <span class="kw">if </span><span class="self">self</span>.end_sequence {
             <span class="comment">// Previous instruction was EndSequence, so reset everything
             // as specified in Section 6.2.5.3.
-            </span><span class="kw-2">*</span><span class="self"><a href="../../../src/gimli/read/line.rs.html#908">self</a> </span>= <span class="self">Self</span>::new(<a href="../../../src/gimli/read/line.rs.html#908">header</a>);
+            </span><span class="kw-2">*</span><span class="self"><a href="#908">self</a> </span>= <span class="self">Self</span>::new(<a href="#908">header</a>);
         } <span class="kw">else </span>{
             <span class="comment">// Previous instruction was one of:
             // - Special - specified in Section 6.2.5.1, steps 4-7
             // - Copy - specified in Section 6.2.5.2
             // The reset behaviour is the same in both cases.
-            </span><a class="self" href="../../../src/gimli/read/line.rs.html#908">self</a>.discriminator = <span class="number">0</span>;
-            <a class="self" href="../../../src/gimli/read/line.rs.html#908">self</a>.basic_block = <span class="bool-val">false</span>;
-            <a class="self" href="../../../src/gimli/read/line.rs.html#908">self</a>.prologue_end = <span class="bool-val">false</span>;
-            <a class="self" href="../../../src/gimli/read/line.rs.html#908">self</a>.epilogue_begin = <span class="bool-val">false</span>;
+            </span><a class="self" href="#908">self</a>.discriminator = <span class="number">0</span>;
+            <a class="self" href="#908">self</a>.basic_block = <span class="bool-val">false</span>;
+            <a class="self" href="#908">self</a>.prologue_end = <span class="bool-val">false</span>;
+            <a class="self" href="#908">self</a>.epilogue_begin = <span class="bool-val">false</span>;
         }
     }
 
     <span class="doccomment">/// Step 1 of section 6.2.5.1
     </span><span class="kw">fn </span>apply_line_advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, line_increment: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>) {
         <span class="kw">if </span>line_increment &lt; <span class="number">0 </span>{
-            <span class="kw">let </span>decrement = -<a href="../../../src/gimli/read/line.rs.html#926">line_increment</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
+            <span class="kw">let </span>decrement = -<a href="#926">line_increment</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
             <span class="kw">if </span>decrement &lt;= <span class="self">self</span>.line.<span class="number">0 </span>{
-                <a class="self" href="../../../src/gimli/read/line.rs.html#926">self</a>.line.<span class="number">0 </span>-= <a href="../../../src/gimli/read/line.rs.html#928">decrement</a>;
+                <a class="self" href="#926">self</a>.line.<span class="number">0 </span>-= <a href="#928">decrement</a>;
             } <span class="kw">else </span>{
-                <a class="self" href="../../../src/gimli/read/line.rs.html#926">self</a>.line.<span class="number">0 </span>= <span class="number">0</span>;
+                <a class="self" href="#926">self</a>.line.<span class="number">0 </span>= <span class="number">0</span>;
             }
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/gimli/read/line.rs.html#926">self</a>.line += Wrapping(<a href="../../../src/gimli/read/line.rs.html#926">line_increment</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>);
+            <a class="self" href="#926">self</a>.line += Wrapping(<a href="#926">line_increment</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>);
         }
     }
 
     <span class="doccomment">/// Step 2 of section 6.2.5.1
-    </span><span class="kw">fn </span>apply_operation_advance&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+    </span><span class="kw">fn </span>apply_operation_advance&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         operation_advance: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
         header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;,
     ) {
-        <span class="kw">let </span>operation_advance = Wrapping(<a href="../../../src/gimli/read/line.rs.html#942">operation_advance</a>);
+        <span class="kw">let </span>operation_advance = Wrapping(<a href="#942">operation_advance</a>);
 
-        <span class="kw">let </span>minimum_instruction_length = u64::from(<a href="../../../src/gimli/read/line.rs.html#943">header</a>.line_encoding.minimum_instruction_length);
-        <span class="kw">let </span>minimum_instruction_length = Wrapping(<a href="../../../src/gimli/read/line.rs.html#947">minimum_instruction_length</a>);
+        <span class="kw">let </span>minimum_instruction_length = u64::from(<a href="#943">header</a>.line_encoding.minimum_instruction_length);
+        <span class="kw">let </span>minimum_instruction_length = Wrapping(<a href="#947">minimum_instruction_length</a>);
 
         <span class="kw">let </span>maximum_operations_per_instruction =
-            u64::from(<a href="../../../src/gimli/read/line.rs.html#943">header</a>.line_encoding.maximum_operations_per_instruction);
-        <span class="kw">let </span>maximum_operations_per_instruction = Wrapping(<a href="../../../src/gimli/read/line.rs.html#950">maximum_operations_per_instruction</a>);
+            u64::from(<a href="#943">header</a>.line_encoding.maximum_operations_per_instruction);
+        <span class="kw">let </span>maximum_operations_per_instruction = Wrapping(<a href="#950">maximum_operations_per_instruction</a>);
 
         <span class="kw">if </span>maximum_operations_per_instruction.<span class="number">0 </span>== <span class="number">1 </span>{
-            <a class="self" href="../../../src/gimli/read/line.rs.html#941">self</a>.address += <a href="../../../src/gimli/read/line.rs.html#948">minimum_instruction_length</a> * <a href="../../../src/gimli/read/line.rs.html#945">operation_advance</a>;
-            <a class="self" href="../../../src/gimli/read/line.rs.html#941">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
+            <a class="self" href="#941">self</a>.address += <a href="#948">minimum_instruction_length</a> * <a href="#945">operation_advance</a>;
+            <a class="self" href="#941">self</a>.op_index.<span class="number">0 </span>= <span class="number">0</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span>op_index_with_advance = <a class="self" href="../../../src/gimli/read/line.rs.html#941">self</a>.op_index + <a href="../../../src/gimli/read/line.rs.html#945">operation_advance</a>;
-            <a class="self" href="../../../src/gimli/read/line.rs.html#941">self</a>.address += <a href="../../../src/gimli/read/line.rs.html#948">minimum_instruction_length</a>
-                * (<a href="../../../src/gimli/read/line.rs.html#958">op_index_with_advance</a> / <a href="../../../src/gimli/read/line.rs.html#952">maximum_operations_per_instruction</a>);
-            <a class="self" href="../../../src/gimli/read/line.rs.html#941">self</a>.op_index = <a href="../../../src/gimli/read/line.rs.html#958">op_index_with_advance</a> % <a href="../../../src/gimli/read/line.rs.html#952">maximum_operations_per_instruction</a>;
+            <span class="kw">let </span>op_index_with_advance = <a class="self" href="#941">self</a>.op_index + <a href="#945">operation_advance</a>;
+            <a class="self" href="#941">self</a>.address += <a href="#948">minimum_instruction_length</a>
+                * (<a href="#958">op_index_with_advance</a> / <a href="#952">maximum_operations_per_instruction</a>);
+            <a class="self" href="#941">self</a>.op_index = <a href="#958">op_index_with_advance</a> % <a href="#952">maximum_operations_per_instruction</a>;
         }
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>adjust_opcode&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, opcode: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a href="../../../src/gimli/read/line.rs.html#966">opcode</a> - <a href="../../../src/gimli/read/line.rs.html#966">header</a>.opcode_base
+    </span><span class="kw">fn </span>adjust_opcode&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, opcode: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+        <a href="#966">opcode</a> - <a href="#966">header</a>.opcode_base
     }
 
     <span class="doccomment">/// Section 6.2.5.1
-    </span><span class="kw">fn </span>exec_special_opcode&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) {
-        <span class="kw">let </span>adjusted_opcode = <a class="self" href="../../../src/gimli/read/line.rs.html#971">self</a>.<a href="../../../src/gimli/read/line.rs.html#966">adjust_opcode</a>(<a href="../../../src/gimli/read/line.rs.html#971">opcode</a>, <a href="../../../src/gimli/read/line.rs.html#971">header</a>);
+    </span><span class="kw">fn </span>exec_special_opcode&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) {
+        <span class="kw">let </span>adjusted_opcode = <a class="self" href="#971">self</a>.<a href="#966">adjust_opcode</a>(<a href="#971">opcode</a>, <a href="#971">header</a>);
 
-        <span class="kw">let </span>line_range = <a href="../../../src/gimli/read/line.rs.html#971">header</a>.line_encoding.line_range;
-        <span class="kw">let </span>line_advance = <a href="../../../src/gimli/read/line.rs.html#972">adjusted_opcode</a> % <a href="../../../src/gimli/read/line.rs.html#974">line_range</a>;
-        <span class="kw">let </span>operation_advance = <a href="../../../src/gimli/read/line.rs.html#972">adjusted_opcode</a> / <a href="../../../src/gimli/read/line.rs.html#974">line_range</a>;
+        <span class="kw">let </span>line_range = <a href="#971">header</a>.line_encoding.line_range;
+        <span class="kw">let </span>line_advance = <a href="#972">adjusted_opcode</a> % <a href="#974">line_range</a>;
+        <span class="kw">let </span>operation_advance = <a href="#972">adjusted_opcode</a> / <a href="#974">line_range</a>;
 
         <span class="comment">// Step 1
-        </span><span class="kw">let </span>line_base = i64::from(<a href="../../../src/gimli/read/line.rs.html#971">header</a>.line_encoding.line_base);
-        <a class="self" href="../../../src/gimli/read/line.rs.html#971">self</a>.<a href="../../../src/gimli/read/line.rs.html#926">apply_line_advance</a>(<a href="../../../src/gimli/read/line.rs.html#979">line_base</a> + i64::from(<a href="../../../src/gimli/read/line.rs.html#975">line_advance</a>));
+        </span><span class="kw">let </span>line_base = i64::from(<a href="#971">header</a>.line_encoding.line_base);
+        <a class="self" href="#971">self</a>.<a href="#926">apply_line_advance</a>(<a href="#979">line_base</a> + i64::from(<a href="#975">line_advance</a>));
 
         <span class="comment">// Step 2
-        </span><a class="self" href="../../../src/gimli/read/line.rs.html#971">self</a>.<a href="../../../src/gimli/read/line.rs.html#940-944">apply_operation_advance</a>(u64::from(<a href="../../../src/gimli/read/line.rs.html#976">operation_advance</a>), <a href="../../../src/gimli/read/line.rs.html#971">header</a>);
+        </span><a class="self" href="#971">self</a>.<a href="#940-944">apply_operation_advance</a>(u64::from(<a href="#976">operation_advance</a>), <a href="#971">header</a>);
     }
 }
 
@@ -4032,7 +4032,7 @@
 /// 6.2.5 of the standard, is a linear subset of a line number program within
 /// which addresses are monotonically increasing.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>LineSequence&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub struct </span>LineSequence&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
     <span class="doccomment">/// The first address that is covered by this sequence within the line number
     /// program.
     </span><span class="kw">pub </span>start: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
@@ -4054,15 +4054,15 @@
 </span><span class="kw">pub struct </span>LineProgramHeader&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
-    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+    encoding: <a href="../common.rs.html#37">Encoding</a>,
     offset: DebugLineOffset&lt;Offset&gt;,
     unit_length: Offset,
 
     header_length: Offset,
 
-    line_encoding: <a href="../../../src/gimli/common.rs.html#52">LineEncoding</a>,
+    line_encoding: <a href="../common.rs.html#52">LineEncoding</a>,
 
     <span class="doccomment">/// &quot;The number assigned to the first special opcode.&quot;
     </span>opcode_base: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
@@ -4074,7 +4074,7 @@
     </span>standard_opcode_lengths: R,
 
     <span class="doccomment">/// &quot;A sequence of directory entry format descriptions.&quot;
-    </span>directory_entry_format: Vec&lt;<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>&gt;,
+    </span>directory_entry_format: Vec&lt;<a href="#1675">FileEntryFormat</a>&gt;,
 
     <span class="doccomment">/// &gt; Entries in this sequence describe each path that was searched for
     /// &gt; included source files in this compilation. (The paths include those
@@ -4087,7 +4087,7 @@
     </span>include_directories: Vec&lt;AttributeValue&lt;R, Offset&gt;&gt;,
 
     <span class="doccomment">/// &quot;A sequence of file entry format descriptions.&quot;
-    </span>file_name_entry_format: Vec&lt;<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>&gt;,
+    </span>file_name_entry_format: Vec&lt;<a href="#1675">FileEntryFormat</a>&gt;,
 
     <span class="doccomment">/// &quot;Entries in this sequence describe source files that contribute to the
     /// line number information for this compilation unit or is used in other
@@ -4107,92 +4107,92 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; LineProgramHeader&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// Return the offset of the line number program header in the `.debug_line` section.
     </span><span class="kw">pub fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugLineOffset&lt;R::Offset&gt; {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1083">self</a>.offset
+        <a class="self" href="#1083">self</a>.offset
     }
 
     <span class="doccomment">/// Return the length of the line number program and header, not including
     /// the length of the encoded length itself.
     </span><span class="kw">pub fn </span>unit_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; R::Offset {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1089">self</a>.unit_length
+        <a class="self" href="#1089">self</a>.unit_length
     }
 
     <span class="doccomment">/// Return the encoding parameters for this header&#39;s line program.
-    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1094">self</a>.encoding
+    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#37">Encoding</a> {
+        <a class="self" href="#1094">self</a>.encoding
     }
 
     <span class="doccomment">/// Get the version of this header&#39;s line program.
     </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1099">self</a>.encoding.version
+        <a class="self" href="#1099">self</a>.encoding.version
     }
 
     <span class="doccomment">/// Get the length of the encoded line number program header, not including
     /// the length of the encoded length itself.
     </span><span class="kw">pub fn </span>header_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; R::Offset {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1105">self</a>.header_length
+        <a class="self" href="#1105">self</a>.header_length
     }
 
     <span class="doccomment">/// Get the size in bytes of a target machine address.
     </span><span class="kw">pub fn </span>address_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1110">self</a>.encoding.address_size
+        <a class="self" href="#1110">self</a>.encoding.address_size
     }
 
     <span class="doccomment">/// Whether this line program is encoded in 64- or 32-bit DWARF.
-    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/common.rs.html#3">Format</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1115">self</a>.encoding.format
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#3">Format</a> {
+        <a class="self" href="#1115">self</a>.encoding.format
     }
 
     <span class="doccomment">/// Get the line encoding parameters for this header&#39;s line program.
-    </span><span class="kw">pub fn </span>line_encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/common.rs.html#52">LineEncoding</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1120">self</a>.line_encoding
+    </span><span class="kw">pub fn </span>line_encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../common.rs.html#52">LineEncoding</a> {
+        <a class="self" href="#1120">self</a>.line_encoding
     }
 
     <span class="doccomment">/// Get the minimum instruction length any instruction in this header&#39;s line
     /// program may have.
     </span><span class="kw">pub fn </span>minimum_instruction_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1126">self</a>.line_encoding.minimum_instruction_length
+        <a class="self" href="#1126">self</a>.line_encoding.minimum_instruction_length
     }
 
     <span class="doccomment">/// Get the maximum number of operations each instruction in this header&#39;s
     /// line program may have.
     </span><span class="kw">pub fn </span>maximum_operations_per_instruction(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1132">self</a>.line_encoding.maximum_operations_per_instruction
+        <a class="self" href="#1132">self</a>.line_encoding.maximum_operations_per_instruction
     }
 
     <span class="doccomment">/// Get the default value of the `is_stmt` register for this header&#39;s line
     /// program.
     </span><span class="kw">pub fn </span>default_is_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1138">self</a>.line_encoding.default_is_stmt
+        <a class="self" href="#1138">self</a>.line_encoding.default_is_stmt
     }
 
     <span class="doccomment">/// Get the line base for this header&#39;s line program.
     </span><span class="kw">pub fn </span>line_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1143">self</a>.line_encoding.line_base
+        <a class="self" href="#1143">self</a>.line_encoding.line_base
     }
 
     <span class="doccomment">/// Get the line range for this header&#39;s line program.
     </span><span class="kw">pub fn </span>line_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1148">self</a>.line_encoding.line_range
+        <a class="self" href="#1148">self</a>.line_encoding.line_range
     }
 
     <span class="doccomment">/// Get opcode base for this header&#39;s line program.
     </span><span class="kw">pub fn </span>opcode_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1153">self</a>.opcode_base
+        <a class="self" href="#1153">self</a>.opcode_base
     }
 
     <span class="doccomment">/// An array of `u8` that specifies the number of LEB128 operands for
     /// each of the standard opcodes.
     </span><span class="kw">pub fn </span>standard_opcode_lengths(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1159">self</a>.standard_opcode_lengths
+        <span class="kw-2">&amp;</span><a class="self" href="#1159">self</a>.standard_opcode_lengths
     }
 
     <span class="doccomment">/// Get the format of a directory entry.
-    </span><span class="kw">pub fn </span>directory_entry_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1164">self</a>.directory_entry_format[..]
+    </span><span class="kw">pub fn </span>directory_entry_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#1675">FileEntryFormat</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="#1164">self</a>.directory_entry_format[..]
     }
 
     <span class="doccomment">/// Get the set of include directories for this header&#39;s line program.
@@ -4200,7 +4200,7 @@
     /// For DWARF version &lt;= 4, the compilation&#39;s current directory is not included
     /// in the return value, but is implicitly considered to be in the set per spec.
     </span><span class="kw">pub fn </span>include_directories(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[AttributeValue&lt;R, Offset&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1172">self</a>.include_directories[..]
+        <span class="kw-2">&amp;</span><a class="self" href="#1172">self</a>.include_directories[..]
     }
 
     <span class="doccomment">/// The include directory with the given directory index.
@@ -4209,19 +4209,19 @@
     </span><span class="kw">pub fn </span>directory(<span class="kw-2">&amp;</span><span class="self">self</span>, directory: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;AttributeValue&lt;R, Offset&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.encoding.version &lt;= <span class="number">4 </span>{
             <span class="kw">if </span>directory == <span class="number">0 </span>{
-                <a class="self" href="../../../src/gimli/read/line.rs.html#1179">self</a>.comp_dir.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().map(<a href="../../../src/gimli/read/unit.rs.html#1072">AttributeValue::String</a>)
+                <a class="self" href="#1179">self</a>.comp_dir.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().map(<a href="unit.rs.html#1072">AttributeValue::String</a>)
             } <span class="kw">else </span>{
-                <span class="kw">let </span>directory = <a href="../../../src/gimli/read/line.rs.html#1179">directory</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> - <span class="number">1</span>;
-                <a class="self" href="../../../src/gimli/read/line.rs.html#1179">self</a>.include_directories.get(<a href="../../../src/gimli/read/line.rs.html#1184">directory</a>).cloned()
+                <span class="kw">let </span>directory = <a href="#1179">directory</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> - <span class="number">1</span>;
+                <a class="self" href="#1179">self</a>.include_directories.get(<a href="#1184">directory</a>).cloned()
             }
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/gimli/read/line.rs.html#1179">self</a>.include_directories.get(<a href="../../../src/gimli/read/line.rs.html#1179">directory</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).cloned()
+            <a class="self" href="#1179">self</a>.include_directories.get(<a href="#1179">directory</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).cloned()
         }
     }
 
     <span class="doccomment">/// Get the format of a file name entry.
-    </span><span class="kw">pub fn </span>file_name_entry_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1193">self</a>.file_name_entry_format[..]
+    </span><span class="kw">pub fn </span>file_name_entry_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#1675">FileEntryFormat</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="#1193">self</a>.file_name_entry_format[..]
     }
 
     <span class="doccomment">/// Return true if the file entries may have valid timestamps.
@@ -4229,11 +4229,11 @@
     /// Only returns false if we definitely know that all timestamp fields
     /// are invalid.
     </span><span class="kw">pub fn </span>file_has_timestamp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1201">self</a>.encoding.version &lt;= <span class="number">4
-            </span>|| <span class="self"><a href="../../../src/gimli/read/line.rs.html#1201">self</a>
+        <a class="self" href="#1201">self</a>.encoding.version &lt;= <span class="number">4
+            </span>|| <span class="self"><a href="#1201">self</a>
                 </span>.file_name_entry_format
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="../../../src/gimli/read/line.rs.html#1206">x</a>.content_type == <a href="../../../src/gimli/constants.rs.html#1035-1047">constants::DW_LNCT_timestamp</a>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="#1206">x</a>.content_type == <a href="../constants.rs.html#1035-1047">constants::DW_LNCT_timestamp</a>)
     }
 
     <span class="doccomment">/// Return true if the file entries may have valid sizes.
@@ -4241,23 +4241,23 @@
     /// Only returns false if we definitely know that all size fields
     /// are invalid.
     </span><span class="kw">pub fn </span>file_has_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1213">self</a>.encoding.version &lt;= <span class="number">4
-            </span>|| <span class="self"><a href="../../../src/gimli/read/line.rs.html#1213">self</a>
+        <a class="self" href="#1213">self</a>.encoding.version &lt;= <span class="number">4
+            </span>|| <span class="self"><a href="#1213">self</a>
                 </span>.file_name_entry_format
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="../../../src/gimli/read/line.rs.html#1218">x</a>.content_type == <a href="../../../src/gimli/constants.rs.html#1035-1047">constants::DW_LNCT_size</a>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="#1218">x</a>.content_type == <a href="../constants.rs.html#1035-1047">constants::DW_LNCT_size</a>)
     }
 
     <span class="doccomment">/// Return true if the file name entry format contains an MD5 field.
     </span><span class="kw">pub fn </span>file_has_md5(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1222">self</a>.file_name_entry_format
+        <a class="self" href="#1222">self</a>.file_name_entry_format
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="../../../src/gimli/read/line.rs.html#1225">x</a>.content_type == <a href="../../../src/gimli/constants.rs.html#1035-1047">constants::DW_LNCT_MD5</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|x| <a href="#1225">x</a>.content_type == <a href="../constants.rs.html#1035-1047">constants::DW_LNCT_MD5</a>)
     }
 
     <span class="doccomment">/// Get the list of source files that appear in this header&#39;s line program.
     </span><span class="kw">pub fn </span>file_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[FileEntry&lt;R, Offset&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1229">self</a>.file_names[..]
+        <span class="kw-2">&amp;</span><a class="self" href="#1229">self</a>.file_names[..]
     }
 
     <span class="doccomment">/// The source file with the given file index.
@@ -4268,13 +4268,13 @@
     </span><span class="kw">pub fn </span>file(<span class="kw-2">&amp;</span><span class="self">self</span>, file: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FileEntry&lt;R, Offset&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.encoding.version &lt;= <span class="number">4 </span>{
             <span class="kw">if </span>file == <span class="number">0 </span>{
-                <a class="self" href="../../../src/gimli/read/line.rs.html#1238">self</a>.comp_file.as_ref()
+                <a class="self" href="#1238">self</a>.comp_file.as_ref()
             } <span class="kw">else </span>{
-                <span class="kw">let </span>file = <a href="../../../src/gimli/read/line.rs.html#1238">file</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> - <span class="number">1</span>;
-                <a class="self" href="../../../src/gimli/read/line.rs.html#1238">self</a>.file_names.get(<a href="../../../src/gimli/read/line.rs.html#1243">file</a>)
+                <span class="kw">let </span>file = <a href="#1238">file</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> - <span class="number">1</span>;
+                <a class="self" href="#1238">self</a>.file_names.get(<a href="#1243">file</a>)
             }
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/gimli/read/line.rs.html#1238">self</a>.file_names.get(<a href="../../../src/gimli/read/line.rs.html#1238">file</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)
+            <a class="self" href="#1238">self</a>.file_names.get(<a href="#1238">file</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>)
         }
     }
 
@@ -4297,14 +4297,14 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>raw_program_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; R {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1269">self</a>.program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#1269">self</a>.program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// Iterate over the instructions in this header&#39;s line number program, parsing
     /// them as we go.
     </span><span class="kw">pub fn </span>instructions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LineInstructions&lt;R&gt; {
-        <a href="../../../src/gimli/read/line.rs.html#585">LineInstructions</a> {
-            input: <a class="self" href="../../../src/gimli/read/line.rs.html#1275">self</a>.program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#585">LineInstructions</a> {
+            input: <a class="self" href="#1275">self</a>.program_buf.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
@@ -4320,77 +4320,77 @@
 
         <span class="kw">let </span>version = rest.read_u16()<span class="question-mark">?</span>;
         <span class="kw">if </span>version &lt; <span class="number">2 </span>|| version &gt; <span class="number">5 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="../../../src/gimli/read/line.rs.html#1291">version</a>)));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="#1291">version</a>)));
         }
 
         <span class="kw">if </span>version &gt;= <span class="number">5 </span>{
-            <a href="../../../src/gimli/read/line.rs.html#1284">address_size</a> = rest.read_u8()<span class="question-mark">?</span>;
+            <a href="#1284">address_size</a> = rest.read_u8()<span class="question-mark">?</span>;
             <span class="kw">let </span>segment_selector_size = rest.read_u8()<span class="question-mark">?</span>;
             <span class="kw">if </span>segment_selector_size != <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#415">Error::UnsupportedSegmentSize</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#415">Error::UnsupportedSegmentSize</a>);
             }
         }
 
-        <span class="kw">let </span>encoding = <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-            <a href="../../../src/gimli/read/line.rs.html#1288">format</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1291">version</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1284">address_size</a>,
+        <span class="kw">let </span>encoding = <a href="../common.rs.html#37">Encoding</a> {
+            <a href="#1288">format</a>,
+            <a href="#1291">version</a>,
+            <a href="#1284">address_size</a>,
         };
 
         <span class="kw">let </span>header_length = rest.read_length(format)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>program_buf = <a href="../../../src/gimli/read/line.rs.html#1289">rest</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>program_buf = <a href="#1289">rest</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         program_buf.skip(header_length)<span class="question-mark">?</span>;
         rest.truncate(header_length)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>minimum_instruction_length = rest.read_u8()<span class="question-mark">?</span>;
         <span class="kw">if </span>minimum_instruction_length == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#329">Error::MinimumInstructionLengthZero</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#329">Error::MinimumInstructionLengthZero</a>);
         }
 
         <span class="comment">// This field did not exist before DWARF 4, but is specified to be 1 for
         // non-VLIW architectures, which makes it a no-op.
         </span><span class="kw">let </span>maximum_operations_per_instruction = <span class="kw">if </span>version &gt;= <span class="number">4 </span>{ rest.read_u8()<span class="question-mark">? </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
         <span class="kw">if </span>maximum_operations_per_instruction == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#331">Error::MaximumOperationsPerInstructionZero</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#331">Error::MaximumOperationsPerInstructionZero</a>);
         }
 
         <span class="kw">let </span>default_is_stmt = rest.read_u8()<span class="question-mark">? </span>!= <span class="number">0</span>;
         <span class="kw">let </span>line_base = rest.read_i8()<span class="question-mark">?</span>;
         <span class="kw">let </span>line_range = rest.read_u8()<span class="question-mark">?</span>;
         <span class="kw">if </span>line_range == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#333">Error::LineRangeZero</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#333">Error::LineRangeZero</a>);
         }
-        <span class="kw">let </span>line_encoding = <a href="../../../src/gimli/common.rs.html#52">LineEncoding</a> {
-            <a href="../../../src/gimli/read/line.rs.html#1316">minimum_instruction_length</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1323">maximum_operations_per_instruction</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1328">default_is_stmt</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1329">line_base</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1330">line_range</a>,
+        <span class="kw">let </span>line_encoding = <a href="../common.rs.html#52">LineEncoding</a> {
+            <a href="#1316">minimum_instruction_length</a>,
+            <a href="#1323">maximum_operations_per_instruction</a>,
+            <a href="#1328">default_is_stmt</a>,
+            <a href="#1329">line_base</a>,
+            <a href="#1330">line_range</a>,
         };
 
         <span class="kw">let </span>opcode_base = rest.read_u8()<span class="question-mark">?</span>;
         <span class="kw">if </span>opcode_base == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#335">Error::OpcodeBaseZero</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#335">Error::OpcodeBaseZero</a>);
         }
 
-        <span class="kw">let </span>standard_opcode_count = R::Offset::from_u8(<a href="../../../src/gimli/read/line.rs.html#1342">opcode_base</a> - <span class="number">1</span>);
+        <span class="kw">let </span>standard_opcode_count = R::Offset::from_u8(<a href="#1342">opcode_base</a> - <span class="number">1</span>);
         <span class="kw">let </span>standard_opcode_lengths = rest.split(standard_opcode_count)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>directory_entry_format;
         <span class="kw">let </span><span class="kw-2">mut </span>include_directories = Vec::new();
         <span class="kw">if </span>version &lt;= <span class="number">4 </span>{
-            <a href="../../../src/gimli/read/line.rs.html#1350">directory_entry_format</a> = Vec::new();
+            <a href="#1350">directory_entry_format</a> = Vec::new();
             <span class="kw">loop </span>{
                 <span class="kw">let </span>directory = rest.read_null_terminated_slice()<span class="question-mark">?</span>;
                 <span class="kw">if </span>directory.is_empty() {
                     <span class="kw">break</span>;
                 }
-                <a href="../../../src/gimli/read/line.rs.html#1351">include_directories</a>.push(<a href="../../../src/gimli/read/unit.rs.html#1072">AttributeValue::String</a>(<a href="../../../src/gimli/read/line.rs.html#1355">directory</a>));
+                <a href="#1351">include_directories</a>.push(<a href="unit.rs.html#1072">AttributeValue::String</a>(<a href="#1355">directory</a>));
             }
         } <span class="kw">else </span>{
-            <a href="../../../src/gimli/read/line.rs.html#1285">comp_dir</a> = <span class="prelude-val">None</span>;
-            <a href="../../../src/gimli/read/line.rs.html#1350">directory_entry_format</a> = FileEntryFormat::parse(rest)<span class="question-mark">?</span>;
+            <a href="#1285">comp_dir</a> = <span class="prelude-val">None</span>;
+            <a href="#1350">directory_entry_format</a> = FileEntryFormat::parse(rest)<span class="question-mark">?</span>;
             <span class="kw">let </span>count = rest.read_uleb128()<span class="question-mark">?</span>;
             <span class="kw">for _ in </span><span class="number">0</span>..count {
                 include_directories.push(parse_directory_v5(
@@ -4405,48 +4405,48 @@
         <span class="kw">let </span>file_name_entry_format;
         <span class="kw">let </span><span class="kw-2">mut </span>file_names = Vec::new();
         <span class="kw">if </span>version &lt;= <span class="number">4 </span>{
-            <a href="../../../src/gimli/read/line.rs.html#1374">comp_file</a> = <a href="../../../src/gimli/read/line.rs.html#1286">comp_name</a>.map(|name| <a href="../../../src/gimli/read/line.rs.html#1573">FileEntry</a> {
-                path_name: <a href="../../../src/gimli/read/unit.rs.html#1072">AttributeValue::String</a>(<a href="../../../src/gimli/read/line.rs.html#1378">name</a>),
+            <a href="#1374">comp_file</a> = <a href="#1286">comp_name</a>.map(|name| <a href="#1573">FileEntry</a> {
+                path_name: <a href="unit.rs.html#1072">AttributeValue::String</a>(<a href="#1378">name</a>),
                 directory_index: <span class="number">0</span>,
                 timestamp: <span class="number">0</span>,
                 size: <span class="number">0</span>,
                 md5: [<span class="number">0</span>; <span class="number">16</span>],
             });
 
-            <a href="../../../src/gimli/read/line.rs.html#1375">file_name_entry_format</a> = Vec::new();
+            <a href="#1375">file_name_entry_format</a> = Vec::new();
             <span class="kw">loop </span>{
                 <span class="kw">let </span>path_name = rest.read_null_terminated_slice()<span class="question-mark">?</span>;
                 <span class="kw">if </span>path_name.is_empty() {
                     <span class="kw">break</span>;
                 }
-                <a href="../../../src/gimli/read/line.rs.html#1376">file_names</a>.push(FileEntry::parse(rest, path_name)<span class="question-mark">?</span>);
+                <a href="#1376">file_names</a>.push(FileEntry::parse(rest, path_name)<span class="question-mark">?</span>);
             }
         } <span class="kw">else </span>{
-            <a href="../../../src/gimli/read/line.rs.html#1374">comp_file</a> = <span class="prelude-val">None</span>;
-            <a href="../../../src/gimli/read/line.rs.html#1375">file_name_entry_format</a> = FileEntryFormat::parse(rest)<span class="question-mark">?</span>;
+            <a href="#1374">comp_file</a> = <span class="prelude-val">None</span>;
+            <a href="#1375">file_name_entry_format</a> = FileEntryFormat::parse(rest)<span class="question-mark">?</span>;
             <span class="kw">let </span>count = rest.read_uleb128()<span class="question-mark">?</span>;
             <span class="kw">for _ in </span><span class="number">0</span>..count {
                 file_names.push(parse_file_v5(rest, encoding, <span class="kw-2">&amp;</span>file_name_entry_format)<span class="question-mark">?</span>);
             }
         }
 
-        <span class="kw">let </span>header = <a href="../../../src/gimli/read/line.rs.html#1024">LineProgramHeader</a> {
-            <a href="../../../src/gimli/read/line.rs.html#1304">encoding</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1283">offset</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1288">unit_length</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1310">header_length</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1334">line_encoding</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1342">opcode_base</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1348">standard_opcode_lengths</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1350">directory_entry_format</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1351">include_directories</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1375">file_name_entry_format</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1376">file_names</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1312">program_buf</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1285">comp_dir</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1374">comp_file</a>,
+        <span class="kw">let </span>header = <a href="#1024">LineProgramHeader</a> {
+            <a href="#1304">encoding</a>,
+            <a href="#1283">offset</a>,
+            <a href="#1288">unit_length</a>,
+            <a href="#1310">header_length</a>,
+            <a href="#1334">line_encoding</a>,
+            <a href="#1342">opcode_base</a>,
+            <a href="#1348">standard_opcode_lengths</a>,
+            <a href="#1350">directory_entry_format</a>,
+            <a href="#1351">include_directories</a>,
+            <a href="#1375">file_name_entry_format</a>,
+            <a href="#1376">file_names</a>,
+            <a href="#1312">program_buf</a>,
+            <a href="#1285">comp_dir</a>,
+            <a href="#1374">comp_file</a>,
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#1403">header</a>)
+        <span class="prelude-val">Ok</span>(<a href="#1403">header</a>)
     }
 }
 
@@ -4461,7 +4461,7 @@
 </span><span class="kw">pub struct </span>IncompleteLineProgram&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     header: LineProgramHeader&lt;R, Offset&gt;,
 }
@@ -4469,17 +4469,17 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; IncompleteLineProgram&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// Retrieve the `LineProgramHeader` for this program.
     </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1445">self</a>.header
+        <span class="kw-2">&amp;</span><a class="self" href="#1445">self</a>.header
     }
 
     <span class="doccomment">/// Construct a new `LineRows` for executing this program to iterate
     /// over rows in the line information matrix.
     </span><span class="kw">pub fn </span>rows(<span class="self">self</span>) -&gt; OneShotLineRows&lt;R, Offset&gt; {
-        OneShotLineRows::new(<a class="self" href="../../../src/gimli/read/line.rs.html#1451">self</a>)
+        OneShotLineRows::new(<a class="self" href="#1451">self</a>)
     }
 
     <span class="doccomment">/// Execute the line number program, completing the `IncompleteLineProgram`
@@ -4505,8 +4505,8 @@
     </span><span class="attribute">#[allow(clippy::type_complexity)]
     </span><span class="kw">pub fn </span>sequences(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(CompleteLineProgram&lt;R, Offset&gt;, Vec&lt;LineSequence&lt;R&gt;&gt;)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>sequences = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>rows = <a class="self" href="../../../src/gimli/read/line.rs.html#1476">self</a>.<a href="../../../src/gimli/read/line.rs.html#1451">rows</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>instructions = <a href="../../../src/gimli/read/line.rs.html#1478">rows</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>rows = <a class="self" href="#1476">self</a>.<a href="#1451">rows</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>instructions = <a href="#1478">rows</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>sequence_start_addr = <span class="prelude-val">None</span>;
         <span class="kw">loop </span>{
             <span class="kw">let </span>sequence_end_addr;
@@ -4514,32 +4514,32 @@
                 <span class="kw">break</span>;
             }
 
-            <span class="kw">let </span>row = <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/line.rs.html#1478">rows</a>.row;
+            <span class="kw">let </span>row = <span class="kw-2">&amp;</span><a href="#1478">rows</a>.row;
             <span class="kw">if </span>row.end_sequence() {
-                <a href="../../../src/gimli/read/line.rs.html#1482">sequence_end_addr</a> = <a href="../../../src/gimli/read/line.rs.html#1487">row</a>.<a href="../../../src/gimli/read/line.rs.html#681">address</a>();
+                <a href="#1482">sequence_end_addr</a> = <a href="#1487">row</a>.<a href="#681">address</a>();
             } <span class="kw">else if </span>sequence_start_addr.is_none() {
-                <a href="../../../src/gimli/read/line.rs.html#1480">sequence_start_addr</a> = <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/line.rs.html#1487">row</a>.<a href="../../../src/gimli/read/line.rs.html#681">address</a>());
+                <a href="#1480">sequence_start_addr</a> = <span class="prelude-val">Some</span>(<a href="#1487">row</a>.<a href="#681">address</a>());
                 <span class="kw">continue</span>;
             } <span class="kw">else </span>{
                 <span class="kw">continue</span>;
             }
 
             <span class="comment">// We just finished a sequence.
-            </span><a href="../../../src/gimli/read/line.rs.html#1477">sequences</a>.push(<a href="../../../src/gimli/read/line.rs.html#1005">LineSequence</a> {
+            </span><a href="#1477">sequences</a>.push(<a href="#1005">LineSequence</a> {
                 <span class="comment">// In theory one could have multiple DW_LNE_end_sequence instructions
                 // in a row.
-                </span>start: <a href="../../../src/gimli/read/line.rs.html#1480">sequence_start_addr</a>.unwrap_or(<span class="number">0</span>),
-                end: <a href="../../../src/gimli/read/line.rs.html#1482">sequence_end_addr</a>,
+                </span>start: <a href="#1480">sequence_start_addr</a>.unwrap_or(<span class="number">0</span>),
+                end: <a href="#1482">sequence_end_addr</a>,
                 instructions: instructions.remove_trailing(<span class="kw-2">&amp;</span>rows.instructions)<span class="question-mark">?</span>,
             });
-            <a href="../../../src/gimli/read/line.rs.html#1480">sequence_start_addr</a> = <span class="prelude-val">None</span>;
-            <a href="../../../src/gimli/read/line.rs.html#1479">instructions</a> = <a href="../../../src/gimli/read/line.rs.html#1478">rows</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a href="#1480">sequence_start_addr</a> = <span class="prelude-val">None</span>;
+            <a href="#1479">instructions</a> = <a href="#1478">rows</a>.instructions.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
 
-        <span class="kw">let </span>program = <a href="../../../src/gimli/read/line.rs.html#1524">CompleteLineProgram</a> {
-            header: <a href="../../../src/gimli/read/line.rs.html#1478">rows</a>.program.header,
+        <span class="kw">let </span>program = <a href="#1524">CompleteLineProgram</a> {
+            header: <a href="#1478">rows</a>.program.header,
         };
-        <span class="prelude-val">Ok</span>((<a href="../../../src/gimli/read/line.rs.html#1509">program</a>, <a href="../../../src/gimli/read/line.rs.html#1477">sequences</a>))
+        <span class="prelude-val">Ok</span>((<a href="#1509">program</a>, <a href="#1477">sequences</a>))
     }
 }
 
@@ -4554,7 +4554,7 @@
 </span><span class="kw">pub struct </span>CompleteLineProgram&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     header: LineProgramHeader&lt;R, Offset&gt;,
 }
@@ -4562,11 +4562,11 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; CompleteLineProgram&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// Retrieve the `LineProgramHeader` for this program.
     </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LineProgramHeader&lt;R, Offset&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1538">self</a>.header
+        <span class="kw-2">&amp;</span><a class="self" href="#1538">self</a>.header
     }
 
     <span class="doccomment">/// Construct a new `LineRows` for executing the subset of the line
@@ -4594,7 +4594,7 @@
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;program </span><span class="self">self</span>,
         sequence: <span class="kw-2">&amp;</span>LineSequence&lt;R&gt;,
     ) -&gt; ResumedLineRows&lt;<span class="lifetime">&#39;program</span>, R, Offset&gt; {
-        ResumedLineRows::resume(<a class="self" href="../../../src/gimli/read/line.rs.html#1564">self</a>, <a href="../../../src/gimli/read/line.rs.html#1565">sequence</a>)
+        ResumedLineRows::resume(<a class="self" href="#1564">self</a>, <a href="#1565">sequence</a>)
     }
 }
 
@@ -4603,7 +4603,7 @@
 </span><span class="kw">pub struct </span>FileEntry&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     path_name: AttributeValue&lt;R, Offset&gt;,
     directory_index: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
@@ -4615,7 +4615,7 @@
 <span class="kw">impl</span>&lt;R, Offset&gt; FileEntry&lt;R, Offset&gt;
 <span class="kw">where
     </span>R: Reader&lt;Offset = Offset&gt;,
-    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+    Offset: <a href="reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="comment">// version 2-4
     </span><span class="kw">fn </span>parse(input: <span class="kw-2">&amp;mut </span>R, path_name: R) -&gt; <span class="prelude-ty">Result</span>&lt;FileEntry&lt;R, Offset&gt;&gt; {
@@ -4623,15 +4623,15 @@
         <span class="kw">let </span>timestamp = input.read_uleb128()<span class="question-mark">?</span>;
         <span class="kw">let </span>size = input.read_uleb128()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>entry = <a href="../../../src/gimli/read/line.rs.html#1573">FileEntry</a> {
-            path_name: <a href="../../../src/gimli/read/unit.rs.html#1072">AttributeValue::String</a>(<a href="../../../src/gimli/read/line.rs.html#1591">path_name</a>),
-            <a href="../../../src/gimli/read/line.rs.html#1592">directory_index</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1593">timestamp</a>,
-            <a href="../../../src/gimli/read/line.rs.html#1594">size</a>,
+        <span class="kw">let </span>entry = <a href="#1573">FileEntry</a> {
+            path_name: <a href="unit.rs.html#1072">AttributeValue::String</a>(<a href="#1591">path_name</a>),
+            <a href="#1592">directory_index</a>,
+            <a href="#1593">timestamp</a>,
+            <a href="#1594">size</a>,
             md5: [<span class="number">0</span>; <span class="number">16</span>],
         };
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#1596">entry</a>)
+        <span class="prelude-val">Ok</span>(<a href="#1596">entry</a>)
     }
 
     <span class="doccomment">/// &gt; A slice containing the full or relative path name of
@@ -4640,7 +4640,7 @@
     /// &gt; (as specified by the DW_AT_comp_dir attribute given in the compilation
     /// &gt; unit) or one of the directories in the include_directories section.
     </span><span class="kw">pub fn </span>path_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AttributeValue&lt;R, Offset&gt; {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1612">self</a>.path_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#1612">self</a>.path_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// &gt; An unsigned LEB128 number representing the directory index of the
@@ -4655,20 +4655,20 @@
     /// &gt; on. The directory index is ignored for file names that represent full
     /// &gt; path names.
     </span><span class="kw">pub fn </span>directory_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1627">self</a>.directory_index
+        <a class="self" href="#1627">self</a>.directory_index
     }
 
     <span class="doccomment">/// Get this file&#39;s directory.
     ///
     /// A directory index of 0 corresponds to the compilation unit directory.
     </span><span class="kw">pub fn </span>directory(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>LineProgramHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;AttributeValue&lt;R, Offset&gt;&gt; {
-        <a href="../../../src/gimli/read/line.rs.html#1634">header</a>.<a href="../../../src/gimli/read/line.rs.html#1179">directory</a>(<a class="self" href="../../../src/gimli/read/line.rs.html#1634">self</a>.directory_index)
+        <a href="#1634">header</a>.<a href="#1179">directory</a>(<a class="self" href="#1634">self</a>.directory_index)
     }
 
     <span class="doccomment">/// The implementation-defined time of last modification of the file,
     /// or 0 if not available.
     </span><span class="kw">pub fn </span>timestamp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1640">self</a>.timestamp
+        <a class="self" href="#1640">self</a>.timestamp
     }
 
     <span class="doccomment">/// &quot;An unsigned LEB128 number representing the time of last modification of
@@ -4676,12 +4676,12 @@
     </span><span class="comment">// Terminology changed in DWARF version 5.
     </span><span class="attribute">#[doc(hidden)]
     </span><span class="kw">pub fn </span>last_modification(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1648">self</a>.timestamp
+        <a class="self" href="#1648">self</a>.timestamp
     }
 
     <span class="doccomment">/// The size of the file in bytes, or 0 if not available.
     </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1653">self</a>.size
+        <a class="self" href="#1653">self</a>.size
     }
 
     <span class="doccomment">/// &quot;An unsigned LEB128 number representing the length in bytes of the file,
@@ -4689,14 +4689,14 @@
     </span><span class="comment">// Terminology changed in DWARF version 5.
     </span><span class="attribute">#[doc(hidden)]
     </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/line.rs.html#1661">self</a>.size
+        <a class="self" href="#1661">self</a>.size
     }
 
     <span class="doccomment">/// A 16-byte MD5 digest of the file contents.
     ///
     /// Only valid if `LineProgramHeader::file_has_md5` returns `true`.
     </span><span class="kw">pub fn </span>md5(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">16</span>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/line.rs.html#1668">self</a>.md5
+        <span class="kw-2">&amp;</span><a class="self" href="#1668">self</a>.md5
     }
 }
 
@@ -4704,16 +4704,16 @@
 </span><span class="attribute">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>FileEntryFormat {
     <span class="doccomment">/// The type of information that is represented by the component.
-    </span><span class="kw">pub </span>content_type: <a href="../../../src/gimli/constants.rs.html#1035-1047">constants::DwLnct</a>,
+    </span><span class="kw">pub </span>content_type: <a href="../constants.rs.html#1035-1047">constants::DwLnct</a>,
 
     <span class="doccomment">/// The encoding form of the component value.
-    </span><span class="kw">pub </span>form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+    </span><span class="kw">pub </span>form: <a href="../constants.rs.html#650-712">constants::DwForm</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a> {
-    <span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>&gt;&gt; {
+<span class="kw">impl </span><a href="#1675">FileEntryFormat</a> {
+    <span class="kw">fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="#1675">FileEntryFormat</a>&gt;&gt; {
         <span class="kw">let </span>format_count = input.read_u8()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>format = Vec::with_capacity(<a href="../../../src/gimli/read/line.rs.html#1685">format_count</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>format = Vec::with_capacity(<a href="#1685">format_count</a>);
         <span class="kw">let </span><span class="kw-2">mut </span>path_count = <span class="number">0</span>;
         <span class="kw">for _ in </span><span class="number">0</span>..format_count {
             <span class="kw">let </span>content_type = input.read_uleb128()<span class="question-mark">?</span>;
@@ -4731,16 +4731,16 @@
             format.push(FileEntryFormat { content_type, form });
         }
         <span class="kw">if </span>path_count != <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#421">Error::MissingFileEntryFormatPath</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#421">Error::MissingFileEntryFormatPath</a>);
         }
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#1686">format</a>)
+        <span class="prelude-val">Ok</span>(<a href="#1686">format</a>)
     }
 }
 
-<span class="kw">fn </span>parse_directory_v5&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+<span class="kw">fn </span>parse_directory_v5&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(
     input: <span class="kw-2">&amp;mut </span>R,
-    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-    formats: <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>],
+    encoding: <a href="../common.rs.html#37">Encoding</a>,
+    formats: <span class="kw-2">&amp;</span>[<a href="#1675">FileEntryFormat</a>],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;AttributeValue&lt;R&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>path_name = <span class="prelude-val">None</span>;
 
@@ -4751,13 +4751,13 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#1715">path_name</a>.unwrap())
+    <span class="prelude-val">Ok</span>(<a href="#1715">path_name</a>.unwrap())
 }
 
-<span class="kw">fn </span>parse_file_v5&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+<span class="kw">fn </span>parse_file_v5&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(
     input: <span class="kw-2">&amp;mut </span>R,
-    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-    formats: <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/line.rs.html#1675">FileEntryFormat</a>],
+    encoding: <a href="../common.rs.html#37">Encoding</a>,
+    formats: <span class="kw-2">&amp;</span>[<a href="#1675">FileEntryFormat</a>],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;FileEntry&lt;R&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>path_name = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>directory_index = <span class="number">0</span>;
@@ -4796,116 +4796,116 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/line.rs.html#1573">FileEntry</a> {
-        path_name: <a href="../../../src/gimli/read/line.rs.html#1732">path_name</a>.unwrap(),
-        <a href="../../../src/gimli/read/line.rs.html#1733">directory_index</a>,
-        <a href="../../../src/gimli/read/line.rs.html#1734">timestamp</a>,
-        <a href="../../../src/gimli/read/line.rs.html#1735">size</a>,
-        <a href="../../../src/gimli/read/line.rs.html#1736">md5</a>,
+    <span class="prelude-val">Ok</span>(<a href="#1573">FileEntry</a> {
+        path_name: <a href="#1732">path_name</a>.unwrap(),
+        <a href="#1733">directory_index</a>,
+        <a href="#1734">timestamp</a>,
+        <a href="#1735">size</a>,
+        <a href="#1736">md5</a>,
     })
 }
 
 <span class="comment">// TODO: this should be shared with unit::parse_attribute(), but that is hard to do.
-</span><span class="kw">fn </span>parse_attribute&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+</span><span class="kw">fn </span>parse_attribute&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(
     input: <span class="kw-2">&amp;mut </span>R,
-    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-    form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+    encoding: <a href="../common.rs.html#37">Encoding</a>,
+    form: <a href="../constants.rs.html#650-712">constants::DwForm</a>,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;AttributeValue&lt;R&gt;&gt; {
-    <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../../../src/gimli/read/line.rs.html#1782">form</a> {
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block1</a> =&gt; {
+    <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#1782">form</a> {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block1</a> =&gt; {
             <span class="kw">let </span>len = input.read_u8().map(R::Offset::from_u8)<span class="question-mark">?</span>;
             <span class="kw">let </span>block = input.split(len)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#953">AttributeValue::Block</a>(<a href="../../../src/gimli/read/line.rs.html#1787">block</a>)
+            <a href="unit.rs.html#953">AttributeValue::Block</a>(<a href="#1787">block</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block2</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block2</a> =&gt; {
             <span class="kw">let </span>len = input.read_u16().map(R::Offset::from_u16)<span class="question-mark">?</span>;
             <span class="kw">let </span>block = input.split(len)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#953">AttributeValue::Block</a>(<a href="../../../src/gimli/read/line.rs.html#1792">block</a>)
+            <a href="unit.rs.html#953">AttributeValue::Block</a>(<a href="#1792">block</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block4</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block4</a> =&gt; {
             <span class="kw">let </span>len = input.read_u32().map(R::Offset::from_u32)<span class="question-mark">?</span>;
             <span class="kw">let </span>block = input.split(len)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#953">AttributeValue::Block</a>(<a href="../../../src/gimli/read/line.rs.html#1797">block</a>)
+            <a href="unit.rs.html#953">AttributeValue::Block</a>(<a href="#1797">block</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block</a> =&gt; {
             <span class="kw">let </span>len = input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
             <span class="kw">let </span>block = input.split(len)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#953">AttributeValue::Block</a>(<a href="../../../src/gimli/read/line.rs.html#1802">block</a>)
+            <a href="unit.rs.html#953">AttributeValue::Block</a>(<a href="#1802">block</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data1</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data1</a> =&gt; {
             <span class="kw">let </span>data = input.read_u8()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#960">AttributeValue::Data1</a>(<a href="../../../src/gimli/read/line.rs.html#1806">data</a>)
+            <a href="unit.rs.html#960">AttributeValue::Data1</a>(<a href="#1806">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data2</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data2</a> =&gt; {
             <span class="kw">let </span>data = input.read_u16()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#970">AttributeValue::Data2</a>(<a href="../../../src/gimli/read/line.rs.html#1810">data</a>)
+            <a href="unit.rs.html#970">AttributeValue::Data2</a>(<a href="#1810">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data4</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data4</a> =&gt; {
             <span class="kw">let </span>data = input.read_u32()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#980">AttributeValue::Data4</a>(<a href="../../../src/gimli/read/line.rs.html#1814">data</a>)
+            <a href="unit.rs.html#980">AttributeValue::Data4</a>(<a href="#1814">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data8</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data8</a> =&gt; {
             <span class="kw">let </span>data = input.read_u64()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#990">AttributeValue::Data8</a>(<a href="../../../src/gimli/read/line.rs.html#1818">data</a>)
+            <a href="unit.rs.html#990">AttributeValue::Data8</a>(<a href="#1818">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data16</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data16</a> =&gt; {
             <span class="kw">let </span>block = input.split(R::Offset::from_u8(<span class="number">16</span>))<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#953">AttributeValue::Block</a>(<a href="../../../src/gimli/read/line.rs.html#1822">block</a>)
+            <a href="unit.rs.html#953">AttributeValue::Block</a>(<a href="#1822">block</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_udata</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_udata</a> =&gt; {
             <span class="kw">let </span>data = input.read_uleb128()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#996">AttributeValue::Udata</a>(<a href="../../../src/gimli/read/line.rs.html#1826">data</a>)
+            <a href="unit.rs.html#996">AttributeValue::Udata</a>(<a href="#1826">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sdata</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_sdata</a> =&gt; {
             <span class="kw">let </span>data = input.read_sleb128()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#993">AttributeValue::Sdata</a>(<a href="../../../src/gimli/read/line.rs.html#1830">data</a>)
+            <a href="unit.rs.html#993">AttributeValue::Sdata</a>(<a href="#1830">data</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_flag</a> =&gt; {
             <span class="kw">let </span>present = input.read_u8()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1003">AttributeValue::Flag</a>(<a href="../../../src/gimli/read/line.rs.html#1834">present</a> != <span class="number">0</span>)
+            <a href="unit.rs.html#1003">AttributeValue::Flag</a>(<a href="#1834">present</a> != <span class="number">0</span>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sec_offset</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_sec_offset</a> =&gt; {
             <span class="kw">let </span>offset = input.read_offset(encoding.format)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1007">AttributeValue::SecOffset</a>(<a href="../../../src/gimli/read/line.rs.html#1838">offset</a>)
+            <a href="unit.rs.html#1007">AttributeValue::SecOffset</a>(<a href="#1838">offset</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_string</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_string</a> =&gt; {
             <span class="kw">let </span>string = input.read_null_terminated_slice()<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1072">AttributeValue::String</a>(<a href="../../../src/gimli/read/line.rs.html#1842">string</a>)
+            <a href="unit.rs.html#1072">AttributeValue::String</a>(<a href="#1842">string</a>)
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strp</a> =&gt; {
             <span class="kw">let </span>offset = input.read_offset(encoding.format)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1056">AttributeValue::DebugStrRef</a>(<a href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>(<a href="../../../src/gimli/read/line.rs.html#1846">offset</a>))
+            <a href="unit.rs.html#1056">AttributeValue::DebugStrRef</a>(<a href="../common.rs.html#162">DebugStrOffset</a>(<a href="#1846">offset</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp_sup</a> | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strp_sup</a> | <a href="../constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a> =&gt; {
             <span class="kw">let </span>offset = input.read_offset(encoding.format)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1059">AttributeValue::DebugStrRefSup</a>(<a href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>(<a href="../../../src/gimli/read/line.rs.html#1850">offset</a>))
+            <a href="unit.rs.html#1059">AttributeValue::DebugStrRefSup</a>(<a href="../common.rs.html#162">DebugStrOffset</a>(<a href="#1850">offset</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; {
             <span class="kw">let </span>offset = input.read_offset(encoding.format)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1068">AttributeValue::DebugLineStrRef</a>(<a href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>(<a href="../../../src/gimli/read/line.rs.html#1854">offset</a>))
+            <a href="unit.rs.html#1068">AttributeValue::DebugLineStrRef</a>(<a href="../common.rs.html#116">DebugLineStrOffset</a>(<a href="#1854">offset</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx</a> | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_str_index</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strx</a> | <a href="../constants.rs.html#650-712">constants::DW_FORM_GNU_str_index</a> =&gt; {
             <span class="kw">let </span>index = input.read_uleb128().and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/read/line.rs.html#1858">index</a>))
+            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="#1858">index</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx1</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strx1</a> =&gt; {
             <span class="kw">let </span>index = input.read_u8().map(R::Offset::from_u8)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/read/line.rs.html#1862">index</a>))
+            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="#1862">index</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; {
             <span class="kw">let </span>index = input.read_u16().map(R::Offset::from_u16)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/read/line.rs.html#1866">index</a>))
+            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="#1866">index</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; {
             <span class="kw">let </span>index = input.read_uint(<span class="number">3</span>).and_then(R::Offset::from_u64)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/read/line.rs.html#1870">index</a>))
+            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="#1870">index</a>))
         }
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx4</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_strx4</a> =&gt; {
             <span class="kw">let </span>index = input.read_u32().map(R::Offset::from_u32)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="../../../src/gimli/read/line.rs.html#1874">index</a>))
+            <a href="unit.rs.html#1065">AttributeValue::DebugStrOffsetsIndex</a>(<a href="../common.rs.html#170">DebugStrOffsetsIndex</a>(<a href="#1874">index</a>))
         }
         <span class="kw">_ </span>=&gt; {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#301">Error::UnknownForm</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#301">Error::UnknownForm</a>);
         }
     })
 }
@@ -6059,4 +6059,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

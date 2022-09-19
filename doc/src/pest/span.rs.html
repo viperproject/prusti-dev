@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.0/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.1/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -463,7 +463,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
 
-<span class="kw">use </span><a href="../../src/pest/lib.rs.html#92"><span class="kw">crate</span>::position</a>;
+<span class="kw">use </span><a href="lib.rs.html#92"><span class="kw">crate</span>::position</a>;
 
 <span class="doccomment">/// A span over a `&amp;str`. It is created from either [two `Position`s] or from a [`Pair`].
 ///
@@ -488,9 +488,9 @@
     /// # Safety
     ///
     /// `input[start..end]` must be a valid subslice; that is, said indexing should not panic.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new_unchecked(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/pest/span.rs.html#23">Span</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new_unchecked(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#23">Span</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(input.get(start..end).is_some());
-        <a href="../../src/pest/span.rs.html#23">Span</a> { <a href="../../src/pest/span.rs.html#41">input</a>, <a href="../../src/pest/span.rs.html#41">start</a>, <a href="../../src/pest/span.rs.html#41">end</a> }
+        <a href="#23">Span</a> { <a href="#41">input</a>, <a href="#41">start</a>, <a href="#41">end</a> }
     }
 
     <span class="doccomment">/// Attempts to create a new span. Will return `None` if `input[start..end]` is an invalid index
@@ -504,9 +504,9 @@
     /// assert_eq!(None, Span::new(input, 100, 0));
     /// assert!(Span::new(input, 0, input.len()).is_some());
     /// ```
-    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/pest/span.rs.html#23">Span</a>&gt; {
+    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#23">Span</a>&gt; {
         <span class="kw">if </span>input.get(start..end).is_some() {
-            <span class="prelude-val">Some</span>(<a href="../../src/pest/span.rs.html#23">Span</a> { <a href="../../src/pest/span.rs.html#57">input</a>, <a href="../../src/pest/span.rs.html#57">start</a>, <a href="../../src/pest/span.rs.html#57">end</a> })
+            <span class="prelude-val">Some</span>(<a href="#23">Span</a> { <a href="#57">input</a>, <a href="#57">start</a>, <a href="#57">end</a> })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -525,21 +525,21 @@
     ///
     /// # Examples
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, range: <span class="kw">impl </span>RangeBounds&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Span&lt;<span class="lifetime">&#39;i</span>&gt;&gt; {
-        <span class="kw">let </span>start = <span class="kw">match </span><a href="../../src/pest/span.rs.html#77">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
-            Bound::Included(offset) =&gt; <span class="kw-2">*</span><a href="../../src/pest/span.rs.html#79">offset</a>,
-            Bound::Excluded(offset) =&gt; <span class="kw-2">*</span><a href="../../src/pest/span.rs.html#80">offset</a> + <span class="number">1</span>,
+        <span class="kw">let </span>start = <span class="kw">match </span><a href="#77">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">start_bound</a>() {
+            Bound::Included(offset) =&gt; <span class="kw-2">*</span><a href="#79">offset</a>,
+            Bound::Excluded(offset) =&gt; <span class="kw-2">*</span><a href="#80">offset</a> + <span class="number">1</span>,
             Bound::Unbounded =&gt; <span class="number">0</span>,
         };
-        <span class="kw">let </span>end = <span class="kw">match </span><a href="../../src/pest/span.rs.html#77">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
-            Bound::Included(offset) =&gt; <span class="kw-2">*</span><a href="../../src/pest/span.rs.html#84">offset</a> + <span class="number">1</span>,
-            Bound::Excluded(offset) =&gt; <span class="kw-2">*</span><a href="../../src/pest/span.rs.html#85">offset</a>,
-            Bound::Unbounded =&gt; <a class="self" href="../../src/pest/span.rs.html#77">self</a>.<a href="../../src/pest/span.rs.html#210">as_str</a>().len(),
+        <span class="kw">let </span>end = <span class="kw">match </span><a href="#77">range</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/range/trait.RangeBounds.html">end_bound</a>() {
+            Bound::Included(offset) =&gt; <span class="kw-2">*</span><a href="#84">offset</a> + <span class="number">1</span>,
+            Bound::Excluded(offset) =&gt; <span class="kw-2">*</span><a href="#85">offset</a>,
+            Bound::Unbounded =&gt; <a class="self" href="#77">self</a>.<a href="#210">as_str</a>().len(),
         };
 
-        <a class="self" href="../../src/pest/span.rs.html#77">self</a>.<a href="../../src/pest/span.rs.html#210">as_str</a>().get(<a href="../../src/pest/span.rs.html#78">start</a>..<a href="../../src/pest/span.rs.html#83">end</a>).map(|<span class="kw">_</span>| <a href="../../src/pest/span.rs.html#23">Span</a> {
-            input: <a class="self" href="../../src/pest/span.rs.html#77">self</a>.input,
-            start: <a class="self" href="../../src/pest/span.rs.html#77">self</a>.start + <a href="../../src/pest/span.rs.html#78">start</a>,
-            end: <a class="self" href="../../src/pest/span.rs.html#77">self</a>.start + <a href="../../src/pest/span.rs.html#83">end</a>,
+        <a class="self" href="#77">self</a>.<a href="#210">as_str</a>().get(<a href="#78">start</a>..<a href="#83">end</a>).map(|<span class="kw">_</span>| <a href="#23">Span</a> {
+            input: <a class="self" href="#77">self</a>.input,
+            start: <a class="self" href="#77">self</a>.start + <a href="#78">start</a>,
+            end: <a class="self" href="#77">self</a>.start + <a href="#83">end</a>,
         })
     }
 
@@ -558,7 +558,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/pest/span.rs.html#110">self</a>.start
+        <a class="self" href="#110">self</a>.start
     }
 
     <span class="doccomment">/// Returns the `Span`&#39;s end byte position as a `usize`.
@@ -576,7 +576,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/pest/span.rs.html#128">self</a>.end
+        <a class="self" href="#128">self</a>.end
     }
 
     <span class="doccomment">/// Returns the `Span`&#39;s start `Position`.
@@ -595,7 +595,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>start_pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; position::Position&lt;<span class="lifetime">&#39;i</span>&gt; {
         <span class="comment">// Span&#39;s start position is always a UTF-8 border.
-        </span><span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="../../src/pest/span.rs.html#146">self</a>.input, <a class="self" href="../../src/pest/span.rs.html#146">self</a>.start) }
+        </span><span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#146">self</a>.input, <a class="self" href="#146">self</a>.start) }
     }
 
     <span class="doccomment">/// Returns the `Span`&#39;s end `Position`.
@@ -614,7 +614,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>end_pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; position::Position&lt;<span class="lifetime">&#39;i</span>&gt; {
         <span class="comment">// Span&#39;s end position is always a UTF-8 border.
-        </span><span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="../../src/pest/span.rs.html#165">self</a>.input, <a class="self" href="../../src/pest/span.rs.html#165">self</a>.end) }
+        </span><span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#165">self</a>.input, <a class="self" href="#165">self</a>.end) }
     }
 
     <span class="doccomment">/// Splits the `Span` into a pair of `Position`s.
@@ -633,10 +633,10 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>split(<span class="self">self</span>) -&gt; (position::Position&lt;<span class="lifetime">&#39;i</span>&gt;, position::Position&lt;<span class="lifetime">&#39;i</span>&gt;) {
         <span class="comment">// Span&#39;s start and end positions are always a UTF-8 borders.
-        </span><span class="kw">let </span>pos1 = <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="../../src/pest/span.rs.html#184">self</a>.input, <a class="self" href="../../src/pest/span.rs.html#184">self</a>.start) };
-        <span class="kw">let </span>pos2 = <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="../../src/pest/span.rs.html#184">self</a>.input, <a class="self" href="../../src/pest/span.rs.html#184">self</a>.end) };
+        </span><span class="kw">let </span>pos1 = <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#184">self</a>.input, <a class="self" href="#184">self</a>.start) };
+        <span class="kw">let </span>pos2 = <span class="kw">unsafe </span>{ position::Position::new_unchecked(<a class="self" href="#184">self</a>.input, <a class="self" href="#184">self</a>.end) };
 
-        (<a href="../../src/pest/span.rs.html#186">pos1</a>, <a href="../../src/pest/span.rs.html#187">pos2</a>)
+        (<a href="#186">pos1</a>, <a href="#187">pos2</a>)
     }
 
     <span class="doccomment">/// Captures a slice from the `&amp;str` defined by the `Span`.
@@ -659,7 +659,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="comment">// Span&#39;s start and end positions are always a UTF-8 borders.
-        </span><span class="kw-2">&amp;</span><a class="self" href="../../src/pest/span.rs.html#210">self</a>.input[<a class="self" href="../../src/pest/span.rs.html#210">self</a>.start..<a class="self" href="../../src/pest/span.rs.html#210">self</a>.end]
+        </span><span class="kw-2">&amp;</span><a class="self" href="#210">self</a>.input[<a class="self" href="#210">self</a>.start..<a class="self" href="#210">self</a>.end]
     }
 
     <span class="doccomment">/// Iterates over all lines (partially) covered by this span. Yielding a `&amp;str` for each line.
@@ -680,9 +680,9 @@
     /// assert_eq!(span.lines().collect::&lt;Vec&lt;_&gt;&gt;(), vec![&quot;b\n&quot;, &quot;c&quot;]);
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/pest/span.rs.html#324">Lines</a> {
-        <a href="../../src/pest/span.rs.html#324">Lines</a> {
-            inner: <a class="self" href="../../src/pest/span.rs.html#233">self</a>.<a href="../../src/pest/span.rs.html#257">lines_span</a>(),
+    </span><span class="kw">pub fn </span>lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#324">Lines</a> {
+        <a href="#324">Lines</a> {
+            inner: <a class="self" href="#233">self</a>.<a href="#257">lines_span</a>(),
         }
     }
 
@@ -704,27 +704,27 @@
     /// let span = start_pos.span(&amp;state.position().clone());
     /// assert_eq!(span.lines_span().collect::&lt;Vec&lt;_&gt;&gt;(), vec![Span::new(input, 2, 4).unwrap(), Span::new(input, 4, 5).unwrap()]);
     /// ```
-    </span><span class="kw">pub fn </span>lines_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/pest/span.rs.html#296">LinesSpan</a> {
-        <a href="../../src/pest/span.rs.html#296">LinesSpan</a> {
-            span: <a class="self" href="../../src/pest/span.rs.html#257">self</a>,
-            pos: <a class="self" href="../../src/pest/span.rs.html#257">self</a>.start,
+    </span><span class="kw">pub fn </span>lines_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#296">LinesSpan</a> {
+        <a href="#296">LinesSpan</a> {
+            span: <a class="self" href="#257">self</a>,
+            pos: <a class="self" href="#257">self</a>.start,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Span&lt;<span class="lifetime">&#39;i</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/pest/span.rs.html#266">f</a>.debug_struct(<span class="string">&quot;Span&quot;</span>)
-            .field(<span class="string">&quot;str&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/pest/span.rs.html#266">self</a>.<a href="../../src/pest/span.rs.html#210">as_str</a>())
-            .field(<span class="string">&quot;start&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/pest/span.rs.html#266">self</a>.start)
-            .field(<span class="string">&quot;end&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/pest/span.rs.html#266">self</a>.end)
+        <a href="#266">f</a>.debug_struct(<span class="string">&quot;Span&quot;</span>)
+            .field(<span class="string">&quot;str&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#266">self</a>.<a href="#210">as_str</a>())
+            .field(<span class="string">&quot;start&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#266">self</a>.start)
+            .field(<span class="string">&quot;end&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#266">self</a>.end)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>Span&lt;<span class="lifetime">&#39;i</span>&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Span&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        ptr::eq(<a class="self" href="../../src/pest/span.rs.html#276">self</a>.input, <a href="../../src/pest/span.rs.html#276">other</a>.input) &amp;&amp; <a class="self" href="../../src/pest/span.rs.html#276">self</a>.start == <a href="../../src/pest/span.rs.html#276">other</a>.start &amp;&amp; <a class="self" href="../../src/pest/span.rs.html#276">self</a>.end == <a href="../../src/pest/span.rs.html#276">other</a>.end
+        ptr::eq(<a class="self" href="#276">self</a>.input, <a href="#276">other</a>.input) &amp;&amp; <a class="self" href="#276">self</a>.start == <a href="#276">other</a>.start &amp;&amp; <a class="self" href="#276">self</a>.end == <a href="#276">other</a>.end
     }
 }
 
@@ -732,9 +732,9 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span>Span&lt;<span class="lifetime">&#39;i</span>&gt; {
     <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        (<a class="self" href="../../src/pest/span.rs.html#284">self</a>.input <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../src/pest/span.rs.html#284">state</a>);
-        <a class="self" href="../../src/pest/span.rs.html#284">self</a>.start.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../src/pest/span.rs.html#284">state</a>);
-        <a class="self" href="../../src/pest/span.rs.html#284">self</a>.end.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../src/pest/span.rs.html#284">state</a>);
+        (<a class="self" href="#284">self</a>.input <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#284">state</a>);
+        <a class="self" href="#284">self</a>.start.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#284">state</a>);
+        <a class="self" href="#284">self</a>.end.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#284">state</a>);
     }
 }
 
@@ -759,10 +759,10 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>line_start = <a href="../../src/pest/span.rs.html#307">pos</a>.<a href="../../src/pest/position.rs.html#204">find_line_start</a>();
-        <a class="self" href="../../src/pest/span.rs.html#303">self</a>.pos = <a href="../../src/pest/span.rs.html#307">pos</a>.<a href="../../src/pest/position.rs.html#221">find_line_end</a>();
+        <span class="kw">let </span>line_start = <a href="#307">pos</a>.<a href="position.rs.html#173">find_line_start</a>();
+        <a class="self" href="#303">self</a>.pos = <a href="#307">pos</a>.<a href="position.rs.html#190">find_line_end</a>();
 
-        Span::new(<a class="self" href="../../src/pest/span.rs.html#303">self</a>.span.input, <a href="../../src/pest/span.rs.html#312">line_start</a>, <a class="self" href="../../src/pest/span.rs.html#303">self</a>.pos)
+        Span::new(<a class="self" href="#303">self</a>.span.input, <a href="#312">line_start</a>, <a class="self" href="#303">self</a>.pos)
     }
 }
 
@@ -778,7 +778,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Lines&lt;<span class="lifetime">&#39;i</span>&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/pest/span.rs.html#330">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|span| <a href="../../src/pest/span.rs.html#331">span</a>.<a href="../../src/pest/span.rs.html#210">as_str</a>())
+        <a class="self" href="#330">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|span| <a href="#331">span</a>.<a href="#210">as_str</a>())
     }
 }
 
@@ -899,4 +899,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

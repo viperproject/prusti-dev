@@ -245,8 +245,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-<span class="kw">use </span><a href="../../../src/flate2/lib.rs.html#92"><span class="kw">crate</span>::zio</a>;
-<span class="kw">use crate</span>::{<a href="../../../src/flate2/mem.rs.html#22">Compress</a>, <a href="../../../src/flate2/mem.rs.html#39">Decompress</a>};
+<span class="kw">use </span><a href="../lib.rs.html#92"><span class="kw">crate</span>::zio</a>;
+<span class="kw">use crate</span>::{<a href="../mem.rs.html#22">Compress</a>, <a href="../mem.rs.html#39">Decompress</a>};
 
 <span class="doccomment">/// A DEFLATE encoder, or compressor.
 ///
@@ -282,22 +282,22 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>DeflateEncoder&lt;R&gt; {
     obj: R,
-    data: <a href="../../../src/flate2/mem.rs.html#22">Compress</a>,
+    data: <a href="../mem.rs.html#22">Compress</a>,
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; DeflateEncoder&lt;R&gt; {
     <span class="doccomment">/// Creates a new encoder which will read uncompressed data from the given
     /// stream and emit the compressed stream.
-    </span><span class="kw">pub fn </span>new(r: R, level: <a href="../../../src/flate2/lib.rs.html#157"><span class="kw">crate</span>::Compression</a>) -&gt; DeflateEncoder&lt;R&gt; {
-        <a href="../../../src/flate2/deflate/bufread.rs.html#40">DeflateEncoder</a> {
-            obj: <a href="../../../src/flate2/deflate/bufread.rs.html#48">r</a>,
-            data: Compress::new(<a href="../../../src/flate2/deflate/bufread.rs.html#48">level</a>, <span class="bool-val">false</span>),
+    </span><span class="kw">pub fn </span>new(r: R, level: <a href="../lib.rs.html#157"><span class="kw">crate</span>::Compression</a>) -&gt; DeflateEncoder&lt;R&gt; {
+        <a href="#40">DeflateEncoder</a> {
+            obj: <a href="#48">r</a>,
+            data: Compress::new(<a href="#48">level</a>, <span class="bool-val">false</span>),
         }
     }
 }
 
 <span class="kw">pub fn </span>reset_encoder_data&lt;R&gt;(zlib: <span class="kw-2">&amp;mut </span>DeflateEncoder&lt;R&gt;) {
-    <a href="../../../src/flate2/deflate/bufread.rs.html#56">zlib</a>.data.<a href="../../../src/flate2/mem.rs.html#300">reset</a>();
+    <a href="#56">zlib</a>.data.<a href="../mem.rs.html#300">reset</a>();
 }
 
 <span class="kw">impl</span>&lt;R&gt; DeflateEncoder&lt;R&gt; {
@@ -309,13 +309,13 @@
     /// stream. Future data read from this encoder will be the compressed
     /// version of `r`&#39;s data.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, r: R) -&gt; R {
-        <a href="../../../src/flate2/deflate/bufread.rs.html#56">reset_encoder_data</a>(<a class="self" href="../../../src/flate2/deflate/bufread.rs.html#68">self</a>);
-        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#68">self</a>.obj, <a href="../../../src/flate2/deflate/bufread.rs.html#68">r</a>)
+        <a href="#56">reset_encoder_data</a>(<a class="self" href="#68">self</a>);
+        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#68">self</a>.obj, <a href="#68">r</a>)
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying reader
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#74">self</a>.obj
+        <span class="kw-2">&amp;</span><a class="self" href="#74">self</a>.obj
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream
@@ -323,12 +323,12 @@
     /// Note that mutation of the stream may result in surprising results if
     /// this encoder is continued to be used.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#82">self</a>.obj
+        <span class="kw-2">&amp;mut </span><a class="self" href="#82">self</a>.obj
     }
 
     <span class="doccomment">/// Consumes this encoder, returning the underlying reader.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#87">self</a>.obj
+        <a class="self" href="#87">self</a>.obj
     }
 
     <span class="doccomment">/// Returns the number of bytes that have been read into this compressor.
@@ -336,7 +336,7 @@
     /// Note that not all bytes read from the underlying object may be accounted
     /// for, there may still be some active buffering.
     </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#95">self</a>.data.<a href="../../../src/flate2/mem.rs.html#268">total_in</a>()
+        <a class="self" href="#95">self</a>.data.<a href="../mem.rs.html#268">total_in</a>()
     }
 
     <span class="doccomment">/// Returns the number of bytes that the compressor has produced.
@@ -344,23 +344,23 @@
     /// Note that not all bytes may have been read yet, some may still be
     /// buffered.
     </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#103">self</a>.data.<a href="../../../src/flate2/mem.rs.html#274">total_out</a>()
+        <a class="self" href="#103">self</a>.data.<a href="../mem.rs.html#274">total_out</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>DeflateEncoder&lt;R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="../../../src/flate2/zio.rs.html#118-121">zio::read</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#109">self</a>.obj, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#109">self</a>.data, <a href="../../../src/flate2/deflate/bufread.rs.html#109">buf</a>)
+        <a href="../zio.rs.html#118-121">zio::read</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#109">self</a>.obj, <span class="kw-2">&amp;mut </span><a class="self" href="#109">self</a>.data, <a href="#109">buf</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>DeflateEncoder&lt;W&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#115">self</a>.<a href="../../../src/flate2/deflate/bufread.rs.html#82">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/flate2/deflate/bufread.rs.html#115">buf</a>)
+        <a class="self" href="#115">self</a>.<a href="#82">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#115">buf</a>)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#119">self</a>.<a href="../../../src/flate2/deflate/bufread.rs.html#82">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="#119">self</a>.<a href="#82">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -398,19 +398,19 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>DeflateDecoder&lt;R&gt; {
     obj: R,
-    data: <a href="../../../src/flate2/mem.rs.html#39">Decompress</a>,
+    data: <a href="../mem.rs.html#39">Decompress</a>,
 }
 
 <span class="kw">pub fn </span>reset_decoder_data&lt;R&gt;(zlib: <span class="kw-2">&amp;mut </span>DeflateDecoder&lt;R&gt;) {
-    <a href="../../../src/flate2/deflate/bufread.rs.html#161">zlib</a>.data = Decompress::new(<span class="bool-val">false</span>);
+    <a href="#161">zlib</a>.data = Decompress::new(<span class="bool-val">false</span>);
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; DeflateDecoder&lt;R&gt; {
     <span class="doccomment">/// Creates a new decoder which will decompress data read from the given
     /// stream.
     </span><span class="kw">pub fn </span>new(r: R) -&gt; DeflateDecoder&lt;R&gt; {
-        <a href="../../../src/flate2/deflate/bufread.rs.html#156">DeflateDecoder</a> {
-            obj: <a href="../../../src/flate2/deflate/bufread.rs.html#168">r</a>,
+        <a href="#156">DeflateDecoder</a> {
+            obj: <a href="#168">r</a>,
             data: Decompress::new(<span class="bool-val">false</span>),
         }
     }
@@ -425,8 +425,8 @@
     /// stream. Future data read from this decoder will be the decompressed
     /// version of `r`&#39;s data.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, r: R) -&gt; R {
-        <a href="../../../src/flate2/deflate/bufread.rs.html#161">reset_decoder_data</a>(<a class="self" href="../../../src/flate2/deflate/bufread.rs.html#184">self</a>);
-        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#184">self</a>.obj, <a href="../../../src/flate2/deflate/bufread.rs.html#184">r</a>)
+        <a href="#161">reset_decoder_data</a>(<a class="self" href="#184">self</a>);
+        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#184">self</a>.obj, <a href="#184">r</a>)
     }
 
     <span class="doccomment">/// Resets the state of this decoder&#39;s data
@@ -434,12 +434,12 @@
     /// This will reset the internal state of this decoder. It will continue
     /// reading from the same stream.
     </span><span class="kw">pub fn </span>reset_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a href="../../../src/flate2/deflate/bufread.rs.html#161">reset_decoder_data</a>(<a class="self" href="../../../src/flate2/deflate/bufread.rs.html#193">self</a>);
+        <a href="#161">reset_decoder_data</a>(<a class="self" href="#193">self</a>);
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying stream
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#198">self</a>.obj
+        <span class="kw-2">&amp;</span><a class="self" href="#198">self</a>.obj
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream
@@ -447,12 +447,12 @@
     /// Note that mutation of the stream may result in surprising results if
     /// this encoder is continued to be used.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#206">self</a>.obj
+        <span class="kw-2">&amp;mut </span><a class="self" href="#206">self</a>.obj
     }
 
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#211">self</a>.obj
+        <a class="self" href="#211">self</a>.obj
     }
 
     <span class="doccomment">/// Returns the number of bytes that the decompressor has consumed.
@@ -460,29 +460,29 @@
     /// Note that this will likely be smaller than what the decompressor
     /// actually read from the underlying stream due to buffering.
     </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#219">self</a>.data.<a href="../../../src/flate2/mem.rs.html#439">total_in</a>()
+        <a class="self" href="#219">self</a>.data.<a href="../mem.rs.html#439">total_in</a>()
     }
 
     <span class="doccomment">/// Returns the number of bytes that the decompressor has produced.
     </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#224">self</a>.data.<a href="../../../src/flate2/mem.rs.html#445">total_out</a>()
+        <a class="self" href="#224">self</a>.data.<a href="../mem.rs.html#445">total_out</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>DeflateDecoder&lt;R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a href="../../../src/flate2/zio.rs.html#118-121">zio::read</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#230">self</a>.obj, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/flate2/deflate/bufread.rs.html#230">self</a>.data, <a href="../../../src/flate2/deflate/bufread.rs.html#230">into</a>)
+        <a href="../zio.rs.html#118-121">zio::read</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#230">self</a>.obj, <span class="kw-2">&amp;mut </span><a class="self" href="#230">self</a>.data, <a href="#230">into</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>DeflateDecoder&lt;W&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#236">self</a>.<a href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/flate2/deflate/bufread.rs.html#236">buf</a>)
+        <a class="self" href="#236">self</a>.<a href="#206">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#236">buf</a>)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/flate2/deflate/bufread.rs.html#240">self</a>.<a href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="#240">self</a>.<a href="#206">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

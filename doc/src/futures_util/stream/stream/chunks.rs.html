@@ -104,7 +104,7 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/futures_util/stream/stream/fuse.rs.html#9-18"><span class="kw">crate</span>::stream::Fuse</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="fuse.rs.html#9-18"><span class="kw">crate</span>::stream::Fuse</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
@@ -135,34 +135,34 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(capacity &gt; <span class="number">0</span>);
 
         <span class="self">Self </span>{
-            stream: <span class="kw">super</span>::Fuse::new(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#28">stream</a>),
-            items: Vec::with_capacity(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#28">capacity</a>),
-            cap: <a href="../../../../src/futures_util/stream/stream/chunks.rs.html#28">capacity</a>,
+            stream: <span class="kw">super</span>::Fuse::new(<a href="#28">stream</a>),
+            items: Vec::with_capacity(<a href="#28">capacity</a>),
+            cap: <a href="#28">capacity</a>,
         }
     }
 
     <span class="kw">fn </span>take(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Vec&lt;St::Item&gt; {
-        <span class="kw">let </span>cap = <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">self</a>.cap;
-        mem::replace(<a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">self</a>.<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#12-22">project</a>().items, Vec::with_capacity(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#39">cap</a>))
+        <span class="kw">let </span>cap = <a class="self" href="#38">self</a>.cap;
+        mem::replace(<a class="self" href="#38">self</a>.<a href="#12-22">project</a>().items, Vec::with_capacity(<a href="#39">cap</a>))
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (.));
+    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (.));
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Chunks&lt;St&gt; {
     <span class="kw">type </span>Item = Vec&lt;St::Item&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#49">self</a>.as_mut().<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#12-22">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#49">self</a>.as_mut().<a href="#12-22">project</a>();
         <span class="kw">loop </span>{
             <span class="kw">match </span><a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().poll_next(cx)) {
                 <span class="comment">// Push the item into the buffer and check whether it is full.
                 // If so, replace our buffer with a new and empty one and return
                 // the full one.
                 </span><span class="prelude-val">Some</span>(item) =&gt; {
-                    <a href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.items.push(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#56">item</a>);
+                    <a href="#50">this</a>.items.push(<a href="#56">item</a>);
                     <span class="kw">if </span>this.items.len() &gt;= <span class="kw-2">*</span>this.cap {
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#49">self</a>.<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">take</a>()));
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a class="self" href="#49">self</a>.<a href="#38">take</a>()));
                     }
                 }
 
@@ -172,11 +172,11 @@
                     <span class="kw">let </span>last = <span class="kw">if </span>this.items.is_empty() {
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="kw">let </span>full_buf = mem::take(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.items);
-                        <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#69">full_buf</a>)
+                        <span class="kw">let </span>full_buf = mem::take(<a href="#50">this</a>.items);
+                        <span class="prelude-val">Some</span>(<a href="#69">full_buf</a>)
                     };
 
-                    <span class="kw">return </span>Poll::Ready(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#66">last</a>);
+                    <span class="kw">return </span>Poll::Ready(<a href="#66">last</a>);
                 }
             }
         }
@@ -184,19 +184,19 @@
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
         <span class="kw">let </span>chunk_len = <span class="kw">if </span><span class="self">self</span>.items.is_empty() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
-        <span class="kw">let </span>(lower, upper) = <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#79">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>lower = (<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#81">lower</a> / <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#79">self</a>.cap).saturating_add(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#80">chunk_len</a>);
-        <span class="kw">let </span>upper = <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/chunks.rs.html#81">upper</a> {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="../../../../src/futures_util/stream/stream/chunks.rs.html#84">x</a>.checked_add(<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#80">chunk_len</a>),
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="#79">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>lower = (<a href="#81">lower</a> / <a class="self" href="#79">self</a>.cap).saturating_add(<a href="#80">chunk_len</a>);
+        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#81">upper</a> {
+            <span class="prelude-val">Some</span>(x) =&gt; <a href="#84">x</a>.checked_add(<a href="#80">chunk_len</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        (<a href="../../../../src/futures_util/stream/stream/chunks.rs.html#82">lower</a>, <a href="../../../../src/futures_util/stream/stream/chunks.rs.html#83">upper</a>)
+        (<a href="#82">lower</a>, <a href="#83">upper</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Chunks&lt;St&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#92">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#92">self</a>.items.is_empty()
+        <a class="self" href="#92">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#92">self</a>.items.is_empty()
     }
 }
 
@@ -208,7 +208,7 @@
 {
     <span class="kw">type </span>Error = S::Error;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
+    <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -286,7 +286,7 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
 
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/util.rs.html#25">util::Binding</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/reflog.rs.html#10">Reflog</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/signature.rs.html#21">Signature</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="util.rs.html#25">util::Binding</a>, <a href="error.rs.html#12">Error</a>, <a href="oid.rs.html#15">Oid</a>, <a href="reflog.rs.html#10">Reflog</a>, <a href="repo.rs.html#108">Repository</a>, <a href="signature.rs.html#21">Signature</a>};
 
 <span class="doccomment">/// A structure representing a transactional update of a repository&#39;s references.
 ///
@@ -296,36 +296,36 @@
 /// transaction aborts, but previous successful operations are not rolled back.
 </span><span class="kw">pub struct </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_transaction_free(<a class="self" href="../../src/git2/transaction.rs.html#18">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_transaction_free(<a class="self" href="#18">self</a>.raw) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>;
 
     <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a>) -&gt; Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="../../src/git2/transaction.rs.html#12">Transaction</a> {
-            raw: <a href="../../src/git2/transaction.rs.html#26">ptr</a>,
+        <a href="#12">Transaction</a> {
+            raw: <a href="#26">ptr</a>,
             _marker: marker::PhantomData,
         }
     }
 
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_transaction.html">raw::git_transaction</a> {
-        <a class="self" href="../../src/git2/transaction.rs.html#33">self</a>.raw
+        <a class="self" href="#33">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Transaction&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Lock the specified reference by name.
-    </span><span class="kw">pub fn </span>lock_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="../../src/git2/transaction.rs.html#40">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>lock_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>refname = CString::new(<a href="#40">refname</a>).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_lock_ref(<span class="self">self</span>.raw, refname));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_lock_ref(<span class="self">self</span>.raw, refname));
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -340,14 +340,14 @@
     </span><span class="kw">pub fn </span>set_target(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        target: <a href="../../src/git2/oid.rs.html#15">Oid</a>,
+        target: <a href="oid.rs.html#15">Oid</a>,
         reflog_signature: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
         reflog_message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="../../src/git2/transaction.rs.html#57">refname</a>).unwrap();
-        <span class="kw">let </span>reflog_message = CString::new(<a href="../../src/git2/transaction.rs.html#60">reflog_message</a>).unwrap();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>refname = CString::new(<a href="#57">refname</a>).unwrap();
+        <span class="kw">let </span>reflog_message = CString::new(<a href="#60">reflog_message</a>).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_target(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_target(
                 <span class="self">self</span>.raw,
                 refname,
                 target.raw(),
@@ -371,12 +371,12 @@
         target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         reflog_signature: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
         reflog_message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="../../src/git2/transaction.rs.html#85">refname</a>).unwrap();
-        <span class="kw">let </span>target = CString::new(<a href="../../src/git2/transaction.rs.html#86">target</a>).unwrap();
-        <span class="kw">let </span>reflog_message = CString::new(<a href="../../src/git2/transaction.rs.html#88">reflog_message</a>).unwrap();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>refname = CString::new(<a href="#85">refname</a>).unwrap();
+        <span class="kw">let </span>target = CString::new(<a href="#86">target</a>).unwrap();
+        <span class="kw">let </span>reflog_message = CString::new(<a href="#88">reflog_message</a>).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_symbolic_target(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_symbolic_target(
                 <span class="self">self</span>.raw,
                 refname,
                 target,
@@ -397,10 +397,10 @@
     /// If this is combined with setting the target, that update won&#39;t be
     /// written to the log (ie. the `reflog_signature` and `reflog_message`
     /// parameters will be ignored).
-    </span><span class="kw">pub fn </span>set_reflog(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, reflog: <a href="../../src/git2/reflog.rs.html#10">Reflog</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="../../src/git2/transaction.rs.html#115">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>set_reflog(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, reflog: <a href="reflog.rs.html#10">Reflog</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>refname = CString::new(<a href="#115">refname</a>).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_reflog(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_set_reflog(
                 <span class="self">self</span>.raw,
                 refname,
                 reflog.raw()
@@ -413,10 +413,10 @@
     <span class="doccomment">/// Remove a reference.
     ///
     /// The reference must have been locked via `lock_ref`.
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>refname = CString::new(<a href="../../src/git2/transaction.rs.html#131">refname</a>).unwrap();
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refname: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>refname = CString::new(<a href="#131">refname</a>).unwrap();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_remove(<span class="self">self</span>.raw, refname));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_remove(<span class="self">self</span>.raw, refname));
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -426,9 +426,9 @@
     ///
     /// The updates will be made one by one, and the first failure will stop the
     /// processing.
-    </span><span class="kw">pub fn </span>commit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>commit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transaction_commit(<span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_transaction_commit(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -569,4 +569,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

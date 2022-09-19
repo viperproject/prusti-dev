@@ -101,8 +101,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#22">domains::DefinitelyAccessibleState</a>,
-    mir_utils::{<a href="../../../../src/analysis/mir_utils.rs.html#103">is_prefix</a>, <a href="../../../../src/analysis/mir_utils.rs.html#25">Place</a>},
+    <a href="../definitely_accessible/state.rs.html#22">domains::DefinitelyAccessibleState</a>,
+    mir_utils::{<a href="../../mir_utils.rs.html#103">is_prefix</a>, <a href="../../mir_utils.rs.html#25">Place</a>},
 };
 <span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashSet.html">prusti_rustc_interface::data_structures::fx::FxHashSet</a>;
 <span class="kw">use </span>serde::{<a href="../../../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
@@ -118,11 +118,11 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; FramingState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_framed_accessible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/framing/state.rs.html#24">self</a>.framed_accessible
+        <span class="kw-2">&amp;</span><a class="self" href="#24">self</a>.framed_accessible
     }
 
     <span class="kw">pub fn </span>get_framed_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/framing/state.rs.html#28">self</a>.framed_owned
+        <span class="kw-2">&amp;</span><a class="self" href="#28">self</a>.framed_owned
     }
 
     <span class="kw">pub fn </span>check_invariant(
@@ -167,28 +167,28 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>FramingState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/framing/state.rs.html#72">self</a>.framed_accessible.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/framing/state.rs.html#74">definitely_accessible_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#72">self</a>.framed_accessible.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#74">definitely_accessible_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_accessible_set {
             definitely_accessible_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;frame_accessible&quot;</span>, <span class="kw-2">&amp;</span>definitely_accessible_strings)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/framing/state.rs.html#72">self</a>.framed_owned.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/framing/state.rs.html#81">definitely_owned_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#72">self</a>.framed_owned.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#81">definitely_owned_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_owned_set {
             definitely_owned_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;frame_owned&quot;</span>, <span class="kw-2">&amp;</span>definitely_owned_strings)<span class="question-mark">?</span>;
-        <a href="../../../../src/analysis/domains/framing/state.rs.html#73">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
+        <a href="#73">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>FramingState&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/analysis/domains/framing/state.rs.html#93">f</a>, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#93">f</a>, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

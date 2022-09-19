@@ -141,37 +141,37 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../scoped_tls/macro.scoped_thread_local.html">scoped_tls::scoped_thread_local</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 
 <span class="kw">use </span><a href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
 
-<span class="kw">use </span><a href="../../src/warp/lib.rs.html#179"><span class="kw">crate</span>::Request</a>;
+<span class="kw">use </span><a href="lib.rs.html#179"><span class="kw">crate</span>::Request</a>;
 
 <a class="macro" href="../../scoped_tls/macro.scoped_thread_local.html">scoped_thread_local!</a>(<span class="kw">static </span>ROUTE: RefCell&lt;Route&gt;);
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set&lt;F, U&gt;(r: <span class="kw-2">&amp;</span>RefCell&lt;<a href="../../src/warp/route.rs.html#31">Route</a>&gt;, func: F) -&gt; U
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set&lt;F, U&gt;(r: <span class="kw-2">&amp;</span>RefCell&lt;<a href="#31">Route</a>&gt;, func: F) -&gt; U
 <span class="kw">where
     </span>F: FnOnce() -&gt; U,
 {
-    <a href="../../src/warp/route.rs.html#10">ROUTE</a>.set(<a href="../../src/warp/route.rs.html#12">r</a>, <a href="../../src/warp/route.rs.html#12">func</a>)
+    <a href="#10">ROUTE</a>.set(<a href="#12">r</a>, <a href="#12">func</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_set() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../src/warp/route.rs.html#10">ROUTE</a>.is_set()
+    <a href="#10">ROUTE</a>.is_set()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with&lt;F, R&gt;(func: F) -&gt; R
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="../../src/warp/route.rs.html#31">Route</a>) -&gt; R,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#31">Route</a>) -&gt; R,
 {
-    <a href="../../src/warp/route.rs.html#10">ROUTE</a>.with(<span class="kw">move </span>|route| <a href="../../src/warp/route.rs.html#23">func</a>(<span class="kw-2">&amp;mut *</span><a href="../../src/warp/route.rs.html#27">route</a>.borrow_mut()))
+    <a href="#10">ROUTE</a>.with(<span class="kw">move </span>|route| <a href="#23">func</a>(<span class="kw-2">&amp;mut *</span><a href="#27">route</a>.borrow_mut()))
 }
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Route {
-    body: <a href="../../src/warp/route.rs.html#39">BodyState</a>,
-    remote_addr: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt;,
-    req: <a href="../../src/warp/lib.rs.html#179">Request</a>,
+    body: <a href="#39">BodyState</a>,
+    remote_addr: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;,
+    req: <a href="lib.rs.html#179">Request</a>,
     segments_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
@@ -181,8 +181,8 @@
     Taken,
 }
 
-<span class="kw">impl </span><a href="../../src/warp/route.rs.html#31">Route</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(req: <a href="../../src/warp/lib.rs.html#179">Request</a>, remote_addr: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt;) -&gt; RefCell&lt;<a href="../../src/warp/route.rs.html#31">Route</a>&gt; {
+<span class="kw">impl </span><a href="#31">Route</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(req: <a href="lib.rs.html#179">Request</a>, remote_addr: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;) -&gt; RefCell&lt;<a href="#31">Route</a>&gt; {
         <span class="kw">let </span>segments_index = <span class="kw">if </span>req.uri().path().starts_with(<span class="string">&#39;/&#39;</span>) {
             <span class="comment">// Skip the beginning slash.
             </span><span class="number">1
@@ -190,67 +190,67 @@
             <span class="number">0
         </span>};
 
-        RefCell::new(<a href="../../src/warp/route.rs.html#31">Route</a> {
-            body: <a href="../../src/warp/route.rs.html#40">BodyState::Ready</a>,
-            <a href="../../src/warp/route.rs.html#45">remote_addr</a>,
-            <a href="../../src/warp/route.rs.html#45">req</a>,
-            <a href="../../src/warp/route.rs.html#46">segments_index</a>,
+        RefCell::new(<a href="#31">Route</a> {
+            body: <a href="#40">BodyState::Ready</a>,
+            <a href="#45">remote_addr</a>,
+            <a href="#45">req</a>,
+            <a href="#46">segments_index</a>,
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../http/method/struct.Method.html">http::Method</a> {
-        <a class="self" href="../../src/warp/route.rs.html#61">self</a>.req.method()
+        <a class="self" href="#61">self</a>.req.method()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a> {
-        <a class="self" href="../../src/warp/route.rs.html#65">self</a>.req.headers()
+        <a class="self" href="#65">self</a>.req.headers()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../http/version/struct.Version.html">http::Version</a> {
-        <a class="self" href="../../src/warp/route.rs.html#69">self</a>.req.version()
+        <a class="self" href="#69">self</a>.req.version()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="../../src/warp/route.rs.html#73">self</a>.req.extensions()
+        <a class="self" href="#73">self</a>.req.extensions()
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;websocket&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="../../src/warp/route.rs.html#78">self</a>.req.extensions_mut()
+        <a class="self" href="#78">self</a>.req.extensions_mut()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>uri(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../http/uri/struct.Uri.html">http::Uri</a> {
-        <a class="self" href="../../src/warp/route.rs.html#82">self</a>.req.uri()
+        <a class="self" href="#82">self</a>.req.uri()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/warp/route.rs.html#86">self</a>.req.uri().path()[<a class="self" href="../../src/warp/route.rs.html#86">self</a>.segments_index..]
+        <span class="kw-2">&amp;</span><a class="self" href="#86">self</a>.req.uri().path()[<a class="self" href="#86">self</a>.segments_index..]
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>full_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/warp/route.rs.html#90">self</a>.req.uri().path()
+        <a class="self" href="#90">self</a>.req.uri().path()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_unmatched_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>index = <a class="self" href="../../src/warp/route.rs.html#94">self</a>.segments_index + <a href="../../src/warp/route.rs.html#94">index</a>;
-        <span class="kw">let </span>path = <a class="self" href="../../src/warp/route.rs.html#94">self</a>.req.uri().path();
+        <span class="kw">let </span>index = <a class="self" href="#94">self</a>.segments_index + <a href="#94">index</a>;
+        <span class="kw">let </span>path = <a class="self" href="#94">self</a>.req.uri().path();
         <span class="kw">if </span>path.is_empty() {
             <span class="comment">// malformed path
             </span><span class="kw">return</span>;
         } <span class="kw">else if </span>path.len() == index {
-            <a class="self" href="../../src/warp/route.rs.html#94">self</a>.segments_index = <a href="../../src/warp/route.rs.html#95">index</a>;
+            <a class="self" href="#94">self</a>.segments_index = <a href="#95">index</a>;
         } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(path.as_bytes()[index], <span class="string">b&#39;/&#39;</span>);
-            <a class="self" href="../../src/warp/route.rs.html#94">self</a>.segments_index = <a href="../../src/warp/route.rs.html#95">index</a> + <span class="number">1</span>;
+            <a class="self" href="#94">self</a>.segments_index = <a href="#95">index</a> + <span class="number">1</span>;
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>query(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../src/warp/route.rs.html#108">self</a>.req.uri().query()
+        <a class="self" href="#108">self</a>.req.uri().query()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>matched_path_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/warp/route.rs.html#112">self</a>.segments_index
+        <a class="self" href="#112">self</a>.segments_index
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_matched_path_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
@@ -260,23 +260,23 @@
             <span class="self">self</span>.segments_index,
             index,
         );
-        <a class="self" href="../../src/warp/route.rs.html#116">self</a>.segments_index = <a href="../../src/warp/route.rs.html#116">index</a>;
+        <a class="self" href="#116">self</a>.segments_index = <a href="#116">index</a>;
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../src/warp/route.rs.html#126">self</a>.remote_addr
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#126">self</a>.remote_addr
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_body(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../hyper/body/body/struct.Body.html">Body</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/warp/route.rs.html#130">self</a>.body {
-            <a href="../../src/warp/route.rs.html#40">BodyState::Ready</a> =&gt; {
-                <span class="kw">let </span>body = mem::replace(<a class="self" href="../../src/warp/route.rs.html#130">self</a>.req.body_mut(), Body::empty());
-                <a class="self" href="../../src/warp/route.rs.html#130">self</a>.body = <a href="../../src/warp/route.rs.html#41">BodyState::Taken</a>;
-                <span class="prelude-val">Some</span>(<a href="../../src/warp/route.rs.html#133">body</a>)
+        <span class="kw">match </span><a class="self" href="#130">self</a>.body {
+            <a href="#40">BodyState::Ready</a> =&gt; {
+                <span class="kw">let </span>body = mem::replace(<a class="self" href="#130">self</a>.req.body_mut(), Body::empty());
+                <a class="self" href="#130">self</a>.body = <a href="#41">BodyState::Taken</a>;
+                <span class="prelude-val">Some</span>(<a href="#133">body</a>)
             }
-            <a href="../../src/warp/route.rs.html#41">BodyState::Taken</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#41">BodyState::Taken</a> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -37,8 +37,8 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#27">socket_addr</a>, <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a>};
-<span class="kw">use </span><a href="../../../../../src/mio/sys/unix/net.rs.html#15"><span class="kw">crate</span>::sys::unix::net::new_socket</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="mod.rs.html#27">socket_addr</a>, <a href="socketaddr.rs.html#15">SocketAddr</a>};
+<span class="kw">use </span><a href="../net.rs.html#15"><span class="kw">crate</span>::sys::unix::net::new_socket</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
@@ -48,33 +48,33 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>&gt; {
     <span class="kw">let </span>socket = new_socket(libc::AF_UNIX, libc::SOCK_STREAM)<span class="question-mark">?</span>;
     <span class="kw">let </span>(sockaddr, socklen) = socket_addr(path)<span class="question-mark">?</span>;
-    <span class="kw">let </span>sockaddr = <span class="kw-2">&amp;</span><a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#11">sockaddr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>;
+    <span class="kw">let </span>sockaddr = <span class="kw-2">&amp;</span><a href="#11">sockaddr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>;
 
-    <span class="kw">match </span><a class="macro" href="../../../../../src/mio/sys/unix/mod.rs.html#5-14">syscall!</a>(connect(socket, sockaddr, socklen)) {
+    <span class="kw">match </span><a class="macro" href="../mod.rs.html#5-14">syscall!</a>(connect(socket, sockaddr, socklen)) {
         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-        <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#16">err</a>.raw_os_error() == <span class="prelude-val">Some</span>(libc::EINPROGRESS) =&gt; {}
+        <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="#16">err</a>.raw_os_error() == <span class="prelude-val">Some</span>(libc::EINPROGRESS) =&gt; {}
         <span class="prelude-val">Err</span>(e) =&gt; {
             <span class="comment">// Close the socket if we hit an error, ignoring the error
             // from closing since we can&#39;t pass back two errors.
-            </span><span class="kw">let _ </span>= <span class="kw">unsafe </span>{ libc::close(<a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#10">socket</a>) };
+            </span><span class="kw">let _ </span>= <span class="kw">unsafe </span>{ libc::close(<a href="#10">socket</a>) };
 
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#17">e</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#17">e</a>);
         }
     }
 
-    <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ net::UnixStream::from_raw_fd(<a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#10">socket</a>) })
+    <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ net::UnixStream::from_raw_fd(<a href="#10">socket</a>) })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pair() -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>)&gt; {
-    <a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#77-78"><span class="kw">super</span>::pair</a>(libc::SOCK_STREAM)
+    <a href="mod.rs.html#77-78"><span class="kw">super</span>::pair</a>(libc::SOCK_STREAM)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>local_addr(socket: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a>&gt; {
-    <a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#106"><span class="kw">super</span>::local_addr</a>(<a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#33">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>local_addr(socket: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<a href="socketaddr.rs.html#15">SocketAddr</a>&gt; {
+    <a href="mod.rs.html#106"><span class="kw">super</span>::local_addr</a>(<a href="#33">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>peer_addr(socket: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a>&gt; {
-    <a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#110"><span class="kw">super</span>::peer_addr</a>(<a href="../../../../../src/mio/sys/unix/uds/stream.rs.html#37">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>peer_addr(socket: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; io::Result&lt;<a href="socketaddr.rs.html#15">SocketAddr</a>&gt; {
+    <a href="mod.rs.html#110"><span class="kw">super</span>::peer_addr</a>(<a href="#37">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

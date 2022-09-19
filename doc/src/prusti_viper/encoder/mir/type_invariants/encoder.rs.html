@@ -209,16 +209,16 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/interface.rs.html#13"><span class="kw">super</span>::interface::TypeInvariantEncoderInterface</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="interface.rs.html#13"><span class="kw">super</span>::interface::TypeInvariantEncoderInterface</a>;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    <a href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">errors::EncodingResult</a>,
-    <a href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
+    <a href="../../errors/encoding_error.rs.html#20">errors::EncodingResult</a>,
+    <a href="../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     mir::{
-        <a href="../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#36">pure::SpecificationEncoderInterface</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>,
-        <a href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
+        <a href="../pure/specifications/interface.rs.html#36">pure::SpecificationEncoderInterface</a>, <a href="../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>,
+        <a href="../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
     },
-    <a href="../../../../../src/prusti_viper/encoder/snapshot/interface.rs.html#12">snapshot::interface::SnapshotEncoderInterface</a>,
-    <a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a>,
+    <a href="../../snapshot/interface.rs.html#12">snapshot::interface::SnapshotEncoderInterface</a>,
+    <a href="../../encoder.rs.html#68">Encoder</a>,
 };
 <span class="kw">use </span>prusti_common::{<a href="../../../../../prusti_common/macro.vir_expr.html">vir_expr</a>, <a href="../../../../../prusti_common/macro.vir_local.html">vir_local</a>};
 <span class="kw">use </span><a href="../../../../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
@@ -229,13 +229,13 @@
 <span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">ExprIterator</a>};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>needs_invariant_func(ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#20">ty</a>.kind() {
-        ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#20">needs_invariant_func</a>(<span class="kw-2">*</span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#22">ty</a>),
-        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#23">adt_def</a>.is_box() =&gt; <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#20">needs_invariant_func</a>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#20">ty</a>.boxed_ty()),
+    <span class="kw">match </span><a href="#20">ty</a>.kind() {
+        ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; <a href="#20">needs_invariant_func</a>(<span class="kw-2">*</span><a href="#22">ty</a>),
+        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="#23">adt_def</a>.is_box() =&gt; <a href="#20">needs_invariant_func</a>(<a href="#20">ty</a>.boxed_ty()),
         <span class="comment">//ty::TyKind::Int(..)
         //| ty::TyKind::Uint(..)
         </span>ty::TyKind::Tuple(..) | ty::TyKind::Closure(..) =&gt; <span class="bool-val">true</span>,
-        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#27">adt_def</a>.is_struct() || <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#27">adt_def</a>.is_enum() =&gt; <span class="bool-val">true</span>,
+        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="#27">adt_def</a>.is_struct() || <a href="#27">adt_def</a>.is_enum() =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
@@ -254,7 +254,7 @@
         return_type: vir::Type::Bool,
         pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-        <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#35">body</a>,
+        <a href="#35">body</a>,
     })
 }
 
@@ -262,29 +262,29 @@
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt; {
-    <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#32-36">encode_invariant_func_base</a>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#51">encoder</a>, <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#52">ty</a>, <span class="prelude-val">None</span>)
+    <a href="#32-36">encode_invariant_func_base</a>(<a href="#51">encoder</a>, <a href="#52">ty</a>, <span class="prelude-val">None</span>)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_invariant_def&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt; {
-    <span class="kw">let </span>tcx = <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#58">encoder</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().tcx();
+    <span class="kw">let </span>tcx = <a href="#58">encoder</a>.<a href="../../encoder.rs.html#223">env</a>().tcx();
 
     <span class="kw">let </span>predicate_type = encoder.encode_type(ty)<span class="question-mark">?</span>;
     <span class="kw">let </span>parg_self = <a class="macro" href="../../../../../prusti_common/macro.vir_local.html">vir_local! </a>{<span class="self">self</span>: { predicate_type } };
-    <span class="kw">let </span>parg_expr = vir::Expr::local(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#64">parg_self</a>);
+    <span class="kw">let </span>parg_expr = vir::Expr::local(<a href="#64">parg_self</a>);
 
     <span class="kw">let </span>snap_type = encoder.encode_snapshot_type(ty)<span class="question-mark">?</span>;
     <span class="kw">let </span>arg_self = <a class="macro" href="../../../../../prusti_common/macro.vir_local.html">vir_local! </a>{<span class="self">self</span>: { snap_type } };
-    <span class="kw">let </span>arg_expr = vir::Expr::local(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#68">arg_self</a>);
+    <span class="kw">let </span>arg_expr = vir::Expr::local(<a href="#68">arg_self</a>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>conjuncts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-    <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#59">ty</a>.kind() {
+    <span class="kw">match </span><a href="#59">ty</a>.kind() {
         <span class="comment">// ty should be peeled already
         </span>ty::TyKind::Ref(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
-        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#76">adt_def</a>.is_box() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        ty::TyKind::Adt(adt_def, <span class="kw">_</span>) <span class="kw">if </span><a href="#76">adt_def</a>.is_box() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
 
         <span class="comment">// TODO(inv): incorporate integer bounds
         //ty::TyKind::Int(_)
@@ -303,7 +303,7 @@
         }
 
         ty::TyKind::Closure(_def_id, substs) =&gt; {
-            <span class="kw">let </span>cl_substs = <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#94">substs</a>.as_closure();
+            <span class="kw">let </span>cl_substs = <a href="#94">substs</a>.as_closure();
             <span class="kw">for </span>(field_num, field_ty) <span class="kw">in </span>cl_substs.upvar_tys().enumerate() {
                 <span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;closure_{}&quot;</span>, field_num);
                 conjuncts.push(encoder.encode_invariant_func_app(
@@ -316,7 +316,7 @@
             }
         }
 
-        ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#108">adt_def</a>.is_struct() || <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#108">adt_def</a>.is_enum() =&gt; {
+        ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#108">adt_def</a>.is_struct() || <a href="#108">adt_def</a>.is_enum() =&gt; {
             <span class="kw">if </span>adt_def.is_struct() {
                 <span class="kw">for </span>field <span class="kw">in </span>adt_def.all_fields() {
                     <span class="kw">let </span>field_ty = field.ty(tcx, substs);
@@ -376,17 +376,17 @@
                 }
                 <span class="kw">if </span>variants.len() == <span class="number">1 </span>{
                     <span class="comment">// skip discriminant call and implication if only one variant
-                    </span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#71">conjuncts</a>.push(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#122">variants</a>[<span class="number">0</span>].<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    </span><a href="#71">conjuncts</a>.push(<a href="#122">variants</a>[<span class="number">0</span>].<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 } <span class="kw">else </span>{
-                    <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#122">variants</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(l, r)| vir::Expr::implies(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#170">l</a>, <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#170">r</a>)));
+                    <a href="#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#122">variants</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(l, r)| vir::Expr::implies(<a href="#170">l</a>, <a href="#170">r</a>)));
                 }
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(specs) = <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#58">encoder</a>.<a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#91">get_type_specs</a>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#108">adt_def</a>.did()) {
-                <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#174">specs</a>.invariant {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(specs) = <a href="#58">encoder</a>.<a href="../specifications/interface.rs.html#91">get_type_specs</a>(<a href="#108">adt_def</a>.did()) {
+                <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#174">specs</a>.invariant {
                     typed::SpecificationItem::Empty =&gt; {}
                     typed::SpecificationItem::Inherent(invs) =&gt; {
-                        <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
+                        <a href="#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
                             invs.iter()
                                 .map(|inherent_def_id| {
                                     encoder.encode_assertion(
@@ -411,14 +411,14 @@
         <span class="comment">// other types should not make it here because of `needs_invariant_func`
         </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{ty:?}&quot;</span>),
     };
-    <span class="kw">let </span>inv_body = <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>();
+    <span class="kw">let </span>inv_body = <a href="#71">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>();
     <span class="kw">let </span>inv_func = encoder.patch_snapshots_function(encode_invariant_func_base(
         encoder,
         ty,
         <span class="prelude-val">Some</span>(inv_body),
     )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-    <a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#58">encoder</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#269">insert_function</a>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#204">inv_func</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-    <span class="prelude-val">Ok</span>(<a href="../../../../../src/prusti_viper/encoder/mir/type_invariants/encoder.rs.html#204">inv_func</a>)
+    <a href="#58">encoder</a>.<a href="../../encoder.rs.html#269">insert_function</a>(<a href="#204">inv_func</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="prelude-val">Ok</span>(<a href="#204">inv_func</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

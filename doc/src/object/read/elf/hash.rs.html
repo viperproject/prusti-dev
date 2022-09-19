@@ -220,20 +220,20 @@
 <span id="220">220</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 
-<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use crate</span>::{<a href="../../../../src/object/endian.rs.html#569">U32</a>, <a href="../../../../src/object/endian.rs.html#573">U64</a>};
+<span class="kw">use </span><a href="../../lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<a href="../../endian.rs.html#569">U32</a>, <a href="../../endian.rs.html#573">U64</a>};
 
-<span class="kw">use super</span>::{<a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>, <a href="../../../../src/object/read/elf/symbol.rs.html#442">Sym</a>, <a href="../../../../src/object/read/elf/symbol.rs.html#22">SymbolTable</a>, <a href="../../../../src/object/read/elf/version.rs.html#38">Version</a>, <a href="../../../../src/object/read/elf/version.rs.html#63">VersionTable</a>};
+<span class="kw">use super</span>::{<a href="file.rs.html#437">FileHeader</a>, <a href="symbol.rs.html#442">Sym</a>, <a href="symbol.rs.html#22">SymbolTable</a>, <a href="version.rs.html#38">Version</a>, <a href="version.rs.html#63">VersionTable</a>};
 
 <span class="doccomment">/// A SysV symbol hash table in an ELF file.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>HashTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>HashTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     buckets: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32&lt;Elf::Endian&gt;],
     chains: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32&lt;Elf::Endian&gt;],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; HashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; HashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="doccomment">/// Parse a SysV hash table.
     ///
     /// `data` should be from a `SHT_HASH` section, or from a
@@ -251,12 +251,12 @@
         <span class="kw">let </span>chains = data
             .read_slice(<span class="kw-2">&amp;mut </span>offset, header.chain_count.get(endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid hash chains&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/elf/hash.rs.html#11">HashTable</a> { <a href="../../../../src/object/read/elf/hash.rs.html#28">buckets</a>, <a href="../../../../src/object/read/elf/hash.rs.html#31">chains</a> })
+        <span class="prelude-val">Ok</span>(<a href="#11">HashTable</a> { <a href="#28">buckets</a>, <a href="#31">chains</a> })
     }
 
     <span class="doccomment">/// Return the symbol table length.
     </span><span class="kw">pub fn </span>symbol_table_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/hash.rs.html#38">self</a>.chains.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        <a class="self" href="#38">self</a>.chains.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="doccomment">/// Use the hash table to find the symbol table entry with the given name, hash and version.
@@ -265,15 +265,15 @@
         endian: Elf::Endian,
         name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         hash: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../src/object/read/elf/version.rs.html#38">Version</a>&gt;,
+        version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="version.rs.html#38">Version</a>&gt;,
         symbols: <span class="kw-2">&amp;</span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
         versions: <span class="kw-2">&amp;</span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym)&gt; {
         <span class="comment">// Get the chain start from the bucket for this hash.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <a class="self" href="../../../../src/object/read/elf/hash.rs.html#44">self</a>.buckets[(<a href="../../../../src/object/read/elf/hash.rs.html#47">hash</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) % <a class="self" href="../../../../src/object/read/elf/hash.rs.html#44">self</a>.buckets.len()].<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#45">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <a class="self" href="#44">self</a>.buckets[(<a href="#47">hash</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) % <a class="self" href="#44">self</a>.buckets.len()].<a href="../../endian.rs.html#621">get</a>(<a href="#45">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="comment">// Avoid infinite loop.
         </span><span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-        <span class="kw">let </span>strings = <a href="../../../../src/object/read/elf/hash.rs.html#49">symbols</a>.<a href="../../../../src/object/read/elf/symbol.rs.html#111">strings</a>();
+        <span class="kw">let </span>strings = <a href="#49">symbols</a>.<a href="symbol.rs.html#111">strings</a>();
         <span class="kw">while </span>index != <span class="number">0 </span>&amp;&amp; i &lt; <span class="self">self</span>.chains.len() {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(symbol) = symbols.symbol(index) {
                 <span class="kw">if </span>symbol.name(endian, strings) == <span class="prelude-val">Ok</span>(name)
@@ -291,7 +291,7 @@
 
 <span class="doccomment">/// A GNU symbol hash table in an ELF file.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     symbol_base: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
     bloom_shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
     bloom_filters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
@@ -299,7 +299,7 @@
     values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[U32&lt;Elf::Endian&gt;],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; GnuHashTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="doccomment">/// Parse a GNU hash table.
     ///
     /// `data` should be from a `SHT_GNU_HASH` section, or from a
@@ -317,29 +317,29 @@
             .read::&lt;elf::GnuHashHeader&lt;Elf::Endian&gt;&gt;(<span class="kw-2">&amp;mut </span>offset)
             .read_error(<span class="string">&quot;Invalid GNU hash header&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>bloom_len =
-            u64::from(<a href="../../../../src/object/read/elf/hash.rs.html#96">header</a>.bloom_count.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#94">endian</a>)) * mem::size_of::&lt;Elf::Word&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+            u64::from(<a href="#96">header</a>.bloom_count.<a href="../../endian.rs.html#621">get</a>(<a href="#94">endian</a>)) * mem::size_of::&lt;Elf::Word&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
         <span class="kw">let </span>bloom_filters = data
             .read_bytes(<span class="kw-2">&amp;mut </span>offset, bloom_len)
             .read_error(<span class="string">&quot;Invalid GNU hash bloom filters&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>buckets = data
             .read_slice(<span class="kw-2">&amp;mut </span>offset, header.bucket_count.get(endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid GNU hash buckets&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_count = (<a href="../../../../src/object/read/elf/hash.rs.html#94">data</a>.len() - <a href="../../../../src/object/read/elf/hash.rs.html#95">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) / <span class="number">4</span>;
+        <span class="kw">let </span>chain_count = (<a href="#94">data</a>.len() - <a href="#95">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) / <span class="number">4</span>;
         <span class="kw">let </span>values = data
             .read_slice(<span class="kw-2">&amp;mut </span>offset, chain_count)
             .read_error(<span class="string">&quot;Invalid GNU hash values&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/elf/hash.rs.html#74">GnuHashTable</a> {
-            symbol_base: <a href="../../../../src/object/read/elf/hash.rs.html#96">header</a>.symbol_base.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#94">endian</a>),
-            bloom_shift: <a href="../../../../src/object/read/elf/hash.rs.html#96">header</a>.bloom_shift.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#94">endian</a>),
-            <a href="../../../../src/object/read/elf/hash.rs.html#101">bloom_filters</a>,
-            <a href="../../../../src/object/read/elf/hash.rs.html#104">buckets</a>,
-            <a href="../../../../src/object/read/elf/hash.rs.html#108">values</a>,
+        <span class="prelude-val">Ok</span>(<a href="#74">GnuHashTable</a> {
+            symbol_base: <a href="#96">header</a>.symbol_base.<a href="../../endian.rs.html#621">get</a>(<a href="#94">endian</a>),
+            bloom_shift: <a href="#96">header</a>.bloom_shift.<a href="../../endian.rs.html#621">get</a>(<a href="#94">endian</a>),
+            <a href="#101">bloom_filters</a>,
+            <a href="#104">buckets</a>,
+            <a href="#108">values</a>,
         })
     }
 
     <span class="doccomment">/// Return the symbol table index of the first symbol in the hash table.
     </span><span class="kw">pub fn </span>symbol_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/hash.rs.html#121">self</a>.symbol_base
+        <a class="self" href="#121">self</a>.symbol_base
     }
 
     <span class="doccomment">/// Determine the symbol table length by finding the last entry in the hash table.
@@ -380,26 +380,26 @@
         endian: Elf::Endian,
         name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         hash: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../src/object/read/elf/version.rs.html#38">Version</a>&gt;,
+        version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="version.rs.html#38">Version</a>&gt;,
         symbols: <span class="kw-2">&amp;</span>SymbolTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
         versions: <span class="kw-2">&amp;</span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::Sym)&gt; {
         <span class="kw">let </span>word_bits = mem::size_of::&lt;Elf::Word&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> * <span class="number">8</span>;
 
         <span class="comment">// Test against bloom filter.
-        </span><span class="kw">let </span>bloom_count = <a class="self" href="../../../../src/object/read/elf/hash.rs.html#159">self</a>.bloom_filters.len() / mem::size_of::&lt;Elf::Word&gt;();
+        </span><span class="kw">let </span>bloom_count = <a class="self" href="#159">self</a>.bloom_filters.len() / mem::size_of::&lt;Elf::Word&gt;();
         <span class="kw">let </span>offset =
-            ((<a href="../../../../src/object/read/elf/hash.rs.html#162">hash</a> / <a href="../../../../src/object/read/elf/hash.rs.html#167">word_bits</a>) &amp; (<a href="../../../../src/object/read/elf/hash.rs.html#170">bloom_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <span class="number">1</span>)) * mem::size_of::&lt;Elf::Word&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+            ((<a href="#162">hash</a> / <a href="#167">word_bits</a>) &amp; (<a href="#170">bloom_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> - <span class="number">1</span>)) * mem::size_of::&lt;Elf::Word&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
         <span class="kw">let </span>filter = <span class="kw">if </span>word_bits == <span class="number">64 </span>{
             <span class="self">self</span>.bloom_filters
                 .read_at::&lt;U64&lt;Elf::Endian&gt;&gt;(offset.into())
                 .ok()<span class="question-mark">?
-                </span>.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#160">endian</a>)
+                </span>.<a href="../../endian.rs.html#643">get</a>(<a href="#160">endian</a>)
         } <span class="kw">else </span>{
             <span class="self">self</span>.bloom_filters
                 .read_at::&lt;U32&lt;Elf::Endian&gt;&gt;(offset.into())
                 .ok()<span class="question-mark">?
-                </span>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#160">endian</a>)
+                </span>.<a href="../../endian.rs.html#621">get</a>(<a href="#160">endian</a>)
                 .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         };
         <span class="kw">if </span>filter &amp; (<span class="number">1 </span>&lt;&lt; (hash % word_bits)) == <span class="number">0 </span>{
@@ -410,13 +410,13 @@
         }
 
         <span class="comment">// Get the chain start from the bucket for this hash.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <a class="self" href="../../../../src/object/read/elf/hash.rs.html#159">self</a>.buckets[(<a href="../../../../src/object/read/elf/hash.rs.html#162">hash</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) % <a class="self" href="../../../../src/object/read/elf/hash.rs.html#159">self</a>.buckets.len()].<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/hash.rs.html#160">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <a class="self" href="#159">self</a>.buckets[(<a href="#162">hash</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) % <a class="self" href="#159">self</a>.buckets.len()].<a href="../../endian.rs.html#621">get</a>(<a href="#160">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">if </span>index == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
         <span class="comment">// Test symbols in the chain.
-        </span><span class="kw">let </span>strings = <a href="../../../../src/object/read/elf/hash.rs.html#164">symbols</a>.<a href="../../../../src/object/read/elf/symbol.rs.html#111">strings</a>();
+        </span><span class="kw">let </span>strings = <a href="#164">symbols</a>.<a href="symbol.rs.html#111">strings</a>();
         <span class="kw">let </span>symbols = symbols.symbols().get(index..)<span class="question-mark">?</span>;
         <span class="kw">let </span>values = <span class="self">self
             </span>.values
@@ -439,4 +439,4 @@
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

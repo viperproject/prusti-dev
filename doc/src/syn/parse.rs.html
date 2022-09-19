@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1498,18 +1498,18 @@
 //! *This module is available only if Syn is built with the `&quot;parsing&quot;` feature.*
 
 </span><span class="attribute">#[path = <span class="string">&quot;discouraged.rs&quot;</span>]
-</span><span class="kw">pub mod </span><a href="../../src/syn/discouraged.rs.html#1-194">discouraged</a>;
+</span><span class="kw">pub mod </span><a href="discouraged.rs.html#1-194">discouraged</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::buffer::{<a href="../../src/syn/buffer.rs.html#179">Cursor</a>, <a href="../../src/syn/buffer.rs.html#41">TokenBuffer</a>};
-<span class="kw">use </span><a href="../../src/syn/lib.rs.html#823"><span class="kw">crate</span>::error</a>;
-<span class="kw">use </span><a href="../../src/syn/lib.rs.html#798"><span class="kw">crate</span>::lookahead</a>;
+<span class="kw">use </span><span class="kw">crate</span>::buffer::{<a href="buffer.rs.html#179">Cursor</a>, <a href="buffer.rs.html#41">TokenBuffer</a>};
+<span class="kw">use </span><a href="lib.rs.html#824"><span class="kw">crate</span>::error</a>;
+<span class="kw">use </span><a href="lib.rs.html#799"><span class="kw">crate</span>::lookahead</a>;
 <span class="attribute">#[cfg(all(
     not(all(target_arch = <span class="string">&quot;wasm32&quot;</span>, any(target_os = <span class="string">&quot;unknown&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>))),
     feature = <span class="string">&quot;proc-macro&quot;
 </span>))]
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/index.html"><span class="kw">crate</span>::proc_macro</a>;
-<span class="kw">use </span><a href="../../src/syn/punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
-<span class="kw">use </span><a href="../../src/syn/token.rs.html#126"><span class="kw">crate</span>::token::Token</a>;
+<span class="kw">use </span><a href="punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
+<span class="kw">use </span><a href="token.rs.html#126"><span class="kw">crate</span>::token::Token</a>;
 <span class="kw">use </span>proc_macro2::{<a class="self" href="../../proc_macro2/index.html">self</a>, <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a href="../../proc_macro2/struct.Group.html">Group</a>, <a href="../../proc_macro2/struct.Literal.html">Literal</a>, <a href="../../proc_macro2/struct.Punct.html">Punct</a>, <a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
 <span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
@@ -1521,8 +1521,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
 
-<span class="kw">pub use </span><span class="kw">crate</span>::error::{<a href="../../src/syn/error.rs.html#85">Error</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">pub use </span><span class="kw">crate</span>::lookahead::{<a href="../../src/syn/lookahead.rs.html#62">Lookahead1</a>, <a href="../../src/syn/lookahead.rs.html#147">Peek</a>};
+<span class="kw">pub use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#85">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">pub use </span><span class="kw">crate</span>::lookahead::{<a href="lookahead.rs.html#62">Lookahead1</a>, <a href="lookahead.rs.html#147">Peek</a>};
 
 <span class="doccomment">/// Parsing interface implemented by all types that can be parsed in a default
 /// way from a token stream.
@@ -1532,7 +1532,7 @@
 ///
 /// [module documentation]: self
 </span><span class="kw">pub trait </span>Parse: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;;
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="doccomment">/// Input to a Syn parser function.
@@ -1578,15 +1578,15 @@
     // the cell.
     </span>cell: Cell&lt;Cursor&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
     marker: PhantomData&lt;Cursor&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    unexpected: Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;Cell&lt;<a href="../../src/syn/parse.rs.html#401">Unexpected</a>&gt;&gt;&gt;&gt;,
+    unexpected: Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;Cell&lt;<a href="#401">Unexpected</a>&gt;&gt;&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="../../src/syn/parse.rs.html#447">span_of_unexpected_ignoring_nones</a>(<a class="self" href="../../src/syn/parse.rs.html#271">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>()) {
-            <span class="kw">let </span>(inner, old_span) = <a href="../../src/syn/parse.rs.html#432">inner_unexpected</a>(<a class="self" href="../../src/syn/parse.rs.html#271">self</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="#447">span_of_unexpected_ignoring_nones</a>(<a class="self" href="#271">self</a>.<a href="#1053">cursor</a>()) {
+            <span class="kw">let </span>(inner, old_span) = <a href="#432">inner_unexpected</a>(<a class="self" href="#271">self</a>);
             <span class="kw">if </span>old_span.is_none() {
-                <a href="../../src/syn/parse.rs.html#273">inner</a>.set(<a href="../../src/syn/parse.rs.html#403">Unexpected::Some</a>(<a href="../../src/syn/parse.rs.html#272">unexpected_span</a>));
+                <a href="#273">inner</a>.set(<a href="#403">Unexpected::Some</a>(<a href="#272">unexpected_span</a>));
             }
         }
     }
@@ -1594,13 +1594,13 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/parse.rs.html#282">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#347">token_stream</a>(), <a href="../../src/syn/parse.rs.html#282">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#282">self</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#347">token_stream</a>(), <a href="#282">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/parse.rs.html#288">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#347">token_stream</a>(), <a href="../../src/syn/parse.rs.html#288">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#288">self</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#347">token_stream</a>(), <a href="#288">f</a>)
     }
 }
 
@@ -1667,7 +1667,7 @@
     <span class="kw">type </span>Target = Cursor&lt;<span class="lifetime">&#39;c</span>&gt;;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/parse.rs.html#355">self</a>.cursor
+        <span class="kw-2">&amp;</span><a class="self" href="#355">self</a>.cursor
     }
 }
 
@@ -1675,7 +1675,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>StepCursor&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw-2">*</span><span class="self"><a href="../../src/syn/parse.rs.html#363">self</a>
+        <span class="kw-2">*</span><span class="self"><a href="#363">self</a>
     </span>}
 }
 
@@ -1684,8 +1684,8 @@
     ///
     /// The `ParseStream::step` invocation will return this same error without
     /// advancing the stream state.
-    </span><span class="kw">pub fn </span>error&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>&gt;(<span class="self">self</span>, message: T) -&gt; <a href="../../src/syn/error.rs.html#85">Error</a> {
-        <a href="../../src/syn/error.rs.html#280">error::new_at</a>(<a class="self" href="../../src/syn/parse.rs.html#373">self</a>.scope, <a class="self" href="../../src/syn/parse.rs.html#373">self</a>.cursor, <a href="../../src/syn/parse.rs.html#373">message</a>)
+    </span><span class="kw">pub fn </span>error&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>&gt;(<span class="self">self</span>, message: T) -&gt; <a href="error.rs.html#85">Error</a> {
+        <a href="error.rs.html#280">error::new_at</a>(<a class="self" href="#373">self</a>.scope, <a class="self" href="#373">self</a>.cursor, <a href="#373">message</a>)
     }
 }
 
@@ -1694,42 +1694,42 @@
     // fact that a StepCursor&lt;&#39;c, &#39;a&gt; exists as proof that &#39;c outlives &#39;a.
     // Cursor is covariant in its lifetime parameter so we can cast a
     // Cursor&lt;&#39;c&gt; to one with the shorter lifetime Cursor&lt;&#39;a&gt;.
-    </span><span class="kw">let _ </span>= <a href="../../src/syn/parse.rs.html#378">proof</a>;
-    <span class="kw">unsafe </span>{ mem::transmute::&lt;Cursor&lt;<span class="lifetime">&#39;c</span>&gt;, Cursor&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<a href="../../src/syn/parse.rs.html#378">to</a>) }
+    </span><span class="kw">let _ </span>= <a href="#378">proof</a>;
+    <span class="kw">unsafe </span>{ mem::transmute::&lt;Cursor&lt;<span class="lifetime">&#39;c</span>&gt;, Cursor&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<a href="#378">to</a>) }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_parse_buffer(
     scope: <a href="../../proc_macro2/struct.Span.html">Span</a>,
-    cursor: <a href="../../src/syn/buffer.rs.html#179">Cursor</a>,
-    unexpected: Rc&lt;Cell&lt;<a href="../../src/syn/parse.rs.html#401">Unexpected</a>&gt;&gt;,
-) -&gt; <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a> {
-    <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a> {
-        <a href="../../src/syn/parse.rs.html#388">scope</a>,
+    cursor: <a href="buffer.rs.html#179">Cursor</a>,
+    unexpected: Rc&lt;Cell&lt;<a href="#401">Unexpected</a>&gt;&gt;,
+) -&gt; <a href="#252">ParseBuffer</a> {
+    <a href="#252">ParseBuffer</a> {
+        <a href="#388">scope</a>,
         <span class="comment">// See comment on `cell` in the struct definition.
-        </span>cell: Cell::new(<span class="kw">unsafe </span>{ mem::transmute::&lt;<a href="../../src/syn/buffer.rs.html#179">Cursor</a>, Cursor&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a href="../../src/syn/parse.rs.html#389">cursor</a>) }),
+        </span>cell: Cell::new(<span class="kw">unsafe </span>{ mem::transmute::&lt;<a href="buffer.rs.html#179">Cursor</a>, Cursor&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a href="#389">cursor</a>) }),
         marker: PhantomData,
-        unexpected: Cell::new(<span class="prelude-val">Some</span>(<a href="../../src/syn/parse.rs.html#390">unexpected</a>)),
+        unexpected: Cell::new(<span class="prelude-val">Some</span>(<a href="#390">unexpected</a>)),
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Unexpected {
     <span class="prelude-val">None</span>,
     <span class="prelude-val">Some</span>(<a href="../../proc_macro2/struct.Span.html">Span</a>),
-    Chain(Rc&lt;Cell&lt;<a href="../../src/syn/parse.rs.html#401">Unexpected</a>&gt;&gt;),
+    Chain(Rc&lt;Cell&lt;<a href="#401">Unexpected</a>&gt;&gt;),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#401">Unexpected</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#401">Unexpected</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/parse.rs.html#402">Unexpected::None</a>
+        <a href="#402">Unexpected::None</a>
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#401">Unexpected</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#401">Unexpected</a> {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="../../src/syn/parse.rs.html#414">self</a> </span>{
-            <a href="../../src/syn/parse.rs.html#402">Unexpected::None</a> =&gt; <a href="../../src/syn/parse.rs.html#402">Unexpected::None</a>,
-            <a href="../../src/syn/parse.rs.html#403">Unexpected::Some</a>(span) =&gt; <a href="../../src/syn/parse.rs.html#403">Unexpected::Some</a>(<span class="kw-2">*</span><a href="../../src/syn/parse.rs.html#417">span</a>),
-            <a href="../../src/syn/parse.rs.html#404">Unexpected::Chain</a>(next) =&gt; <a href="../../src/syn/parse.rs.html#404">Unexpected::Chain</a>(<a href="../../src/syn/parse.rs.html#418">next</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="kw">match </span><span class="self"><a href="#414">self</a> </span>{
+            <a href="#402">Unexpected::None</a> =&gt; <a href="#402">Unexpected::None</a>,
+            <a href="#403">Unexpected::Some</a>(span) =&gt; <a href="#403">Unexpected::Some</a>(<span class="kw-2">*</span><a href="#417">span</a>),
+            <a href="#404">Unexpected::Chain</a>(next) =&gt; <a href="#404">Unexpected::Chain</a>(<a href="#418">next</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
         }
     }
 }
@@ -1737,28 +1737,28 @@
 <span class="comment">// We call this on Cell&lt;Unexpected&gt; and Cell&lt;Option&lt;T&gt;&gt; where temporarily
 // swapping in a None is cheap.
 </span><span class="kw">fn </span>cell_clone&lt;T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(cell: <span class="kw-2">&amp;</span>Cell&lt;T&gt;) -&gt; T {
-    <span class="kw">let </span>prev = <a href="../../src/syn/parse.rs.html#425">cell</a>.take();
-    <span class="kw">let </span>ret = <a href="../../src/syn/parse.rs.html#426">prev</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <a href="../../src/syn/parse.rs.html#425">cell</a>.set(<a href="../../src/syn/parse.rs.html#426">prev</a>);
-    <a href="../../src/syn/parse.rs.html#427">ret</a>
+    <span class="kw">let </span>prev = <a href="#425">cell</a>.take();
+    <span class="kw">let </span>ret = <a href="#426">prev</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#425">cell</a>.set(<a href="#426">prev</a>);
+    <a href="#427">ret</a>
 }
 
-<span class="kw">fn </span>inner_unexpected(buffer: <span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>) -&gt; (Rc&lt;Cell&lt;<a href="../../src/syn/parse.rs.html#401">Unexpected</a>&gt;&gt;, <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <a href="../../src/syn/parse.rs.html#443">get_unexpected</a>(<a href="../../src/syn/parse.rs.html#432">buffer</a>);
+<span class="kw">fn </span>inner_unexpected(buffer: <span class="kw-2">&amp;</span><a href="#252">ParseBuffer</a>) -&gt; (Rc&lt;Cell&lt;<a href="#401">Unexpected</a>&gt;&gt;, <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <a href="#443">get_unexpected</a>(<a href="#432">buffer</a>);
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../src/syn/parse.rs.html#425">cell_clone</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#433">unexpected</a>) {
-            <a href="../../src/syn/parse.rs.html#402">Unexpected::None</a> =&gt; <span class="kw">return </span>(<a href="../../src/syn/parse.rs.html#433">unexpected</a>, <span class="prelude-val">None</span>),
-            <a href="../../src/syn/parse.rs.html#403">Unexpected::Some</a>(span) =&gt; <span class="kw">return </span>(<a href="../../src/syn/parse.rs.html#433">unexpected</a>, <span class="prelude-val">Some</span>(<a href="../../src/syn/parse.rs.html#437">span</a>)),
-            <a href="../../src/syn/parse.rs.html#404">Unexpected::Chain</a>(next) =&gt; <a href="../../src/syn/parse.rs.html#433">unexpected</a> = <a href="../../src/syn/parse.rs.html#438">next</a>,
+        <span class="kw">match </span><a href="#425">cell_clone</a>(<span class="kw-2">&amp;</span><a href="#433">unexpected</a>) {
+            <a href="#402">Unexpected::None</a> =&gt; <span class="kw">return </span>(<a href="#433">unexpected</a>, <span class="prelude-val">None</span>),
+            <a href="#403">Unexpected::Some</a>(span) =&gt; <span class="kw">return </span>(<a href="#433">unexpected</a>, <span class="prelude-val">Some</span>(<a href="#437">span</a>)),
+            <a href="#404">Unexpected::Chain</a>(next) =&gt; <a href="#433">unexpected</a> = <a href="#438">next</a>,
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_unexpected(buffer: <span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>) -&gt; Rc&lt;Cell&lt;<a href="../../src/syn/parse.rs.html#401">Unexpected</a>&gt;&gt; {
-    <a href="../../src/syn/parse.rs.html#425">cell_clone</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#443">buffer</a>.unexpected).unwrap()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_unexpected(buffer: <span class="kw-2">&amp;</span><a href="#252">ParseBuffer</a>) -&gt; Rc&lt;Cell&lt;<a href="#401">Unexpected</a>&gt;&gt; {
+    <a href="#425">cell_clone</a>(<span class="kw-2">&amp;</span><a href="#443">buffer</a>.unexpected).unwrap()
 }
 
-<span class="kw">fn </span>span_of_unexpected_ignoring_nones(<span class="kw-2">mut </span>cursor: <a href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt; {
+<span class="kw">fn </span>span_of_unexpected_ignoring_nones(<span class="kw-2">mut </span>cursor: <a href="buffer.rs.html#179">Cursor</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt; {
     <span class="kw">if </span>cursor.eof() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
@@ -1771,15 +1771,15 @@
     <span class="kw">if </span>cursor.eof() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<a href="../../src/syn/parse.rs.html#447">cursor</a>.<a href="../../src/syn/buffer.rs.html#378">span</a>())
+        <span class="prelude-val">Some</span>(<a href="#447">cursor</a>.<a href="buffer.rs.html#378">span</a>())
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ParseBuffer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Parses a syntax tree node of type `T`, advancing the position of our
     /// parse stream past it.
-    </span><span class="kw">pub fn </span>parse&lt;T: <a href="../../src/syn/parse.rs.html#220">Parse</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        T::parse(<a class="self" href="../../src/syn/parse.rs.html#467">self</a>)
+    </span><span class="kw">pub fn </span>parse&lt;T: <a href="#220">Parse</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        T::parse(<a class="self" href="#467">self</a>)
     }
 
     <span class="doccomment">/// Calls the given parser function to parse a syntax tree node of type `T`
@@ -1818,8 +1818,8 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>call&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <span class="kw">fn</span>(<a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <a href="../../src/syn/parse.rs.html#507">function</a>(<a class="self" href="../../src/syn/parse.rs.html#507">self</a>)
+    </span><span class="kw">pub fn </span>call&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <span class="kw">fn</span>(<a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        <a href="#507">function</a>(<a class="self" href="#507">self</a>)
     }
 
     <span class="doccomment">/// Looks at the next token in the parse stream to determine whether it
@@ -1894,9 +1894,9 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>peek&lt;T: <a href="../../src/syn/lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let _ </span>= <a href="../../src/syn/parse.rs.html#583">token</a>;
-        T::Token::peek(<a class="self" href="../../src/syn/parse.rs.html#583">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>())
+    </span><span class="kw">pub fn </span>peek&lt;T: <a href="lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let _ </span>= <a href="#583">token</a>;
+        T::Token::peek(<a class="self" href="#583">self</a>.<a href="#1053">cursor</a>())
     }
 
     <span class="doccomment">/// Looks at the second-next token in the parse stream.
@@ -1933,37 +1933,37 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>peek2&lt;T: <a href="../../src/syn/lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">fn </span>peek2(buffer: <span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>, peek: <span class="kw">fn</span>(<a href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(group) = <a href="../../src/syn/parse.rs.html#623">buffer</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#274">group</a>(Delimiter::None) {
+    </span><span class="kw">pub fn </span>peek2&lt;T: <a href="lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">fn </span>peek2(buffer: <span class="kw-2">&amp;</span><a href="#252">ParseBuffer</a>, peek: <span class="kw">fn</span>(<a href="buffer.rs.html#179">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(group) = <a href="#623">buffer</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#274">group</a>(Delimiter::None) {
                 <span class="kw">if </span>group.<span class="number">0</span>.skip().map_or(<span class="bool-val">false</span>, peek) {
                     <span class="kw">return </span><span class="bool-val">true</span>;
                 }
             }
-            <a href="../../src/syn/parse.rs.html#623">buffer</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#392">skip</a>().map_or(<span class="bool-val">false</span>, <a href="../../src/syn/parse.rs.html#623">peek</a>)
+            <a href="#623">buffer</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#392">skip</a>().map_or(<span class="bool-val">false</span>, <a href="#623">peek</a>)
         }
 
-        <span class="kw">let _ </span>= <a href="../../src/syn/parse.rs.html#622">token</a>;
-        <a href="../../src/syn/parse.rs.html#623">peek2</a>(<a class="self" href="../../src/syn/parse.rs.html#622">self</a>, T::Token::peek)
+        <span class="kw">let _ </span>= <a href="#622">token</a>;
+        <a href="#623">peek2</a>(<a class="self" href="#622">self</a>, T::Token::peek)
     }
 
     <span class="doccomment">/// Looks at the third-next token in the parse stream.
-    </span><span class="kw">pub fn </span>peek3&lt;T: <a href="../../src/syn/lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">fn </span>peek3(buffer: <span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>, peek: <span class="kw">fn</span>(<a href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(group) = <a href="../../src/syn/parse.rs.html#638">buffer</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#274">group</a>(Delimiter::None) {
+    </span><span class="kw">pub fn </span>peek3&lt;T: <a href="lookahead.rs.html#147">Peek</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, token: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">fn </span>peek3(buffer: <span class="kw-2">&amp;</span><a href="#252">ParseBuffer</a>, peek: <span class="kw">fn</span>(<a href="buffer.rs.html#179">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(group) = <a href="#638">buffer</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#274">group</a>(Delimiter::None) {
                 <span class="kw">if </span>group.<span class="number">0</span>.skip().and_then(Cursor::skip).map_or(<span class="bool-val">false</span>, peek) {
                     <span class="kw">return </span><span class="bool-val">true</span>;
                 }
             }
-            <a href="../../src/syn/parse.rs.html#638">buffer</a>
-                .<a href="../../src/syn/parse.rs.html#1053">cursor</a>()
-                .<a href="../../src/syn/buffer.rs.html#392">skip</a>()
+            <a href="#638">buffer</a>
+                .<a href="#1053">cursor</a>()
+                .<a href="buffer.rs.html#392">skip</a>()
                 .and_then(Cursor::skip)
-                .map_or(<span class="bool-val">false</span>, <a href="../../src/syn/parse.rs.html#638">peek</a>)
+                .map_or(<span class="bool-val">false</span>, <a href="#638">peek</a>)
         }
 
-        <span class="kw">let _ </span>= <a href="../../src/syn/parse.rs.html#637">token</a>;
-        <a href="../../src/syn/parse.rs.html#638">peek3</a>(<a class="self" href="../../src/syn/parse.rs.html#637">self</a>, T::Token::peek)
+        <span class="kw">let _ </span>= <a href="#637">token</a>;
+        <a href="#638">peek3</a>(<a class="self" href="#637">self</a>, T::Token::peek)
     }
 
     <span class="doccomment">/// Parses zero or more occurrences of `T` separated by punctuation of type
@@ -2010,11 +2010,11 @@
     /// # };
     /// # syn::parse2::&lt;TupleStruct&gt;(input).unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>parse_terminated&lt;T, P: <a href="../../src/syn/parse.rs.html#220">Parse</a>&gt;(
+    </span><span class="kw">pub fn </span>parse_terminated&lt;T, P: <a href="#220">Parse</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        parser: <span class="kw">fn</span>(<a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
+        parser: <span class="kw">fn</span>(<a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Punctuated&lt;T, P&gt;&gt; {
-        Punctuated::parse_terminated_with(<a class="self" href="../../src/syn/parse.rs.html#700">self</a>, <a href="../../src/syn/parse.rs.html#701">parser</a>)
+        Punctuated::parse_terminated_with(<a class="self" href="#700">self</a>, <a href="#701">parser</a>)
     }
 
     <span class="doccomment">/// Returns whether there are tokens remaining in this stream.
@@ -2055,7 +2055,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/syn/parse.rs.html#743">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>().<a href="../../src/syn/buffer.rs.html#267">eof</a>()
+        <a class="self" href="#743">self</a>.<a href="#1053">cursor</a>().<a href="buffer.rs.html#267">eof</a>()
     }
 
     <span class="doccomment">/// Constructs a helper for peeking at the next token in this stream and
@@ -2100,7 +2100,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>lookahead1(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lookahead1&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="../../src/syn/lookahead.rs.html#68">lookahead::new</a>(<a class="self" href="../../src/syn/parse.rs.html#788">self</a>.scope, <a class="self" href="../../src/syn/parse.rs.html#788">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>())
+        <a href="lookahead.rs.html#68">lookahead::new</a>(<a class="self" href="#788">self</a>.scope, <a class="self" href="#788">self</a>.<a href="#1053">cursor</a>())
     }
 
     <span class="doccomment">/// Forks a parse stream so that parsing tokens out of either the original
@@ -2230,13 +2230,13 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>fork(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a> {
-            scope: <a class="self" href="../../src/syn/parse.rs.html#918">self</a>.scope,
-            cell: <a class="self" href="../../src/syn/parse.rs.html#918">self</a>.cell.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#252">ParseBuffer</a> {
+            scope: <a class="self" href="#918">self</a>.scope,
+            cell: <a class="self" href="#918">self</a>.cell.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             marker: PhantomData,
             <span class="comment">// Not the parent&#39;s unexpected. Nothing cares whether the clone
             // parses all the way unless we `advance_to`.
-            </span>unexpected: Cell::new(<span class="prelude-val">Some</span>(Rc::new(Cell::new(<a href="../../src/syn/parse.rs.html#402">Unexpected::None</a>)))),
+            </span>unexpected: Cell::new(<span class="prelude-val">Some</span>(Rc::new(Cell::new(<a href="#402">Unexpected::None</a>)))),
         }
     }
 
@@ -2268,8 +2268,8 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>error&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, message: T) -&gt; <a href="../../src/syn/error.rs.html#85">Error</a> {
-        <a href="../../src/syn/error.rs.html#280">error::new_at</a>(<a class="self" href="../../src/syn/parse.rs.html#957">self</a>.scope, <a class="self" href="../../src/syn/parse.rs.html#957">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>(), <a href="../../src/syn/parse.rs.html#957">message</a>)
+    </span><span class="kw">pub fn </span>error&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, message: T) -&gt; <a href="error.rs.html#85">Error</a> {
+        <a href="error.rs.html#280">error::new_at</a>(<a class="self" href="#957">self</a>.scope, <a class="self" href="#957">self</a>.<a href="#1053">cursor</a>(), <a href="#957">message</a>)
     }
 
     <span class="doccomment">/// Speculatively parses tokens from this parse stream, advancing the
@@ -2343,19 +2343,19 @@
             cursor: <span class="self">self</span>.cell.get(),
             marker: PhantomData,
         })<span class="question-mark">?</span>;
-        <a class="self" href="../../src/syn/parse.rs.html#1006">self</a>.cell.set(<a href="../../src/syn/parse.rs.html#1027">rest</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/parse.rs.html#1027">node</a>)
+        <a class="self" href="#1006">self</a>.cell.set(<a href="#1027">rest</a>);
+        <span class="prelude-val">Ok</span>(<a href="#1027">node</a>)
     }
 
     <span class="doccomment">/// Returns the `Span` of the next token in the parse stream, or
     /// `Span::call_site()` if this parse stream has completely exhausted its
     /// input `TokenStream`.
     </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <span class="kw">let </span>cursor = <a class="self" href="../../src/syn/parse.rs.html#1039">self</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>();
+        <span class="kw">let </span>cursor = <a class="self" href="#1039">self</a>.<a href="#1053">cursor</a>();
         <span class="kw">if </span>cursor.eof() {
-            <a class="self" href="../../src/syn/parse.rs.html#1039">self</a>.scope
+            <a class="self" href="#1039">self</a>.scope
         } <span class="kw">else </span>{
-            <a href="../../src/syn/buffer.rs.html#431"><span class="kw">crate</span>::buffer::open_span_of_group</a>(<a href="../../src/syn/parse.rs.html#1040">cursor</a>)
+            <a href="buffer.rs.html#431"><span class="kw">crate</span>::buffer::open_span_of_group</a>(<a href="#1040">cursor</a>)
         }
     }
 
@@ -2365,27 +2365,27 @@
     /// Cursors are immutable so no operations you perform against the cursor
     /// will affect the state of this parse stream.
     </span><span class="kw">pub fn </span>cursor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cursor&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a class="self" href="../../src/syn/parse.rs.html#1053">self</a>.cell.get()
+        <a class="self" href="#1053">self</a>.cell.get()
     }
 
     <span class="kw">fn </span>check_unexpected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">match </span><a href="../../src/syn/parse.rs.html#432">inner_unexpected</a>(<a class="self" href="../../src/syn/parse.rs.html#1057">self</a>).<span class="number">1 </span>{
-            <span class="prelude-val">Some</span>(span) =&gt; <span class="prelude-val">Err</span>(Error::new(<a href="../../src/syn/parse.rs.html#1059">span</a>, <span class="string">&quot;unexpected token&quot;</span>)),
+        <span class="kw">match </span><a href="#432">inner_unexpected</a>(<a class="self" href="#1057">self</a>).<span class="number">1 </span>{
+            <span class="prelude-val">Some</span>(span) =&gt; <span class="prelude-val">Err</span>(Error::new(<a href="#1059">span</a>, <span class="string">&quot;unexpected token&quot;</span>)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl</span>&lt;T: <a href="../../src/syn/parse.rs.html#220">Parse</a>&gt; <a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span>Box&lt;T&gt; {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1067">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(Box::new)
+</span><span class="kw">impl</span>&lt;T: <a href="#220">Parse</a>&gt; <a href="#220">Parse</a> <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1067">input</a>.<a href="#467">parse</a>().map(Box::new)
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl</span>&lt;T: <a href="../../src/syn/parse.rs.html#220">Parse</a> + <a href="../../src/syn/token.rs.html#126">Token</a>&gt; <a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;T&gt; {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+</span><span class="kw">impl</span>&lt;T: <a href="#220">Parse</a> + <a href="token.rs.html#126">Token</a>&gt; <a href="#220">Parse</a> <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;T&gt; {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>T::peek(input.cursor()) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>))
         } <span class="kw">else </span>{
@@ -2395,26 +2395,26 @@
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1085">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| <span class="prelude-val">Ok</span>((<a href="../../src/syn/parse.rs.html#1086">cursor</a>.<a href="../../src/syn/buffer.rs.html#347">token_stream</a>(), Cursor::empty())))
+</span><span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1085">input</a>.<a href="#1006-1008">step</a>(|cursor| <span class="prelude-val">Ok</span>((<a href="#1086">cursor</a>.<a href="buffer.rs.html#347">token_stream</a>(), Cursor::empty())))
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1092">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="../../src/syn/parse.rs.html#1093">cursor</a>.<a href="../../src/syn/buffer.rs.html#364">token_tree</a>() {
-            <span class="prelude-val">Some</span>((tt, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="../../src/syn/parse.rs.html#1094">tt</a>, <a href="../../src/syn/parse.rs.html#1094">rest</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/parse.rs.html#1093">cursor</a>.<a href="../../src/syn/parse.rs.html#373">error</a>(<span class="string">&quot;expected token tree&quot;</span>)),
+</span><span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a> {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1092">input</a>.<a href="#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="#1093">cursor</a>.<a href="buffer.rs.html#364">token_tree</a>() {
+            <span class="prelude-val">Some</span>((tt, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="#1094">tt</a>, <a href="#1094">rest</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#1093">cursor</a>.<a href="#373">error</a>(<span class="string">&quot;expected token tree&quot;</span>)),
         })
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Group.html">Group</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1102">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| {
+</span><span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Group.html">Group</a> {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1102">input</a>.<a href="#1006-1008">step</a>(|cursor| {
             <span class="kw">for </span>delim <span class="kw">in </span><span class="kw-2">&amp;</span>[Delimiter::Parenthesis, Delimiter::Brace, Delimiter::Bracket] {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>((inside, span, rest)) = cursor.group(<span class="kw-2">*</span>delim) {
                     <span class="kw">let </span><span class="kw-2">mut </span>group = Group::new(<span class="kw-2">*</span>delim, inside.token_stream());
@@ -2422,27 +2422,27 @@
                     <span class="kw">return </span><span class="prelude-val">Ok</span>((group, rest));
                 }
             }
-            <span class="prelude-val">Err</span>(<a href="../../src/syn/parse.rs.html#1103">cursor</a>.<a href="../../src/syn/parse.rs.html#373">error</a>(<span class="string">&quot;expected group token&quot;</span>))
+            <span class="prelude-val">Err</span>(<a href="#1103">cursor</a>.<a href="#373">error</a>(<span class="string">&quot;expected group token&quot;</span>))
         })
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Punct.html">Punct</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1118">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="../../src/syn/parse.rs.html#1119">cursor</a>.<a href="../../src/syn/buffer.rs.html#303">punct</a>() {
-            <span class="prelude-val">Some</span>((punct, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="../../src/syn/parse.rs.html#1120">punct</a>, <a href="../../src/syn/parse.rs.html#1120">rest</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/parse.rs.html#1119">cursor</a>.<a href="../../src/syn/parse.rs.html#373">error</a>(<span class="string">&quot;expected punctuation token&quot;</span>)),
+</span><span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Punct.html">Punct</a> {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1118">input</a>.<a href="#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="#1119">cursor</a>.<a href="buffer.rs.html#303">punct</a>() {
+            <span class="prelude-val">Some</span>((punct, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="#1120">punct</a>, <a href="#1120">rest</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#1119">cursor</a>.<a href="#373">error</a>(<span class="string">&quot;expected punctuation token&quot;</span>)),
         })
     }
 }
 
 <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-</span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-    <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a href="../../src/syn/parse.rs.html#1128">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="../../src/syn/parse.rs.html#1129">cursor</a>.<a href="../../src/syn/buffer.rs.html#315">literal</a>() {
-            <span class="prelude-val">Some</span>((literal, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="../../src/syn/parse.rs.html#1130">literal</a>, <a href="../../src/syn/parse.rs.html#1130">rest</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/parse.rs.html#1129">cursor</a>.<a href="../../src/syn/parse.rs.html#373">error</a>(<span class="string">&quot;expected literal token&quot;</span>)),
+</span><span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="../../proc_macro2/struct.Literal.html">Literal</a> {
+    <span class="kw">fn </span>parse(input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <a href="#1128">input</a>.<a href="#1006-1008">step</a>(|cursor| <span class="kw">match </span><a href="#1129">cursor</a>.<a href="buffer.rs.html#315">literal</a>() {
+            <span class="prelude-val">Some</span>((literal, rest)) =&gt; <span class="prelude-val">Ok</span>((<a href="#1130">literal</a>, <a href="#1130">rest</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#1129">cursor</a>.<a href="#373">error</a>(<span class="string">&quot;expected literal token&quot;</span>)),
         })
     }
 }
@@ -2475,7 +2475,7 @@
         feature = <span class="string">&quot;proc-macro&quot;
     </span>))]
     </span><span class="kw">fn </span>parse(<span class="self">self</span>, tokens: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/syn/parse.rs.html#1163">self</a>.<a href="../../src/syn/parse.rs.html#1150">parse2</a>(proc_macro2::TokenStream::from(<a href="../../src/syn/parse.rs.html#1163">tokens</a>))
+        <a class="self" href="#1163">self</a>.<a href="#1150">parse2</a>(proc_macro2::TokenStream::from(<a href="#1163">tokens</a>))
     }
 
     <span class="doccomment">/// Parse a string of Rust code into the chosen syntax tree node.
@@ -2488,79 +2488,79 @@
     /// Every span in the resulting syntax tree will be set to resolve at the
     /// macro call site.
     </span><span class="kw">fn </span>parse_str(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/syn/parse.rs.html#1176">self</a>.<a href="../../src/syn/parse.rs.html#1150">parse2</a>(proc_macro2::TokenStream::from_str(s)<span class="question-mark">?</span>)
+        <a class="self" href="#1176">self</a>.<a href="#1150">parse2</a>(proc_macro2::TokenStream::from_str(s)<span class="question-mark">?</span>)
     }
 
     <span class="comment">// Not public API.
     </span><span class="attribute">#[doc(hidden)]
     #[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
     </span><span class="kw">fn </span>__parse_scoped(<span class="self">self</span>, scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let _ </span>= <a href="../../src/syn/parse.rs.html#1183">scope</a>;
-        <a class="self" href="../../src/syn/parse.rs.html#1183">self</a>.<a href="../../src/syn/parse.rs.html#1150">parse2</a>(<a href="../../src/syn/parse.rs.html#1183">tokens</a>)
+        <span class="kw">let _ </span>= <a href="#1183">scope</a>;
+        <a class="self" href="#1183">self</a>.<a href="#1150">parse2</a>(<a href="#1183">tokens</a>)
     }
 
     <span class="comment">// Not public API.
     </span><span class="attribute">#[doc(hidden)]
     #[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
-    </span><span class="kw">fn </span>__parse_stream(<span class="self">self</span>, input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <a href="../../src/syn/parse.rs.html#1191">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().and_then(|tokens| <a class="self" href="../../src/syn/parse.rs.html#1191">self</a>.<a href="../../src/syn/parse.rs.html#1150">parse2</a>(<a href="../../src/syn/parse.rs.html#1192">tokens</a>))
+    </span><span class="kw">fn </span>__parse_stream(<span class="self">self</span>, input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
+        <a href="#1191">input</a>.<a href="#467">parse</a>().and_then(|tokens| <a class="self" href="#1191">self</a>.<a href="#1150">parse2</a>(<a href="#1192">tokens</a>))
     }
 }
 
-<span class="kw">fn </span>tokens_to_parse_buffer(tokens: <span class="kw-2">&amp;</span><a href="../../src/syn/buffer.rs.html#41">TokenBuffer</a>) -&gt; <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a> {
+<span class="kw">fn </span>tokens_to_parse_buffer(tokens: <span class="kw-2">&amp;</span><a href="buffer.rs.html#41">TokenBuffer</a>) -&gt; <a href="#252">ParseBuffer</a> {
     <span class="kw">let </span>scope = Span::call_site();
-    <span class="kw">let </span>cursor = <a href="../../src/syn/parse.rs.html#1196">tokens</a>.<a href="../../src/syn/buffer.rs.html#161">begin</a>();
-    <span class="kw">let </span>unexpected = Rc::new(Cell::new(<a href="../../src/syn/parse.rs.html#402">Unexpected::None</a>));
-    <a href="../../src/syn/parse.rs.html#387-391">new_parse_buffer</a>(<a href="../../src/syn/parse.rs.html#1197">scope</a>, <a href="../../src/syn/parse.rs.html#1198">cursor</a>, <a href="../../src/syn/parse.rs.html#1199">unexpected</a>)
+    <span class="kw">let </span>cursor = <a href="#1196">tokens</a>.<a href="buffer.rs.html#161">begin</a>();
+    <span class="kw">let </span>unexpected = Rc::new(Cell::new(<a href="#402">Unexpected::None</a>));
+    <a href="#387-391">new_parse_buffer</a>(<a href="#1197">scope</a>, <a href="#1198">cursor</a>, <a href="#1199">unexpected</a>)
 }
 
-<span class="kw">impl</span>&lt;F, T&gt; <a href="../../src/syn/parse.rs.html#1143">Parser</a> <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, T&gt; <a href="#1143">Parser</a> <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: FnOnce(<a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
+    </span>F: FnOnce(<a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
 {
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>parse2(<span class="self">self</span>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <span class="kw">let </span>buf = TokenBuffer::new2(<a href="../../src/syn/parse.rs.html#1209">tokens</a>);
-        <span class="kw">let </span>state = <a href="../../src/syn/parse.rs.html#1196">tokens_to_parse_buffer</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/parse.rs.html#1210">buf</a>);
+        <span class="kw">let </span>buf = TokenBuffer::new2(<a href="#1209">tokens</a>);
+        <span class="kw">let </span>state = <a href="#1196">tokens_to_parse_buffer</a>(<span class="kw-2">&amp;</span><a href="#1210">buf</a>);
         <span class="kw">let </span>node = <span class="self">self</span>(<span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
         state.check_unexpected()<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="../../src/syn/parse.rs.html#447">span_of_unexpected_ignoring_nones</a>(<a href="../../src/syn/parse.rs.html#1211">state</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>()) {
-            <span class="prelude-val">Err</span>(Error::new(<a href="../../src/syn/parse.rs.html#1214">unexpected_span</a>, <span class="string">&quot;unexpected token&quot;</span>))
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="#447">span_of_unexpected_ignoring_nones</a>(<a href="#1211">state</a>.<a href="#1053">cursor</a>()) {
+            <span class="prelude-val">Err</span>(Error::new(<a href="#1214">unexpected_span</a>, <span class="string">&quot;unexpected token&quot;</span>))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/parse.rs.html#1212">node</a>)
+            <span class="prelude-val">Ok</span>(<a href="#1212">node</a>)
         }
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
     </span><span class="kw">fn </span>__parse_scoped(<span class="self">self</span>, scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>buf = TokenBuffer::new2(<a href="../../src/syn/parse.rs.html#1222">tokens</a>);
-        <span class="kw">let </span>cursor = <a href="../../src/syn/parse.rs.html#1223">buf</a>.<a href="../../src/syn/buffer.rs.html#161">begin</a>();
-        <span class="kw">let </span>unexpected = Rc::new(Cell::new(<a href="../../src/syn/parse.rs.html#402">Unexpected::None</a>));
-        <span class="kw">let </span>state = <a href="../../src/syn/parse.rs.html#387-391">new_parse_buffer</a>(<a href="../../src/syn/parse.rs.html#1222">scope</a>, <a href="../../src/syn/parse.rs.html#1224">cursor</a>, <a href="../../src/syn/parse.rs.html#1225">unexpected</a>);
+        <span class="kw">let </span>buf = TokenBuffer::new2(<a href="#1222">tokens</a>);
+        <span class="kw">let </span>cursor = <a href="#1223">buf</a>.<a href="buffer.rs.html#161">begin</a>();
+        <span class="kw">let </span>unexpected = Rc::new(Cell::new(<a href="#402">Unexpected::None</a>));
+        <span class="kw">let </span>state = <a href="#387-391">new_parse_buffer</a>(<a href="#1222">scope</a>, <a href="#1224">cursor</a>, <a href="#1225">unexpected</a>);
         <span class="kw">let </span>node = <span class="self">self</span>(<span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
         state.check_unexpected()<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="../../src/syn/parse.rs.html#447">span_of_unexpected_ignoring_nones</a>(<a href="../../src/syn/parse.rs.html#1226">state</a>.<a href="../../src/syn/parse.rs.html#1053">cursor</a>()) {
-            <span class="prelude-val">Err</span>(Error::new(<a href="../../src/syn/parse.rs.html#1229">unexpected_span</a>, <span class="string">&quot;unexpected token&quot;</span>))
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected_span) = <a href="#447">span_of_unexpected_ignoring_nones</a>(<a href="#1226">state</a>.<a href="#1053">cursor</a>()) {
+            <span class="prelude-val">Err</span>(Error::new(<a href="#1229">unexpected_span</a>, <span class="string">&quot;unexpected token&quot;</span>))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/parse.rs.html#1227">node</a>)
+            <span class="prelude-val">Ok</span>(<a href="#1227">node</a>)
         }
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
-    </span><span class="kw">fn </span>__parse_stream(<span class="self">self</span>, input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/syn/parse.rs.html#1237">self</a>(<a href="../../src/syn/parse.rs.html#1237">input</a>)
+    </span><span class="kw">fn </span>__parse_stream(<span class="self">self</span>, input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output&gt; {
+        <a class="self" href="#1237">self</a>(<a href="#1237">input</a>)
     }
 }
 
 <span class="attribute">#[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_scoped&lt;F: <a href="../../src/syn/parse.rs.html#1143">Parser</a>&gt;(f: F, scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
-    <a href="../../src/syn/parse.rs.html#1243">f</a>.<a href="../../src/syn/parse.rs.html#1183">__parse_scoped</a>(<a href="../../src/syn/parse.rs.html#1243">scope</a>, <a href="../../src/syn/parse.rs.html#1243">tokens</a>)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_scoped&lt;F: <a href="#1143">Parser</a>&gt;(f: F, scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
+    <a href="#1243">f</a>.<a href="#1183">__parse_scoped</a>(<a href="#1243">scope</a>, <a href="#1243">tokens</a>)
 }
 
 <span class="attribute">#[cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_stream&lt;F: <a href="../../src/syn/parse.rs.html#1143">Parser</a>&gt;(f: F, input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
-    <a href="../../src/syn/parse.rs.html#1248">f</a>.<a href="../../src/syn/parse.rs.html#1191">__parse_stream</a>(<a href="../../src/syn/parse.rs.html#1248">input</a>)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_stream&lt;F: <a href="#1143">Parser</a>&gt;(f: F, input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
+    <a href="#1248">f</a>.<a href="#1191">__parse_stream</a>(<a href="#1248">input</a>)
 }
 
 <span class="doccomment">/// An empty syntax tree node that consumes no tokens when parsed.
@@ -2595,27 +2595,27 @@
 /// ```
 </span><span class="kw">pub struct </span>Nothing;
 
-<span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#1282">Nothing</a> {
-    <span class="kw">fn </span>parse(_input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/parse.rs.html#1282">Nothing</a>)
+<span class="kw">impl </span><a href="#220">Parse</a> <span class="kw">for </span><a href="#1282">Nothing</a> {
+    <span class="kw">fn </span>parse(_input: <a href="#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#1282">Nothing</a>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#1282">Nothing</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#1282">Nothing</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/syn/parse.rs.html#1293">f</a>.write_str(<span class="string">&quot;Nothing&quot;</span>)
+        <a href="#1293">f</a>.write_str(<span class="string">&quot;Nothing&quot;</span>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#1282">Nothing</a> {}
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#1282">Nothing</a> {}
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#1282">Nothing</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#1282">Nothing</a> {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, _other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="bool-val">true
     </span>}
@@ -2623,8 +2623,8 @@
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="../../src/syn/parse.rs.html#1282">Nothing</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#1282">Nothing</a> {
     <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _state: <span class="kw-2">&amp;mut </span>H) {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

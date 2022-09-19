@@ -90,9 +90,9 @@
 <span id="90">90</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::endian::{<a href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../../../src/object/endian.rs.html#565">U16</a>};
-<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../endian.rs.html#565">U16</a>};
+<span class="kw">use </span><a href="../../lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#64">Error</a>, <a href="../mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// An iterator over the relocation blocks in the `.reloc` section of a PE file.
 </span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
@@ -103,7 +103,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; RelocationBlockIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Construct a new iterator from the data of the `.reloc` section.
     </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/pe/relocation.rs.html#9">RelocationBlockIterator</a> { data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/pe/relocation.rs.html#15">data</a>) }
+        <a href="#9">RelocationBlockIterator</a> { data: <a href="../util.rs.html#16">Bytes</a>(<a href="#15">data</a>) }
     }
 
     <span class="doccomment">/// Read the next relocation page.
@@ -115,21 +115,21 @@
             </span>.data
             .read::&lt;pe::ImageBaseRelocation&gt;()
             .read_error(<span class="string">&quot;Invalid PE reloc section size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>virtual_address = <a href="../../../../src/object/read/pe/relocation.rs.html#24">header</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <span class="kw">let </span>size = <a href="../../../../src/object/read/pe/relocation.rs.html#24">header</a>.size_of_block.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>virtual_address = <a href="#24">header</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>size = <a href="#24">header</a>.size_of_block.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
         <span class="kw">if </span>size &lt;= <span class="number">8 </span>|| size &amp; <span class="number">3 </span>!= <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid PE reloc block size&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid PE reloc block size&quot;</span>));
         }
-        <span class="kw">let </span>count = (<a href="../../../../src/object/read/pe/relocation.rs.html#29">size</a> - <span class="number">8</span>) / <span class="number">2</span>;
+        <span class="kw">let </span>count = (<a href="#29">size</a> - <span class="number">8</span>) / <span class="number">2</span>;
         <span class="kw">let </span>relocs = <span class="self">self
             </span>.data
             .read_slice::&lt;U16&lt;LE&gt;&gt;(count <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE reloc block size&quot;</span>)<span class="question-mark">?
             </span>.iter();
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/relocation.rs.html#49">RelocationIterator</a> {
-            <a href="../../../../src/object/read/pe/relocation.rs.html#28">virtual_address</a>,
-            <a href="../../../../src/object/read/pe/relocation.rs.html#29">size</a>,
-            <a href="../../../../src/object/read/pe/relocation.rs.html#34">relocs</a>,
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#49">RelocationIterator</a> {
+            <a href="#28">virtual_address</a>,
+            <a href="#29">size</a>,
+            <a href="#34">relocs</a>,
         }))
     }
 }
@@ -139,31 +139,31 @@
 </span><span class="kw">pub struct </span>RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
     virtual_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
     size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    relocs: slice::Iter&lt;<span class="lifetime">&#39;data</span>, U16&lt;<a href="../../../../src/object/endian.rs.html#317">LE</a>&gt;&gt;,
+    relocs: slice::Iter&lt;<span class="lifetime">&#39;data</span>, U16&lt;<a href="../../endian.rs.html#317">LE</a>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Return the virtual address of the page that this block of relocations applies to.
     </span><span class="kw">pub fn </span>virtual_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/pe/relocation.rs.html#57">self</a>.virtual_address
+        <a class="self" href="#57">self</a>.virtual_address
     }
 
     <span class="doccomment">/// Return the size in bytes of this block of relocations.
     </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/pe/relocation.rs.html#62">self</a>.size
+        <a class="self" href="#62">self</a>.size
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>RelocationIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
-    <span class="kw">type </span>Item = <a href="../../../../src/object/read/pe/relocation.rs.html#85">Relocation</a>;
+    <span class="kw">type </span>Item = <a href="#85">Relocation</a>;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/object/read/pe/relocation.rs.html#85">Relocation</a>&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#85">Relocation</a>&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>reloc = <span class="self">self</span>.relocs.next()<span class="question-mark">?</span>.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+            <span class="kw">let </span>reloc = <span class="self">self</span>.relocs.next()<span class="question-mark">?</span>.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>);
             <span class="kw">if </span>reloc != <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/relocation.rs.html#85">Relocation</a> {
-                    virtual_address: <a class="self" href="../../../../src/object/read/pe/relocation.rs.html#70">self</a>.virtual_address.wrapping_add((<a href="../../../../src/object/read/pe/relocation.rs.html#72">reloc</a> &amp; <span class="number">0xfff</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
-                    typ: <a href="../../../../src/object/read/pe/relocation.rs.html#72">reloc</a> &gt;&gt; <span class="number">12</span>,
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#85">Relocation</a> {
+                    virtual_address: <a class="self" href="#70">self</a>.virtual_address.wrapping_add((<a href="#72">reloc</a> &amp; <span class="number">0xfff</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+                    typ: <a href="#72">reloc</a> &gt;&gt; <span class="number">12</span>,
                 });
             }
         }
@@ -179,4 +179,4 @@
     </span><span class="kw">pub </span>typ: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

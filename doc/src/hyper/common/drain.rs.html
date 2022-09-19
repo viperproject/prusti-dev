@@ -220,11 +220,11 @@
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use </span><a href="../../../tokio/sync/watch/index.html">tokio::sync::watch</a>;
 
-<span class="kw">use super</span>::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use super</span>::{<a href="mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel() -&gt; (<a href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel() -&gt; (<a href="#13">Signal</a>, <a href="#20">Watch</a>) {
     <span class="kw">let </span>(tx, rx) = watch::channel(());
-    (<a href="../../../src/hyper/common/drain.rs.html#13">Signal</a> { <a href="../../../src/hyper/common/drain.rs.html#9">tx</a> }, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a> { <a href="../../../src/hyper/common/drain.rs.html#9">rx</a> })
+    (<a href="#13">Signal</a> { <a href="#9">tx</a> }, <a href="#20">Watch</a> { <a href="#9">rx</a> })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Signal {
@@ -254,38 +254,38 @@
     Draining,
 }
 
-<span class="kw">impl </span><a href="../../../src/hyper/common/drain.rs.html#13">Signal</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain(<span class="self">self</span>) -&gt; <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
-        <span class="kw">let _ </span>= <a class="self" href="../../../src/hyper/common/drain.rs.html#41">self</a>.tx.send(());
-        <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a>(Box::pin(<span class="kw">async move </span>{ <span class="self">self</span>.tx.closed().<span class="kw">await </span>}))
+<span class="kw">impl </span><a href="#13">Signal</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain(<span class="self">self</span>) -&gt; <a href="#17">Draining</a> {
+        <span class="kw">let _ </span>= <a class="self" href="#41">self</a>.tx.send(());
+        <a href="#17">Draining</a>(Box::pin(<span class="kw">async move </span>{ <span class="self">self</span>.tx.closed().<span class="kw">await </span>}))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#17">Draining</a> {
     <span class="kw">type </span>Output = ();
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/hyper/common/drain.rs.html#50">self</a>.as_mut().<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#50">cx</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#50">self</a>.as_mut().<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#50">cx</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/hyper/common/drain.rs.html#20">Watch</a> {
+<span class="kw">impl </span><a href="#20">Watch</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>watch&lt;F, FN&gt;(<span class="self">self</span>, future: F, on_drain: FN) -&gt; Watching&lt;F, FN&gt;
     <span class="kw">where
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
         FN: FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>F&gt;),
     {
-        <span class="kw">let </span><span class="self">Self </span>{ <span class="kw-2">mut </span>rx } = <a class="self" href="../../../src/hyper/common/drain.rs.html#56">self</a>;
-        <span class="kw">let </span>_rx = <a href="../../../src/hyper/common/drain.rs.html#61">rx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../../src/hyper/common/drain.rs.html#24-33">Watching</a> {
-            <a href="../../../src/hyper/common/drain.rs.html#56">future</a>,
-            state: <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a href="../../../src/hyper/common/drain.rs.html#56">on_drain</a>),
+        <span class="kw">let </span><span class="self">Self </span>{ <span class="kw-2">mut </span>rx } = <a class="self" href="#56">self</a>;
+        <span class="kw">let </span>_rx = <a href="#61">rx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#24-33">Watching</a> {
+            <a href="#56">future</a>,
+            state: <a href="#36">State::Watch</a>(<a href="#56">on_drain</a>),
             watch: Box::pin(<span class="kw">async move </span>{
                 <span class="kw">let _ </span>= rx.changed().<span class="kw">await</span>;
             }),
             <span class="comment">// Keep the receiver alive until the future completes, so that
             // dropping it can signal that draining has completed.
-            </span><a href="../../../src/hyper/common/drain.rs.html#62">_rx</a>,
+            </span><a href="#62">_rx</a>,
         }
     }
 }
@@ -298,22 +298,22 @@
     <span class="kw">type </span>Output = F::Output;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/hyper/common/drain.rs.html#83">self</a>.<a href="../../../src/hyper/common/drain.rs.html#24-33">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="#83">self</a>.<a href="#24-33">project</a>();
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<a href="../../../src/hyper/common/drain.rs.html#84">me</a>.state, <a href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a>) {
-                <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(on_drain) =&gt; {
-                    <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.watch).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>) {
+            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<a href="#84">me</a>.state, <a href="#37">State::Draining</a>) {
+                <a href="#36">State::Watch</a>(on_drain) =&gt; {
+                    <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="#84">me</a>.watch).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#83">cx</a>) {
                         Poll::Ready(()) =&gt; {
                             <span class="comment">// Drain has been triggered!
-                            </span><a href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>(<a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.as_mut());
+                            </span><a href="#87">on_drain</a>(<a href="#84">me</a>.future.as_mut());
                         }
                         Poll::Pending =&gt; {
-                            <span class="kw-2">*</span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.state = <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>);
-                            <span class="kw">return </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>);
+                            <span class="kw-2">*</span><a href="#84">me</a>.state = <a href="#36">State::Watch</a>(<a href="#87">on_drain</a>);
+                            <span class="kw">return </span><a href="#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#83">cx</a>);
                         }
                     }
                 }
-                <a href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a> =&gt; <span class="kw">return </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>),
+                <a href="#37">State::Draining</a> =&gt; <span class="kw">return </span><a href="#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#83">cx</a>),
             }
         }
     }
@@ -433,4 +433,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

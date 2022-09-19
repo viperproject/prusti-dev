@@ -710,9 +710,9 @@
 <span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#185">cvt_p</a>};
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(ossl110)] </span>{
@@ -725,14 +725,14 @@
 <span class="attribute">#[derive(Copy, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>MessageDigest(<span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>);
 
-<span class="kw">impl </span><a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
+<span class="kw">impl </span><a href="#22">MessageDigest</a> {
     <span class="doccomment">/// Creates a `MessageDigest` from a raw OpenSSL pointer.
     ///
     /// # Safety
     ///
     /// The caller must ensure the pointer is valid.
     </span><span class="kw">pub unsafe fn </span>from_ptr(x: <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(<a href="../../src/openssl/hash.rs.html#30">x</a>)
+        <a href="#22">MessageDigest</a>(<a href="#30">x</a>)
     }
 
     <span class="doccomment">/// Returns the `MessageDigest` corresponding to an `Nid`.
@@ -740,13 +740,13 @@
     /// This corresponds to [`EVP_get_digestbynid`].
     ///
     /// [`EVP_get_digestbynid`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestInit.html
-    </span><span class="kw">pub fn </span>from_nid(type_: <a href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>&gt; {
+    </span><span class="kw">pub fn </span>from_nid(type_: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#22">MessageDigest</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EVP_get_digestbynid(<a href="../../src/openssl/hash.rs.html#39">type_</a>.<a href="../../src/openssl/nid.rs.html#60">as_raw</a>());
+            <span class="kw">let </span>ptr = ffi::EVP_get_digestbynid(<a href="#39">type_</a>.<a href="nid.rs.html#60">as_raw</a>());
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(<a href="../../src/openssl/hash.rs.html#41">ptr</a>))
+                <span class="prelude-val">Some</span>(<a href="#22">MessageDigest</a>(<a href="#41">ptr</a>))
             }
         }
     }
@@ -756,113 +756,113 @@
     /// This corresponds to [`EVP_get_digestbyname`].
     ///
     /// [`EVP_get_digestbyname`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestInit.html
-    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>&gt; {
+    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#22">MessageDigest</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
         <span class="kw">let </span>name = CString::new(name).ok()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = ffi::EVP_get_digestbyname(<a href="../../src/openssl/hash.rs.html#57">name</a>.as_ptr());
+            <span class="kw">let </span>ptr = ffi::EVP_get_digestbyname(<a href="#57">name</a>.as_ptr());
             <span class="kw">if </span>ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(<a href="../../src/openssl/hash.rs.html#59">ptr</a>))
+                <span class="prelude-val">Some</span>(<a href="#22">MessageDigest</a>(<a href="#59">ptr</a>))
             }
         }
     }
 
-    <span class="kw">pub fn </span>null() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_md_null()) }
+    <span class="kw">pub fn </span>null() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_md_null()) }
     }
 
-    <span class="kw">pub fn </span>md5() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_md5()) }
+    <span class="kw">pub fn </span>md5() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_md5()) }
     }
 
-    <span class="kw">pub fn </span>sha1() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha1()) }
+    <span class="kw">pub fn </span>sha1() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha1()) }
     }
 
-    <span class="kw">pub fn </span>sha224() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha224()) }
+    <span class="kw">pub fn </span>sha224() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha224()) }
     }
 
-    <span class="kw">pub fn </span>sha256() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha256()) }
+    <span class="kw">pub fn </span>sha256() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha256()) }
     }
 
-    <span class="kw">pub fn </span>sha384() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha384()) }
+    <span class="kw">pub fn </span>sha384() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha384()) }
     }
 
-    <span class="kw">pub fn </span>sha512() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha512()) }
-    }
-
-    <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>sha3_224() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha3_224()) }
+    <span class="kw">pub fn </span>sha512() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha512()) }
     }
 
     <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>sha3_256() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha3_256()) }
+    </span><span class="kw">pub fn </span>sha3_224() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha3_224()) }
     }
 
     <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>sha3_384() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha3_384()) }
+    </span><span class="kw">pub fn </span>sha3_256() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha3_256()) }
     }
 
     <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>sha3_512() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sha3_512()) }
+    </span><span class="kw">pub fn </span>sha3_384() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha3_384()) }
     }
 
     <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>shake_128() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_shake128()) }
+    </span><span class="kw">pub fn </span>sha3_512() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sha3_512()) }
     }
 
     <span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>shake_256() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_shake256()) }
+    </span><span class="kw">pub fn </span>shake_128() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_shake128()) }
+    }
+
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>shake_256() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_shake256()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_RMD160&quot;</span>))]
-    </span><span class="kw">pub fn </span>ripemd160() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_ripemd160()) }
+    </span><span class="kw">pub fn </span>ripemd160() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_ripemd160()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm3() -&gt; <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(ffi::EVP_sm3()) }
+    </span><span class="kw">pub fn </span>sm3() -&gt; <a href="#22">MessageDigest</a> {
+        <span class="kw">unsafe </span>{ <a href="#22">MessageDigest</a>(ffi::EVP_sm3()) }
     }
 
     <span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a> {
-        <a class="self" href="../../src/openssl/hash.rs.html#137">self</a>.<span class="number">0
+        <a class="self" href="#137">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// The block size of the digest in bytes.
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ ffi::EVP_MD_block_size(<a class="self" href="../../src/openssl/hash.rs.html#143">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_block_size(<a class="self" href="#143">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// The size of the digest in bytes.
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ ffi::EVP_MD_size(<a class="self" href="../../src/openssl/hash.rs.html#149">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_size(<a class="self" href="#149">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// The name of the digest.
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
-    </span><span class="kw">pub fn </span>type_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/nid.rs.html#49">Nid</a> {
-        Nid::from_raw(<span class="kw">unsafe </span>{ ffi::EVP_MD_type(<a class="self" href="../../src/openssl/hash.rs.html#155">self</a>.<span class="number">0</span>) })
+    </span><span class="kw">pub fn </span>type_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="nid.rs.html#49">Nid</a> {
+        Nid::from_raw(<span class="kw">unsafe </span>{ ffi::EVP_MD_type(<a class="self" href="#155">self</a>.<span class="number">0</span>) })
     }
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#22">MessageDigest</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#22">MessageDigest</a> {}
 
 <span class="attribute">#[derive(PartialEq, Copy, Clone)]
 </span><span class="kw">enum </span>State {
@@ -871,7 +871,7 @@
     Finalized,
 }
 
-<span class="kw">use </span><a href="../../src/openssl/hash.rs.html#164"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#164"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Provides message digest (hash) computation.
 ///
@@ -928,47 +928,47 @@
 </span><span class="kw">pub struct </span>Hasher {
     ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
     md: <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>,
-    type_: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
-    state: <a href="../../src/openssl/hash.rs.html#164">State</a>,
+    type_: <a href="#22">MessageDigest</a>,
+    state: <a href="#164">State</a>,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#224">Hasher</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#224">Hasher</a> {}
 
-<span class="kw">impl </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
+<span class="kw">impl </span><a href="#224">Hasher</a> {
     <span class="doccomment">/// Creates a new `Hasher` with the specified hash type.
-    </span><span class="kw">pub fn </span>new(ty: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/hash.rs.html#224">Hasher</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new(ty: <a href="#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#224">Hasher</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <span class="kw">let </span>ctx = <span class="kw">unsafe </span>{ cvt_p(EVP_MD_CTX_new())<span class="question-mark">? </span>};
 
-        <span class="kw">let </span><span class="kw-2">mut </span>h = <a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
-            <a href="../../src/openssl/hash.rs.html#239">ctx</a>,
-            md: <a href="../../src/openssl/hash.rs.html#236">ty</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
-            type_: <a href="../../src/openssl/hash.rs.html#236">ty</a>,
-            state: <a href="../../src/openssl/hash.rs.html#167">Finalized</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>h = <a href="#224">Hasher</a> {
+            <a href="#239">ctx</a>,
+            md: <a href="#236">ty</a>.<a href="#137">as_ptr</a>(),
+            type_: <a href="#236">ty</a>,
+            state: <a href="#167">Finalized</a>,
         };
         h.init()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/hash.rs.html#241">h</a>)
+        <span class="prelude-val">Ok</span>(<a href="#241">h</a>)
     }
 
-    <span class="kw">fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/openssl/hash.rs.html#251">self</a>.state {
-            <a href="../../src/openssl/hash.rs.html#165">Reset</a> =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
-            <a href="../../src/openssl/hash.rs.html#166">Updated</a> =&gt; {
+    <span class="kw">fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#251">self</a>.state {
+            <a href="#165">Reset</a> =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+            <a href="#166">Updated</a> =&gt; {
                 <span class="self">self</span>.finish()<span class="question-mark">?</span>;
             }
-            <a href="../../src/openssl/hash.rs.html#167">Finalized</a> =&gt; (),
+            <a href="#167">Finalized</a> =&gt; (),
         }
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestInit_ex(<span class="self">self</span>.ctx, <span class="self">self</span>.md, ptr::null_mut()))<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../src/openssl/hash.rs.html#251">self</a>.state = <a href="../../src/openssl/hash.rs.html#165">Reset</a>;
+        <a class="self" href="#251">self</a>.state = <a href="#165">Reset</a>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Feeds data into the hasher.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.state == Finalized {
             <span class="self">self</span>.init()<span class="question-mark">?</span>;
         }
@@ -979,12 +979,12 @@
                 data.len(),
             ))<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../src/openssl/hash.rs.html#267">self</a>.state = <a href="../../src/openssl/hash.rs.html#166">Updated</a>;
+        <a class="self" href="#267">self</a>.state = <a href="#166">Updated</a>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Returns the hash of the data written and resets the non-XOF hasher.
-    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/hash.rs.html#368">DigestBytes</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#368">DigestBytes</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.state == Finalized {
             <span class="self">self</span>.init()<span class="question-mark">?</span>;
         }
@@ -996,10 +996,10 @@
                 buf.as_mut_ptr(),
                 <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <a class="self" href="../../src/openssl/hash.rs.html#283">self</a>.state = <a href="../../src/openssl/hash.rs.html#167">Finalized</a>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
-                <a href="../../src/openssl/hash.rs.html#289">buf</a>,
-                len: <a href="../../src/openssl/hash.rs.html#288">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            <a class="self" href="#283">self</a>.state = <a href="#167">Finalized</a>;
+            <span class="prelude-val">Ok</span>(<a href="#368">DigestBytes</a> {
+                <a href="#289">buf</a>,
+                len: <a href="#288">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             })
         }
     }
@@ -1007,7 +1007,7 @@
     <span class="doccomment">/// Writes the hash of the data into the supplied buf and resets the XOF hasher.
     /// The hash will be as long as the buf.
     </span><span class="attribute">#[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>finish_xof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>finish_xof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.state == Finalized {
             <span class="self">self</span>.init()<span class="question-mark">?</span>;
         }
@@ -1017,17 +1017,17 @@
                 buf.as_mut_ptr(),
                 buf.len(),
             ))<span class="question-mark">?</span>;
-            <a class="self" href="../../src/openssl/hash.rs.html#306">self</a>.state = <a href="../../src/openssl/hash.rs.html#167">Finalized</a>;
+            <a class="self" href="#306">self</a>.state = <a href="#167">Finalized</a>;
             <span class="prelude-val">Ok</span>(())
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#224">Hasher</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="self">self</span>.update(buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/hash.rs.html#324">buf</a>.len())
+        <span class="prelude-val">Ok</span>(<a href="#324">buf</a>.len())
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -1035,31 +1035,31 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#224">Hasher</a> {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#224">Hasher</a> {
         <span class="kw">let </span>ctx = <span class="kw">unsafe </span>{
             <span class="kw">let </span>ctx = <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>();
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!ctx.is_null());
-            <span class="kw">let </span>r = ffi::EVP_MD_CTX_copy_ex(<a href="../../src/openssl/hash.rs.html#337">ctx</a>, <a class="self" href="../../src/openssl/hash.rs.html#335">self</a>.ctx);
+            <span class="kw">let </span>r = ffi::EVP_MD_CTX_copy_ex(<a href="#337">ctx</a>, <a class="self" href="#335">self</a>.ctx);
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(r, <span class="number">1</span>);
-            <a href="../../src/openssl/hash.rs.html#337">ctx</a>
+            <a href="#337">ctx</a>
         };
-        <a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
-            <a href="../../src/openssl/hash.rs.html#336">ctx</a>,
-            md: <a class="self" href="../../src/openssl/hash.rs.html#335">self</a>.md,
-            type_: <a class="self" href="../../src/openssl/hash.rs.html#335">self</a>.type_,
-            state: <a class="self" href="../../src/openssl/hash.rs.html#335">self</a>.state,
+        <a href="#224">Hasher</a> {
+            <a href="#336">ctx</a>,
+            md: <a class="self" href="#335">self</a>.md,
+            type_: <a class="self" href="#335">self</a>.type_,
+            state: <a class="self" href="#335">self</a>.state,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#224">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#224">Hasher</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.state != Finalized {
-                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/openssl/hash.rs.html#353">self</a>.<a href="../../src/openssl/hash.rs.html#283">finish</a>());
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#353">self</a>.<a href="#283">finish</a>());
             }
-            <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/hash.rs.html#353">self</a>.ctx);
+            <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="#353">self</a>.ctx);
         }
     }
 }
@@ -1074,55 +1074,55 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#368">DigestBytes</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
-        <span class="kw-2">*</span><span class="self"><a href="../../src/openssl/hash.rs.html#375">self</a>
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#368">DigestBytes</a> {
+        <span class="kw-2">*</span><span class="self"><a href="#375">self</a>
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#368">DigestBytes</a> {
     <span class="kw">type </span>Target = [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/openssl/hash.rs.html#384">self</a>.buf[..<a class="self" href="../../src/openssl/hash.rs.html#384">self</a>.len]
+        <span class="kw-2">&amp;</span><a class="self" href="#384">self</a>.buf[..<a class="self" href="#384">self</a>.len]
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#368">DigestBytes</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/hash.rs.html#391">self</a>.buf[..<a class="self" href="../../src/openssl/hash.rs.html#391">self</a>.len]
+        <span class="kw-2">&amp;mut </span><a class="self" href="#391">self</a>.buf[..<a class="self" href="#391">self</a>.len]
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
+<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#368">DigestBytes</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../src/openssl/hash.rs.html#398">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+        <a class="self" href="#398">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/openssl/hash.rs.html#368">DigestBytes</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#368">DigestBytes</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../src/openssl/hash.rs.html#404">self</a>, <a href="../../src/openssl/hash.rs.html#404">fmt</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#404">self</a>, <a href="#404">fmt</a>)
     }
 }
 
 <span class="doccomment">/// Computes the hash of the `data` with the non-XOF hasher `t`.
-</span><span class="kw">pub fn </span>hash(t: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/hash.rs.html#368">DigestBytes</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+</span><span class="kw">pub fn </span>hash(t: <a href="#22">MessageDigest</a>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#368">DigestBytes</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>h = Hasher::new(t)<span class="question-mark">?</span>;
     h.update(data)<span class="question-mark">?</span>;
-    <a href="../../src/openssl/hash.rs.html#411">h</a>.<a href="../../src/openssl/hash.rs.html#283">finish</a>()
+    <a href="#411">h</a>.<a href="#283">finish</a>()
 }
 
 <span class="doccomment">/// Computes the hash of the `data` with the XOF hasher `t` and stores it in `buf`.
 </span><span class="attribute">#[cfg(ossl111)]
-</span><span class="kw">pub fn </span>hash_xof(t: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+</span><span class="kw">pub fn </span>hash_xof(t: <a href="#22">MessageDigest</a>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>h = Hasher::new(t)<span class="question-mark">?</span>;
     h.update(data)<span class="question-mark">?</span>;
-    <a href="../../src/openssl/hash.rs.html#419">h</a>.<a href="../../src/openssl/hash.rs.html#306">finish_xof</a>(<a href="../../src/openssl/hash.rs.html#418">buf</a>)
+    <a href="#419">h</a>.<a href="#306">finish_xof</a>(<a href="#418">buf</a>)
 }
 
 <span class="attribute">#[cfg(test)]
@@ -1407,4 +1407,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

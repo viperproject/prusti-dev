@@ -93,9 +93,9 @@
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 
-<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#128"><span class="kw">crate</span>::pod::bytes_of_slice</a>;
-<span class="kw">use </span><a href="../../../../src/object/read/util.rs.html#16"><span class="kw">crate</span>::read::Bytes</a>;
-<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#112">pe</a>, <a href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a href="../../../../src/object/endian.rs.html#569">U32</a>};
+<span class="kw">use </span><a href="../../pod.rs.html#128"><span class="kw">crate</span>::pod::bytes_of_slice</a>;
+<span class="kw">use </span><a href="../util.rs.html#16"><span class="kw">crate</span>::read::Bytes</a>;
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../../endian.rs.html#569">U32</a>};
 
 <span class="doccomment">/// Parsed information about a Rich Header.
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
@@ -112,7 +112,7 @@
     /// Unless the file has been tampered with, it should be equal to a checksum
     /// of the file header.
     </span><span class="kw">pub </span>xor_key: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    masked_entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../../../src/object/pe.rs.html#250">pe::MaskedRichHeaderEntry</a>],
+    masked_entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#250">pe::MaskedRichHeaderEntry</a>],
 }
 
 <span class="doccomment">/// A PE rich header entry after it has been unmasked.
@@ -137,33 +137,33 @@
         <span class="kw">let </span>xor_key = <span class="kw-2">*</span>data.read_at::&lt;U32&lt;LE&gt;&gt;(end_marker_offset + <span class="number">4</span>).ok()<span class="question-mark">?</span>;
 
         <span class="comment">// It starts at the masked &quot;DanS&quot; string and 3 masked zeroes.
-        </span><span class="kw">let </span>masked_start_marker = U32::new(<a href="../../../../src/object/endian.rs.html#317">LE</a>, <span class="number">0x536e_6144 </span>^ <a href="../../../../src/object/read/pe/rich.rs.html#46">xor_key</a>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>));
-        <span class="kw">let </span>start_header = [<a href="../../../../src/object/read/pe/rich.rs.html#49">masked_start_marker</a>, <a href="../../../../src/object/read/pe/rich.rs.html#46">xor_key</a>, <a href="../../../../src/object/read/pe/rich.rs.html#46">xor_key</a>, <a href="../../../../src/object/read/pe/rich.rs.html#46">xor_key</a>];
-        <span class="kw">let </span>start_sequence = <a href="../../../../src/object/pod.rs.html#128">bytes_of_slice</a>(<span class="kw-2">&amp;</span><a href="../../../../src/object/read/pe/rich.rs.html#50">start_header</a>);
+        </span><span class="kw">let </span>masked_start_marker = U32::new(<a href="../../endian.rs.html#317">LE</a>, <span class="number">0x536e_6144 </span>^ <a href="#46">xor_key</a>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>));
+        <span class="kw">let </span>start_header = [<a href="#49">masked_start_marker</a>, <a href="#46">xor_key</a>, <a href="#46">xor_key</a>, <a href="#46">xor_key</a>];
+        <span class="kw">let </span>start_sequence = <a href="../../pod.rs.html#128">bytes_of_slice</a>(<span class="kw-2">&amp;</span><a href="#50">start_header</a>);
         <span class="kw">let </span>start_marker_offset = memmem(<span class="kw-2">&amp;</span>data.<span class="number">0</span>[..end_marker_offset], start_sequence, <span class="number">4</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Extract the items between the markers.
-        </span><span class="kw">let </span>items_offset = <a href="../../../../src/object/read/pe/rich.rs.html#52">start_marker_offset</a> + <a href="../../../../src/object/read/pe/rich.rs.html#51">start_sequence</a>.len();
-        <span class="kw">let </span>items_len = <a href="../../../../src/object/read/pe/rich.rs.html#45">end_marker_offset</a> - <a href="../../../../src/object/read/pe/rich.rs.html#55">items_offset</a>;
-        <span class="kw">let </span>item_count = <a href="../../../../src/object/read/pe/rich.rs.html#56">items_len</a> / mem::size_of::&lt;<a href="../../../../src/object/pe.rs.html#250">pe::MaskedRichHeaderEntry</a>&gt;();
+        </span><span class="kw">let </span>items_offset = <a href="#52">start_marker_offset</a> + <a href="#51">start_sequence</a>.len();
+        <span class="kw">let </span>items_len = <a href="#45">end_marker_offset</a> - <a href="#55">items_offset</a>;
+        <span class="kw">let </span>item_count = <a href="#56">items_len</a> / mem::size_of::&lt;<a href="../../pe.rs.html#250">pe::MaskedRichHeaderEntry</a>&gt;();
         <span class="kw">let </span>items = data.read_slice_at(items_offset, item_count).ok()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/rich.rs.html#11">RichHeaderInfo</a> {
-            offset: <a href="../../../../src/object/read/pe/rich.rs.html#52">start_marker_offset</a>,
+        <span class="prelude-val">Some</span>(<a href="#11">RichHeaderInfo</a> {
+            offset: <a href="#52">start_marker_offset</a>,
             <span class="comment">// Includes &quot;Rich&quot; marker and the XOR key.
-            </span>length: <a href="../../../../src/object/read/pe/rich.rs.html#45">end_marker_offset</a> - <a href="../../../../src/object/read/pe/rich.rs.html#52">start_marker_offset</a> + <span class="number">8</span>,
-            xor_key: <a href="../../../../src/object/read/pe/rich.rs.html#46">xor_key</a>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>),
-            masked_entries: <a href="../../../../src/object/read/pe/rich.rs.html#58">items</a>,
+            </span>length: <a href="#45">end_marker_offset</a> - <a href="#52">start_marker_offset</a> + <span class="number">8</span>,
+            xor_key: <a href="#46">xor_key</a>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>),
+            masked_entries: <a href="#58">items</a>,
         })
     }
 
     <span class="doccomment">/// Returns an iterator over the unmasked entries.
-    </span><span class="kw">pub fn </span>unmasked_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="../../../../src/object/read/pe/rich.rs.html#32">RichHeaderEntry</a>&gt; + <span class="lifetime">&#39;data </span>{
-        <span class="kw">let </span>xor_key = <a class="self" href="../../../../src/object/read/pe/rich.rs.html#69">self</a>.xor_key;
-        <a class="self" href="../../../../src/object/read/pe/rich.rs.html#69">self</a>.masked_entries
+    </span><span class="kw">pub fn </span>unmasked_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="#32">RichHeaderEntry</a>&gt; + <span class="lifetime">&#39;data </span>{
+        <span class="kw">let </span>xor_key = <a class="self" href="#69">self</a>.xor_key;
+        <a class="self" href="#69">self</a>.masked_entries
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move </span>|entry| <a href="../../../../src/object/read/pe/rich.rs.html#32">RichHeaderEntry</a> {
-                comp_id: <a href="../../../../src/object/read/pe/rich.rs.html#73">entry</a>.masked_comp_id.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) ^ <a href="../../../../src/object/read/pe/rich.rs.html#70">xor_key</a>,
-                count: <a href="../../../../src/object/read/pe/rich.rs.html#73">entry</a>.masked_count.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) ^ <a href="../../../../src/object/read/pe/rich.rs.html#70">xor_key</a>,
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move </span>|entry| <a href="#32">RichHeaderEntry</a> {
+                comp_id: <a href="#73">entry</a>.masked_comp_id.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) ^ <a href="#70">xor_key</a>,
+                count: <a href="#73">entry</a>.masked_count.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) ^ <a href="#70">xor_key</a>,
             })
     }
 }
@@ -175,10 +175,10 @@
     <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
     <span class="kw">loop </span>{
         <span class="kw">if </span>data.get(offset..)<span class="question-mark">?</span>.get(..needle.len())<span class="question-mark">? </span>== needle {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/rich.rs.html#84">offset</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#84">offset</a>);
         }
-        <a href="../../../../src/object/read/pe/rich.rs.html#84">offset</a> += <a href="../../../../src/object/read/pe/rich.rs.html#83">align</a>;
+        <a href="#84">offset</a> += <a href="#83">align</a>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

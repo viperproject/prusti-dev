@@ -356,11 +356,11 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::byte_record::{<a href="../../src/csv/byte_record.rs.html#34">ByteRecord</a>, <a href="../../src/csv/byte_record.rs.html#588">Position</a>};
-<span class="kw">use </span><a href="../../src/csv/deserializer.rs.html#660"><span class="kw">crate</span>::deserializer::DeserializeError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::byte_record::{<a href="byte_record.rs.html#34">ByteRecord</a>, <a href="byte_record.rs.html#588">Position</a>};
+<span class="kw">use </span><a href="deserializer.rs.html#660"><span class="kw">crate</span>::deserializer::DeserializeError</a>;
 
 <span class="doccomment">/// A type alias for `Result&lt;T, csv::Error&gt;`.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="../../src/csv/error.rs.html#21">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, <a href="#21">Error</a>&gt;;
 
 <span class="doccomment">/// An error that can occur when processing CSV data.
 ///
@@ -371,22 +371,22 @@
 /// `flexible` option enabled and one is reading records as raw byte strings,
 /// then no error can occur.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Error(Box&lt;<a href="../../src/csv/error.rs.html#61">ErrorKind</a>&gt;);
+</span><span class="kw">pub struct </span>Error(Box&lt;<a href="#61">ErrorKind</a>&gt;);
 
-<span class="kw">impl </span><a href="../../src/csv/error.rs.html#21">Error</a> {
+<span class="kw">impl </span><a href="#21">Error</a> {
     <span class="doccomment">/// A crate private constructor for `Error`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(kind: <a href="../../src/csv/error.rs.html#61">ErrorKind</a>) -&gt; <a href="../../src/csv/error.rs.html#21">Error</a> {
-        <a href="../../src/csv/error.rs.html#21">Error</a>(Box::new(<a href="../../src/csv/error.rs.html#25">kind</a>))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(kind: <a href="#61">ErrorKind</a>) -&gt; <a href="#21">Error</a> {
+        <a href="#21">Error</a>(Box::new(<a href="#25">kind</a>))
     }
 
     <span class="doccomment">/// Return the specific type of this error.
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/csv/error.rs.html#61">ErrorKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/csv/error.rs.html#30">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#61">ErrorKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#30">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Unwrap this error into its underlying type.
-    </span><span class="kw">pub fn </span>into_kind(<span class="self">self</span>) -&gt; <a href="../../src/csv/error.rs.html#61">ErrorKind</a> {
-        <span class="kw-2">*</span><a class="self" href="../../src/csv/error.rs.html#35">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>into_kind(<span class="self">self</span>) -&gt; <a href="#61">ErrorKind</a> {
+        <span class="kw-2">*</span><a class="self" href="#35">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns true if this is an I/O error.
@@ -394,8 +394,8 @@
     /// If this is true, the underlying `ErrorKind` is guaranteed to be
     /// `ErrorKind::Io`.
     </span><span class="kw">pub fn </span>is_io_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="../../src/csv/error.rs.html#43">self</a>.<span class="number">0 </span>{
-            <a href="../../src/csv/error.rs.html#63">ErrorKind::Io</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#43">self</a>.<span class="number">0 </span>{
+            <a href="#63">ErrorKind::Io</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -404,8 +404,8 @@
     ///
     /// This is a convenience function that permits callers to easily access
     /// the position on an error without doing case analysis on `ErrorKind`.
-    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/csv/byte_record.rs.html#588">Position</a>&gt; {
-        <a class="self" href="../../src/csv/error.rs.html#54">self</a>.<span class="number">0</span>.<a href="../../src/csv/error.rs.html#115">position</a>()
+    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="byte_record.rs.html#588">Position</a>&gt; {
+        <a class="self" href="#54">self</a>.<span class="number">0</span>.<a href="#115">position</a>()
     }
 }
 
@@ -419,9 +419,9 @@
     </span>Utf8 {
         <span class="doccomment">/// The position of the record in which this error occurred, if
         /// available.
-        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="../../src/csv/byte_record.rs.html#588">Position</a>&gt;,
+        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="byte_record.rs.html#588">Position</a>&gt;,
         <span class="doccomment">/// The corresponding UTF-8 error.
-        </span>err: <a href="../../src/csv/error.rs.html#265">Utf8Error</a>,
+        </span>err: <a href="#265">Utf8Error</a>,
     },
     <span class="doccomment">/// This error occurs when two records with an unequal number of fields
     /// are found. This error only occurs when the `flexible` option in a
@@ -429,7 +429,7 @@
     </span>UnequalLengths {
         <span class="doccomment">/// The position of the first record with an unequal number of fields
         /// to the previous record, if available.
-        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="../../src/csv/byte_record.rs.html#588">Position</a>&gt;,
+        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="byte_record.rs.html#588">Position</a>&gt;,
         <span class="doccomment">/// The expected number of fields in a record. This is the number of
         /// fields in the record read prior to the record indicated by
         /// `pos`.
@@ -447,9 +447,9 @@
     /// deserialization with serde.
     </span>Deserialize {
         <span class="doccomment">/// The position of this error, if available.
-        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="../../src/csv/byte_record.rs.html#588">Position</a>&gt;,
+        </span>pos: <span class="prelude-ty">Option</span>&lt;<a href="byte_record.rs.html#588">Position</a>&gt;,
         <span class="doccomment">/// The deserialization error.
-        </span>err: <a href="../../src/csv/deserializer.rs.html#660">DeserializeError</a>,
+        </span>err: <a href="deserializer.rs.html#660">DeserializeError</a>,
     },
     <span class="doccomment">/// Hints that destructuring should not be exhaustive.
     ///
@@ -460,56 +460,56 @@
     </span>__Nonexhaustive,
 }
 
-<span class="kw">impl </span><a href="../../src/csv/error.rs.html#61">ErrorKind</a> {
+<span class="kw">impl </span><a href="#61">ErrorKind</a> {
     <span class="doccomment">/// Return the position for this error, if one exists.
     ///
     /// This is a convenience function that permits callers to easily access
     /// the position on an error without doing case analysis on `ErrorKind`.
-    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/csv/byte_record.rs.html#588">Position</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/csv/error.rs.html#115">self</a> </span>{
-            <a href="../../src/csv/error.rs.html#66">ErrorKind::Utf8</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="../../src/csv/error.rs.html#117">pos</a>.as_ref(),
-            <a href="../../src/csv/error.rs.html#76">ErrorKind::UnequalLengths</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="../../src/csv/error.rs.html#118">pos</a>.as_ref(),
-            <a href="../../src/csv/error.rs.html#95">ErrorKind::Deserialize</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="../../src/csv/error.rs.html#119">pos</a>.as_ref(),
+    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="byte_record.rs.html#588">Position</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#115">self</a> </span>{
+            <a href="#66">ErrorKind::Utf8</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="#117">pos</a>.as_ref(),
+            <a href="#76">ErrorKind::UnequalLengths</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="#118">pos</a>.as_ref(),
+            <a href="#95">ErrorKind::Deserialize</a> { <span class="kw-2">ref </span>pos, .. } =&gt; <a href="#119">pos</a>.as_ref(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="../../src/csv/error.rs.html#21">Error</a> {
-    <span class="kw">fn </span>from(err: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="../../src/csv/error.rs.html#21">Error</a> {
-        Error::new(<a href="../../src/csv/error.rs.html#63">ErrorKind::Io</a>(<a href="../../src/csv/error.rs.html#126">err</a>))
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="#21">Error</a> {
+    <span class="kw">fn </span>from(err: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="#21">Error</a> {
+        Error::new(<a href="#63">ErrorKind::Io</a>(<a href="#126">err</a>))
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../src/csv/error.rs.html#21">Error</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="kw">fn </span>from(err: <a href="../../src/csv/error.rs.html#21">Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        io::Error::new(io::ErrorKind::Other, <a href="../../src/csv/error.rs.html#132">err</a>)
+<span class="kw">impl </span>From&lt;<a href="#21">Error</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
+    <span class="kw">fn </span>from(err: <a href="#21">Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
+        io::Error::new(io::ErrorKind::Other, <a href="#132">err</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#21">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#21">Error</a> {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="../../src/csv/error.rs.html#138">self</a>.<span class="number">0 </span>{
-            <a href="../../src/csv/error.rs.html#63">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/csv/error.rs.html#140">err</a>),
-            <a href="../../src/csv/error.rs.html#66">ErrorKind::Utf8</a> { <span class="kw-2">ref </span>err, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../src/csv/error.rs.html#141">err</a>),
-            <a href="../../src/csv/error.rs.html#76">ErrorKind::UnequalLengths</a> { .. } =&gt; <span class="prelude-val">None</span>,
-            <a href="../../src/csv/error.rs.html#90">ErrorKind::Seek</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="../../src/csv/error.rs.html#92">ErrorKind::Serialize</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a href="../../src/csv/error.rs.html#95">ErrorKind::Deserialize</a> { <span class="kw-2">ref </span>err, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../src/csv/error.rs.html#145">err</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#138">self</a>.<span class="number">0 </span>{
+            <a href="#63">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(<a href="#140">err</a>),
+            <a href="#66">ErrorKind::Utf8</a> { <span class="kw-2">ref </span>err, .. } =&gt; <span class="prelude-val">Some</span>(<a href="#141">err</a>),
+            <a href="#76">ErrorKind::UnequalLengths</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            <a href="#90">ErrorKind::Seek</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#92">ErrorKind::Serialize</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <a href="#95">ErrorKind::Deserialize</a> { <span class="kw-2">ref </span>err, .. } =&gt; <span class="prelude-val">Some</span>(<a href="#145">err</a>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#21">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#21">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="../../src/csv/error.rs.html#152">self</a>.<span class="number">0 </span>{
-            <a href="../../src/csv/error.rs.html#63">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <a href="../../src/csv/error.rs.html#154">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/csv/error.rs.html#152">f</a>),
-            <a href="../../src/csv/error.rs.html#66">ErrorKind::Utf8</a> { pos: <span class="prelude-val">None</span>, <span class="kw-2">ref </span>err } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/csv/error.rs.html#152">f</a>, <span class="string">&quot;CSV parse error: field {}: {}&quot;</span>, err.field(), err)
+        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#152">self</a>.<span class="number">0 </span>{
+            <a href="#63">ErrorKind::Io</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#154">err</a>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#152">f</a>),
+            <a href="#66">ErrorKind::Utf8</a> { pos: <span class="prelude-val">None</span>, <span class="kw-2">ref </span>err } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#152">f</a>, <span class="string">&quot;CSV parse error: field {}: {}&quot;</span>, err.field(), err)
             }
-            <a href="../../src/csv/error.rs.html#66">ErrorKind::Utf8</a> { pos: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos), <span class="kw-2">ref </span>err } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../src/csv/error.rs.html#152">f</a>,
+            <a href="#66">ErrorKind::Utf8</a> { pos: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos), <span class="kw-2">ref </span>err } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#152">f</a>,
                 <span class="string">&quot;CSV parse error: record {} \
                  (line {}, field: {}, byte: {}): {}&quot;</span>,
                 pos.record(),
@@ -518,21 +518,21 @@
                 pos.byte(),
                 err
             ),
-            <a href="../../src/csv/error.rs.html#76">ErrorKind::UnequalLengths</a> { pos: <span class="prelude-val">None</span>, expected_len, len } =&gt; {
+            <a href="#76">ErrorKind::UnequalLengths</a> { pos: <span class="prelude-val">None</span>, expected_len, len } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                    <a href="../../src/csv/error.rs.html#152">f</a>,
+                    <a href="#152">f</a>,
                     <span class="string">&quot;CSV error: \
                      found record with {} fields, but the previous record \
                      has {} fields&quot;</span>,
                     len, expected_len
                 )
             }
-            <a href="../../src/csv/error.rs.html#76">ErrorKind::UnequalLengths</a> {
+            <a href="#76">ErrorKind::UnequalLengths</a> {
                 pos: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos),
                 expected_len,
                 len,
             } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../src/csv/error.rs.html#152">f</a>,
+                <a href="#152">f</a>,
                 <span class="string">&quot;CSV error: record {} (line: {}, byte: {}): \
                  found record with {} fields, but the previous record \
                  has {} fields&quot;</span>,
@@ -542,20 +542,20 @@
                 len,
                 expected_len
             ),
-            <a href="../../src/csv/error.rs.html#90">ErrorKind::Seek</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../src/csv/error.rs.html#152">f</a>,
+            <a href="#90">ErrorKind::Seek</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#152">f</a>,
                 <span class="string">&quot;CSV error: cannot access headers of CSV data \
                  when the parser was seeked before the first record \
                  could be read&quot;
             </span>),
-            <a href="../../src/csv/error.rs.html#92">ErrorKind::Serialize</a>(<span class="kw-2">ref </span>err) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/csv/error.rs.html#152">f</a>, <span class="string">&quot;CSV write error: {}&quot;</span>, err)
+            <a href="#92">ErrorKind::Serialize</a>(<span class="kw-2">ref </span>err) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#152">f</a>, <span class="string">&quot;CSV write error: {}&quot;</span>, err)
             }
-            <a href="../../src/csv/error.rs.html#95">ErrorKind::Deserialize</a> { pos: <span class="prelude-val">None</span>, <span class="kw-2">ref </span>err } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/csv/error.rs.html#152">f</a>, <span class="string">&quot;CSV deserialize error: {}&quot;</span>, err)
+            <a href="#95">ErrorKind::Deserialize</a> { pos: <span class="prelude-val">None</span>, <span class="kw-2">ref </span>err } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#152">f</a>, <span class="string">&quot;CSV deserialize error: {}&quot;</span>, err)
             }
-            <a href="../../src/csv/error.rs.html#95">ErrorKind::Deserialize</a> { pos: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos), <span class="kw-2">ref </span>err } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../src/csv/error.rs.html#152">f</a>,
+            <a href="#95">ErrorKind::Deserialize</a> { pos: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pos), <span class="kw-2">ref </span>err } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#152">f</a>,
                 <span class="string">&quot;CSV deserialize error: record {} \
                  (line: {}, byte: {}): {}&quot;</span>,
                 pos.record(),
@@ -574,36 +574,36 @@
 /// `StringRecord`.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>FromUtf8Error {
-    record: <a href="../../src/csv/byte_record.rs.html#34">ByteRecord</a>,
-    err: <a href="../../src/csv/error.rs.html#265">Utf8Error</a>,
+    record: <a href="byte_record.rs.html#34">ByteRecord</a>,
+    err: <a href="#265">Utf8Error</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/csv/error.rs.html#223">FromUtf8Error</a> {
+<span class="kw">impl </span><a href="#223">FromUtf8Error</a> {
     <span class="doccomment">/// Create a new FromUtf8Error.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rec: <a href="../../src/csv/byte_record.rs.html#34">ByteRecord</a>, err: <a href="../../src/csv/error.rs.html#265">Utf8Error</a>) -&gt; <a href="../../src/csv/error.rs.html#223">FromUtf8Error</a> {
-        <a href="../../src/csv/error.rs.html#223">FromUtf8Error</a> { record: <a href="../../src/csv/error.rs.html#230">rec</a>, err: <a href="../../src/csv/error.rs.html#230">err</a> }
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rec: <a href="byte_record.rs.html#34">ByteRecord</a>, err: <a href="#265">Utf8Error</a>) -&gt; <a href="#223">FromUtf8Error</a> {
+        <a href="#223">FromUtf8Error</a> { record: <a href="#230">rec</a>, err: <a href="#230">err</a> }
     }
 
     <span class="doccomment">/// Access the underlying `ByteRecord` that failed UTF-8 validation.
-    </span><span class="kw">pub fn </span>into_byte_record(<span class="self">self</span>) -&gt; <a href="../../src/csv/byte_record.rs.html#34">ByteRecord</a> {
-        <a class="self" href="../../src/csv/error.rs.html#235">self</a>.record
+    </span><span class="kw">pub fn </span>into_byte_record(<span class="self">self</span>) -&gt; <a href="byte_record.rs.html#34">ByteRecord</a> {
+        <a class="self" href="#235">self</a>.record
     }
 
     <span class="doccomment">/// Access the underlying UTF-8 validation error.
-    </span><span class="kw">pub fn </span>utf8_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/csv/error.rs.html#265">Utf8Error</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/csv/error.rs.html#240">self</a>.err
+    </span><span class="kw">pub fn </span>utf8_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#265">Utf8Error</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#240">self</a>.err
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#223">FromUtf8Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#223">FromUtf8Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/csv/error.rs.html#246">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/csv/error.rs.html#246">f</a>)
+        <a class="self" href="#246">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#246">f</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#223">FromUtf8Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#223">FromUtf8Error</a> {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/csv/error.rs.html#252">self</a>.err)
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#252">self</a>.err)
     }
 }
 
@@ -623,27 +623,27 @@
 }
 
 <span class="doccomment">/// Create a new UTF-8 error.
-</span><span class="kw">pub fn </span>new_utf8_error(field: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, valid_up_to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/csv/error.rs.html#265">Utf8Error</a> {
-    <a href="../../src/csv/error.rs.html#265">Utf8Error</a> { field: <a href="../../src/csv/error.rs.html#273">field</a>, valid_up_to: <a href="../../src/csv/error.rs.html#273">valid_up_to</a> }
+</span><span class="kw">pub fn </span>new_utf8_error(field: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, valid_up_to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#265">Utf8Error</a> {
+    <a href="#265">Utf8Error</a> { field: <a href="#273">field</a>, valid_up_to: <a href="#273">valid_up_to</a> }
 }
 
-<span class="kw">impl </span><a href="../../src/csv/error.rs.html#265">Utf8Error</a> {
+<span class="kw">impl </span><a href="#265">Utf8Error</a> {
     <span class="doccomment">/// The field index of a byte record in which UTF-8 validation failed.
     </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/csv/error.rs.html#279">self</a>.field
+        <a class="self" href="#279">self</a>.field
     }
     <span class="doccomment">/// The index into the given field up to which valid UTF-8 was verified.
     </span><span class="kw">pub fn </span>valid_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/csv/error.rs.html#283">self</a>.valid_up_to
+        <a class="self" href="#283">self</a>.valid_up_to
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#265">Utf8Error</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#265">Utf8Error</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/csv/error.rs.html#265">Utf8Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#265">Utf8Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="../../src/csv/error.rs.html#291">f</a>,
+            <a href="#291">f</a>,
             <span class="string">&quot;invalid utf-8: invalid UTF-8 in field {} near byte index {}&quot;</span>,
             <span class="self">self</span>.field, <span class="self">self</span>.valid_up_to
         )
@@ -668,14 +668,14 @@
     /// (This is a visibility hack. It&#39;s public in this module, but not in the
     /// crate.)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(wtr: W, err: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; IntoInnerError&lt;W&gt; {
-        <a href="../../src/csv/error.rs.html#307">IntoInnerError</a> { wtr: <a href="../../src/csv/error.rs.html#317">wtr</a>, err: <a href="../../src/csv/error.rs.html#317">err</a> }
+        <a href="#307">IntoInnerError</a> { wtr: <a href="#317">wtr</a>, err: <a href="#317">err</a> }
     }
 
     <span class="doccomment">/// Returns the error which caused the call to `into_inner` to fail.
     ///
     /// This error was returned when attempting to flush the internal buffer.
     </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/csv/error.rs.html#324">self</a>.err
+        <span class="kw-2">&amp;</span><a class="self" href="#324">self</a>.err
     }
 
     <span class="doccomment">/// Returns the underlying writer which generated the error.
@@ -683,26 +683,26 @@
     /// The returned value can be used for error recovery, such as
     /// re-inspecting the buffer.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; W {
-        <a class="self" href="../../src/csv/error.rs.html#332">self</a>.wtr
+        <a class="self" href="#332">self</a>.wtr
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span>IntoInnerError&lt;W&gt; {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <a class="self" href="../../src/csv/error.rs.html#338">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>()
+        <a class="self" href="#338">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;W&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>IntoInnerError&lt;W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/csv/error.rs.html#344">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/csv/error.rs.html#344">f</a>)
+        <a class="self" href="#344">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#344">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;W&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>IntoInnerError&lt;W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/csv/error.rs.html#350">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../src/csv/error.rs.html#350">f</a>)
+        <a class="self" href="#350">self</a>.err.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#350">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="csv" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="csv" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

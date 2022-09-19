@@ -60,17 +60,17 @@
     GotoSwitch(Vec&lt;(<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>, <a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>)&gt;, <a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#5">MirSuccessor</a> {
+<span class="kw">impl </span><a href="#5">MirSuccessor</a> {
     <span class="kw">pub fn </span>targets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#15">self</a> </span>{
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#7">MirSuccessor::Return</a> | <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#9">MirSuccessor::Kill</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#10">MirSuccessor::Goto</a>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target],
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#11">MirSuccessor::GotoSwitch</a>(guarded_targets, default) =&gt; {
+        <span class="kw">match </span><span class="self"><a href="#15">self</a> </span>{
+            <a href="#7">MirSuccessor::Return</a> | <a href="#9">MirSuccessor::Kill</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            <a href="#10">MirSuccessor::Goto</a>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target],
+            <a href="#11">MirSuccessor::GotoSwitch</a>(guarded_targets, default) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>targets = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>default];
                 <span class="kw">for </span>(<span class="kw">_</span>, target) <span class="kw">in </span>guarded_targets {
                     targets.push(<span class="kw-2">*</span>target);
                 }
-                <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#20">targets</a>
+                <a href="#20">targets</a>
             }
         }
     }
@@ -80,21 +80,21 @@
         return_block: <a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">CfgBlockIndex</a>,
         <span class="kw-2">mut </span>resolve_target: F,
     ) -&gt; <a href="../../../vir/gen/polymorphic/cfg/method/enum.Successor.html">Successor</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#30">self</a> </span>{
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#7">MirSuccessor::Return</a> =&gt; Successor::Goto(<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#31">return_block</a>),
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#9">MirSuccessor::Kill</a> =&gt; Successor::Return,
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#10">MirSuccessor::Goto</a>(bbi) =&gt; Successor::Goto(<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#32">resolve_target</a>(<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#37">bbi</a>)),
-            <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#11">MirSuccessor::GotoSwitch</a>(<span class="kw-2">mut </span>conditional_targets, default_bbi) =&gt; {
+        <span class="kw">match </span><span class="self"><a href="#30">self</a> </span>{
+            <a href="#7">MirSuccessor::Return</a> =&gt; Successor::Goto(<a href="#31">return_block</a>),
+            <a href="#9">MirSuccessor::Kill</a> =&gt; Successor::Return,
+            <a href="#10">MirSuccessor::Goto</a>(bbi) =&gt; Successor::Goto(<a href="#32">resolve_target</a>(<a href="#37">bbi</a>)),
+            <a href="#11">MirSuccessor::GotoSwitch</a>(<span class="kw-2">mut </span>conditional_targets, default_bbi) =&gt; {
                 Successor::GotoSwitch(
-                    <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#38">conditional_targets</a>
+                    <a href="#38">conditional_targets</a>
                         .drain(..)
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(guard, bbi)| (<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#42">guard</a>, <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#32">resolve_target</a>(<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#42">bbi</a>)))
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(guard, bbi)| (<a href="#42">guard</a>, <a href="#32">resolve_target</a>(<a href="#42">bbi</a>)))
                         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                    <a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#32">resolve_target</a>(<a href="../../../src/prusti_viper/encoder/mir_successor.rs.html#38">default_bbi</a>),
+                    <a href="#32">resolve_target</a>(<a href="#38">default_bbi</a>),
                 )
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

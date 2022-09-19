@@ -133,9 +133,9 @@
 
 </span><span class="attribute">#![doc(hidden)]
 
-</span><span class="kw">use </span><a href="../../src/minimal_lexical/extended_float.rs.html#11"><span class="kw">crate</span>::extended_float::ExtendedFloat</a>;
-<span class="kw">use </span><span class="kw">crate</span>::mask::{<a href="../../src/minimal_lexical/mask.rs.html#37">lower_n_halfway</a>, <a href="../../src/minimal_lexical/mask.rs.html#16">lower_n_mask</a>};
-<span class="kw">use </span><a href="../../src/minimal_lexical/num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
+</span><span class="kw">use </span><a href="extended_float.rs.html#11"><span class="kw">crate</span>::extended_float::ExtendedFloat</a>;
+<span class="kw">use </span><span class="kw">crate</span>::mask::{<a href="mask.rs.html#37">lower_n_halfway</a>, <a href="mask.rs.html#16">lower_n_mask</a>};
+<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
 
 <span class="comment">// ROUNDING
 // --------
@@ -145,12 +145,12 @@
 /// Shifts the significant digits into place, adjusts the exponent,
 /// so it can be easily converted to a native float.
 </span><span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round&lt;F, Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a>, cb: Cb)
+</span><span class="kw">pub fn </span>round&lt;F, Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, cb: Cb)
 <span class="kw">where
-    </span>F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>,
-    Cb: Fn(<span class="kw-2">&amp;mut </span><a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
+    </span>F: <a href="num.rs.html#18-35">Float</a>,
+    Cb: Fn(<span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
 {
-    <span class="kw">let </span>fp_inf = <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+    <span class="kw">let </span>fp_inf = <a href="extended_float.rs.html#11">ExtendedFloat</a> {
         mant: <span class="number">0</span>,
         exp: F::INFINITE_POWER,
     };
@@ -169,33 +169,33 @@
         //
         // This might round-down to 0, but shift will be at **max** 65,
         // for halfway cases rounding towards 0.
-        </span><span class="kw">let </span>shift = -<a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.exp + <span class="number">1</span>;
+        </span><span class="kw">let </span>shift = -<a href="#17">fp</a>.exp + <span class="number">1</span>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(shift &lt;= <span class="number">65</span>);
-        <a href="../../src/minimal_lexical/rounding.rs.html#17">cb</a>(<a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>, <a href="../../src/minimal_lexical/rounding.rs.html#41">shift</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<span class="number">64</span>));
+        <a href="#17">cb</a>(<a href="#17">fp</a>, <a href="#41">shift</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<span class="number">64</span>));
         <span class="comment">// Check for round-up: if rounding-nearest carried us to the hidden bit.
-        </span><a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.exp = (<a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.mant &gt;= F::HIDDEN_BIT_MASK) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        </span><a href="#17">fp</a>.exp = (<a href="#17">fp</a>.mant &gt;= F::HIDDEN_BIT_MASK) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
         <span class="kw">return</span>;
     }
 
     <span class="comment">// The float is normal, round to the hidden bit.
-    </span><a href="../../src/minimal_lexical/rounding.rs.html#17">cb</a>(<a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>, <a href="../../src/minimal_lexical/rounding.rs.html#28">mantissa_shift</a>);
+    </span><a href="#17">cb</a>(<a href="#17">fp</a>, <a href="#28">mantissa_shift</a>);
 
     <span class="comment">// Check if we carried, and if so, shift the bit to the hidden bit.
     </span><span class="kw">let </span>carry_mask = F::CARRY_MASK;
     <span class="kw">if </span>fp.mant &amp; carry_mask == carry_mask {
-        <a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.mant &gt;&gt;= <span class="number">1</span>;
-        <a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.exp += <span class="number">1</span>;
+        <a href="#17">fp</a>.mant &gt;&gt;= <span class="number">1</span>;
+        <a href="#17">fp</a>.exp += <span class="number">1</span>;
     }
 
     <span class="comment">// Handle if we carried and check for overflow again.
     </span><span class="kw">if </span>fp.exp &gt;= F::INFINITE_POWER {
         <span class="comment">// Exponent is above largest normal value, must be infinite.
-        </span><span class="kw-2">*</span><a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a> = <a href="../../src/minimal_lexical/rounding.rs.html#22">fp_inf</a>;
+        </span><span class="kw-2">*</span><a href="#17">fp</a> = <a href="#22">fp_inf</a>;
         <span class="kw">return</span>;
     }
 
     <span class="comment">// Remove the hidden bit.
-    </span><a href="../../src/minimal_lexical/rounding.rs.html#17">fp</a>.mant &amp;= F::MANTISSA_MASK;
+    </span><a href="#17">fp</a>.mant &amp;= F::MANTISSA_MASK;
 }
 
 <span class="doccomment">/// Shift right N-bytes and round towards a direction.
@@ -205,7 +205,7 @@
 ///     1. is_halfway
 ///     1. is_above
 </span><span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round_nearest_tie_even&lt;Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, cb: Cb)
+</span><span class="kw">pub fn </span>round_nearest_tie_even&lt;Cb&gt;(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, cb: Cb)
 <span class="kw">where
     </span><span class="comment">// is_odd, is_halfway, is_above
     </span>Cb: Fn(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -219,11 +219,11 @@
     //
     // For example, for 4 truncated bytes, the mask would be 0b1111
     // and the midway point would be 0b1000.
-    </span><span class="kw">let </span>mask = <a href="../../src/minimal_lexical/mask.rs.html#16">lower_n_mask</a>(<a href="../../src/minimal_lexical/rounding.rs.html#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-    <span class="kw">let </span>halfway = <a href="../../src/minimal_lexical/mask.rs.html#37">lower_n_halfway</a>(<a href="../../src/minimal_lexical/rounding.rs.html#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-    <span class="kw">let </span>truncated_bits = <a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.mant &amp; <a href="../../src/minimal_lexical/rounding.rs.html#91">mask</a>;
-    <span class="kw">let </span>is_above = <a href="../../src/minimal_lexical/rounding.rs.html#93">truncated_bits</a> &gt; <a href="../../src/minimal_lexical/rounding.rs.html#92">halfway</a>;
-    <span class="kw">let </span>is_halfway = <a href="../../src/minimal_lexical/rounding.rs.html#93">truncated_bits</a> == <a href="../../src/minimal_lexical/rounding.rs.html#92">halfway</a>;
+    </span><span class="kw">let </span>mask = <a href="mask.rs.html#16">lower_n_mask</a>(<a href="#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+    <span class="kw">let </span>halfway = <a href="mask.rs.html#37">lower_n_halfway</a>(<a href="#77">shift</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+    <span class="kw">let </span>truncated_bits = <a href="#77">fp</a>.mant &amp; <a href="#91">mask</a>;
+    <span class="kw">let </span>is_above = <a href="#93">truncated_bits</a> &gt; <a href="#92">halfway</a>;
+    <span class="kw">let </span>is_halfway = <a href="#93">truncated_bits</a> == <a href="#92">halfway</a>;
 
     <span class="comment">// Bit shift so the leading bit is in the hidden bit.
     // This optimixes pretty well:
@@ -235,30 +235,30 @@
     //   cmovne  rax, rdi
     //   ret
     //  ```
-    </span><a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.mant = <span class="kw">match </span><a href="../../src/minimal_lexical/rounding.rs.html#77">shift</a> == <span class="number">64 </span>{
+    </span><a href="#77">fp</a>.mant = <span class="kw">match </span><a href="#77">shift</a> == <span class="number">64 </span>{
         <span class="bool-val">true </span>=&gt; <span class="number">0</span>,
-        <span class="bool-val">false </span>=&gt; <a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.mant &gt;&gt; <a href="../../src/minimal_lexical/rounding.rs.html#77">shift</a>,
+        <span class="bool-val">false </span>=&gt; <a href="#77">fp</a>.mant &gt;&gt; <a href="#77">shift</a>,
     };
-    <a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.exp += <a href="../../src/minimal_lexical/rounding.rs.html#77">shift</a>;
+    <a href="#77">fp</a>.exp += <a href="#77">shift</a>;
 
     <span class="comment">// Extract the last bit after shifting (and determine if it is odd).
-    </span><span class="kw">let </span>is_odd = <a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.mant &amp; <span class="number">1 </span>== <span class="number">1</span>;
+    </span><span class="kw">let </span>is_odd = <a href="#77">fp</a>.mant &amp; <span class="number">1 </span>== <span class="number">1</span>;
 
     <span class="comment">// Calculate if we need to roundup.
     // We need to roundup if we are above halfway, or if we are odd
     // and at half-way (need to tie-to-even). Avoid the branch here.
-    </span><a href="../../src/minimal_lexical/rounding.rs.html#77">fp</a>.mant += <a href="../../src/minimal_lexical/rounding.rs.html#77">cb</a>(<a href="../../src/minimal_lexical/rounding.rs.html#114">is_odd</a>, <a href="../../src/minimal_lexical/rounding.rs.html#95">is_halfway</a>, <a href="../../src/minimal_lexical/rounding.rs.html#94">is_above</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    </span><a href="#77">fp</a>.mant += <a href="#77">cb</a>(<a href="#114">is_odd</a>, <a href="#95">is_halfway</a>, <a href="#94">is_above</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 }
 
 <span class="doccomment">/// Round our significant digits into place, truncating them.
 </span><span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;compact&quot;</span>), inline)]
-</span><span class="kw">pub fn </span>round_down(fp: <span class="kw-2">&amp;mut </span><a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
+</span><span class="kw">pub fn </span>round_down(fp: <span class="kw-2">&amp;mut </span><a href="extended_float.rs.html#11">ExtendedFloat</a>, shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
     <span class="comment">// Might have a shift greater than 64 if we have an error.
-    </span><a href="../../src/minimal_lexical/rounding.rs.html#124">fp</a>.mant = <span class="kw">match </span><a href="../../src/minimal_lexical/rounding.rs.html#124">shift</a> == <span class="number">64 </span>{
+    </span><a href="#124">fp</a>.mant = <span class="kw">match </span><a href="#124">shift</a> == <span class="number">64 </span>{
         <span class="bool-val">true </span>=&gt; <span class="number">0</span>,
-        <span class="bool-val">false </span>=&gt; <a href="../../src/minimal_lexical/rounding.rs.html#124">fp</a>.mant &gt;&gt; <a href="../../src/minimal_lexical/rounding.rs.html#124">shift</a>,
+        <span class="bool-val">false </span>=&gt; <a href="#124">fp</a>.mant &gt;&gt; <a href="#124">shift</a>,
     };
-    <a href="../../src/minimal_lexical/rounding.rs.html#124">fp</a>.exp += <a href="../../src/minimal_lexical/rounding.rs.html#124">shift</a>;
+    <a href="#124">fp</a>.exp += <a href="#124">shift</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

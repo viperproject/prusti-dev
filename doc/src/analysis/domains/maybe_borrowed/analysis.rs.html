@@ -131,8 +131,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#15">abstract_interpretation::AnalysisResult</a>, <a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#12">domains::MaybeBorrowedState</a>,
-    <a href="../../../../src/analysis/mir_utils.rs.html#344">mir_utils::get_blocked_place</a>, <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>, <a href="../../../../src/analysis/pointwise_state.rs.html#12">PointwiseState</a>,
+    <a href="../../abstract_interpretation/fixpoint_engine.rs.html#15">abstract_interpretation::AnalysisResult</a>, <a href="state.rs.html#12">domains::MaybeBorrowedState</a>,
+    <a href="../../mir_utils.rs.html#344">mir_utils::get_blocked_place</a>, <a href="../../analysis_error.rs.html#11">AnalysisError</a>, <a href="../../pointwise_state.rs.html#12">PointwiseState</a>,
 };
 <span class="kw">use </span>log::{<a href="../../../../log/macro.error.html">error</a>, <a href="../../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -148,32 +148,32 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; MaybeBorrowedAnalysis&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#18">MaybeBorrowedAnalysis</a> {
-            <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#24">tcx</a>,
-            <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#24">body_with_facts</a>,
+        <a href="#18">MaybeBorrowedAnalysis</a> {
+            <a href="#24">tcx</a>,
+            <a href="#24">body_with_facts</a>,
         }
     }
 
     <span class="kw">pub fn </span>run_analysis(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; AnalysisResult&lt;PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, MaybeBorrowedState&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#32">self</a>.body_with_facts.body;
-        <span class="kw">let </span>location_table = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#32">self</a>.body_with_facts.location_table;
-        <span class="kw">let </span>borrowck_in_facts = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#32">self</a>.body_with_facts.input_facts;
-        <span class="kw">let </span>borrowck_out_facts = <a class="self" href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#32">self</a>.body_with_facts.output_facts.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <span class="kw">let </span>loan_issued_at = <span class="kw-2">&amp;</span><a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#36">borrowck_in_facts</a>.loan_issued_at;
-        <span class="kw">let </span>loan_live_at = <span class="kw-2">&amp;</span><a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#37">borrowck_out_facts</a>.loan_live_at;
-        <span class="kw">let </span>loan_issued_at_location: FxHashMap&lt;<span class="kw">_</span>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>&gt; = <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#38">loan_issued_at</a>
+        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="#32">self</a>.body_with_facts.body;
+        <span class="kw">let </span>location_table = <span class="kw-2">&amp;</span><a class="self" href="#32">self</a>.body_with_facts.location_table;
+        <span class="kw">let </span>borrowck_in_facts = <span class="kw-2">&amp;</span><a class="self" href="#32">self</a>.body_with_facts.input_facts;
+        <span class="kw">let </span>borrowck_out_facts = <a class="self" href="#32">self</a>.body_with_facts.output_facts.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">let </span>loan_issued_at = <span class="kw-2">&amp;</span><a href="#36">borrowck_in_facts</a>.loan_issued_at;
+        <span class="kw">let </span>loan_live_at = <span class="kw-2">&amp;</span><a href="#37">borrowck_out_facts</a>.loan_live_at;
+        <span class="kw">let </span>loan_issued_at_location: FxHashMap&lt;<span class="kw">_</span>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>&gt; = <a href="#38">loan_issued_at</a>
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, loan, point_index)| {
-                <span class="kw">let </span>rich_location = <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#35">location_table</a>.to_location(<a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#42">point_index</a>);
-                <span class="kw">let </span>location = <span class="kw">match </span><a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#43">rich_location</a> {
-                    RichLocation::Start(loc) | RichLocation::Mid(loc) =&gt; <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#45">loc</a>,
+                <span class="kw">let </span>rich_location = <a href="#35">location_table</a>.to_location(<a href="#42">point_index</a>);
+                <span class="kw">let </span>location = <span class="kw">match </span><a href="#43">rich_location</a> {
+                    RichLocation::Start(loc) | RichLocation::Mid(loc) =&gt; <a href="#45">loc</a>,
                 };
-                (<a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#42">loan</a>, <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#44">location</a>)
+                (<a href="#42">loan</a>, <a href="#44">location</a>)
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state: PointwiseState&lt;<a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#12">MaybeBorrowedState</a>&gt; = PointwiseState::default(<a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#34">body</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state: PointwiseState&lt;<a href="state.rs.html#12">MaybeBorrowedState</a>&gt; = PointwiseState::default(<a href="#34">body</a>);
 
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;There are {} loan_live_at output facts&quot;</span>, loan_live_at.len());
         <span class="kw">for </span>(<span class="kw-2">&amp;</span>point_index, loans) <span class="kw">in </span>loan_live_at.iter() {
@@ -247,8 +247,8 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#50">analysis_state</a>)
+        <span class="prelude-val">Ok</span>(<a href="#50">analysis_state</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -861,16 +861,16 @@
     <span class="kw">use </span>waker_fn::waker_fn;
 
     <span class="comment">// Pin the future on the stack.
-    </span><a class="macro" href="../../src/futures_lite/lib.rs.html#120-130">crate::pin!</a>(future);
+    </span><a class="macro" href="lib.rs.html#120-130">crate::pin!</a>(future);
 
     <span class="comment">// Creates a parker and an associated waker that unparks it.
     </span><span class="kw">fn </span>parker_and_waker() -&gt; (<a href="../../parking/struct.Parker.html">Parker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
         <span class="kw">let </span>parker = Parker::new();
-        <span class="kw">let </span>unparker = <a href="../../src/futures_lite/future.rs.html#66">parker</a>.unparker();
+        <span class="kw">let </span>unparker = <a href="#66">parker</a>.unparker();
         <span class="kw">let </span>waker = waker_fn(<span class="kw">move </span>|| {
-            <a href="../../src/futures_lite/future.rs.html#67">unparker</a>.unpark();
+            <a href="#67">unparker</a>.unpark();
         });
-        (<a href="../../src/futures_lite/future.rs.html#66">parker</a>, <a href="../../src/futures_lite/future.rs.html#68">waker</a>)
+        (<a href="#66">parker</a>, <a href="#68">waker</a>)
     }
 
     <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
@@ -878,33 +878,33 @@
         </span><span class="kw">static </span>CACHE: RefCell&lt;(Parker, Waker)&gt; = RefCell::new(parker_and_waker());
     }
 
-    <a href="../../src/futures_lite/future.rs.html#74-77">CACHE</a>.with(|cache| {
+    <a href="#74-77">CACHE</a>.with(|cache| {
         <span class="comment">// Try grabbing the cached parker and waker.
-        </span><span class="kw">match </span><a href="../../src/futures_lite/future.rs.html#79">cache</a>.try_borrow_mut() {
+        </span><span class="kw">match </span><a href="#79">cache</a>.try_borrow_mut() {
             <span class="prelude-val">Ok</span>(cache) =&gt; {
                 <span class="comment">// Use the cached parker and waker.
-                </span><span class="kw">let </span>(parker, waker) = <span class="kw-2">&amp;*</span><a href="../../src/futures_lite/future.rs.html#82">cache</a>;
-                <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="../../src/futures_lite/future.rs.html#84">waker</a>);
+                </span><span class="kw">let </span>(parker, waker) = <span class="kw-2">&amp;*</span><a href="#82">cache</a>;
+                <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="#84">waker</a>);
 
                 <span class="comment">// Keep polling until the future is ready.
                 </span><span class="kw">loop </span>{
-                    <span class="kw">match </span><a href="../../src/futures_lite/future.rs.html#62">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#85">cx</a>) {
-                        Poll::Ready(output) =&gt; <span class="kw">return </span><a href="../../src/futures_lite/future.rs.html#90">output</a>,
-                        Poll::Pending =&gt; <a href="../../src/futures_lite/future.rs.html#84">parker</a>.park(),
+                    <span class="kw">match </span><a href="#62">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#85">cx</a>) {
+                        Poll::Ready(output) =&gt; <span class="kw">return </span><a href="#90">output</a>,
+                        Poll::Pending =&gt; <a href="#84">parker</a>.park(),
                     }
                 }
             }
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Looks like this is a recursive `block_on()` call.
                 // Create a fresh parker and waker.
-                </span><span class="kw">let </span>(parker, waker) = <a href="../../src/futures_lite/future.rs.html#65">parker_and_waker</a>();
-                <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="../../src/futures_lite/future.rs.html#98">waker</a>);
+                </span><span class="kw">let </span>(parker, waker) = <a href="#65">parker_and_waker</a>();
+                <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="#98">waker</a>);
 
                 <span class="comment">// Keep polling until the future is ready.
                 </span><span class="kw">loop </span>{
-                    <span class="kw">match </span><a href="../../src/futures_lite/future.rs.html#62">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#99">cx</a>) {
-                        Poll::Ready(output) =&gt; <span class="kw">return </span><a href="../../src/futures_lite/future.rs.html#104">output</a>,
-                        Poll::Pending =&gt; <a href="../../src/futures_lite/future.rs.html#98">parker</a>.park(),
+                    <span class="kw">match </span><a href="#62">future</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#99">cx</a>) {
+                        Poll::Ready(output) =&gt; <span class="kw">return </span><a href="#104">output</a>,
+                        Poll::Pending =&gt; <a href="#98">parker</a>.park(),
                     }
                 }
             }
@@ -925,7 +925,7 @@
 /// # })
 /// ```
 </span><span class="kw">pub fn </span>pending&lt;T&gt;() -&gt; Pending&lt;T&gt; {
-    <a href="../../src/futures_lite/future.rs.html#133">Pending</a> {
+    <a href="#133">Pending</a> {
         _marker: PhantomData,
     }
 }
@@ -940,7 +940,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pending&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/futures_lite/future.rs.html#140">f</a>.debug_struct(<span class="string">&quot;Pending&quot;</span>).finish()
+        <a href="#140">f</a>.debug_struct(<span class="string">&quot;Pending&quot;</span>).finish()
     }
 }
 
@@ -968,7 +968,7 @@
 <span class="kw">where
     </span>F: Future&lt;Output = T&gt;,
 {
-    <a href="../../src/futures_lite/future.rs.html#172-179">PollOnce</a> { <a href="../../src/futures_lite/future.rs.html#165">f</a> }
+    <a href="#172-179">PollOnce</a> { <a href="#165">f</a> }
 }
 
 <a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
@@ -982,7 +982,7 @@
 
 <span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PollOnce&lt;F&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/futures_lite/future.rs.html#182">f</a>.debug_struct(<span class="string">&quot;PollOnce&quot;</span>).finish()
+        <a href="#182">f</a>.debug_struct(<span class="string">&quot;PollOnce&quot;</span>).finish()
     }
 }
 
@@ -993,8 +993,8 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/futures_lite/future.rs.html#193">self</a>.<a href="../../src/futures_lite/future.rs.html#172-179">project</a>().f.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#193">cx</a>) {
-            Poll::Ready(t) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../src/futures_lite/future.rs.html#195">t</a>)),
+        <span class="kw">match </span><a class="self" href="#193">self</a>.<a href="#172-179">project</a>().f.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#193">cx</a>) {
+            Poll::Ready(t) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="#195">t</a>)),
             Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">None</span>),
         }
     }
@@ -1020,7 +1020,7 @@
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt;,
 {
-    <a href="../../src/futures_lite/future.rs.html#224-230">PollFn</a> { <a href="../../src/futures_lite/future.rs.html#217">f</a> }
+    <a href="#224-230">PollFn</a> { <a href="#217">f</a> }
 }
 
 <a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
@@ -1033,7 +1033,7 @@
 
 <span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PollFn&lt;F&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/futures_lite/future.rs.html#233">f</a>.debug_struct(<span class="string">&quot;PollFn&quot;</span>).finish()
+        <a href="#233">f</a>.debug_struct(<span class="string">&quot;PollFn&quot;</span>).finish()
     }
 }
 
@@ -1044,8 +1044,8 @@
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#244">self</a>.<a href="../../src/futures_lite/future.rs.html#224-230">project</a>();
-        (<a href="../../src/futures_lite/future.rs.html#245">this</a>.f)(<a href="../../src/futures_lite/future.rs.html#244">cx</a>)
+        <span class="kw">let </span>this = <a class="self" href="#244">self</a>.<a href="#224-230">project</a>();
+        (<a href="#245">this</a>.f)(<a href="#244">cx</a>)
     }
 }
 
@@ -1061,7 +1061,7 @@
 /// # })
 /// ```
 </span><span class="kw">pub fn </span>ready&lt;T&gt;(val: T) -&gt; Ready&lt;T&gt; {
-    <a href="../../src/futures_lite/future.rs.html#268">Ready</a>(<span class="prelude-val">Some</span>(<a href="../../src/futures_lite/future.rs.html#261">val</a>))
+    <a href="#268">Ready</a>(<span class="prelude-val">Some</span>(<a href="#261">val</a>))
 }
 
 <span class="doccomment">/// Future for the [`ready()`] function.
@@ -1075,7 +1075,7 @@
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
-        Poll::Ready(<a class="self" href="../../src/futures_lite/future.rs.html#275">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;`Ready` polled after completion&quot;</span>))
+        Poll::Ready(<a class="self" href="#275">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;`Ready` polled after completion&quot;</span>))
     }
 }
 
@@ -1094,8 +1094,8 @@
 /// future::yield_now().await;
 /// # })
 /// ```
-</span><span class="kw">pub fn </span>yield_now() -&gt; <a href="../../src/futures_lite/future.rs.html#302">YieldNow</a> {
-    <a href="../../src/futures_lite/future.rs.html#302">YieldNow</a>(<span class="bool-val">false</span>)
+</span><span class="kw">pub fn </span>yield_now() -&gt; <a href="#302">YieldNow</a> {
+    <a href="#302">YieldNow</a>(<span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Future for the [`yield_now()`] function.
@@ -1103,13 +1103,13 @@
 #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
 </span><span class="kw">pub struct </span>YieldNow(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../src/futures_lite/future.rs.html#302">YieldNow</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#302">YieldNow</a> {
     <span class="kw">type </span>Output = ();
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0 </span>{
-            <a class="self" href="../../src/futures_lite/future.rs.html#307">self</a>.<span class="number">0 </span>= <span class="bool-val">true</span>;
-            <a href="../../src/futures_lite/future.rs.html#307">cx</a>.waker().wake_by_ref();
+            <a class="self" href="#307">self</a>.<span class="number">0 </span>= <span class="bool-val">true</span>;
+            <a href="#307">cx</a>.waker().wake_by_ref();
             Poll::Pending
         } <span class="kw">else </span>{
             Poll::Ready(())
@@ -1136,10 +1136,10 @@
     </span>F1: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
     F2: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <a href="../../src/futures_lite/future.rs.html#345-361">Zip</a> {
-        future1: <a href="../../src/futures_lite/future.rs.html#332">future1</a>,
+    <a href="#345-361">Zip</a> {
+        future1: <a href="#332">future1</a>,
         output1: <span class="prelude-val">None</span>,
-        future2: <a href="../../src/futures_lite/future.rs.html#332">future2</a>,
+        future2: <a href="#332">future2</a>,
         output2: <span class="prelude-val">None</span>,
     }
 }
@@ -1170,22 +1170,22 @@
     <span class="kw">type </span>Output = (F1::Output, F2::Output);
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#370">self</a>.<a href="../../src/futures_lite/future.rs.html#345-361">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#370">self</a>.<a href="#345-361">project</a>();
 
         <span class="kw">if </span>this.output1.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = <a href="../../src/futures_lite/future.rs.html#371">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#370">cx</a>) {
-                <span class="kw-2">*</span><a href="../../src/futures_lite/future.rs.html#371">this</a>.output1 = <span class="prelude-val">Some</span>(<a href="../../src/futures_lite/future.rs.html#374">out</a>);
+            <span class="kw">if let </span>Poll::Ready(out) = <a href="#371">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#370">cx</a>) {
+                <span class="kw-2">*</span><a href="#371">this</a>.output1 = <span class="prelude-val">Some</span>(<a href="#374">out</a>);
             }
         }
 
         <span class="kw">if </span>this.output2.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = <a href="../../src/futures_lite/future.rs.html#371">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#370">cx</a>) {
-                <span class="kw-2">*</span><a href="../../src/futures_lite/future.rs.html#371">this</a>.output2 = <span class="prelude-val">Some</span>(<a href="../../src/futures_lite/future.rs.html#380">out</a>);
+            <span class="kw">if let </span>Poll::Ready(out) = <a href="#371">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#370">cx</a>) {
+                <span class="kw-2">*</span><a href="#371">this</a>.output2 = <span class="prelude-val">Some</span>(<a href="#380">out</a>);
             }
         }
 
         <span class="kw">if </span>this.output1.is_some() &amp;&amp; this.output2.is_some() {
-            Poll::Ready((<a href="../../src/futures_lite/future.rs.html#371">this</a>.output1.take().unwrap(), <a href="../../src/futures_lite/future.rs.html#371">this</a>.output2.take().unwrap()))
+            Poll::Ready((<a href="#371">this</a>.output1.take().unwrap(), <a href="#371">this</a>.output2.take().unwrap()))
         } <span class="kw">else </span>{
             Poll::Pending
         }
@@ -1211,10 +1211,10 @@
     </span>F1: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T1, E&gt;&gt;,
     F2: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T2, E&gt;&gt;,
 {
-    <a href="../../src/futures_lite/future.rs.html#420-436">TryZip</a> {
-        future1: <a href="../../src/futures_lite/future.rs.html#407">future1</a>,
+    <a href="#420-436">TryZip</a> {
+        future1: <a href="#407">future1</a>,
         output1: <span class="prelude-val">None</span>,
-        future2: <a href="../../src/futures_lite/future.rs.html#407">future2</a>,
+        future2: <a href="#407">future2</a>,
         output2: <span class="prelude-val">None</span>,
     }
 }
@@ -1245,32 +1245,32 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(T1, T2), E&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#445">self</a>.<a href="../../src/futures_lite/future.rs.html#420-436">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#445">self</a>.<a href="#420-436">project</a>();
 
         <span class="kw">if </span>this.output1.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = <a href="../../src/futures_lite/future.rs.html#446">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#445">cx</a>) {
-                <span class="kw">match </span><a href="../../src/futures_lite/future.rs.html#449">out</a> {
-                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span><a href="../../src/futures_lite/future.rs.html#446">this</a>.output1 = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../src/futures_lite/future.rs.html#451">t</a>)),
-                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/futures_lite/future.rs.html#452">err</a>)),
+            <span class="kw">if let </span>Poll::Ready(out) = <a href="#446">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#445">cx</a>) {
+                <span class="kw">match </span><a href="#449">out</a> {
+                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span><a href="#446">this</a>.output1 = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#451">t</a>)),
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#452">err</a>)),
                 }
             }
         }
 
         <span class="kw">if </span>this.output2.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = <a href="../../src/futures_lite/future.rs.html#446">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#445">cx</a>) {
-                <span class="kw">match </span><a href="../../src/futures_lite/future.rs.html#458">out</a> {
-                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span><a href="../../src/futures_lite/future.rs.html#446">this</a>.output2 = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../src/futures_lite/future.rs.html#460">t</a>)),
-                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/futures_lite/future.rs.html#461">err</a>)),
+            <span class="kw">if let </span>Poll::Ready(out) = <a href="#446">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#445">cx</a>) {
+                <span class="kw">match </span><a href="#458">out</a> {
+                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span><a href="#446">this</a>.output2 = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#460">t</a>)),
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#461">err</a>)),
                 }
             }
         }
 
         <span class="kw">if </span>this.output1.is_some() &amp;&amp; this.output2.is_some() {
-            <span class="kw">let </span>res1 = <a href="../../src/futures_lite/future.rs.html#446">this</a>.output1.take().unwrap();
-            <span class="kw">let </span>res2 = <a href="../../src/futures_lite/future.rs.html#446">this</a>.output2.take().unwrap();
-            <span class="kw">let </span>t1 = <a href="../../src/futures_lite/future.rs.html#467">res1</a>.map_err(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).unwrap();
-            <span class="kw">let </span>t2 = <a href="../../src/futures_lite/future.rs.html#468">res2</a>.map_err(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).unwrap();
-            Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../../src/futures_lite/future.rs.html#469">t1</a>, <a href="../../src/futures_lite/future.rs.html#470">t2</a>)))
+            <span class="kw">let </span>res1 = <a href="#446">this</a>.output1.take().unwrap();
+            <span class="kw">let </span>res2 = <a href="#446">this</a>.output2.take().unwrap();
+            <span class="kw">let </span>t1 = <a href="#467">res1</a>.map_err(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).unwrap();
+            <span class="kw">let </span>t2 = <a href="#468">res2</a>.map_err(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).unwrap();
+            Poll::Ready(<span class="prelude-val">Ok</span>((<a href="#469">t1</a>, <a href="#470">t2</a>)))
         } <span class="kw">else </span>{
             Poll::Pending
         }
@@ -1300,7 +1300,7 @@
     </span>F1: Future&lt;Output = T&gt;,
     F2: Future&lt;Output = T&gt;,
 {
-    <a href="../../src/futures_lite/future.rs.html#504-514">Or</a> { <a href="../../src/futures_lite/future.rs.html#496">future1</a>, <a href="../../src/futures_lite/future.rs.html#496">future2</a> }
+    <a href="#504-514">Or</a> { <a href="#496">future1</a>, <a href="#496">future2</a> }
 }
 
 <a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
@@ -1323,13 +1323,13 @@
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#523">self</a>.<a href="../../src/futures_lite/future.rs.html#504-514">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#523">self</a>.<a href="#504-514">project</a>();
 
-        <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#524">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#523">cx</a>) {
-            <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#526">t</a>);
+        <span class="kw">if let </span>Poll::Ready(t) = <a href="#524">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#523">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<a href="#526">t</a>);
         }
-        <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#524">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#523">cx</a>) {
-            <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#529">t</a>);
+        <span class="kw">if let </span>Poll::Ready(t) = <a href="#524">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#523">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<a href="#529">t</a>);
         }
         Poll::Pending
     }
@@ -1362,7 +1362,7 @@
     </span>F1: Future&lt;Output = T&gt;,
     F2: Future&lt;Output = T&gt;,
 {
-    <a href="../../src/futures_lite/future.rs.html#567-577">Race</a> { <a href="../../src/futures_lite/future.rs.html#558">future1</a>, <a href="../../src/futures_lite/future.rs.html#558">future2</a> }
+    <a href="#567-577">Race</a> { <a href="#558">future1</a>, <a href="#558">future2</a> }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
@@ -1387,21 +1387,21 @@
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#587">self</a>.<a href="../../src/futures_lite/future.rs.html#567-577">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#587">self</a>.<a href="#567-577">project</a>();
 
         <span class="kw">if </span>fastrand::bool() {
-            <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#588">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#587">cx</a>) {
-                <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#591">t</a>);
+            <span class="kw">if let </span>Poll::Ready(t) = <a href="#588">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#587">cx</a>) {
+                <span class="kw">return </span>Poll::Ready(<a href="#591">t</a>);
             }
-            <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#588">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#587">cx</a>) {
-                <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#594">t</a>);
+            <span class="kw">if let </span>Poll::Ready(t) = <a href="#588">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#587">cx</a>) {
+                <span class="kw">return </span>Poll::Ready(<a href="#594">t</a>);
             }
         } <span class="kw">else </span>{
-            <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#588">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#587">cx</a>) {
-                <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#598">t</a>);
+            <span class="kw">if let </span>Poll::Ready(t) = <a href="#588">this</a>.future2.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#587">cx</a>) {
+                <span class="kw">return </span>Poll::Ready(<a href="#598">t</a>);
             }
-            <span class="kw">if let </span>Poll::Ready(t) = <a href="../../src/futures_lite/future.rs.html#588">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_lite/future.rs.html#587">cx</a>) {
-                <span class="kw">return </span>Poll::Ready(<a href="../../src/futures_lite/future.rs.html#601">t</a>);
+            <span class="kw">if let </span>Poll::Ready(t) = <a href="#588">this</a>.future1.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#587">cx</a>) {
+                <span class="kw">return </span>Poll::Ready(<a href="#601">t</a>);
             }
         }
         Poll::Pending
@@ -1424,7 +1424,7 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;F::Output, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/futures_lite/future.rs.html#624">self</a>.<a href="../../src/futures_lite/future.rs.html#610-618">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#624">self</a>.<a href="#610-618">project</a>();
         catch_unwind(AssertUnwindSafe(|| this.inner.poll(cx)))<span class="question-mark">?</span>.map(<span class="prelude-val">Ok</span>)
     }
 }
@@ -1464,7 +1464,7 @@
     <span class="kw">where
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future::poll</a>(Pin::new(<a class="self" href="../../src/futures_lite/future.rs.html#661">self</a>), <a href="../../src/futures_lite/future.rs.html#661">cx</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future::poll</a>(Pin::new(<a class="self" href="#661">self</a>), <a href="#661">cx</a>)
     }
 
     <span class="doccomment">/// Returns the result of `self` or `other` future, preferring `self` if both are ready.
@@ -1490,9 +1490,9 @@
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         F: Future&lt;Output = <span class="self">Self</span>::Output&gt;,
     {
-        <a href="../../src/futures_lite/future.rs.html#504-514">Or</a> {
-            future1: <a class="self" href="../../src/futures_lite/future.rs.html#686">self</a>,
-            future2: <a href="../../src/futures_lite/future.rs.html#686">other</a>,
+        <a href="#504-514">Or</a> {
+            future1: <a class="self" href="#686">self</a>,
+            future2: <a href="#686">other</a>,
         }
     }
 
@@ -1523,9 +1523,9 @@
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         F: Future&lt;Output = <span class="self">Self</span>::Output&gt;,
     {
-        <a href="../../src/futures_lite/future.rs.html#567-577">Race</a> {
-            future1: <a class="self" href="../../src/futures_lite/future.rs.html#719">self</a>,
-            future2: <a href="../../src/futures_lite/future.rs.html#719">other</a>,
+        <a href="#567-577">Race</a> {
+            future1: <a class="self" href="#719">self</a>,
+            future2: <a href="#719">other</a>,
         }
     }
 
@@ -1549,7 +1549,7 @@
     <span class="kw">where
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>,
     {
-        <a href="../../src/futures_lite/future.rs.html#610-618">CatchUnwind</a> { inner: <span class="self"><a href="../../src/futures_lite/future.rs.html#746">self</a> </span>}
+        <a href="#610-618">CatchUnwind</a> { inner: <span class="self"><a href="#746">self</a> </span>}
     }
 
     <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + Send + &#39;a`.
@@ -1573,7 +1573,7 @@
     <span class="kw">where
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>,
     {
-        Box::pin(<a class="self" href="../../src/futures_lite/future.rs.html#770">self</a>)
+        Box::pin(<a class="self" href="#770">self</a>)
     }
 
     <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + &#39;a`.
@@ -1597,10 +1597,10 @@
     <span class="kw">where
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <span class="lifetime">&#39;a</span>,
     {
-        Box::pin(<a class="self" href="../../src/futures_lite/future.rs.html#794">self</a>)
+        Box::pin(<a class="self" href="#794">self</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/futures_lite/future.rs.html#659">FutureExt</a> <span class="kw">for </span>F {}
+<span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#659">FutureExt</a> <span class="kw">for </span>F {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

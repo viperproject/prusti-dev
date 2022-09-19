@@ -202,8 +202,8 @@
 <span id="202">202</span>
 </pre><pre class="rust"><code><span class="kw">use </span>core::marker::PhantomData;
 
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#108">DebugInfoOffset</a>, <a href="../../../src/gimli/common.rs.html#3">Format</a>};
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/unit.rs.html#241-244">parse_debug_info_offset</a>, <a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#250">UnitOffset</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#108">DebugInfoOffset</a>, <a href="../common.rs.html#3">Format</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="unit.rs.html#241-244">parse_debug_info_offset</a>, <a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <a href="reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="mod.rs.html#250">UnitOffset</a>};
 
 <span class="comment">// The various &quot;Accelerated Access&quot; sections (DWARF standard v4 Section 6.1) all have
 // similar structures. They consist of a header with metadata and an offset into the
@@ -214,7 +214,7 @@
 // Because these three tables all have similar structures, we abstract out some of
 // the parsing mechanics.
 
-</span><span class="kw">pub trait </span>LookupParser&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+</span><span class="kw">pub trait </span>LookupParser&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
     <span class="doccomment">/// The type of the produced header.
     </span><span class="kw">type </span>Header;
     <span class="doccomment">/// The type of the produced entry.
@@ -233,7 +233,7 @@
 <span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>DebugLookup&lt;R, Parser&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Parser: LookupParser&lt;R&gt;,
 {
     input_buffer: R,
@@ -242,12 +242,12 @@
 
 <span class="kw">impl</span>&lt;R, Parser&gt; From&lt;R&gt; <span class="kw">for </span>DebugLookup&lt;R, Parser&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Parser: LookupParser&lt;R&gt;,
 {
     <span class="kw">fn </span>from(input_buffer: R) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/gimli/read/lookup.rs.html#32">DebugLookup</a> {
-            <a href="../../../src/gimli/read/lookup.rs.html#46">input_buffer</a>,
+        <a href="#32">DebugLookup</a> {
+            <a href="#46">input_buffer</a>,
             phantom: PhantomData,
         }
     }
@@ -255,25 +255,25 @@
 
 <span class="kw">impl</span>&lt;R, Parser&gt; DebugLookup&lt;R, Parser&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Parser: LookupParser&lt;R&gt;,
 {
     <span class="kw">pub fn </span>items(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LookupEntryIter&lt;R, Parser&gt; {
-        <a href="../../../src/gimli/read/lookup.rs.html#72">LookupEntryIter</a> {
+        <a href="#72">LookupEntryIter</a> {
             current_set: <span class="prelude-val">None</span>,
-            remaining_input: <a class="self" href="../../../src/gimli/read/lookup.rs.html#59">self</a>.input_buffer.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            remaining_input: <a class="self" href="#59">self</a>.input_buffer.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
     <span class="kw">pub fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/lookup.rs.html#66">self</a>.input_buffer
+        <span class="kw-2">&amp;</span><a class="self" href="#66">self</a>.input_buffer
     }
 }
 
 <span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>LookupEntryIter&lt;R, Parser&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Parser: LookupParser&lt;R&gt;,
 {
     current_set: <span class="prelude-ty">Option</span>&lt;(R, Parser::Header)&gt;, <span class="comment">// Only none at the very beginning and end.
@@ -282,7 +282,7 @@
 
 <span class="kw">impl</span>&lt;R, Parser&gt; LookupEntryIter&lt;R, Parser&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Parser: LookupParser&lt;R&gt;,
 {
     <span class="doccomment">/// Advance the iterator and return the next entry.
@@ -296,31 +296,31 @@
     /// Can be [used with `FallibleIterator`](./index.html#using-with-fallibleiterator).
     </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Parser::Entry&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">ref mut </span>input, <span class="kw-2">ref </span>header)) = <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.current_set {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">ref mut </span>input, <span class="kw-2">ref </span>header)) = <a class="self" href="#95">self</a>.current_set {
                 <span class="kw">if </span>!input.is_empty() {
-                    <span class="kw">match </span>Parser::parse_entry(<a href="../../../src/gimli/read/lookup.rs.html#97">input</a>, <a href="../../../src/gimli/read/lookup.rs.html#97">header</a>) {
-                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(entry)) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/lookup.rs.html#100">entry</a>)),
+                    <span class="kw">match </span>Parser::parse_entry(<a href="#97">input</a>, <a href="#97">header</a>) {
+                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(entry)) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#100">entry</a>)),
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {}
                         <span class="prelude-val">Err</span>(e) =&gt; {
-                            <a href="../../../src/gimli/read/lookup.rs.html#97">input</a>.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                            <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.remaining_input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/lookup.rs.html#102">e</a>);
+                            <a href="#97">input</a>.<a href="reader.rs.html#229">empty</a>();
+                            <a class="self" href="#95">self</a>.remaining_input.<a href="reader.rs.html#229">empty</a>();
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#102">e</a>);
                         }
                     }
                 }
             }
             <span class="kw">if </span><span class="self">self</span>.remaining_input.is_empty() {
-                <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.current_set = <span class="prelude-val">None</span>;
+                <a class="self" href="#95">self</a>.current_set = <span class="prelude-val">None</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <span class="kw">match </span>Parser::parse_header(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.remaining_input) {
+            <span class="kw">match </span>Parser::parse_header(<span class="kw-2">&amp;mut </span><a class="self" href="#95">self</a>.remaining_input) {
                 <span class="prelude-val">Ok</span>(set) =&gt; {
-                    <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.current_set = <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/lookup.rs.html#115">set</a>);
+                    <a class="self" href="#95">self</a>.current_set = <span class="prelude-val">Some</span>(<a href="#115">set</a>);
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.current_set = <span class="prelude-val">None</span>;
-                    <a class="self" href="../../../src/gimli/read/lookup.rs.html#95">self</a>.remaining_input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/lookup.rs.html#118">e</a>);
+                    <a class="self" href="#95">self</a>.current_set = <span class="prelude-val">None</span>;
+                    <a class="self" href="#95">self</a>.remaining_input.<a href="reader.rs.html#229">empty</a>();
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#118">e</a>);
                 }
             }
         }
@@ -329,14 +329,14 @@
 
 <span class="attribute">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>PubStuffHeader&lt;T = <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-    format: <a href="../../../src/gimli/common.rs.html#3">Format</a>,
+    format: <a href="../common.rs.html#3">Format</a>,
     length: T,
     version: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>,
     unit_offset: DebugInfoOffset&lt;T&gt;,
     unit_length: T,
 }
 
-<span class="kw">pub trait </span>PubStuffEntry&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+<span class="kw">pub trait </span>PubStuffEntry&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; {
     <span class="kw">fn </span>new(
         die_offset: UnitOffset&lt;R::Offset&gt;,
         name: R,
@@ -347,7 +347,7 @@
 <span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>PubStuffParser&lt;R, Entry&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Entry: PubStuffEntry&lt;R&gt;,
 {
     <span class="comment">// This struct is never instantiated.
@@ -356,7 +356,7 @@
 
 <span class="kw">impl</span>&lt;R, Entry&gt; LookupParser&lt;R&gt; <span class="kw">for </span>PubStuffParser&lt;R, Entry&gt;
 <span class="kw">where
-    </span>R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>,
+    </span>R: <a href="reader.rs.html#215">Reader</a>,
     Entry: PubStuffEntry&lt;R&gt;,
 {
     <span class="kw">type </span>Header = PubStuffHeader&lt;R::Offset&gt;;
@@ -370,37 +370,37 @@
 
         <span class="kw">let </span>version = rest.read_u16()<span class="question-mark">?</span>;
         <span class="kw">if </span>version != <span class="number">2 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="../../../src/gimli/read/lookup.rs.html#169">version</a>)));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="#169">version</a>)));
         }
 
         <span class="kw">let </span>unit_offset = parse_debug_info_offset(<span class="kw-2">&amp;mut </span>rest, format)<span class="question-mark">?</span>;
         <span class="kw">let </span>unit_length = rest.read_length(format)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>header = <a href="../../../src/gimli/read/lookup.rs.html#129">PubStuffHeader</a> {
-            <a href="../../../src/gimli/read/lookup.rs.html#166">format</a>,
-            <a href="../../../src/gimli/read/lookup.rs.html#166">length</a>,
-            <a href="../../../src/gimli/read/lookup.rs.html#169">version</a>,
-            <a href="../../../src/gimli/read/lookup.rs.html#174">unit_offset</a>,
-            <a href="../../../src/gimli/read/lookup.rs.html#175">unit_length</a>,
+        <span class="kw">let </span>header = <a href="#129">PubStuffHeader</a> {
+            <a href="#166">format</a>,
+            <a href="#166">length</a>,
+            <a href="#169">version</a>,
+            <a href="#174">unit_offset</a>,
+            <a href="#175">unit_length</a>,
         };
-        <span class="prelude-val">Ok</span>((<a href="../../../src/gimli/read/lookup.rs.html#167">rest</a>, <a href="../../../src/gimli/read/lookup.rs.html#177">header</a>))
+        <span class="prelude-val">Ok</span>((<a href="#167">rest</a>, <a href="#177">header</a>))
     }
 
     <span class="doccomment">/// Parse a single pubthing. Return `None` for the null pubthing, `Some` for an actual pubthing.
     </span><span class="kw">fn </span>parse_entry(input: <span class="kw-2">&amp;mut </span>R, header: <span class="kw-2">&amp;</span><span class="self">Self</span>::Header) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Entry&gt;&gt; {
         <span class="kw">let </span>offset = input.read_offset(header.format)<span class="question-mark">?</span>;
         <span class="kw">if </span>offset.into_u64() == <span class="number">0 </span>{
-            <a href="../../../src/gimli/read/lookup.rs.html#188">input</a>.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
+            <a href="#188">input</a>.<a href="reader.rs.html#229">empty</a>();
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
             <span class="kw">let </span>name = input.read_null_terminated_slice()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">Self</span>::Entry::new(
-                <a href="../../../src/gimli/read/mod.rs.html#250">UnitOffset</a>(<a href="../../../src/gimli/read/lookup.rs.html#189">offset</a>),
-                <a href="../../../src/gimli/read/lookup.rs.html#194">name</a>,
-                <a href="../../../src/gimli/read/lookup.rs.html#188">header</a>.unit_offset,
+                <a href="mod.rs.html#250">UnitOffset</a>(<a href="#189">offset</a>),
+                <a href="#194">name</a>,
+                <a href="#188">header</a>.unit_offset,
             )))
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -97,19 +97,19 @@
 <span id="97">97</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../proc_macro2/index.html">proc_macro2</a>;
 
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#20">ast</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#21">attr</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#28">matcher</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#29">paths</a>;
+<span class="kw">use </span><a href="lib.rs.html#20">ast</a>;
+<span class="kw">use </span><a href="lib.rs.html#21">attr</a>;
+<span class="kw">use </span><a href="lib.rs.html#28">matcher</a>;
+<span class="kw">use </span><a href="lib.rs.html#29">paths</a>;
 <span class="kw">use </span><a href="../../syn/index.html">syn</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#30">utils</a>;
+<span class="kw">use </span><a href="lib.rs.html#30">utils</a>;
 
-<span class="kw">pub fn </span>derive(input: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
-    <span class="kw">let </span>hasher_trait_path = <a href="../../src/derivative/hash.rs.html#91">hasher_trait_path</a>();
-    <span class="kw">let </span>hash_trait_path = <a href="../../src/derivative/hash.rs.html#82">hash_trait_path</a>();
+<span class="kw">pub fn </span>derive(input: <span class="kw-2">&amp;</span><a href="ast.rs.html#7">ast::Input</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
+    <span class="kw">let </span>hasher_trait_path = <a href="#91">hasher_trait_path</a>();
+    <span class="kw">let </span>hash_trait_path = <a href="#82">hash_trait_path</a>();
 
-    <span class="kw">let </span>discriminant = <span class="kw">if let </span><a href="../../src/derivative/ast.rs.html#17">ast::Body::Enum</a>(<span class="kw">_</span>) = <a href="../../src/derivative/hash.rs.html#10">input</a>.body {
-        <span class="kw">let </span>discriminant = <a href="../../src/derivative/paths.rs.html#4">paths::discriminant_path</a>();
+    <span class="kw">let </span>discriminant = <span class="kw">if let </span><a href="ast.rs.html#17">ast::Body::Enum</a>(<span class="kw">_</span>) = <a href="#10">input</a>.body {
+        <span class="kw">let </span>discriminant = <a href="paths.rs.html#4">paths::discriminant_path</a>();
         <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(
             #hash_trait_path::hash(<span class="kw-2">&amp;</span>#discriminant(<span class="self">self</span>), __state);
         ))
@@ -117,18 +117,18 @@
         <span class="prelude-val">None
     </span>};
 
-    <span class="kw">let </span>body = matcher::Matcher::new(<a href="../../src/derivative/matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a href="../../src/derivative/hash.rs.html#10">input</a>.attrs.is_packed).<a href="../../src/derivative/matcher.rs.html#104-113">build_arms</a>(
-        <a href="../../src/derivative/hash.rs.html#10">input</a>,
+    <span class="kw">let </span>body = matcher::Matcher::new(<a href="matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a href="#10">input</a>.attrs.is_packed).<a href="matcher.rs.html#104-113">build_arms</a>(
+        <a href="#10">input</a>,
         <span class="string">&quot;__arg&quot;</span>,
         |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, bis| {
-            <span class="kw">let </span>field_prints = <a href="../../src/derivative/hash.rs.html#26">bis</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|bi| {
+            <span class="kw">let </span>field_prints = <a href="#26">bis</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|bi| {
                 <span class="kw">if </span>bi.field.attrs.ignore_hash() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">let </span>arg = <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#27">bi</a>.expr;
+                <span class="kw">let </span>arg = <span class="kw-2">&amp;</span><a href="#27">bi</a>.expr;
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(hash_with) = <a href="../../src/derivative/hash.rs.html#27">bi</a>.field.attrs.<a href="../../src/derivative/attr.rs.html#611">hash_with</a>() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(hash_with) = <a href="#27">bi</a>.field.attrs.<a href="attr.rs.html#611">hash_with</a>() {
                     <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
                         #hash_with(<span class="kw-2">&amp;</span>#arg, __state);
                     })
@@ -145,17 +145,17 @@
         },
     );
 
-    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#10">input</a>.ident;
-    <span class="kw">let </span>generics = <a href="../../src/derivative/utils.rs.html#10-20">utils::build_impl_generics</a>(
-        <a href="../../src/derivative/hash.rs.html#10">input</a>,
-        <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#12">hash_trait_path</a>,
-        <a href="../../src/derivative/hash.rs.html#77">needs_hash_bound</a>,
-        |field| <a href="../../src/derivative/hash.rs.html#56">field</a>.<a href="../../src/derivative/attr.rs.html#607">hash_bound</a>(),
-        |input| <a href="../../src/derivative/hash.rs.html#57">input</a>.<a href="../../src/derivative/attr.rs.html#412">hash_bound</a>(),
+    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="#10">input</a>.ident;
+    <span class="kw">let </span>generics = <a href="utils.rs.html#10-20">utils::build_impl_generics</a>(
+        <a href="#10">input</a>,
+        <span class="kw-2">&amp;</span><a href="#12">hash_trait_path</a>,
+        <a href="#77">needs_hash_bound</a>,
+        |field| <a href="#56">field</a>.<a href="attr.rs.html#607">hash_bound</a>(),
+        |input| <a href="#57">input</a>.<a href="attr.rs.html#412">hash_bound</a>(),
     );
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derivative/hash.rs.html#52">generics</a>.split_for_impl();
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#52">generics</a>.split_for_impl();
 
-    <span class="kw">let </span>hasher_ty_parameter = <a href="../../src/derivative/utils.rs.html#34">utils::hygienic_type_parameter</a>(<a href="../../src/derivative/hash.rs.html#10">input</a>, <span class="string">&quot;__H&quot;</span>);
+    <span class="kw">let </span>hasher_ty_parameter = <a href="utils.rs.html#34">utils::hygienic_type_parameter</a>(<a href="#10">input</a>, <span class="string">&quot;__H&quot;</span>);
     <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
         <span class="attribute">#[allow(unused_qualifications)]
         </span><span class="kw">impl </span>#impl_generics #hash_trait_path <span class="kw">for </span>#name #ty_generics #where_clause {
@@ -171,8 +171,8 @@
     }
 }
 
-<span class="kw">fn </span>needs_hash_bound(attrs: <span class="kw-2">&amp;</span><a href="../../src/derivative/attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    !<a href="../../src/derivative/hash.rs.html#77">attrs</a>.<a href="../../src/derivative/attr.rs.html#591">ignore_hash</a>() &amp;&amp; <a href="../../src/derivative/hash.rs.html#77">attrs</a>.<a href="../../src/derivative/attr.rs.html#607">hash_bound</a>().is_none()
+<span class="kw">fn </span>needs_hash_bound(attrs: <span class="kw-2">&amp;</span><a href="attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    !<a href="#77">attrs</a>.<a href="attr.rs.html#591">ignore_hash</a>() &amp;&amp; <a href="#77">attrs</a>.<a href="attr.rs.html#607">hash_bound</a>().is_none()
 }
 
 <span class="doccomment">/// Return the path of the `Hash` trait, that is `::std::hash::Hash`.
@@ -193,4 +193,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

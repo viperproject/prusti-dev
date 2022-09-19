@@ -265,8 +265,8 @@
 
         <span class="kw">fn </span>new_storage() -&gt; <span class="self">Self</span>::Storage;
 
-        <span class="kw">fn </span>grow(_storage: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Storage, _additional: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/gimli/read/util.rs.html#24">CapacityFull</a>&gt; {
-            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/util.rs.html#24">CapacityFull</a>)
+        <span class="kw">fn </span>grow(_storage: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Storage, _additional: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#24">CapacityFull</a>&gt; {
+            <span class="prelude-val">Err</span>(<a href="#24">CapacityFull</a>)
         }
     }
 
@@ -274,12 +274,12 @@
     </span><span class="kw">pub struct </span>CapacityFull;
 }
 
-<span class="kw">use </span><a href="../../../src/gimli/read/util.rs.html#11">sealed</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#11">sealed</a>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Marker trait for types that can be used as backing storage when a growable array type is needed.
 ///
 /// This trait is sealed and cannot be implemented for types outside this crate.
-</span><span class="kw">pub trait </span>ArrayLike: <a href="../../../src/gimli/read/util.rs.html#13">Sealed</a> {
+</span><span class="kw">pub trait </span>ArrayLike: <a href="#13">Sealed</a> {
     <span class="doccomment">/// Type of the elements being stored.
     </span><span class="kw">type </span>Item;
 
@@ -320,45 +320,45 @@
     }
 }
 
-<a class="macro" href="../../../src/gimli/read/util.rs.html#44-71">impl_array!</a>(<span class="number">0 1 2 3 4 8 16 32 64 128 192</span>);
+<a class="macro" href="#44-71">impl_array!</a>(<span class="number">0 1 2 3 4 8 16 32 64 128 192</span>);
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="../../../src/gimli/read/util.rs.html#13">Sealed</a> <span class="kw">for </span>Vec&lt;T&gt; {
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="#13">Sealed</a> <span class="kw">for </span>Vec&lt;T&gt; {
     <span class="kw">type </span>Storage = Box&lt;[MaybeUninit&lt;T&gt;]&gt;;
 
     <span class="kw">fn </span>new_storage() -&gt; <span class="self">Self</span>::Storage {
         Box::new([])
     }
 
-    <span class="kw">fn </span>grow(storage: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Storage, additional: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/gimli/read/util.rs.html#24">CapacityFull</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>vec: Vec&lt;<span class="kw">_</span>&gt; = core::mem::replace(<a href="../../../src/gimli/read/util.rs.html#83">storage</a>, Box::new([])).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a href="../../../src/gimli/read/util.rs.html#84">vec</a>.reserve(<a href="../../../src/gimli/read/util.rs.html#83">additional</a>);
+    <span class="kw">fn </span>grow(storage: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Storage, additional: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#24">CapacityFull</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>vec: Vec&lt;<span class="kw">_</span>&gt; = core::mem::replace(<a href="#83">storage</a>, Box::new([])).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a href="#84">vec</a>.reserve(<a href="#83">additional</a>);
         <span class="comment">// SAFETY: This is a `Vec` of `MaybeUninit`.
-        </span><span class="kw">unsafe </span>{ <a href="../../../src/gimli/read/util.rs.html#84">vec</a>.set_len(<a href="../../../src/gimli/read/util.rs.html#84">vec</a>.capacity()) };
-        <span class="kw-2">*</span><a href="../../../src/gimli/read/util.rs.html#83">storage</a> = <a href="../../../src/gimli/read/util.rs.html#84">vec</a>.into_boxed_slice();
+        </span><span class="kw">unsafe </span>{ <a href="#84">vec</a>.set_len(<a href="#84">vec</a>.capacity()) };
+        <span class="kw-2">*</span><a href="#83">storage</a> = <a href="#84">vec</a>.into_boxed_slice();
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a> <span class="kw">for </span>Vec&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; <a href="#32">ArrayLike</a> <span class="kw">for </span>Vec&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>as_slice(storage: <span class="kw-2">&amp;</span><span class="self">Self</span>::Storage) -&gt; <span class="kw-2">&amp;</span>[MaybeUninit&lt;T&gt;] {
-        <a href="../../../src/gimli/read/util.rs.html#97">storage</a>
+        <a href="#97">storage</a>
     }
 
     <span class="kw">fn </span>as_mut_slice(storage: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Storage) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;T&gt;] {
-        <a href="../../../src/gimli/read/util.rs.html#101">storage</a>
+        <a href="#101">storage</a>
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ArrayVec&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ArrayVec&lt;A: <a href="#32">ArrayLike</a>&gt; {
     storage: A::Storage,
     len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; ArrayVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; ArrayVec&lt;A&gt; {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             storage: A::new_storage(),
@@ -367,41 +367,41 @@
     }
 
     <span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>ptr: <span class="kw-2">*mut </span>[A::Item] = <span class="kw-2">&amp;mut **</span><a class="self" href="../../../src/gimli/read/util.rs.html#119">self</a>;
+        <span class="kw">let </span>ptr: <span class="kw-2">*mut </span>[A::Item] = <span class="kw-2">&amp;mut **</span><a class="self" href="#119">self</a>;
         <span class="comment">// Set length first so the type invariant is upheld even if `drop_in_place` panicks.
-        </span><a class="self" href="../../../src/gimli/read/util.rs.html#119">self</a>.len = <span class="number">0</span>;
+        </span><a class="self" href="#119">self</a>.len = <span class="number">0</span>;
         <span class="comment">// SAFETY: `ptr` contains valid elements only and we &quot;forget&quot; them by setting the length.
-        </span><span class="kw">unsafe </span>{ <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a href="../../../src/gimli/read/util.rs.html#120">ptr</a>) };
+        </span><span class="kw">unsafe </span>{ <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a href="#120">ptr</a>) };
     }
 
-    <span class="kw">pub fn </span>try_push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: A::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/gimli/read/util.rs.html#24">CapacityFull</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>storage = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#127">self</a>.storage);
+    <span class="kw">pub fn </span>try_push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: A::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#24">CapacityFull</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>storage = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#127">self</a>.storage);
         <span class="kw">if </span><span class="self">self</span>.len &gt;= storage.len() {
             A::grow(<span class="kw-2">&amp;mut </span><span class="self">self</span>.storage, <span class="number">1</span>)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/util.rs.html#128">storage</a> = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#127">self</a>.storage);
+            <a href="#128">storage</a> = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#127">self</a>.storage);
         }
 
-        <a href="../../../src/gimli/read/util.rs.html#128">storage</a>[<a class="self" href="../../../src/gimli/read/util.rs.html#127">self</a>.len] = MaybeUninit::new(<a href="../../../src/gimli/read/util.rs.html#127">value</a>);
-        <a class="self" href="../../../src/gimli/read/util.rs.html#127">self</a>.len += <span class="number">1</span>;
+        <a href="#128">storage</a>[<a class="self" href="#127">self</a>.len] = MaybeUninit::new(<a href="#127">value</a>);
+        <a class="self" href="#127">self</a>.len += <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>try_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, element: A::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/gimli/read/util.rs.html#24">CapacityFull</a>&gt; {
+    <span class="kw">pub fn </span>try_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, element: A::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#24">CapacityFull</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(index &lt;= <span class="self">self</span>.len);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>storage = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#139">self</a>.storage);
+        <span class="kw">let </span><span class="kw-2">mut </span>storage = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#139">self</a>.storage);
         <span class="kw">if </span><span class="self">self</span>.len &gt;= storage.len() {
             A::grow(<span class="kw-2">&amp;mut </span><span class="self">self</span>.storage, <span class="number">1</span>)<span class="question-mark">?</span>;
-            <a href="../../../src/gimli/read/util.rs.html#142">storage</a> = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#139">self</a>.storage);
+            <a href="#142">storage</a> = A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#139">self</a>.storage);
         }
 
         <span class="comment">// SAFETY: storage[index] is filled later.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>p = <a href="../../../src/gimli/read/util.rs.html#142">storage</a>.as_mut_ptr().add(<a href="../../../src/gimli/read/util.rs.html#139">index</a>);
-            core::ptr::copy(<a href="../../../src/gimli/read/util.rs.html#150">p</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../../src/gimli/read/util.rs.html#150">p</a>.add(<span class="number">1</span>), <a class="self" href="../../../src/gimli/read/util.rs.html#139">self</a>.len - <a href="../../../src/gimli/read/util.rs.html#139">index</a>);
+            <span class="kw">let </span>p = <a href="#142">storage</a>.as_mut_ptr().add(<a href="#139">index</a>);
+            core::ptr::copy(<a href="#150">p</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="#150">p</a>.add(<span class="number">1</span>), <a class="self" href="#139">self</a>.len - <a href="#139">index</a>);
         }
-        <a href="../../../src/gimli/read/util.rs.html#142">storage</a>[<a href="../../../src/gimli/read/util.rs.html#139">index</a>] = MaybeUninit::new(<a href="../../../src/gimli/read/util.rs.html#139">element</a>);
-        <a class="self" href="../../../src/gimli/read/util.rs.html#139">self</a>.len += <span class="number">1</span>;
+        <a href="#142">storage</a>[<a href="#139">index</a>] = MaybeUninit::new(<a href="#139">element</a>);
+        <a class="self" href="#139">self</a>.len += <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -409,64 +409,64 @@
         <span class="kw">if </span><span class="self">self</span>.len == <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <a class="self" href="../../../src/gimli/read/util.rs.html#158">self</a>.len -= <span class="number">1</span>;
+            <a class="self" href="#158">self</a>.len -= <span class="number">1</span>;
             <span class="comment">// SAFETY: this element is valid and we &quot;forget&quot; it by setting the length.
-            </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ A::as_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#158">self</a>.storage)[<a class="self" href="../../../src/gimli/read/util.rs.html#158">self</a>.len].as_ptr().read() })
+            </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ A::as_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#158">self</a>.storage)[<a class="self" href="#158">self</a>.len].as_ptr().read() })
         }
     }
 
     <span class="kw">pub fn </span>swap_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; A::Item {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.len &gt; <span class="number">0</span>);
-        A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#168">self</a>.storage).swap(<a href="../../../src/gimli/read/util.rs.html#168">index</a>, <a class="self" href="../../../src/gimli/read/util.rs.html#168">self</a>.len - <span class="number">1</span>);
-        <a class="self" href="../../../src/gimli/read/util.rs.html#168">self</a>.<a href="../../../src/gimli/read/util.rs.html#158">pop</a>().unwrap()
+        A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#168">self</a>.storage).swap(<a href="#168">index</a>, <a class="self" href="#168">self</a>.len - <span class="number">1</span>);
+        <a class="self" href="#168">self</a>.<a href="#158">pop</a>().unwrap()
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; ArrayVec&lt;Vec&lt;T&gt;&gt; {
     <span class="kw">pub fn </span>into_vec(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;T&gt; {
-        <span class="kw">let </span>len = core::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#177">self</a>.len, <span class="number">0</span>);
-        <span class="kw">let </span>storage = core::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#177">self</a>.storage, Box::new([]));
-        <span class="kw">let </span>slice = Box::leak(<a href="../../../src/gimli/read/util.rs.html#179">storage</a>);
+        <span class="kw">let </span>len = core::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#177">self</a>.len, <span class="number">0</span>);
+        <span class="kw">let </span>storage = core::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#177">self</a>.storage, Box::new([]));
+        <span class="kw">let </span>slice = Box::leak(<a href="#179">storage</a>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &lt;= slice.len());
         <span class="comment">// SAFETY: valid elements.
-        </span><span class="kw">unsafe </span>{ Vec::from_raw_parts(<a href="../../../src/gimli/read/util.rs.html#180">slice</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>T, <a href="../../../src/gimli/read/util.rs.html#178">len</a>, <a href="../../../src/gimli/read/util.rs.html#180">slice</a>.len()) }
+        </span><span class="kw">unsafe </span>{ Vec::from_raw_parts(<a href="#180">slice</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>T, <a href="#178">len</a>, <a href="#180">slice</a>.len()) }
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/gimli/read/util.rs.html#188">self</a>.<a href="../../../src/gimli/read/util.rs.html#119">clear</a>();
+        <a class="self" href="#188">self</a>.<a href="#119">clear</a>();
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
     <span class="kw">type </span>Target = [A::Item];
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
-        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span>A::as_slice(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/util.rs.html#202">self</a>.storage);
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span>A::as_slice(<span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.storage);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.len &lt;= slice.len());
         <span class="comment">// SAFETY: valid elements.
-        </span><span class="kw">unsafe </span>{ slice::from_raw_parts(<a href="../../../src/gimli/read/util.rs.html#203">slice</a>.as_ptr() <span class="kw">as _</span>, <a class="self" href="../../../src/gimli/read/util.rs.html#202">self</a>.len) }
+        </span><span class="kw">unsafe </span>{ slice::from_raw_parts(<a href="#203">slice</a>.as_ptr() <span class="kw">as _</span>, <a class="self" href="#202">self</a>.len) }
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for </span>ArrayVec&lt;A&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
-        <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span>A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/util.rs.html#211">self</a>.storage);
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span>A::as_mut_slice(<span class="kw-2">&amp;mut </span><a class="self" href="#211">self</a>.storage);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.len &lt;= slice.len());
         <span class="comment">// SAFETY: valid elements.
-        </span><span class="kw">unsafe </span>{ slice::from_raw_parts_mut(<a href="../../../src/gimli/read/util.rs.html#212">slice</a>.as_mut_ptr() <span class="kw">as _</span>, <a class="self" href="../../../src/gimli/read/util.rs.html#211">self</a>.len) }
+        </span><span class="kw">unsafe </span>{ slice::from_raw_parts_mut(<a href="#212">slice</a>.as_mut_ptr() <span class="kw">as _</span>, <a class="self" href="#211">self</a>.len) }
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
 <span class="kw">where
     </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
@@ -475,28 +475,28 @@
         <span class="kw">for </span>value <span class="kw">in </span><span class="kw-2">&amp;**</span><span class="self">self </span>{
             new.try_push(value.clone()).unwrap();
         }
-        <a href="../../../src/gimli/read/util.rs.html#224">new</a>
+        <a href="#224">new</a>
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
 <span class="kw">where
     </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
 {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw-2">**</span><span class="self"><a href="../../../src/gimli/read/util.rs.html#236">self</a> </span>== <span class="kw-2">**</span><a href="../../../src/gimli/read/util.rs.html#236">other</a>
+        <span class="kw-2">**</span><span class="self"><a href="#236">self</a> </span>== <span class="kw-2">**</span><a href="#236">other</a>
     }
 }
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>ArrayVec&lt;A&gt; <span class="kw">where </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> {}
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>ArrayVec&lt;A&gt; <span class="kw">where </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> {}
 
-<span class="kw">impl</span>&lt;A: <a href="../../../src/gimli/read/util.rs.html#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
+<span class="kw">impl</span>&lt;A: <a href="#32">ArrayLike</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ArrayVec&lt;A&gt;
 <span class="kw">where
     </span>A::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/gimli/read/util.rs.html#247">self</a>, <a href="../../../src/gimli/read/util.rs.html#247">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#247">self</a>, <a href="#247">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

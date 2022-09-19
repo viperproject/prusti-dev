@@ -108,9 +108,6 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use </span>vir_crate::{
     <a href="../../../../vir/common/check_mode/enum.CheckMode.html">common::check_mode::CheckMode</a>,
@@ -120,7 +117,7 @@
 <span class="attribute">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MirProcedureMapping {
     <span class="comment">//Map of all variables assigned in this basic block
-    </span>mapping: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a>&gt;&gt;,
+    </span>mapping: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="#14">BasicBlock</a>&gt;&gt;,
 }
 
 <span class="attribute">#[derive(Debug)]
@@ -130,11 +127,11 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) stmts: Vec&lt;<a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#8">MirProcedureMapping</a> {
+<span class="kw">impl </span><a href="#8">MirProcedureMapping</a> {
     <span class="doccomment">///Copies all relevant statements of a procedure for a counterexample.
     /// This is done before the verification process
-    </span><span class="kw">fn </span>translate_procedure_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, procedure: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/cfg/procedure/struct.ProcedureDecl.html">vir_low::ProcedureDecl</a>) -&gt; Vec&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a>&gt; {
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#23">procedure</a>
+    </span><span class="kw">fn </span>translate_procedure_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, procedure: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/cfg/procedure/struct.ProcedureDecl.html">vir_low::ProcedureDecl</a>) -&gt; Vec&lt;<a href="#14">BasicBlock</a>&gt; {
+        <a href="#23">procedure</a>
             .basic_blocks
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|basic_block| {
@@ -148,7 +145,7 @@
                         </span>vir_low::Statement::Inhale(inhale) =&gt; {
                             <span class="comment">//all statements that could be relevant for pure function calls
                             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(assume_stmt) =
-                                <span class="self">self</span>.extract_domain_functions(<span class="kw-2">&amp;</span>inhale.expression)
+                                <span class="self">Self</span>::extract_domain_functions(<span class="kw-2">&amp;</span>inhale.expression)
                             {
                                 stmts.push(assume_stmt);
                             }
@@ -156,37 +153,34 @@
                         <span class="kw">_ </span>=&gt; (),
                     };
                 }
-                <span class="kw">let </span>successor = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#27">basic_block</a>.successor {
+                <span class="kw">let </span>successor = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#27">basic_block</a>.successor {
                     vir_low::Successor::Return =&gt; Vec::new(),
                     vir_low::Successor::Goto(label) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[label.name.clone()],
                     vir_low::Successor::GotoSwitch(labels) =&gt; {
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#49">labels</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, label)| <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#50">label</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+                        <a href="#49">labels</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, label)| <a href="#50">label</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
                     }
                 };
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a> {
-                    label: <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#27">basic_block</a>.label.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#46">successor</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#28">stmts</a>,
+                <a href="#14">BasicBlock</a> {
+                    label: <a href="#27">basic_block</a>.label.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#46">successor</a>,
+                    <a href="#28">stmts</a>,
                 }
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a>&gt;&gt;()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="#14">BasicBlock</a>&gt;&gt;()
     }
-    <span class="kw">fn </span>extract_domain_functions(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        expression: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt; {
+    <span class="kw">fn </span>extract_domain_functions(expression: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt; {
         <span class="comment">// pure function all called in the following form in Viper:
         //inhale destructor_Bool(constructor_Bool_EqCmp_*(snapvar_1 caller_for$m_foo$(snapvar_2)))
-        </span><span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#63">expression</a> {
+        </span><span class="kw">match </span><span class="kw-2">&amp;</span><a href="#61">expression</a> {
             vir_low::Expression::BinaryOp(binary_op) =&gt; {
-                <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#62">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#61-64">extract_domain_functions</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#68">binary_op</a>.right)
+                <span class="self">Self</span>::extract_domain_functions(<span class="kw-2">&amp;</span><a href="#65">binary_op</a>.right)
             }
             vir_low::Expression::DomainFuncApp(domain_function_call) =&gt; {
                 <span class="kw">if </span>domain_function_call.function_name.contains(<span class="string">&quot;valid$&quot;</span>) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#71">domain_function_call</a>.arguments.first() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a href="#68">domain_function_call</a>.arguments.first() {
                         <span class="kw">return </span><span class="prelude-val">Some</span>(vir_low::Statement::Assume(
                             <a href="../../../../vir/gen/low/ast/statement/struct.Assume.html">vir_low::ast::statement::Assume</a> {
-                                expression: <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#73">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                expression: <a href="#70">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                                 position: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
                             },
                         ));
@@ -201,28 +195,28 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MirProcedureMappingInterface {
     <span class="kw">fn </span>add_mapping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/program/struct.Program.html">vir_low::Program</a>);
-    <span class="kw">fn </span>get_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a>&gt;&gt;;
+    <span class="kw">fn </span>get_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="#14">BasicBlock</a>&gt;&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#89">MirProcedureMappingInterface</a> <span class="kw">for </span><span class="kw">super</span>::<span class="kw">super</span>::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#86">MirProcedureMappingInterface</a> <span class="kw">for </span><span class="kw">super</span>::<span class="kw">super</span>::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>add_mapping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/low/program/struct.Program.html">vir_low::Program</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(vir_low_procedure) = <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#95">program</a>.procedures.first() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(vir_low_procedure) = <a href="#92">program</a>.procedures.first() {
             <span class="comment">//at the moment a counterexample is only produced for the specifications-poof
             </span><span class="kw">if </span><span class="macro">matches!</span>(program.check_mode, CheckMode::Specifications)
                 || <span class="macro">matches!</span>(program.check_mode, CheckMode::Both)
             {
-                <span class="kw">let </span>procedure_new = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#95">self</a>
+                <span class="kw">let </span>procedure_new = <span class="self"><a href="#92">self</a>
                     </span>.mir_procedure_mapping
-                    .<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#23">translate_procedure_decl</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#96">vir_low_procedure</a>);
-                <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#95">self</a>.mir_procedure_mapping
+                    .<a href="#23">translate_procedure_decl</a>(<a href="#93">vir_low_procedure</a>);
+                <a class="self" href="#92">self</a>.mir_procedure_mapping
                     .mapping
-                    .insert(<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#95">program</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#101">procedure_new</a>);
+                    .insert(<a href="#92">program</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#98">procedure_new</a>);
             }
         }
     }
-    <span class="kw">fn </span>get_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#14">BasicBlock</a>&gt;&gt; {
-        <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#110">self</a>.mir_procedure_mapping.mapping.get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#110">proc_name</a>)
+    <span class="kw">fn </span>get_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="#14">BasicBlock</a>&gt;&gt; {
+        <a class="self" href="#107">self</a>.mir_procedure_mapping.mapping.get(<span class="kw-2">&amp;</span><a href="#107">proc_name</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

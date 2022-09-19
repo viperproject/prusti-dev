@@ -59,15 +59,15 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/macro.env.html"><span class="kw">super</span>::mystd::env</a>;
 <span class="kw">use </span><span class="kw">super</span>::mystd::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html"><span class="kw">super</span>::mystd::os::unix::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use super</span>::{<a href="../../../../src/backtrace/symbolize/gimli.rs.html#218">Library</a>, <a href="../../../../src/backtrace/symbolize/gimli.rs.html#230">LibrarySegment</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
+<span class="kw">use super</span>::{<a href="../gimli.rs.html#218">Library</a>, <a href="../gimli.rs.html#230">LibrarySegment</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>native_libraries() -&gt; Vec&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#218">Library</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>native_libraries() -&gt; Vec&lt;<a href="../gimli.rs.html#218">Library</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>ret = Vec::new();
     <span class="kw">unsafe </span>{
-        libc::dl_iterate_phdr(<span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#22-26">callback</a>), <span class="kw-2">&amp;mut </span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#13">ret</a> <span class="kw">as </span><span class="kw-2">*mut </span>Vec&lt;<span class="kw">_</span>&gt; <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        libc::dl_iterate_phdr(<span class="prelude-val">Some</span>(<a href="#22-26">callback</a>), <span class="kw-2">&amp;mut </span><a href="#13">ret</a> <span class="kw">as </span><span class="kw-2">*mut </span>Vec&lt;<span class="kw">_</span>&gt; <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
     }
-    <span class="kw">return </span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#13">ret</a>;
+    <span class="kw">return </span><a href="#13">ret</a>;
 }
 
 <span class="comment">// `info` should be a valid pointers.
@@ -77,32 +77,32 @@
     _size: <a href="../../../../libc/unix/type.size_t.html">libc::size_t</a>,
     vec: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>,
 ) -&gt; <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a> {
-    <span class="kw">let </span>info = <span class="kw-2">&amp;*</span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#23">info</a>;
-    <span class="kw">let </span>libs = <span class="kw-2">&amp;mut *</span>(<a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#25">vec</a> <span class="kw">as </span><span class="kw-2">*mut </span>Vec&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#218">Library</a>&gt;);
-    <span class="kw">let </span>is_main_prog = <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_name.is_null() || <span class="kw-2">*</span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_name == <span class="number">0</span>;
+    <span class="kw">let </span>info = <span class="kw-2">&amp;*</span><a href="#23">info</a>;
+    <span class="kw">let </span>libs = <span class="kw-2">&amp;mut *</span>(<a href="#25">vec</a> <span class="kw">as </span><span class="kw-2">*mut </span>Vec&lt;<a href="../gimli.rs.html#218">Library</a>&gt;);
+    <span class="kw">let </span>is_main_prog = <a href="#27">info</a>.dlpi_name.is_null() || <span class="kw-2">*</span><a href="#27">info</a>.dlpi_name == <span class="number">0</span>;
     <span class="kw">let </span>name = <span class="kw">if </span>is_main_prog {
         <span class="kw">if </span>libs.is_empty() {
-            env::current_exe().map(|e| <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#32">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap_or_default()
+            env::current_exe().map(|e| <a href="#32">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap_or_default()
         } <span class="kw">else </span>{
             OsString::new()
         }
     } <span class="kw">else </span>{
-        <span class="kw">let </span>bytes = CStr::from_ptr(<a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_name).to_bytes();
-        OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#37">bytes</a>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        <span class="kw">let </span>bytes = CStr::from_ptr(<a href="#27">info</a>.dlpi_name).to_bytes();
+        OsStr::from_bytes(<a href="#37">bytes</a>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     };
-    <span class="kw">let </span>headers = slice::from_raw_parts(<a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_phdr, <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_phnum <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#28">libs</a>.push(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#218">Library</a> {
-        <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#30">name</a>,
-        segments: <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#40">headers</a>
+    <span class="kw">let </span>headers = slice::from_raw_parts(<a href="#27">info</a>.dlpi_phdr, <a href="#27">info</a>.dlpi_phnum <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <a href="#28">libs</a>.push(<a href="../gimli.rs.html#218">Library</a> {
+        <a href="#30">name</a>,
+        segments: <a href="#40">headers</a>
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|header| <a href="../../../../src/backtrace/symbolize/gimli.rs.html#230">LibrarySegment</a> {
-                len: (<span class="kw-2">*</span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#45">header</a>).p_memsz <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-                stated_virtual_memory_address: (<span class="kw-2">*</span><a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#45">header</a>).p_vaddr <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|header| <a href="../gimli.rs.html#230">LibrarySegment</a> {
+                len: (<span class="kw-2">*</span><a href="#45">header</a>).p_memsz <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+                stated_virtual_memory_address: (<span class="kw-2">*</span><a href="#45">header</a>).p_vaddr <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-        bias: <a href="../../../../src/backtrace/symbolize/gimli/libs_dl_iterate_phdr.rs.html#27">info</a>.dlpi_addr <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        bias: <a href="#27">info</a>.dlpi_addr <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     });
     <span class="number">0
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

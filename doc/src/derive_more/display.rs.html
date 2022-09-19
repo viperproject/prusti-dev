@@ -894,22 +894,22 @@
     <a href="../../syn/parse/trait.Parser.html">parse::Parser</a> <span class="kw">as _</span>, <a href="../../syn/punctuated/struct.Punctuated.html">punctuated::Punctuated</a>, <a href="../../syn/spanned/trait.Spanned.html">spanned::Spanned</a> <span class="kw">as _</span>, <a href="../../syn/error/struct.Error.html">Error</a>, <span class="prelude-ty">Result</span>,
 };
 
-<span class="kw">use </span><a href="../../src/derive_more/lib.rs.html#193"><span class="kw">crate</span>::utils</a>;
-<span class="kw">use </span>utils::{<a href="../../src/derive_more/utils.rs.html#23">HashMap</a>, <a href="../../src/derive_more/utils.rs.html#24">HashSet</a>};
+<span class="kw">use </span><a href="lib.rs.html#193"><span class="kw">crate</span>::utils</a>;
+<span class="kw">use </span>utils::{<a href="utils.rs.html#23">HashMap</a>, <a href="utils.rs.html#24">HashSet</a>};
 
 <span class="doccomment">/// Provides the hook to expand `#[derive(Display)]` into an implementation of `From`
 </span><span class="kw">pub fn </span>expand(input: <span class="kw-2">&amp;</span><a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>, trait_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-    <span class="kw">let </span>trait_name = <a href="../../src/derive_more/display.rs.html#13">trait_name</a>.trim_end_matches(<span class="string">&quot;Custom&quot;</span>);
-    <span class="kw">let </span>trait_ident = syn::Ident::new(<a href="../../src/derive_more/display.rs.html#14">trait_name</a>, Span::call_site());
+    <span class="kw">let </span>trait_name = <a href="#13">trait_name</a>.trim_end_matches(<span class="string">&quot;Custom&quot;</span>);
+    <span class="kw">let </span>trait_ident = syn::Ident::new(<a href="#14">trait_name</a>, Span::call_site());
     <span class="kw">let </span>trait_path = <span class="kw-2">&amp;</span><a class="macro" href="../../quote/macro.quote.html">quote!</a>(::core::fmt::#trait_ident);
-    <span class="kw">let </span>trait_attr = <a href="../../src/derive_more/display.rs.html#78">trait_name_to_attribute_name</a>(<a href="../../src/derive_more/display.rs.html#14">trait_name</a>);
-    <span class="kw">let </span>type_params = <a href="../../src/derive_more/display.rs.html#13">input</a>
+    <span class="kw">let </span>trait_attr = <a href="#78">trait_name_to_attribute_name</a>(<a href="#14">trait_name</a>);
+    <span class="kw">let </span>type_params = <a href="#13">input</a>
         .generics
         .type_params()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|t| <a href="../../src/derive_more/display.rs.html#21">t</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|t| <a href="#21">t</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <span class="kw">let </span><a href="../../src/derive_more/display.rs.html#164">ParseResult</a> {
+    <span class="kw">let </span><a href="#164">ParseResult</a> {
         arms,
         bounds,
         requires_helper,
@@ -922,10 +922,10 @@
     .get_match_arms_and_extra_bounds()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>generics = <span class="kw">if </span>!bounds.is_empty() {
-        <span class="kw">let </span>bounds: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/derive_more/display.rs.html#26">bounds</a>
+        <span class="kw">let </span>bounds: Vec&lt;<span class="kw">_</span>&gt; = <a href="#26">bounds</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(ty, trait_names)| {
-                <span class="kw">let </span>bounds: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/derive_more/display.rs.html#39">trait_names</a>
+                <span class="kw">let </span>bounds: Vec&lt;<span class="kw">_</span>&gt; = <a href="#39">trait_names</a>
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bound| <a class="macro" href="../../quote/macro.quote.html">quote!</a>(#bound))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
@@ -933,15 +933,15 @@
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">let </span>where_clause = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(input.span()=&gt; <span class="kw">where </span>#(#bounds),<span class="kw-2">*</span>);
-        <a href="../../src/derive_more/utils.rs.html#206-209">utils::add_extra_where_clauses</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#13">input</a>.generics, <a href="../../src/derive_more/display.rs.html#47">where_clause</a>)
+        <a href="utils.rs.html#206-209">utils::add_extra_where_clauses</a>(<span class="kw-2">&amp;</span><a href="#13">input</a>.generics, <a href="#47">where_clause</a>)
     } <span class="kw">else </span>{
-        <a href="../../src/derive_more/display.rs.html#13">input</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a href="#13">input</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     };
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derive_more/display.rs.html#36">generics</a>.split_for_impl();
-    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#13">input</a>.ident;
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#36">generics</a>.split_for_impl();
+    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="#13">input</a>.ident;
 
     <span class="kw">let </span>helper_struct = <span class="kw">if </span>requires_helper {
-        <a href="../../src/derive_more/display.rs.html#143">display_as_helper_struct</a>()
+        <a href="#143">display_as_helper_struct</a>()
     } <span class="kw">else </span>{
         TokenStream::new()
     };
@@ -964,7 +964,7 @@
 }
 
 <span class="kw">fn </span>trait_name_to_attribute_name(trait_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#78">trait_name</a> {
+    <span class="kw">match </span><a href="#78">trait_name</a> {
         <span class="string">&quot;Display&quot; </span>=&gt; <span class="string">&quot;display&quot;</span>,
         <span class="string">&quot;Binary&quot; </span>=&gt; <span class="string">&quot;binary&quot;</span>,
         <span class="string">&quot;Octal&quot; </span>=&gt; <span class="string">&quot;octal&quot;</span>,
@@ -979,7 +979,7 @@
 }
 
 <span class="kw">fn </span>attribute_name_to_trait_name(attribute_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#93">attribute_name</a> {
+    <span class="kw">match </span><a href="#93">attribute_name</a> {
         <span class="string">&quot;display&quot; </span>=&gt; <span class="string">&quot;Display&quot;</span>,
         <span class="string">&quot;binary&quot; </span>=&gt; <span class="string">&quot;Binary&quot;</span>,
         <span class="string">&quot;octal&quot; </span>=&gt; <span class="string">&quot;Octal&quot;</span>,
@@ -995,7 +995,7 @@
 <span class="kw">fn </span>trait_name_to_trait_bound(trait_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../syn/generics/struct.TraitBound.html">syn::TraitBound</a> {
     <span class="kw">let </span>path_segments_iterator = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;core&quot;</span>, <span class="string">&quot;fmt&quot;</span>, trait_name]
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|segment| syn::PathSegment::from(Ident::new(<a href="../../src/derive_more/display.rs.html#110">segment</a>, Span::call_site())));
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|segment| syn::PathSegment::from(Ident::new(<a href="#110">segment</a>, Span::call_site())));
 
     <a href="../../syn/generics/struct.TraitBound.html">syn::TraitBound</a> {
         lifetimes: <span class="prelude-val">None</span>,
@@ -1003,7 +1003,7 @@
         paren_token: <span class="prelude-val">None</span>,
         path: <a href="../../syn/path/struct.Path.html">syn::Path</a> {
             leading_colon: <span class="prelude-val">Some</span>(<a class="macro" href="../../syn/macro.Token.html">syn::Token!</a>[::](Span::call_site())),
-            segments: <a href="../../src/derive_more/display.rs.html#108">path_segments_iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            segments: <a href="#108">path_segments_iterator</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         },
     }
 }
@@ -1080,10 +1080,10 @@
     }
 
     <span class="kw">fn </span>get_matcher(<span class="kw-2">&amp;</span><span class="self">self</span>, fields: <span class="kw-2">&amp;</span><a href="../../syn/data/enum.Fields.html">syn::Fields</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-        <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#194">fields</a> {
+        <span class="kw">match </span><a href="#194">fields</a> {
             syn::Fields::Unit =&gt; TokenStream::new(),
             syn::Fields::Unnamed(fields) =&gt; {
-                <span class="kw">let </span>fields: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = (<span class="number">0</span>..<a href="../../src/derive_more/display.rs.html#197">fields</a>.unnamed.len())
+                <span class="kw">let </span>fields: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = (<span class="number">0</span>..<a href="#197">fields</a>.unnamed.len())
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|n| {
                         <span class="kw">let </span>i = Ident::new(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, n), Span::call_site());
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(#i,)
@@ -1092,11 +1092,11 @@
                 <a class="macro" href="../../quote/macro.quote.html">quote!</a>((#fields))
             }
             syn::Fields::Named(fields) =&gt; {
-                <span class="kw">let </span>fields: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="../../src/derive_more/display.rs.html#206">fields</a>
+                <span class="kw">let </span>fields: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="#206">fields</a>
                     .named
                     .iter()
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|f| {
-                        <span class="kw">let </span>i = <a href="../../src/derive_more/display.rs.html#210">f</a>.ident.as_ref().unwrap();
+                        <span class="kw">let </span>i = <a href="#210">f</a>.ident.as_ref().unwrap();
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(#i,)
                     })
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
@@ -1144,21 +1144,21 @@
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="../../src/derive_more/display.rs.html#224">metas</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let </span>meta = <a href="../../src/derive_more/display.rs.html#259">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#224">metas</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="kw">let </span>meta = <a href="#259">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
         <span class="kw">if </span>iter.next().is_none() {
-            <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#260">meta</a>)
+            <span class="prelude-val">Ok</span>(<a href="#260">meta</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#260">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;Too many attributes specified&quot;</span>))
+            <span class="prelude-val">Err</span>(Error::new(<a href="#260">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;Too many attributes specified&quot;</span>))
         }
     }
     <span class="kw">fn </span>parse_meta_bounds(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bounds: <span class="kw-2">&amp;</span><a href="../../syn/lit/struct.LitStr.html">syn::LitStr</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;<a href="../../syn/ty/enum.Type.html">syn::Type</a>, HashSet&lt;<a href="../../syn/generics/struct.TraitBound.html">syn::TraitBound</a>&gt;&gt;&gt; {
-        <span class="kw">let </span>span = <a href="../../src/derive_more/display.rs.html#269">bounds</a>.span();
+        <span class="kw">let </span>span = <a href="#269">bounds</a>.span();
 
-        <span class="kw">let </span>input = <a href="../../src/derive_more/display.rs.html#269">bounds</a>.value();
+        <span class="kw">let </span>input = <a href="#269">bounds</a>.value();
         <span class="kw">let </span>tokens = TokenStream::from_str(<span class="kw-2">&amp;</span>input)<span class="question-mark">?</span>;
         <span class="kw">let </span>parser = Punctuated::&lt;<a href="../../syn/generics/enum.GenericParam.html">syn::GenericParam</a>, <a class="macro" href="../../syn/macro.Token.html">syn::Token!</a>[,]&gt;::parse_terminated;
 
@@ -1167,7 +1167,7 @@
             .map_err(|error| Error::new(span, error.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">if </span>generic_params.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#271">span</a>, <span class="string">&quot;No bounds specified&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#271">span</a>, <span class="string">&quot;No bounds specified&quot;</span>));
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>bounds = HashMap::default();
@@ -1221,64 +1221,64 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#285">bounds</a>)
+        <span class="prelude-val">Ok</span>(<a href="#285">bounds</a>)
     }
     <span class="kw">fn </span>parse_meta_fmt(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         meta: <span class="kw-2">&amp;</span><a href="../../syn/attr/enum.Meta.html">syn::Meta</a>,
         outer_enum: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt; {
-        <span class="kw">let </span>list = <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#340">meta</a> {
-            syn::Meta::List(list) =&gt; <a href="../../src/derive_more/display.rs.html#344">list</a>,
+        <span class="kw">let </span>list = <span class="kw">match </span><a href="#340">meta</a> {
+            syn::Meta::List(list) =&gt; <a href="#344">list</a>,
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#340">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <a class="self" href="../../src/derive_more/display.rs.html#339">self</a>.<a href="../../src/derive_more/display.rs.html#181">get_proper_fmt_syntax</a>()));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#340">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <a class="self" href="#339">self</a>.<a href="#181">get_proper_fmt_syntax</a>()));
             }
         };
 
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">0</span>] {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#343">list</a>.nested[<span class="number">0</span>] {
             syn::NestedMeta::Meta(syn::Meta::NameValue(<a href="../../syn/attr/struct.MetaNameValue.html">syn::MetaNameValue</a> {
                 path,
                 lit: syn::Lit::Str(fmt),
                 ..
-            })) =&gt; <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#352">path</a> {
-                op <span class="kw">if </span><a href="../../src/derive_more/display.rs.html#356">op</a>.segments.first().expect(<span class="string">&quot;path shouldn&#39;t be empty&quot;</span>).ident
+            })) =&gt; <span class="kw">match </span><a href="#352">path</a> {
+                op <span class="kw">if </span><a href="#356">op</a>.segments.first().expect(<span class="string">&quot;path shouldn&#39;t be empty&quot;</span>).ident
                     == <span class="string">&quot;fmt&quot; </span>=&gt;
                 {
                     <span class="kw">let </span>expected_affix_usage = <span class="string">&quot;outer `enum` `fmt` is an affix spec that expects no args and at most 1 placeholder for inner variant display&quot;</span>;
                     <span class="kw">if </span>outer_enum {
                         <span class="kw">if </span>list.nested.iter().skip(<span class="number">1</span>).count() != <span class="number">0 </span>{
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
-                                <a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">1</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
-                                <a href="../../src/derive_more/display.rs.html#359">expected_affix_usage</a>,
+                                <a href="#343">list</a>.nested[<span class="number">1</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                                <a href="#359">expected_affix_usage</a>,
                             ));
                         }
                         <span class="comment">// TODO: Check for a single `Display` group?
-                        </span><span class="kw">let </span>fmt_string = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">0</span>] {
+                        </span><span class="kw">let </span>fmt_string = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#343">list</a>.nested[<span class="number">0</span>] {
                             syn::NestedMeta::Meta(syn::Meta::NameValue(
                                 <a href="../../syn/attr/struct.MetaNameValue.html">syn::MetaNameValue</a> {
                                     path,
                                     lit: syn::Lit::Str(s),
                                     ..
                                 },
-                            )) <span class="kw">if </span><a href="../../src/derive_more/display.rs.html#371">path</a>
+                            )) <span class="kw">if </span><a href="#371">path</a>
                                 .segments
                                 .first()
                                 .expect(<span class="string">&quot;path shouldn&#39;t be empty&quot;</span>)
                                 .ident
                                 == <span class="string">&quot;fmt&quot; </span>=&gt;
                             {
-                                <a href="../../src/derive_more/display.rs.html#372">s</a>.value()
+                                <a href="#372">s</a>.value()
                             }
                             <span class="comment">// This one has been checked already in get_meta_fmt() method.
                             </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                         };
 
                         <span class="kw">let </span>num_placeholders =
-                            Placeholder::parse_fmt_string(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#368">fmt_string</a>).len();
+                            Placeholder::parse_fmt_string(<span class="kw-2">&amp;</span><a href="#368">fmt_string</a>).len();
                         <span class="kw">if </span>num_placeholders &gt; <span class="number">1 </span>{
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
-                                <a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">1</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
-                                <a href="../../src/derive_more/display.rs.html#359">expected_affix_usage</a>,
+                                <a href="#343">list</a>.nested[<span class="number">1</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                                <a href="#359">expected_affix_usage</a>,
                             ));
                         }
                         <span class="kw">if </span>num_placeholders == <span class="number">1 </span>{
@@ -1313,25 +1313,25 @@
                     ))
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::new(
-                    <a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">0</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
-                    <a class="self" href="../../src/derive_more/display.rs.html#339">self</a>.<a href="../../src/derive_more/display.rs.html#181">get_proper_fmt_syntax</a>(),
+                    <a href="#343">list</a>.nested[<span class="number">0</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                    <a class="self" href="#339">self</a>.<a href="#181">get_proper_fmt_syntax</a>(),
                 )),
             },
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::new(
-                <a href="../../src/derive_more/display.rs.html#343">list</a>.nested[<span class="number">0</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
-                <a class="self" href="../../src/derive_more/display.rs.html#339">self</a>.<a href="../../src/derive_more/display.rs.html#181">get_proper_fmt_syntax</a>(),
+                <a href="#343">list</a>.nested[<span class="number">0</span>].<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                <a class="self" href="#339">self</a>.<a href="#181">get_proper_fmt_syntax</a>(),
             )),
         }
     }
     <span class="kw">fn </span>infer_fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fields: <span class="kw-2">&amp;</span><a href="../../syn/data/enum.Fields.html">syn::Fields</a>, name: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">Ident</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-        <span class="kw">let </span>fields = <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#438">fields</a> {
+        <span class="kw">let </span>fields = <span class="kw">match </span><a href="#438">fields</a> {
             syn::Fields::Unit =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a>(
                     _derive_more_display_formatter.write_str(<span class="macro">stringify!</span>(#name))
                 ))
             }
-            syn::Fields::Named(fields) =&gt; <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#445">fields</a>.named,
-            syn::Fields::Unnamed(fields) =&gt; <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#446">fields</a>.unnamed,
+            syn::Fields::Named(fields) =&gt; <span class="kw-2">&amp;</span><a href="#445">fields</a>.named,
+            syn::Fields::Unnamed(fields) =&gt; <span class="kw-2">&amp;</span><a href="#446">fields</a>.unnamed,
         };
         <span class="kw">if </span>fields.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a>(
@@ -1339,20 +1339,20 @@
             ));
         } <span class="kw">else if </span>fields.len() &gt; <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
-                <a href="../../src/derive_more/display.rs.html#439">fields</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+                <a href="#439">fields</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
                 <span class="string">&quot;Cannot automatically infer format for types with more than 1 field&quot;</span>,
             ));
         }
 
-        <span class="kw">let </span>trait_path = <a class="self" href="../../src/derive_more/display.rs.html#438">self</a>.trait_path;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#439">fields</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().as_ref().unwrap().ident {
+        <span class="kw">let </span>trait_path = <a class="self" href="#438">self</a>.trait_path;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = <span class="kw-2">&amp;</span><a href="#439">fields</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().as_ref().unwrap().ident {
             <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a>(#trait_path::fmt(#ident, _derive_more_display_formatter)))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a>(#trait_path::fmt(_0, _derive_more_display_formatter)))
         }
     }
-    <span class="kw">fn </span>get_match_arms_and_extra_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/derive_more/display.rs.html#164">ParseResult</a>&gt; {
-        <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>&gt; = <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.input.data {
+    <span class="kw">fn </span>get_match_arms_and_extra_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#164">ParseResult</a>&gt; {
+        <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>&gt; = <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#466">self</a>.input.data {
             syn::Data::Enum(e) =&gt; {
                 <span class="kw">match </span><span class="self">self
                     </span>.find_meta(<span class="kw-2">&amp;</span><span class="self">self</span>.input.attrs, <span class="string">&quot;fmt&quot;</span>)
@@ -1371,7 +1371,7 @@
                             }
                         })<span class="question-mark">?</span>;
 
-                        <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#164">ParseResult</a> {
+                        <span class="prelude-val">Ok</span>(<a href="#164">ParseResult</a> {
                             arms: <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="self">self</span>.input.span()=&gt; <span class="kw">_ </span>=&gt; #fmt,),
                             bounds: HashMap::default(),
                             requires_helper: <span class="bool-val">false</span>,
@@ -1379,15 +1379,15 @@
                     }
                     <span class="comment">// #[display(fmt = &quot;one placeholder: {}&quot;)] on whole enum.
                     </span><span class="prelude-val">Some</span>((outer_fmt, <span class="bool-val">true</span>)) =&gt; {
-                        <span class="kw">let </span>fmt: <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; = <a href="../../src/derive_more/display.rs.html#468">e</a>.variants.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(TokenStream::new(), |arms, v| {
-                            <span class="kw">let </span>matcher = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#494">v</a>.fields);
+                        <span class="kw">let </span>fmt: <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; = <a href="#468">e</a>.variants.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(TokenStream::new(), |arms, v| {
+                            <span class="kw">let </span>matcher = <a class="self" href="#466">self</a>.<a href="#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="#494">v</a>.fields);
                             <span class="kw">let </span>fmt = <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.find_meta(<span class="kw-2">&amp;</span>v.attrs, <span class="string">&quot;fmt&quot;</span>)<span class="question-mark">? </span>{
                                 <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0
                             </span>} <span class="kw">else </span>{
                                 <span class="self">self</span>.infer_fmt(<span class="kw-2">&amp;</span>v.fields, <span class="kw-2">&amp;</span>v.ident)<span class="question-mark">?
                             </span>};
-                            <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.input.ident;
-                            <span class="kw">let </span>v_name = <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#494">v</a>.ident;
+                            <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="#466">self</a>.input.ident;
+                            <span class="kw">let </span>v_name = <span class="kw-2">&amp;</span><a href="#494">v</a>.ident;
                             <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(fmt.span()=&gt; #arms #name::#v_name #matcher =&gt; <span class="macro">write!</span>(
                                 _derive_more_display_formatter,
                                 #outer_fmt,
@@ -1395,54 +1395,54 @@
                             ),))
                         });
                         <span class="kw">let </span>fmt = fmt<span class="question-mark">?</span>;
-                        <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#164">ParseResult</a> {
+                        <span class="prelude-val">Ok</span>(<a href="#164">ParseResult</a> {
                             arms: <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="self">self</span>.input.span()=&gt; #fmt),
                             bounds: HashMap::default(),
                             requires_helper: <span class="bool-val">true</span>,
                         })
                     }
                     <span class="comment">// No format attribute on whole enum.
-                    </span><span class="prelude-val">None </span>=&gt; <a href="../../src/derive_more/display.rs.html#468">e</a>.variants.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(ParseResult::default(), |result, v| {
-                        <span class="kw">let </span><a href="../../src/derive_more/display.rs.html#164">ParseResult</a>{ arms, <span class="kw-2">mut </span>bounds, requires_helper } = <a href="../../src/derive_more/display.rs.html#517">result</a>;
-                        <span class="kw">let </span>matcher = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#517">v</a>.fields);
-                        <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.input.ident;
-                        <span class="kw">let </span>v_name = <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#517">v</a>.ident;
+                    </span><span class="prelude-val">None </span>=&gt; <a href="#468">e</a>.variants.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(ParseResult::default(), |result, v| {
+                        <span class="kw">let </span><a href="#164">ParseResult</a>{ arms, <span class="kw-2">mut </span>bounds, requires_helper } = <a href="#517">result</a>;
+                        <span class="kw">let </span>matcher = <a class="self" href="#466">self</a>.<a href="#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="#517">v</a>.fields);
+                        <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="#466">self</a>.input.ident;
+                        <span class="kw">let </span>v_name = <span class="kw-2">&amp;</span><a href="#517">v</a>.ident;
                         <span class="kw">let </span>fmt: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>;
                         <span class="kw">let </span>these_bounds: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;;
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.find_meta(<span class="kw-2">&amp;</span>v.attrs, <span class="string">&quot;fmt&quot;</span>)<span class="question-mark">? </span>{
-                            <a href="../../src/derive_more/display.rs.html#522">fmt</a> = <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
-                            <a href="../../src/derive_more/display.rs.html#523">these_bounds</a> = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#615-619">get_used_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#517">v</a>.fields, <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#525">meta</a>);
+                            <a href="#522">fmt</a> = <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+                            <a href="#523">these_bounds</a> = <a class="self" href="#466">self</a>.<a href="#615-619">get_used_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="#517">v</a>.fields, <span class="kw-2">&amp;</span><a href="#525">meta</a>);
                         } <span class="kw">else </span>{
-                            <a href="../../src/derive_more/display.rs.html#522">fmt</a> = <span class="self">self</span>.infer_fmt(<span class="kw-2">&amp;</span>v.fields, v_name)<span class="question-mark">?</span>;
-                            <a href="../../src/derive_more/display.rs.html#523">these_bounds</a> = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#702-705">infer_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#517">v</a>.fields);
+                            <a href="#522">fmt</a> = <span class="self">self</span>.infer_fmt(<span class="kw-2">&amp;</span>v.fields, v_name)<span class="question-mark">?</span>;
+                            <a href="#523">these_bounds</a> = <a class="self" href="#466">self</a>.<a href="#702-705">infer_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="#517">v</a>.fields);
                         };
-                        <a href="../../src/derive_more/display.rs.html#523">these_bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(ty, trait_names)| {
-                            <a href="../../src/derive_more/display.rs.html#518">bounds</a>.entry(<a href="../../src/derive_more/display.rs.html#532">ty</a>).or_default().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/derive_more/display.rs.html#532">trait_names</a>)
+                        <a href="#523">these_bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(ty, trait_names)| {
+                            <a href="#518">bounds</a>.entry(<a href="#532">ty</a>).or_default().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#532">trait_names</a>)
                         });
                         <span class="kw">let </span>arms = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="self">self</span>.input.span()=&gt; #arms #name::#v_name #matcher =&gt; #fmt,);
 
-                        <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#164">ParseResult</a>{ <a href="../../src/derive_more/display.rs.html#535">arms</a>, <a href="../../src/derive_more/display.rs.html#518">bounds</a>, <a href="../../src/derive_more/display.rs.html#518">requires_helper</a> })
+                        <span class="prelude-val">Ok</span>(<a href="#164">ParseResult</a>{ <a href="#535">arms</a>, <a href="#518">bounds</a>, <a href="#518">requires_helper</a> })
                     }),
                 }
             }
             syn::Data::Struct(s) =&gt; {
-                <span class="kw">let </span>matcher = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#541">s</a>.fields);
-                <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.input.ident;
+                <span class="kw">let </span>matcher = <a class="self" href="#466">self</a>.<a href="#194">get_matcher</a>(<span class="kw-2">&amp;</span><a href="#541">s</a>.fields);
+                <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a class="self" href="#466">self</a>.input.ident;
                 <span class="kw">let </span>fmt: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>;
                 <span class="kw">let </span>bounds: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;;
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = <span class="self">self</span>.find_meta(<span class="kw-2">&amp;</span><span class="self">self</span>.input.attrs, <span class="string">&quot;fmt&quot;</span>)<span class="question-mark">? </span>{
-                    <a href="../../src/derive_more/display.rs.html#544">fmt</a> = <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
-                    <a href="../../src/derive_more/display.rs.html#545">bounds</a> = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#615-619">get_used_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#541">s</a>.fields, <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#547">meta</a>);
+                    <a href="#544">fmt</a> = <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
+                    <a href="#545">bounds</a> = <a class="self" href="#466">self</a>.<a href="#615-619">get_used_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="#541">s</a>.fields, <span class="kw-2">&amp;</span><a href="#547">meta</a>);
                 } <span class="kw">else </span>{
-                    <a href="../../src/derive_more/display.rs.html#544">fmt</a> = <span class="self">self</span>.infer_fmt(<span class="kw-2">&amp;</span>s.fields, name)<span class="question-mark">?</span>;
-                    <a href="../../src/derive_more/display.rs.html#545">bounds</a> = <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#702-705">infer_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#541">s</a>.fields);
+                    <a href="#544">fmt</a> = <span class="self">self</span>.infer_fmt(<span class="kw-2">&amp;</span>s.fields, name)<span class="question-mark">?</span>;
+                    <a href="#545">bounds</a> = <a class="self" href="#466">self</a>.<a href="#702-705">infer_type_params_bounds</a>(<span class="kw-2">&amp;</span><a href="#541">s</a>.fields);
                 }
 
-                <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#164">ParseResult</a> {
+                <span class="prelude-val">Ok</span>(<a href="#164">ParseResult</a> {
                     arms: <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="self">self</span>.input.span()=&gt; #name #matcher =&gt; #fmt,),
-                    <a href="../../src/derive_more/display.rs.html#545">bounds</a>,
+                    <a href="#545">bounds</a>,
                     requires_helper: <span class="bool-val">false</span>,
                 })
             }
@@ -1456,7 +1456,7 @@
                     })<span class="question-mark">?</span>;
                 <span class="kw">let </span>fmt = <span class="self">self</span>.parse_meta_fmt(<span class="kw-2">&amp;</span>meta, <span class="bool-val">false</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
 
-                <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#164">ParseResult</a> {
+                <span class="prelude-val">Ok</span>(<a href="#164">ParseResult</a> {
                     arms: <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="self">self</span>.input.span()=&gt; <span class="kw">_ </span>=&gt; #fmt,),
                     bounds: HashMap::default(),
                     requires_helper: <span class="bool-val">false</span>,
@@ -1467,38 +1467,38 @@
         <span class="kw">let </span><span class="kw-2">mut </span>result = result<span class="question-mark">?</span>;
 
         <span class="kw">let </span>meta = <span class="kw">match </span><span class="self">self</span>.find_meta(<span class="kw-2">&amp;</span><span class="self">self</span>.input.attrs, <span class="string">&quot;bound&quot;</span>)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(meta) =&gt; <a href="../../src/derive_more/display.rs.html#582">meta</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#579">result</a>),
+            <span class="prelude-val">Some</span>(meta) =&gt; <a href="#582">meta</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#579">result</a>),
         };
 
-        <span class="kw">let </span>span = <a href="../../src/derive_more/display.rs.html#581">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
+        <span class="kw">let </span>span = <a href="#581">meta</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
 
-        <span class="kw">let </span>meta = <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#581">meta</a> {
-            syn::Meta::List(meta) =&gt; <a href="../../src/derive_more/display.rs.html#589">meta</a>.nested,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#586">span</a>, <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#187">get_proper_bound_syntax</a>())),
+        <span class="kw">let </span>meta = <span class="kw">match </span><a href="#581">meta</a> {
+            syn::Meta::List(meta) =&gt; <a href="#589">meta</a>.nested,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#586">span</a>, <a class="self" href="#466">self</a>.<a href="#187">get_proper_bound_syntax</a>())),
         };
 
         <span class="kw">if </span>meta.len() != <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#586">span</a>, <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#187">get_proper_bound_syntax</a>()));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#586">span</a>, <a class="self" href="#466">self</a>.<a href="#187">get_proper_bound_syntax</a>()));
         }
 
-        <span class="kw">let </span>meta = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#588">meta</a>[<span class="number">0</span>] {
-            syn::NestedMeta::Meta(syn::Meta::NameValue(meta)) =&gt; <a href="../../src/derive_more/display.rs.html#598">meta</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#586">span</a>, <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#187">get_proper_bound_syntax</a>())),
+        <span class="kw">let </span>meta = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#588">meta</a>[<span class="number">0</span>] {
+            syn::NestedMeta::Meta(syn::Meta::NameValue(meta)) =&gt; <a href="#598">meta</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#586">span</a>, <a class="self" href="#466">self</a>.<a href="#187">get_proper_bound_syntax</a>())),
         };
 
-        <span class="kw">let </span>extra_bounds = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#597">meta</a>.lit {
-            syn::Lit::Str(extra_bounds) =&gt; <a href="../../src/derive_more/display.rs.html#603">extra_bounds</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/derive_more/display.rs.html#586">span</a>, <a class="self" href="../../src/derive_more/display.rs.html#466">self</a>.<a href="../../src/derive_more/display.rs.html#187">get_proper_bound_syntax</a>())),
+        <span class="kw">let </span>extra_bounds = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#597">meta</a>.lit {
+            syn::Lit::Str(extra_bounds) =&gt; <a href="#603">extra_bounds</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#586">span</a>, <a class="self" href="#466">self</a>.<a href="#187">get_proper_bound_syntax</a>())),
         };
 
         <span class="kw">let </span>extra_bounds = <span class="self">self</span>.parse_meta_bounds(extra_bounds)<span class="question-mark">?</span>;
 
-        <a href="../../src/derive_more/display.rs.html#607">extra_bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(ty, trait_names)| {
-            <a href="../../src/derive_more/display.rs.html#579">result</a>.bounds.entry(<a href="../../src/derive_more/display.rs.html#609">ty</a>).or_default().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/derive_more/display.rs.html#609">trait_names</a>)
+        <a href="#607">extra_bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(ty, trait_names)| {
+            <a href="#579">result</a>.bounds.entry(<a href="#609">ty</a>).or_default().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#609">trait_names</a>)
         });
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/derive_more/display.rs.html#579">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="#579">result</a>)
     }
     <span class="kw">fn </span>get_used_type_params_bounds(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1509,21 +1509,21 @@
             <span class="kw">return </span>HashMap::default();
         }
 
-        <span class="kw">let </span>fields_type_params: HashMap&lt;<a href="../../syn/path/struct.Path.html">syn::Path</a>, <span class="kw">_</span>&gt; = <a href="../../src/derive_more/display.rs.html#617">fields</a>
+        <span class="kw">let </span>fields_type_params: HashMap&lt;<a href="../../syn/path/struct.Path.html">syn::Path</a>, <span class="kw">_</span>&gt; = <a href="#617">fields</a>
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(i, field)| {
-                <a href="../../src/derive_more/utils.rs.html#1185-1188">utils::get_if_type_parameter_used_in_type</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#616">self</a>.type_params, <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#627">field</a>.ty)
+                <a href="utils.rs.html#1185-1188">utils::get_if_type_parameter_used_in_type</a>(<span class="kw-2">&amp;</span><a class="self" href="#616">self</a>.type_params, <span class="kw-2">&amp;</span><a href="#627">field</a>.ty)
                     .map(|ty| {
                         (
-                            <a href="../../src/derive_more/display.rs.html#627">field</a>
+                            <a href="#627">field</a>
                                 .ident
                                 .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
                                 .unwrap_or_else(|| {
                                     Ident::new(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, i), Span::call_site())
                                 })
                                 .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                            <a href="../../src/derive_more/display.rs.html#629">ty</a>,
+                            <a href="#629">ty</a>,
                         )
                     })
             })
@@ -1532,21 +1532,21 @@
             <span class="kw">return </span>HashMap::default();
         }
 
-        <span class="kw">let </span>list = <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#618">meta</a> {
-            syn::Meta::List(list) =&gt; <a href="../../src/derive_more/display.rs.html#648">list</a>,
+        <span class="kw">let </span>list = <span class="kw">match </span><a href="#618">meta</a> {
+            syn::Meta::List(list) =&gt; <a href="#648">list</a>,
             <span class="comment">// This one has been checked already in get_meta_fmt() method.
             </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         };
-        <span class="kw">let </span>fmt_args: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="../../src/derive_more/display.rs.html#647">list</a>
+        <span class="kw">let </span>fmt_args: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#647">list</a>
             .nested
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>) <span class="comment">// skip fmt = &quot;...&quot;
             </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(i, arg)| <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#657">arg</a> {
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|(i, arg)| <span class="kw">match </span><a href="#657">arg</a> {
                 syn::NestedMeta::Lit(syn::Lit::Str(<span class="kw-2">ref </span>s)) =&gt; {
-                    syn::parse_str(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#658">s</a>.value()).ok().map(|id| (<a href="../../src/derive_more/display.rs.html#657">i</a>, <a href="../../src/derive_more/display.rs.html#659">id</a>))
+                    syn::parse_str(<span class="kw-2">&amp;</span><a href="#658">s</a>.value()).ok().map(|id| (<a href="#657">i</a>, <a href="#659">id</a>))
                 }
-                syn::NestedMeta::Meta(syn::Meta::Path(<span class="kw-2">ref </span>id)) =&gt; <span class="prelude-val">Some</span>((<a href="../../src/derive_more/display.rs.html#657">i</a>, <a href="../../src/derive_more/display.rs.html#661">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+                syn::NestedMeta::Meta(syn::Meta::Path(<span class="kw-2">ref </span>id)) =&gt; <span class="prelude-val">Some</span>((<a href="#657">i</a>, <a href="#661">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
                 <span class="comment">// This one has been checked already in get_meta_fmt() method.
                 </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             })
@@ -1554,36 +1554,36 @@
         <span class="kw">if </span>fmt_args.is_empty() {
             <span class="kw">return </span>HashMap::default();
         }
-        <span class="kw">let </span>fmt_string = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#647">list</a>.nested[<span class="number">0</span>] {
+        <span class="kw">let </span>fmt_string = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#647">list</a>.nested[<span class="number">0</span>] {
             syn::NestedMeta::Meta(syn::Meta::NameValue(<a href="../../syn/attr/struct.MetaNameValue.html">syn::MetaNameValue</a> {
                 path,
                 lit: syn::Lit::Str(s),
                 ..
-            })) <span class="kw">if </span><a href="../../src/derive_more/display.rs.html#671">path</a>
+            })) <span class="kw">if </span><a href="#671">path</a>
                 .segments
                 .first()
                 .expect(<span class="string">&quot;path shouldn&#39;t be empty&quot;</span>)
                 .ident
                 == <span class="string">&quot;fmt&quot; </span>=&gt;
             {
-                <a href="../../src/derive_more/display.rs.html#672">s</a>.value()
+                <a href="#672">s</a>.value()
             }
             <span class="comment">// This one has been checked already in get_meta_fmt() method.
             </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         };
 
-        Placeholder::parse_fmt_string(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#669">fmt_string</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
+        Placeholder::parse_fmt_string(<span class="kw-2">&amp;</span><a href="#669">fmt_string</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
             HashMap::default(),
             |<span class="kw-2">mut </span>bounds, pl| {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <a href="../../src/derive_more/display.rs.html#652">fmt_args</a>.get(<span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#689">pl</a>.position) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <a href="#652">fmt_args</a>.get(<span class="kw-2">&amp;</span><a href="#689">pl</a>.position) {
                     <span class="kw">if </span>fields_type_params.contains_key(arg) {
-                        <a href="../../src/derive_more/display.rs.html#689">bounds</a>
-                            .entry(<a href="../../src/derive_more/display.rs.html#624">fields_type_params</a>[<a href="../../src/derive_more/display.rs.html#690">arg</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                        <a href="#689">bounds</a>
+                            .entry(<a href="#624">fields_type_params</a>[<a href="#690">arg</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                             .or_insert_with(HashSet::default)
-                            .insert(<a href="../../src/derive_more/display.rs.html#107">trait_name_to_trait_bound</a>(<a href="../../src/derive_more/display.rs.html#689">pl</a>.trait_name));
+                            .insert(<a href="#107">trait_name_to_trait_bound</a>(<a href="#689">pl</a>.trait_name));
                     }
                 }
-                <a href="../../src/derive_more/display.rs.html#689">bounds</a>
+                <a href="#689">bounds</a>
             },
         )
     }
@@ -1594,20 +1594,20 @@
         <span class="kw">if </span><span class="self">self</span>.type_params.is_empty() {
             <span class="kw">return </span>HashMap::default();
         }
-        <span class="kw">if let </span>syn::Fields::Unit = <a href="../../src/derive_more/display.rs.html#704">fields</a> {
+        <span class="kw">if let </span>syn::Fields::Unit = <a href="#704">fields</a> {
             <span class="kw">return </span>HashMap::default();
         }
         <span class="comment">// infer_fmt() uses only first field.
-        </span><a href="../../src/derive_more/display.rs.html#704">fields</a>
+        </span><a href="#704">fields</a>
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|field| {
-                <a href="../../src/derive_more/utils.rs.html#1185-1188">utils::get_if_type_parameter_used_in_type</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/display.rs.html#703">self</a>.type_params, <span class="kw-2">&amp;</span><a href="../../src/derive_more/display.rs.html#716">field</a>.ty)
+                <a href="utils.rs.html#1185-1188">utils::get_if_type_parameter_used_in_type</a>(<span class="kw-2">&amp;</span><a class="self" href="#703">self</a>.type_params, <span class="kw-2">&amp;</span><a href="#716">field</a>.ty)
                     .map(|ty| {
                         (
-                            <a href="../../src/derive_more/display.rs.html#718">ty</a>,
-                            [<a href="../../src/derive_more/display.rs.html#107">trait_name_to_trait_bound</a>(<a href="../../src/derive_more/display.rs.html#93">attribute_name_to_trait_name</a>(
-                                <a class="self" href="../../src/derive_more/display.rs.html#703">self</a>.trait_attr,
+                            <a href="#718">ty</a>,
+                            [<a href="#107">trait_name_to_trait_bound</a>(<a href="#93">attribute_name_to_trait_name</a>(
+                                <a class="self" href="#703">self</a>.trait_attr,
                             ))]
                             .iter()
                             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
@@ -1628,23 +1628,23 @@
     </span>trait_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/derive_more/display.rs.html#736">Placeholder</a> {
+<span class="kw">impl </span><a href="#736">Placeholder</a> {
     <span class="doccomment">/// Parses [`Placeholder`]s from a given formatting string.
-    </span><span class="kw">fn </span>parse_fmt_string(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Vec&lt;<a href="../../src/derive_more/display.rs.html#736">Placeholder</a>&gt; {
+    </span><span class="kw">fn </span>parse_fmt_string(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Vec&lt;<a href="#736">Placeholder</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
-        <a href="../../src/derive_more/parsing.rs.html#843"><span class="kw">crate</span>::parsing::all_placeholders</a>(<a href="../../src/derive_more/display.rs.html#745">s</a>)
+        <a href="parsing.rs.html#843"><span class="kw">crate</span>::parsing::all_placeholders</a>(<a href="#745">s</a>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|m| {
-                <span class="kw">let </span>(maybe_arg, maybe_typ) = <a href="../../src/derive_more/parsing.rs.html#863-865"><span class="kw">crate</span>::parsing::format</a>(<a href="../../src/derive_more/display.rs.html#750">m</a>).unwrap();
-                <span class="kw">let </span>position = <a href="../../src/derive_more/display.rs.html#751">maybe_arg</a>.unwrap_or_else(|| {
+                <span class="kw">let </span>(maybe_arg, maybe_typ) = <a href="parsing.rs.html#863-865"><span class="kw">crate</span>::parsing::format</a>(<a href="#750">m</a>).unwrap();
+                <span class="kw">let </span>position = <a href="#751">maybe_arg</a>.unwrap_or_else(|| {
                     <span class="comment">// Assign &quot;the next argument&quot;.
                     // https://doc.rust-lang.org/stable/std/fmt/index.html#positional-parameters
-                    </span><a href="../../src/derive_more/display.rs.html#746">n</a> += <span class="number">1</span>;
-                    <a href="../../src/derive_more/display.rs.html#746">n</a> - <span class="number">1
+                    </span><a href="#746">n</a> += <span class="number">1</span>;
+                    <a href="#746">n</a> - <span class="number">1
                 </span>});
-                <span class="kw">let </span>typ = <a href="../../src/derive_more/display.rs.html#751">maybe_typ</a>.unwrap_or_default();
-                <span class="kw">let </span>trait_name = <span class="kw">match </span><a href="../../src/derive_more/display.rs.html#758">typ</a> {
+                <span class="kw">let </span>typ = <a href="#751">maybe_typ</a>.unwrap_or_default();
+                <span class="kw">let </span>trait_name = <span class="kw">match </span><a href="#758">typ</a> {
                     <span class="string">&quot;&quot; </span>=&gt; <span class="string">&quot;Display&quot;</span>,
                     <span class="string">&quot;?&quot; </span>| <span class="string">&quot;x?&quot; </span>| <span class="string">&quot;X?&quot; </span>=&gt; <span class="string">&quot;Debug&quot;</span>,
                     <span class="string">&quot;o&quot; </span>=&gt; <span class="string">&quot;Octal&quot;</span>,
@@ -1656,9 +1656,9 @@
                     <span class="string">&quot;E&quot; </span>=&gt; <span class="string">&quot;UpperExp&quot;</span>,
                     <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                 };
-                <a href="../../src/derive_more/display.rs.html#736">Placeholder</a> {
-                    <a href="../../src/derive_more/display.rs.html#752">position</a>,
-                    <a href="../../src/derive_more/display.rs.html#759">trait_name</a>,
+                <a href="#736">Placeholder</a> {
+                    <a href="#752">position</a>,
+                    <a href="#759">trait_name</a>,
                 }
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
@@ -1775,4 +1775,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

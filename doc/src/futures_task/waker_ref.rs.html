@@ -64,8 +64,8 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/futures_task/arc_wake.rs.html#20"><span class="kw">super</span>::arc_wake::ArcWake</a>;
-<span class="kw">use </span><a href="../../src/futures_task/waker.rs.html#6"><span class="kw">super</span>::waker::waker_vtable</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="arc_wake.rs.html#20"><span class="kw">super</span>::arc_wake::ArcWake</a>;
+<span class="kw">use </span><a href="waker.rs.html#6"><span class="kw">super</span>::waker::waker_vtable</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
 <span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">core::mem::ManuallyDrop</a>;
@@ -88,8 +88,8 @@
     </span><span class="kw">pub fn </span>new(waker: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// copy the underlying (raw) waker without calling a clone,
         // as we won&#39;t call Waker::drop either.
-        </span><span class="kw">let </span>waker = ManuallyDrop::new(<span class="kw">unsafe </span>{ core::ptr::read(<a href="../../src/futures_task/waker_ref.rs.html#22">waker</a>) });
-        <span class="self">Self </span>{ <a href="../../src/futures_task/waker_ref.rs.html#25">waker</a>, _marker: PhantomData }
+        </span><span class="kw">let </span>waker = ManuallyDrop::new(<span class="kw">unsafe </span>{ core::ptr::read(<a href="#22">waker</a>) });
+        <span class="self">Self </span>{ <a href="#25">waker</a>, _marker: PhantomData }
     }
 
     <span class="doccomment">/// Create a new [`WakerRef`] from a [`Waker`] that must not be dropped.
@@ -100,7 +100,7 @@
     /// destroyed.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new_unowned(waker: ManuallyDrop&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../src/futures_task/waker_ref.rs.html#36">waker</a>, _marker: PhantomData }
+        <span class="self">Self </span>{ <a href="#36">waker</a>, _marker: PhantomData }
     }
 }
 
@@ -109,7 +109,7 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/futures_task/waker_ref.rs.html#45">self</a>.waker
+        <span class="kw-2">&amp;</span><a class="self" href="#45">self</a>.waker
     }
 }
 
@@ -120,15 +120,15 @@
 </span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>waker_ref&lt;W&gt;(wake: <span class="kw-2">&amp;</span>Arc&lt;W&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>&gt;
 <span class="kw">where
-    </span>W: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>,
+    </span>W: <a href="arc_wake.rs.html#20">ArcWake</a>,
 {
     <span class="comment">// simply copy the pointer instead of using Arc::into_raw,
     // as we don&#39;t actually keep a refcount by using ManuallyDrop.&lt;
-    </span><span class="kw">let </span>ptr = Arc::as_ptr(<a href="../../src/futures_task/waker_ref.rs.html#55">wake</a>).cast::&lt;()&gt;();
+    </span><span class="kw">let </span>ptr = Arc::as_ptr(<a href="#55">wake</a>).cast::&lt;()&gt;();
 
     <span class="kw">let </span>waker =
-        ManuallyDrop::new(<span class="kw">unsafe </span>{ Waker::from_raw(RawWaker::new(<a href="../../src/futures_task/waker_ref.rs.html#61">ptr</a>, waker_vtable::&lt;W&gt;())) });
-    WakerRef::new_unowned(<a href="../../src/futures_task/waker_ref.rs.html#63">waker</a>)
+        ManuallyDrop::new(<span class="kw">unsafe </span>{ Waker::from_raw(RawWaker::new(<a href="#61">ptr</a>, waker_vtable::&lt;W&gt;())) });
+    WakerRef::new_unowned(<a href="#63">waker</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

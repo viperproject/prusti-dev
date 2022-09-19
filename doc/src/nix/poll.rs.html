@@ -1,0 +1,352 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Wait for events to trigger on specific file descriptors
+</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+
+<span class="kw">use </span><a href="lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+
+<span class="doccomment">/// This is a wrapper around `libc::pollfd`.
+///
+/// It&#39;s meant to be used as an argument to the [`poll`](fn.poll.html) and
+/// [`ppoll`](fn.ppoll.html) functions to specify the events of interest
+/// for a specific file descriptor.
+///
+/// After a call to `poll` or `ppoll`, the events that occurred can be
+/// retrieved by calling [`revents()`](#method.revents) on the `PollFd`.
+</span><span class="attribute">#[repr(transparent)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+</span><span class="kw">pub struct </span>PollFd {
+    pollfd: <a href="../../libc/unix/struct.pollfd.html">libc::pollfd</a>,
+}
+
+<span class="kw">impl </span><a href="#17">PollFd</a> {
+    <span class="doccomment">/// Creates a new `PollFd` specifying the events of interest
+    /// for a given file descriptor.
+    </span><span class="kw">pub const fn </span>new(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, events: <a href="#57-113">PollFlags</a>) -&gt; <a href="#17">PollFd</a> {
+        <a href="#17">PollFd</a> {
+            pollfd: <a href="../../libc/unix/struct.pollfd.html">libc::pollfd</a> {
+                <a href="#24">fd</a>,
+                events: <a href="#24">events</a>.<a href="#57-113">bits</a>(),
+                revents: PollFlags::empty().<a href="#57-113">bits</a>(),
+            },
+        }
+    }
+
+    <span class="doccomment">/// Returns the events that occurred in the last call to `poll` or `ppoll`.  Will only return
+    /// `None` if the kernel provides status flags that Nix does not know about.
+    </span><span class="kw">pub fn </span>revents(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#57-113">PollFlags</a>&gt; {
+        PollFlags::from_bits(<a class="self" href="#36">self</a>.pollfd.revents)
+    }
+
+    <span class="doccomment">/// The events of interest for this `PollFd`.
+    </span><span class="kw">pub fn </span>events(<span class="self">self</span>) -&gt; <a href="#57-113">PollFlags</a> {
+        PollFlags::from_bits(<a class="self" href="#41">self</a>.pollfd.events).unwrap()
+    }
+
+    <span class="doccomment">/// Modify the events of interest for this `PollFd`.
+    </span><span class="kw">pub fn </span>set_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>, events: <a href="#57-113">PollFlags</a>) {
+        <a class="self" href="#46">self</a>.pollfd.events = <a href="#46">events</a>.<a href="#57-113">bits</a>();
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#17">PollFd</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="#52">self</a>.pollfd.fd
+    }
+}
+
+<a class="macro" href="macros.rs.html#55-75">libc_bitflags! </a>{
+    <span class="doccomment">/// These flags define the different events that can be monitored by `poll` and `ppoll`
+    </span><span class="kw">pub struct </span>PollFlags: <a href="../../libc/unix/type.c_short.html">libc::c_short</a> {
+        <span class="doccomment">/// There is data to read.
+        </span>POLLIN;
+        <span class="doccomment">/// There is some exceptional condition on the file descriptor.
+        ///
+        /// Possibilities include:
+        ///
+        /// *  There is out-of-band data on a TCP socket (see
+        ///    [tcp(7)](https://man7.org/linux/man-pages/man7/tcp.7.html)).
+        /// *  A pseudoterminal master in packet mode has seen a state
+        ///    change on the slave (see
+        ///    [ioctl_tty(2)](https://man7.org/linux/man-pages/man2/ioctl_tty.2.html)).
+        /// *  A cgroup.events file has been modified (see
+        ///    [cgroups(7)](https://man7.org/linux/man-pages/man7/cgroups.7.html)).
+        </span>POLLPRI;
+        <span class="doccomment">/// Writing is now possible, though a write larger that the
+        /// available space in a socket or pipe will still block (unless
+        /// `O_NONBLOCK` is set).
+        </span>POLLOUT;
+        <span class="doccomment">/// Equivalent to [`POLLIN`](constant.POLLIN.html)
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>POLLRDNORM;
+        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span><span class="doccomment">/// Equivalent to [`POLLOUT`](constant.POLLOUT.html)
+        </span>POLLWRNORM;
+        <span class="doccomment">/// Priority band data can be read (generally unused on Linux).
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>POLLRDBAND;
+        <span class="doccomment">/// Priority data may be written.
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>POLLWRBAND;
+        <span class="doccomment">/// Error condition (only returned in
+        /// [`PollFd::revents`](struct.PollFd.html#method.revents);
+        /// ignored in [`PollFd::new`](struct.PollFd.html#method.new)).
+        /// This bit is also set for a file descriptor referring to the
+        /// write end of a pipe when the read end has been closed.
+        </span>POLLERR;
+        <span class="doccomment">/// Hang up (only returned in [`PollFd::revents`](struct.PollFd.html#method.revents);
+        /// ignored in [`PollFd::new`](struct.PollFd.html#method.new)).
+        /// Note that when reading from a channel such as a pipe or a stream
+        /// socket, this event merely indicates that the peer closed its
+        /// end of the channel.  Subsequent reads from the channel will
+        /// return 0 (end of file) only after all outstanding data in the
+        /// channel has been consumed.
+        </span>POLLHUP;
+        <span class="doccomment">/// Invalid request: `fd` not open (only returned in
+        /// [`PollFd::revents`](struct.PollFd.html#method.revents);
+        /// ignored in [`PollFd::new`](struct.PollFd.html#method.new)).
+        </span>POLLNVAL;
+    }
+}
+
+<span class="doccomment">/// `poll` waits for one of a set of file descriptors to become ready to perform I/O.
+/// ([`poll(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/poll.html))
+///
+/// `fds` contains all [`PollFd`](struct.PollFd.html) to poll.
+/// The function will return as soon as any event occur for any of these `PollFd`s.
+///
+/// The `timeout` argument specifies the number of milliseconds that `poll()`
+/// should block waiting for a file descriptor to become ready.  The call
+/// will block until either:
+///
+/// *  a file descriptor becomes ready;
+/// *  the call is interrupted by a signal handler; or
+/// *  the timeout expires.
+///
+/// Note that the timeout interval will be rounded up to the system clock
+/// granularity, and kernel scheduling delays mean that the blocking
+/// interval may overrun by a small amount.  Specifying a negative value
+/// in timeout means an infinite timeout.  Specifying a timeout of zero
+/// causes `poll()` to return immediately, even if no file descriptors are
+/// ready.
+</span><span class="kw">pub fn </span>poll(fds: <span class="kw-2">&amp;mut </span>[<a href="#17">PollFd</a>], timeout: <a href="../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.c_int.html">libc::c_int</a>&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::poll(<a href="#135">fds</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/struct.pollfd.html">libc::pollfd</a>,
+                   <a href="#135">fds</a>.len() <span class="kw">as </span>libc::nfds_t,
+                   <a href="#135">timeout</a>)
+    };
+
+    Errno::result(<a href="#136">res</a>)
+}
+
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;signal&quot;</span>]
+</span><span class="doccomment">/// `ppoll()` allows an application to safely wait until either a file
+/// descriptor becomes ready or until a signal is caught.
+/// ([`poll(2)`](https://man7.org/linux/man-pages/man2/poll.2.html))
+///
+/// `ppoll` behaves like `poll`, but let you specify what signals may interrupt it
+/// with the `sigmask` argument. If you want `ppoll` to block indefinitely,
+/// specify `None` as `timeout` (it is like `timeout = -1` for `poll`).
+/// If `sigmask` is `None`, then no signal mask manipulation is performed,
+/// so in that case `ppoll` differs from `poll` only in the precision of the
+/// timeout argument.
+///
+</span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">pub fn </span>ppoll(
+    fds: <span class="kw-2">&amp;mut </span>[<a href="#17">PollFd</a>],
+    timeout: <span class="prelude-ty">Option</span>&lt;<a href="sys/time.rs.html#189"><span class="kw">crate</span>::sys::time::TimeSpec</a>&gt;,
+    sigmask: <span class="prelude-ty">Option</span>&lt;<a href="sys/signal.rs.html#472"><span class="kw">crate</span>::sys::signal::SigSet</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.c_int.html">libc::c_int</a>&gt;
+{
+    <span class="kw">let </span>timeout = <a href="#161">timeout</a>.as_ref().map_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">core::ptr::null</a>(), |r| <a href="#165">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    <span class="kw">let </span>sigmask = <a href="#162">sigmask</a>.as_ref().map_or(<a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">core::ptr::null</a>(), |r| <a href="#166">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::ppoll(<a href="#160">fds</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/struct.pollfd.html">libc::pollfd</a>,
+                    <a href="#160">fds</a>.len() <span class="kw">as </span>libc::nfds_t,
+                    <a href="#165">timeout</a>,
+                    <a href="#166">sigmask</a>)
+    };
+    Errno::result(<a href="#167">res</a>)
+}
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

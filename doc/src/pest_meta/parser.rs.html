@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.3.0/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest_meta/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.3.1/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest_meta/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1557,29 +1557,29 @@
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/peekable/struct.Peekable.html">std::iter::Peekable</a>;
 
-<span class="kw">use </span>pest::error::{<a href="../../pest/error/struct.Error.html">Error</a>, <a href="../../pest/error/enum.ErrorVariant.html">ErrorVariant</a>};
-<span class="kw">use </span>pest::iterators::{<a href="../../pest/iterators/pair/struct.Pair.html">Pair</a>, <a href="../../pest/iterators/pairs/struct.Pairs.html">Pairs</a>};
-<span class="kw">use </span>pest::prec_climber::{<a href="../../pest/prec_climber/enum.Assoc.html">Assoc</a>, <a href="../../pest/prec_climber/struct.Operator.html">Operator</a>, <a href="../../pest/prec_climber/struct.PrecClimber.html">PrecClimber</a>};
-<span class="kw">use </span>pest::{<a href="../../pest/parser/trait.Parser.html">Parser</a>, <a href="../../pest/span/struct.Span.html">Span</a>};
+<span class="kw">use </span>pest::error::{<a href="https://docs.rs/pest/pest/error/struct.Error.html">Error</a>, <a href="https://docs.rs/pest/pest/error/enum.ErrorVariant.html">ErrorVariant</a>};
+<span class="kw">use </span>pest::iterators::{<a href="https://docs.rs/pest/pest/iterators/pair/struct.Pair.html">Pair</a>, <a href="https://docs.rs/pest/pest/iterators/pairs/struct.Pairs.html">Pairs</a>};
+<span class="kw">use </span>pest::prec_climber::{<a href="https://docs.rs/pest/pest/prec_climber/enum.Assoc.html">Assoc</a>, <a href="https://docs.rs/pest/pest/prec_climber/struct.Operator.html">Operator</a>, <a href="https://docs.rs/pest/pest/prec_climber/struct.PrecClimber.html">PrecClimber</a>};
+<span class="kw">use </span>pest::{<a href="https://docs.rs/pest/pest/parser/trait.Parser.html">Parser</a>, <a href="https://docs.rs/pest/pest/span/struct.Span.html">Span</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::{<a href="../../src/pest_meta/ast.rs.html#27">Expr</a>, <a href="../../src/pest_meta/ast.rs.html#11">Rule</a> <span class="kw">as </span>AstRule, <a href="../../src/pest_meta/ast.rs.html#18">RuleType</a>};
-<span class="kw">use </span><a href="../../src/pest_meta/lib.rs.html#22"><span class="kw">crate</span>::validator</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ast::{<a href="ast.rs.html#27">Expr</a>, <a href="ast.rs.html#11">Rule</a> <span class="kw">as </span>AstRule, <a href="ast.rs.html#18">RuleType</a>};
+<span class="kw">use </span><a href="lib.rs.html#22"><span class="kw">crate</span>::validator</a>;
 
 <span class="kw">mod </span>grammar {
     <span class="macro">include!</span>(<span class="string">&quot;grammar.rs&quot;</span>);
 }
 
-<span class="kw">pub use </span><a href="../../src/pest_meta/parser.rs.html#21"><span class="self">self</span>::grammar</a>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><a href="#21"><span class="self">self</span>::grammar</a>::<span class="kw-2">*</span>;
 
-<span class="kw">pub fn </span>parse(rule: <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>, data: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Pairs&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;, Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
-    PestParser::parse(<a href="../../src/pest_meta/parser.rs.html#27">rule</a>, <a href="../../src/pest_meta/parser.rs.html#27">data</a>)
+<span class="kw">pub fn </span>parse(rule: <a href="grammar.rs.html#2">Rule</a>, data: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Pairs&lt;<a href="grammar.rs.html#2">Rule</a>&gt;, Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
+    PestParser::parse(<a href="#27">rule</a>, <a href="#27">data</a>)
 }
 
 <span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ParserRule&lt;<span class="lifetime">&#39;i</span>&gt; {
     <span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub </span>span: Span&lt;<span class="lifetime">&#39;i</span>&gt;,
-    <span class="kw">pub </span>ty: <a href="../../src/pest_meta/ast.rs.html#18">RuleType</a>,
+    <span class="kw">pub </span>ty: <a href="ast.rs.html#18">RuleType</a>,
     <span class="kw">pub </span>node: ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;,
 }
 
@@ -1598,49 +1598,49 @@
         <span class="kw">where
             </span>F: FnMut(ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
         {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="../../src/pest_meta/parser.rs.html#50">f</a>(<a href="../../src/pest_meta/parser.rs.html#50">node</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
-                <a href="../../src/pest_meta/parser.rs.html#50">result</a>.push(<a href="../../src/pest_meta/parser.rs.html#54">value</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#50">f</a>(<a href="#50">node</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+                <a href="#50">result</a>.push(<a href="#54">value</a>);
             }
 
-            <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#50">node</a>.expr {
+            <span class="kw">match </span><a href="#50">node</a>.expr {
                 <span class="comment">// TODO: Use box syntax when it gets stabilized.
-                </span><a href="../../src/pest_meta/parser.rs.html#117">ParserExpr::PosPred</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#60">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                </span><a href="#117">ParserExpr::PosPred</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#60">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#118">ParserExpr::NegPred</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#63">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#118">ParserExpr::NegPred</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#63">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(lhs, rhs) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#66">lhs</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#66">rhs</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#119">ParserExpr::Seq</a>(lhs, rhs) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#66">lhs</a>, <a href="#50">f</a>, <a href="#50">result</a>);
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#66">rhs</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(lhs, rhs) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#70">lhs</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#70">rhs</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#120">ParserExpr::Choice</a>(lhs, rhs) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#70">lhs</a>, <a href="#50">f</a>, <a href="#50">result</a>);
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#70">rhs</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#122">ParserExpr::Rep</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#74">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#122">ParserExpr::Rep</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#74">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#123">ParserExpr::RepOnce</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#77">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#123">ParserExpr::RepOnce</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#77">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#124">ParserExpr::RepExact</a>(node, <span class="kw">_</span>) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#80">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#124">ParserExpr::RepExact</a>(node, <span class="kw">_</span>) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#80">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#125">ParserExpr::RepMin</a>(node, <span class="kw">_</span>) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#83">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#125">ParserExpr::RepMin</a>(node, <span class="kw">_</span>) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#83">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#126">ParserExpr::RepMax</a>(node, <span class="kw">_</span>) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#86">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#126">ParserExpr::RepMax</a>(node, <span class="kw">_</span>) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#86">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#127">ParserExpr::RepMinMax</a>(node, ..) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#89">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#127">ParserExpr::RepMinMax</a>(node, ..) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#89">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#121">ParserExpr::Opt</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#92">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#121">ParserExpr::Opt</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#92">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
-                <a href="../../src/pest_meta/parser.rs.html#128">ParserExpr::Push</a>(node) =&gt; {
-                    <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#95">node</a>, <a href="../../src/pest_meta/parser.rs.html#50">f</a>, <a href="../../src/pest_meta/parser.rs.html#50">result</a>);
+                <a href="#128">ParserExpr::Push</a>(node) =&gt; {
+                    <a href="#50-52">filter_internal</a>(<span class="kw-2">*</span><a href="#95">node</a>, <a href="#50">f</a>, <a href="#50">result</a>);
                 }
                 <span class="kw">_ </span>=&gt; (),
             }
@@ -1648,9 +1648,9 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-        <a href="../../src/pest_meta/parser.rs.html#50-52">filter_internal</a>(<a class="self" href="../../src/pest_meta/parser.rs.html#46">self</a>, <span class="kw-2">&amp;mut </span><a href="../../src/pest_meta/parser.rs.html#46">f</a>, <span class="kw-2">&amp;mut </span><a href="../../src/pest_meta/parser.rs.html#102">result</a>);
+        <a href="#50-52">filter_internal</a>(<a class="self" href="#46">self</a>, <span class="kw-2">&amp;mut </span><a href="#46">f</a>, <span class="kw-2">&amp;mut </span><a href="#102">result</a>);
 
-        <a href="../../src/pest_meta/parser.rs.html#102">result</a>
+        <a href="#102">result</a>
     }
 }
 
@@ -1675,215 +1675,215 @@
     Push(Box&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;),
 }
 
-<span class="kw">fn </span>convert_rule(rule: <a href="../../src/pest_meta/parser.rs.html#32">ParserRule</a>) -&gt; <a href="../../src/pest_meta/ast.rs.html#11">AstRule</a> {
-    <span class="kw">let </span><a href="../../src/pest_meta/parser.rs.html#32">ParserRule</a> { name, ty, node, .. } = <a href="../../src/pest_meta/parser.rs.html#131">rule</a>;
-    <span class="kw">let </span>expr = <a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<a href="../../src/pest_meta/parser.rs.html#132">node</a>);
-    <a href="../../src/pest_meta/ast.rs.html#11">AstRule</a> { <a href="../../src/pest_meta/parser.rs.html#132">name</a>, <a href="../../src/pest_meta/parser.rs.html#132">ty</a>, <a href="../../src/pest_meta/parser.rs.html#133">expr</a> }
+<span class="kw">fn </span>convert_rule(rule: <a href="#32">ParserRule</a>) -&gt; <a href="ast.rs.html#11">AstRule</a> {
+    <span class="kw">let </span><a href="#32">ParserRule</a> { name, ty, node, .. } = <a href="#131">rule</a>;
+    <span class="kw">let </span>expr = <a href="#137">convert_node</a>(<a href="#132">node</a>);
+    <a href="ast.rs.html#11">AstRule</a> { <a href="#132">name</a>, <a href="#132">ty</a>, <a href="#133">expr</a> }
 }
 
-<span class="kw">fn </span>convert_node(node: <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a>) -&gt; <a href="../../src/pest_meta/ast.rs.html#27">Expr</a> {
-    <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#137">node</a>.expr {
-        <a href="../../src/pest_meta/parser.rs.html#112">ParserExpr::Str</a>(string) =&gt; <a href="../../src/pest_meta/ast.rs.html#29">Expr::Str</a>(<a href="../../src/pest_meta/parser.rs.html#139">string</a>),
-        <a href="../../src/pest_meta/parser.rs.html#113">ParserExpr::Insens</a>(string) =&gt; <a href="../../src/pest_meta/ast.rs.html#31">Expr::Insens</a>(<a href="../../src/pest_meta/parser.rs.html#140">string</a>),
-        <a href="../../src/pest_meta/parser.rs.html#114">ParserExpr::Range</a>(start, end) =&gt; <a href="../../src/pest_meta/ast.rs.html#33">Expr::Range</a>(<a href="../../src/pest_meta/parser.rs.html#141">start</a>, <a href="../../src/pest_meta/parser.rs.html#141">end</a>),
-        <a href="../../src/pest_meta/parser.rs.html#115">ParserExpr::Ident</a>(ident) =&gt; <a href="../../src/pest_meta/ast.rs.html#35">Expr::Ident</a>(<a href="../../src/pest_meta/parser.rs.html#142">ident</a>),
-        <a href="../../src/pest_meta/parser.rs.html#116">ParserExpr::PeekSlice</a>(start, end) =&gt; <a href="../../src/pest_meta/ast.rs.html#37">Expr::PeekSlice</a>(<a href="../../src/pest_meta/parser.rs.html#143">start</a>, <a href="../../src/pest_meta/parser.rs.html#143">end</a>),
-        <a href="../../src/pest_meta/parser.rs.html#117">ParserExpr::PosPred</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#39">Expr::PosPred</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#144">node</a>))),
-        <a href="../../src/pest_meta/parser.rs.html#118">ParserExpr::NegPred</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#41">Expr::NegPred</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#145">node</a>))),
-        <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(node1, node2) =&gt; <a href="../../src/pest_meta/ast.rs.html#43">Expr::Seq</a>(
-            Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#146">node1</a>)),
-            Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#146">node2</a>)),
+<span class="kw">fn </span>convert_node(node: <a href="#40">ParserNode</a>) -&gt; <a href="ast.rs.html#27">Expr</a> {
+    <span class="kw">match </span><a href="#137">node</a>.expr {
+        <a href="#112">ParserExpr::Str</a>(string) =&gt; <a href="ast.rs.html#29">Expr::Str</a>(<a href="#139">string</a>),
+        <a href="#113">ParserExpr::Insens</a>(string) =&gt; <a href="ast.rs.html#31">Expr::Insens</a>(<a href="#140">string</a>),
+        <a href="#114">ParserExpr::Range</a>(start, end) =&gt; <a href="ast.rs.html#33">Expr::Range</a>(<a href="#141">start</a>, <a href="#141">end</a>),
+        <a href="#115">ParserExpr::Ident</a>(ident) =&gt; <a href="ast.rs.html#35">Expr::Ident</a>(<a href="#142">ident</a>),
+        <a href="#116">ParserExpr::PeekSlice</a>(start, end) =&gt; <a href="ast.rs.html#37">Expr::PeekSlice</a>(<a href="#143">start</a>, <a href="#143">end</a>),
+        <a href="#117">ParserExpr::PosPred</a>(node) =&gt; <a href="ast.rs.html#39">Expr::PosPred</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#144">node</a>))),
+        <a href="#118">ParserExpr::NegPred</a>(node) =&gt; <a href="ast.rs.html#41">Expr::NegPred</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#145">node</a>))),
+        <a href="#119">ParserExpr::Seq</a>(node1, node2) =&gt; <a href="ast.rs.html#43">Expr::Seq</a>(
+            Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#146">node1</a>)),
+            Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#146">node2</a>)),
         ),
-        <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(node1, node2) =&gt; <a href="../../src/pest_meta/ast.rs.html#45">Expr::Choice</a>(
-            Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#150">node1</a>)),
-            Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#150">node2</a>)),
+        <a href="#120">ParserExpr::Choice</a>(node1, node2) =&gt; <a href="ast.rs.html#45">Expr::Choice</a>(
+            Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#150">node1</a>)),
+            Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#150">node2</a>)),
         ),
-        <a href="../../src/pest_meta/parser.rs.html#121">ParserExpr::Opt</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#47">Expr::Opt</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#154">node</a>))),
-        <a href="../../src/pest_meta/parser.rs.html#122">ParserExpr::Rep</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#49">Expr::Rep</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#155">node</a>))),
-        <a href="../../src/pest_meta/parser.rs.html#123">ParserExpr::RepOnce</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#51">Expr::RepOnce</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#156">node</a>))),
-        <a href="../../src/pest_meta/parser.rs.html#124">ParserExpr::RepExact</a>(node, num) =&gt; <a href="../../src/pest_meta/ast.rs.html#53">Expr::RepExact</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#157">node</a>)), <a href="../../src/pest_meta/parser.rs.html#157">num</a>),
-        <a href="../../src/pest_meta/parser.rs.html#125">ParserExpr::RepMin</a>(node, max) =&gt; <a href="../../src/pest_meta/ast.rs.html#55">Expr::RepMin</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#158">node</a>)), <a href="../../src/pest_meta/parser.rs.html#158">max</a>),
-        <a href="../../src/pest_meta/parser.rs.html#126">ParserExpr::RepMax</a>(node, max) =&gt; <a href="../../src/pest_meta/ast.rs.html#57">Expr::RepMax</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#159">node</a>)), <a href="../../src/pest_meta/parser.rs.html#159">max</a>),
-        <a href="../../src/pest_meta/parser.rs.html#127">ParserExpr::RepMinMax</a>(node, min, max) =&gt; {
-            <a href="../../src/pest_meta/ast.rs.html#59">Expr::RepMinMax</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#160">node</a>)), <a href="../../src/pest_meta/parser.rs.html#160">min</a>, <a href="../../src/pest_meta/parser.rs.html#160">max</a>)
+        <a href="#121">ParserExpr::Opt</a>(node) =&gt; <a href="ast.rs.html#47">Expr::Opt</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#154">node</a>))),
+        <a href="#122">ParserExpr::Rep</a>(node) =&gt; <a href="ast.rs.html#49">Expr::Rep</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#155">node</a>))),
+        <a href="#123">ParserExpr::RepOnce</a>(node) =&gt; <a href="ast.rs.html#51">Expr::RepOnce</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#156">node</a>))),
+        <a href="#124">ParserExpr::RepExact</a>(node, num) =&gt; <a href="ast.rs.html#53">Expr::RepExact</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#157">node</a>)), <a href="#157">num</a>),
+        <a href="#125">ParserExpr::RepMin</a>(node, max) =&gt; <a href="ast.rs.html#55">Expr::RepMin</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#158">node</a>)), <a href="#158">max</a>),
+        <a href="#126">ParserExpr::RepMax</a>(node, max) =&gt; <a href="ast.rs.html#57">Expr::RepMax</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#159">node</a>)), <a href="#159">max</a>),
+        <a href="#127">ParserExpr::RepMinMax</a>(node, min, max) =&gt; {
+            <a href="ast.rs.html#59">Expr::RepMinMax</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#160">node</a>)), <a href="#160">min</a>, <a href="#160">max</a>)
         }
-        <a href="../../src/pest_meta/parser.rs.html#128">ParserExpr::Push</a>(node) =&gt; <a href="../../src/pest_meta/ast.rs.html#63">Expr::Push</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#137">convert_node</a>(<span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#163">node</a>))),
+        <a href="#128">ParserExpr::Push</a>(node) =&gt; <a href="ast.rs.html#63">Expr::Push</a>(Box::new(<a href="#137">convert_node</a>(<span class="kw-2">*</span><a href="#163">node</a>))),
     }
 }
 
-<span class="kw">pub fn </span>consume_rules(pairs: Pairs&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../src/pest_meta/ast.rs.html#11">AstRule</a>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
+<span class="kw">pub fn </span>consume_rules(pairs: Pairs&lt;<a href="grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="ast.rs.html#11">AstRule</a>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
     <span class="kw">let </span>rules = consume_rules_with_spans(pairs)<span class="question-mark">?</span>;
-    <span class="kw">let </span>errors = <a href="../../src/pest_meta/validator.rs.html#195">validator::validate_ast</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#168">rules</a>);
+    <span class="kw">let </span>errors = <a href="validator.rs.html#195">validator::validate_ast</a>(<span class="kw-2">&amp;</span><a href="#168">rules</a>);
     <span class="kw">if </span>errors.is_empty() {
-        <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/parser.rs.html#168">rules</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="../../src/pest_meta/parser.rs.html#131">convert_rule</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+        <span class="prelude-val">Ok</span>(<a href="#168">rules</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="#131">convert_rule</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="../../src/pest_meta/parser.rs.html#169">errors</a>)
+        <span class="prelude-val">Err</span>(<a href="#169">errors</a>)
     }
 }
 
-<span class="kw">fn </span>consume_rules_with_spans(pairs: Pairs&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../src/pest_meta/parser.rs.html#32">ParserRule</a>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
+<span class="kw">fn </span>consume_rules_with_spans(pairs: Pairs&lt;<a href="grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="#32">ParserRule</a>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
     <span class="kw">let </span>climber = PrecClimber::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
         Operator::new(Rule::choice_operator, Assoc::Left),
         Operator::new(Rule::sequence_operator, Assoc::Left),
     ]);
 
-    <a href="../../src/pest_meta/parser.rs.html#177">pairs</a>
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="../../src/pest_meta/parser.rs.html#184">pair</a>.as_rule() == <a href="../../src/pest_meta/grammar.rs.html#2">Rule::grammar_rule</a>)
+    <a href="#177">pairs</a>
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="#184">pair</a>.as_rule() == <a href="grammar.rs.html#2">Rule::grammar_rule</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| {
-            <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="../../src/pest_meta/parser.rs.html#185">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="#185">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
 
-            <span class="kw">let </span>span = <a href="../../src/pest_meta/parser.rs.html#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_span();
-            <span class="kw">let </span>name = <a href="../../src/pest_meta/parser.rs.html#188">span</a>.as_str().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+            <span class="kw">let </span>span = <a href="#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_span();
+            <span class="kw">let </span>name = <a href="#188">span</a>.as_str().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
 
-            <a href="../../src/pest_meta/parser.rs.html#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// assignment_operator
+            <a href="#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// assignment_operator
 
             </span><span class="kw">let </span>ty = <span class="kw">if </span>pairs.peek().unwrap().as_rule() != Rule::opening_brace {
-                <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_rule() {
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::silent_modifier</a> =&gt; <a href="../../src/pest_meta/ast.rs.html#20">RuleType::Silent</a>,
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::atomic_modifier</a> =&gt; <a href="../../src/pest_meta/ast.rs.html#21">RuleType::Atomic</a>,
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::compound_atomic_modifier</a> =&gt; <a href="../../src/pest_meta/ast.rs.html#22">RuleType::CompoundAtomic</a>,
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::non_atomic_modifier</a> =&gt; <a href="../../src/pest_meta/ast.rs.html#23">RuleType::NonAtomic</a>,
+                <span class="kw">match </span><a href="#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_rule() {
+                    <a href="grammar.rs.html#2">Rule::silent_modifier</a> =&gt; <a href="ast.rs.html#20">RuleType::Silent</a>,
+                    <a href="grammar.rs.html#2">Rule::atomic_modifier</a> =&gt; <a href="ast.rs.html#21">RuleType::Atomic</a>,
+                    <a href="grammar.rs.html#2">Rule::compound_atomic_modifier</a> =&gt; <a href="ast.rs.html#22">RuleType::CompoundAtomic</a>,
+                    <a href="grammar.rs.html#2">Rule::non_atomic_modifier</a> =&gt; <a href="ast.rs.html#23">RuleType::NonAtomic</a>,
                     <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                 }
             } <span class="kw">else </span>{
-                <a href="../../src/pest_meta/ast.rs.html#19">RuleType::Normal</a>
+                <a href="ast.rs.html#19">RuleType::Normal</a>
             };
 
-            <a href="../../src/pest_meta/parser.rs.html#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_brace
+            <a href="#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_brace
 
             // skip initial infix operators
-            </span><span class="kw">let </span><span class="kw-2">mut </span>inner_nodes = <a href="../../src/pest_meta/parser.rs.html#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+            </span><span class="kw">let </span><span class="kw-2">mut </span>inner_nodes = <a href="#186">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
             <span class="kw">if </span>inner_nodes.peek().unwrap().as_rule() == Rule::choice_operator {
-                <a href="../../src/pest_meta/parser.rs.html#208">inner_nodes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                <a href="#208">inner_nodes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
             }
 
             <span class="kw">let </span>node = consume_expr(inner_nodes, <span class="kw-2">&amp;</span>climber)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/parser.rs.html#32">ParserRule</a> {
-                <a href="../../src/pest_meta/parser.rs.html#189">name</a>,
-                <a href="../../src/pest_meta/parser.rs.html#188">span</a>,
-                <a href="../../src/pest_meta/parser.rs.html#193">ty</a>,
-                <a href="../../src/pest_meta/parser.rs.html#213">node</a>,
+            <span class="prelude-val">Ok</span>(<a href="#32">ParserRule</a> {
+                <a href="#189">name</a>,
+                <a href="#188">span</a>,
+                <a href="#193">ty</a>,
+                <a href="#213">node</a>,
             })
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
 <span class="kw">fn </span>consume_expr&lt;<span class="lifetime">&#39;i</span>&gt;(
-    pairs: Peekable&lt;Pairs&lt;<span class="lifetime">&#39;i</span>, <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;,
-    climber: <span class="kw-2">&amp;</span>PrecClimber&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
+    pairs: Peekable&lt;Pairs&lt;<span class="lifetime">&#39;i</span>, <a href="grammar.rs.html#2">Rule</a>&gt;&gt;,
+    climber: <span class="kw-2">&amp;</span>PrecClimber&lt;<a href="grammar.rs.html#2">Rule</a>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
     <span class="kw">fn </span>unaries&lt;<span class="lifetime">&#39;i</span>&gt;(
-        <span class="kw-2">mut </span>pairs: Peekable&lt;Pairs&lt;<span class="lifetime">&#39;i</span>, <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;,
-        climber: <span class="kw-2">&amp;</span>PrecClimber&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
-        <span class="kw">let </span>pair = <a href="../../src/pest_meta/parser.rs.html#230">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+        <span class="kw-2">mut </span>pairs: Peekable&lt;Pairs&lt;<span class="lifetime">&#39;i</span>, <a href="grammar.rs.html#2">Rule</a>&gt;&gt;,
+        climber: <span class="kw-2">&amp;</span>PrecClimber&lt;<a href="grammar.rs.html#2">Rule</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
+        <span class="kw">let </span>pair = <a href="#230">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
 
-        <span class="kw">let </span>node = <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_rule() {
-            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::opening_paren</a> =&gt; {
+        <span class="kw">let </span>node = <span class="kw">match </span><a href="#233">pair</a>.as_rule() {
+            <a href="grammar.rs.html#2">Rule::opening_paren</a> =&gt; {
                 <span class="kw">let </span>node = unaries(pairs, climber)<span class="question-mark">?</span>;
-                <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#237">node</a>.span.end_pos();
+                <span class="kw">let </span>end = <a href="#237">node</a>.span.end_pos();
 
-                <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                    expr: <a href="../../src/pest_meta/parser.rs.html#237">node</a>.expr,
-                    span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#238">end</a>),
+                <a href="#40">ParserNode</a> {
+                    expr: <a href="#237">node</a>.expr,
+                    span: <a href="#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="#238">end</a>),
                 }
             }
-            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::positive_predicate_operator</a> =&gt; {
+            <a href="grammar.rs.html#2">Rule::positive_predicate_operator</a> =&gt; {
                 <span class="kw">let </span>node = unaries(pairs, climber)<span class="question-mark">?</span>;
-                <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#246">node</a>.span.end_pos();
+                <span class="kw">let </span>end = <a href="#246">node</a>.span.end_pos();
 
-                <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                    expr: <a href="../../src/pest_meta/parser.rs.html#117">ParserExpr::PosPred</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#246">node</a>)),
-                    span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#247">end</a>),
+                <a href="#40">ParserNode</a> {
+                    expr: <a href="#117">ParserExpr::PosPred</a>(Box::new(<a href="#246">node</a>)),
+                    span: <a href="#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="#247">end</a>),
                 }
             }
-            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::negative_predicate_operator</a> =&gt; {
+            <a href="grammar.rs.html#2">Rule::negative_predicate_operator</a> =&gt; {
                 <span class="kw">let </span>node = unaries(pairs, climber)<span class="question-mark">?</span>;
-                <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#255">node</a>.span.end_pos();
+                <span class="kw">let </span>end = <a href="#255">node</a>.span.end_pos();
 
-                <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                    expr: <a href="../../src/pest_meta/parser.rs.html#118">ParserExpr::NegPred</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#255">node</a>)),
-                    span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#256">end</a>),
+                <a href="#40">ParserNode</a> {
+                    expr: <a href="#118">ParserExpr::NegPred</a>(Box::new(<a href="#255">node</a>)),
+                    span: <a href="#233">pair</a>.as_span().start_pos().span(<span class="kw-2">&amp;</span><a href="#256">end</a>),
                 }
             }
             other_rule =&gt; {
-                <span class="kw">let </span>node = <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#263">other_rule</a> {
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::expression</a> =&gt; consume_expr(pair.into_inner().peekable(), climber)<span class="question-mark">?</span>,
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::_push</a> =&gt; {
-                        <span class="kw">let </span>start = <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().start_pos();
-                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.into_inner();
-                        <a href="../../src/pest_meta/parser.rs.html#268">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_paren
-                        </span><span class="kw">let </span>pair = <a href="../../src/pest_meta/parser.rs.html#268">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                <span class="kw">let </span>node = <span class="kw">match </span><a href="#263">other_rule</a> {
+                    <a href="grammar.rs.html#2">Rule::expression</a> =&gt; consume_expr(pair.into_inner().peekable(), climber)<span class="question-mark">?</span>,
+                    <a href="grammar.rs.html#2">Rule::_push</a> =&gt; {
+                        <span class="kw">let </span>start = <a href="#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().start_pos();
+                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="#233">pair</a>.into_inner();
+                        <a href="#268">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_paren
+                        </span><span class="kw">let </span>pair = <a href="#268">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
 
                         <span class="kw">let </span>node = consume_expr(pair.into_inner().peekable(), climber)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#272">node</a>.span.end_pos();
+                        <span class="kw">let </span>end = <a href="#272">node</a>.span.end_pos();
 
-                        <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                            expr: <a href="../../src/pest_meta/parser.rs.html#128">ParserExpr::Push</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#272">node</a>)),
-                            span: <a href="../../src/pest_meta/parser.rs.html#267">start</a>.span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#273">end</a>),
+                        <a href="#40">ParserNode</a> {
+                            expr: <a href="#128">ParserExpr::Push</a>(Box::new(<a href="#272">node</a>)),
+                            span: <a href="#267">start</a>.span(<span class="kw-2">&amp;</span><a href="#273">end</a>),
                         }
                     }
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::peek_slice</a> =&gt; {
-                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_inner();
-                        <a href="../../src/pest_meta/parser.rs.html#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_brack
-                        </span><span class="kw">let </span>pair_start = <a href="../../src/pest_meta/parser.rs.html#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// .. or integer
-                        </span><span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#283">pair_start</a>.as_rule() {
-                            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::range_operator</a> =&gt; <span class="number">0</span>,
-                            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::integer</a> =&gt; {
-                                <a href="../../src/pest_meta/parser.rs.html#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// ..
-                                </span><a href="../../src/pest_meta/parser.rs.html#283">pair_start</a>.as_str().parse().unwrap()
+                    <a href="grammar.rs.html#2">Rule::peek_slice</a> =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_inner();
+                        <a href="#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// opening_brack
+                        </span><span class="kw">let </span>pair_start = <a href="#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// .. or integer
+                        </span><span class="kw">let </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="kw">match </span><a href="#283">pair_start</a>.as_rule() {
+                            <a href="grammar.rs.html#2">Rule::range_operator</a> =&gt; <span class="number">0</span>,
+                            <a href="grammar.rs.html#2">Rule::integer</a> =&gt; {
+                                <a href="#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// ..
+                                </span><a href="#283">pair_start</a>.as_str().parse().unwrap()
                             }
                             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                         };
-                        <span class="kw">let </span>pair_end = <a href="../../src/pest_meta/parser.rs.html#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// integer or }
-                        </span><span class="kw">let </span>end: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; = <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#292">pair_end</a>.as_rule() {
-                            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::closing_brack</a> =&gt; <span class="prelude-val">None</span>,
-                            <a href="../../src/pest_meta/grammar.rs.html#2">Rule::integer</a> =&gt; {
-                                <a href="../../src/pest_meta/parser.rs.html#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// }
-                                </span><span class="prelude-val">Some</span>(<a href="../../src/pest_meta/parser.rs.html#292">pair_end</a>.as_str().parse().unwrap())
+                        <span class="kw">let </span>pair_end = <a href="#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// integer or }
+                        </span><span class="kw">let </span>end: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; = <span class="kw">match </span><a href="#292">pair_end</a>.as_rule() {
+                            <a href="grammar.rs.html#2">Rule::closing_brack</a> =&gt; <span class="prelude-val">None</span>,
+                            <a href="grammar.rs.html#2">Rule::integer</a> =&gt; {
+                                <a href="#281">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// }
+                                </span><span class="prelude-val">Some</span>(<a href="#292">pair_end</a>.as_str().parse().unwrap())
                             }
                             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                         };
-                        <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                            expr: <a href="../../src/pest_meta/parser.rs.html#116">ParserExpr::PeekSlice</a>(<a href="../../src/pest_meta/parser.rs.html#284">start</a>, <a href="../../src/pest_meta/parser.rs.html#293">end</a>),
-                            span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_span(),
+                        <a href="#40">ParserNode</a> {
+                            expr: <a href="#116">ParserExpr::PeekSlice</a>(<a href="#284">start</a>, <a href="#293">end</a>),
+                            span: <a href="#233">pair</a>.as_span(),
                         }
                     }
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::identifier</a> =&gt; <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                        expr: <a href="../../src/pest_meta/parser.rs.html#115">ParserExpr::Ident</a>(<a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_str().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
-                        span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
+                    <a href="grammar.rs.html#2">Rule::identifier</a> =&gt; <a href="#40">ParserNode</a> {
+                        expr: <a href="#115">ParserExpr::Ident</a>(<a href="#233">pair</a>.as_str().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                        span: <a href="#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
                     },
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::string</a> =&gt; {
-                        <span class="kw">let </span>string = <a href="../../src/pest_meta/parser.rs.html#566">unescape</a>(<a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_str()).expect(<span class="string">&quot;incorrect string literal&quot;</span>);
-                        <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                            expr: <a href="../../src/pest_meta/parser.rs.html#112">ParserExpr::Str</a>(<a href="../../src/pest_meta/parser.rs.html#311">string</a>[<span class="number">1</span>..<a href="../../src/pest_meta/parser.rs.html#311">string</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
-                            span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
+                    <a href="grammar.rs.html#2">Rule::string</a> =&gt; {
+                        <span class="kw">let </span>string = <a href="#566">unescape</a>(<a href="#233">pair</a>.as_str()).expect(<span class="string">&quot;incorrect string literal&quot;</span>);
+                        <a href="#40">ParserNode</a> {
+                            expr: <a href="#112">ParserExpr::Str</a>(<a href="#311">string</a>[<span class="number">1</span>..<a href="#311">string</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                            span: <a href="#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
                         }
                     }
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::insensitive_string</a> =&gt; {
-                        <span class="kw">let </span>string = <a href="../../src/pest_meta/parser.rs.html#566">unescape</a>(<a href="../../src/pest_meta/parser.rs.html#233">pair</a>.as_str()).expect(<span class="string">&quot;incorrect string literal&quot;</span>);
-                        <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                            expr: <a href="../../src/pest_meta/parser.rs.html#113">ParserExpr::Insens</a>(<a href="../../src/pest_meta/parser.rs.html#318">string</a>[<span class="number">2</span>..<a href="../../src/pest_meta/parser.rs.html#318">string</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
-                            span: <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
+                    <a href="grammar.rs.html#2">Rule::insensitive_string</a> =&gt; {
+                        <span class="kw">let </span>string = <a href="#566">unescape</a>(<a href="#233">pair</a>.as_str()).expect(<span class="string">&quot;incorrect string literal&quot;</span>);
+                        <a href="#40">ParserNode</a> {
+                            expr: <a href="#113">ParserExpr::Insens</a>(<a href="#318">string</a>[<span class="number">2</span>..<a href="#318">string</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+                            span: <a href="#233">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span(),
                         }
                     }
-                    <a href="../../src/pest_meta/grammar.rs.html#2">Rule::range</a> =&gt; {
-                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="../../src/pest_meta/parser.rs.html#233">pair</a>.into_inner();
-                        <span class="kw">let </span>pair = <a href="../../src/pest_meta/parser.rs.html#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-                        <span class="kw">let </span>start = <a href="../../src/pest_meta/parser.rs.html#566">unescape</a>(<a href="../../src/pest_meta/parser.rs.html#326">pair</a>.as_str()).expect(<span class="string">&quot;incorrect char literal&quot;</span>);
-                        <span class="kw">let </span>start_pos = <a href="../../src/pest_meta/parser.rs.html#326">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().start_pos();
-                        <a href="../../src/pest_meta/parser.rs.html#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                        <span class="kw">let </span>pair = <a href="../../src/pest_meta/parser.rs.html#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-                        <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#566">unescape</a>(<a href="../../src/pest_meta/parser.rs.html#330">pair</a>.as_str()).expect(<span class="string">&quot;incorrect char literal&quot;</span>);
-                        <span class="kw">let </span>end_pos = <a href="../../src/pest_meta/parser.rs.html#330">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().end_pos();
+                    <a href="grammar.rs.html#2">Rule::range</a> =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="#233">pair</a>.into_inner();
+                        <span class="kw">let </span>pair = <a href="#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                        <span class="kw">let </span>start = <a href="#566">unescape</a>(<a href="#326">pair</a>.as_str()).expect(<span class="string">&quot;incorrect char literal&quot;</span>);
+                        <span class="kw">let </span>start_pos = <a href="#326">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().start_pos();
+                        <a href="#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                        <span class="kw">let </span>pair = <a href="#325">pairs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                        <span class="kw">let </span>end = <a href="#566">unescape</a>(<a href="#330">pair</a>.as_str()).expect(<span class="string">&quot;incorrect char literal&quot;</span>);
+                        <span class="kw">let </span>end_pos = <a href="#330">pair</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().as_span().end_pos();
 
-                        <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                            expr: <a href="../../src/pest_meta/parser.rs.html#114">ParserExpr::Range</a>(
-                                <a href="../../src/pest_meta/parser.rs.html#327">start</a>[<span class="number">1</span>..<a href="../../src/pest_meta/parser.rs.html#327">start</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-                                <a href="../../src/pest_meta/parser.rs.html#331">end</a>[<span class="number">1</span>..<a href="../../src/pest_meta/parser.rs.html#331">end</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+                        <a href="#40">ParserNode</a> {
+                            expr: <a href="#114">ParserExpr::Range</a>(
+                                <a href="#327">start</a>[<span class="number">1</span>..<a href="#327">start</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+                                <a href="#331">end</a>[<span class="number">1</span>..<a href="#331">end</a>.len() - <span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
                             ),
-                            span: <a href="../../src/pest_meta/parser.rs.html#328">start_pos</a>.span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#332">end_pos</a>),
+                            span: <a href="#328">start_pos</a>.span(<span class="kw-2">&amp;</span><a href="#332">end_pos</a>),
                         }
                     }
                     <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
@@ -2073,59 +2073,59 @@
             </span>}
         };
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/parser.rs.html#235">node</a>)
+        <span class="prelude-val">Ok</span>(<a href="#235">node</a>)
     }
 
-    <span class="kw">let </span>term = |pair: Pair&lt;<span class="lifetime">&#39;i</span>, <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;| <a href="../../src/pest_meta/parser.rs.html#229-232">unaries</a>(<a href="../../src/pest_meta/parser.rs.html#532">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>(), <a href="../../src/pest_meta/parser.rs.html#227">climber</a>);
-    <span class="kw">let </span>infix = |lhs: <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt;,
-                 op: Pair&lt;<span class="lifetime">&#39;i</span>, <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;,
-                 rhs: <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt;| <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#534">op</a>.as_rule() {
-        <a href="../../src/pest_meta/grammar.rs.html#2">Rule::sequence_operator</a> =&gt; {
+    <span class="kw">let </span>term = |pair: Pair&lt;<span class="lifetime">&#39;i</span>, <a href="grammar.rs.html#2">Rule</a>&gt;| <a href="#229-232">unaries</a>(<a href="#532">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>(), <a href="#227">climber</a>);
+    <span class="kw">let </span>infix = |lhs: <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt;,
+                 op: Pair&lt;<span class="lifetime">&#39;i</span>, <a href="grammar.rs.html#2">Rule</a>&gt;,
+                 rhs: <span class="prelude-ty">Result</span>&lt;ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt;| <span class="kw">match </span><a href="#534">op</a>.as_rule() {
+        <a href="grammar.rs.html#2">Rule::sequence_operator</a> =&gt; {
             <span class="kw">let </span>lhs = lhs<span class="question-mark">?</span>;
             <span class="kw">let </span>rhs = rhs<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>start = <a href="../../src/pest_meta/parser.rs.html#537">lhs</a>.span.start_pos();
-            <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#538">rhs</a>.span.end_pos();
+            <span class="kw">let </span>start = <a href="#537">lhs</a>.span.start_pos();
+            <span class="kw">let </span>end = <a href="#538">rhs</a>.span.end_pos();
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                expr: <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#537">lhs</a>), Box::new(<a href="../../src/pest_meta/parser.rs.html#538">rhs</a>)),
-                span: <a href="../../src/pest_meta/parser.rs.html#540">start</a>.span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#541">end</a>),
+            <span class="prelude-val">Ok</span>(<a href="#40">ParserNode</a> {
+                expr: <a href="#119">ParserExpr::Seq</a>(Box::new(<a href="#537">lhs</a>), Box::new(<a href="#538">rhs</a>)),
+                span: <a href="#540">start</a>.span(<span class="kw-2">&amp;</span><a href="#541">end</a>),
             })
         }
-        <a href="../../src/pest_meta/grammar.rs.html#2">Rule::choice_operator</a> =&gt; {
+        <a href="grammar.rs.html#2">Rule::choice_operator</a> =&gt; {
             <span class="kw">let </span>lhs = lhs<span class="question-mark">?</span>;
             <span class="kw">let </span>rhs = rhs<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>start = <a href="../../src/pest_meta/parser.rs.html#549">lhs</a>.span.start_pos();
-            <span class="kw">let </span>end = <a href="../../src/pest_meta/parser.rs.html#550">rhs</a>.span.end_pos();
+            <span class="kw">let </span>start = <a href="#549">lhs</a>.span.start_pos();
+            <span class="kw">let </span>end = <a href="#550">rhs</a>.span.end_pos();
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a> {
-                expr: <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(Box::new(<a href="../../src/pest_meta/parser.rs.html#549">lhs</a>), Box::new(<a href="../../src/pest_meta/parser.rs.html#550">rhs</a>)),
-                span: <a href="../../src/pest_meta/parser.rs.html#552">start</a>.span(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/parser.rs.html#553">end</a>),
+            <span class="prelude-val">Ok</span>(<a href="#40">ParserNode</a> {
+                expr: <a href="#120">ParserExpr::Choice</a>(Box::new(<a href="#549">lhs</a>), Box::new(<a href="#550">rhs</a>)),
+                span: <a href="#552">start</a>.span(<span class="kw-2">&amp;</span><a href="#553">end</a>),
             })
         }
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     };
 
-    <a href="../../src/pest_meta/parser.rs.html#227">climber</a>.climb(<a href="../../src/pest_meta/parser.rs.html#226">pairs</a>, <a href="../../src/pest_meta/parser.rs.html#532">term</a>, <a href="../../src/pest_meta/parser.rs.html#533">infix</a>)
+    <a href="#227">climber</a>.climb(<a href="#226">pairs</a>, <a href="#532">term</a>, <a href="#533">infix</a>)
 }
 
 <span class="kw">fn </span>unescape(string: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="../../src/pest_meta/parser.rs.html#566">string</a>.chars();
+    <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="#566">string</a>.chars();
 
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../src/pest_meta/parser.rs.html#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">match </span><a href="#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; <span class="kw">match </span>chars.next()<span class="question-mark">? </span>{
-                <span class="string">&#39;&quot;&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;&quot;&#39;</span>),
-                <span class="string">&#39;\\&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\\&#39;</span>),
-                <span class="string">&#39;r&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\r&#39;</span>),
-                <span class="string">&#39;n&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\n&#39;</span>),
-                <span class="string">&#39;t&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\t&#39;</span>),
-                <span class="string">&#39;0&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\0&#39;</span>),
-                <span class="string">&#39;\&#39;&#39; </span>=&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<span class="string">&#39;\&#39;&#39;</span>),
+                <span class="string">&#39;&quot;&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;&quot;&#39;</span>),
+                <span class="string">&#39;\\&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\\&#39;</span>),
+                <span class="string">&#39;r&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\r&#39;</span>),
+                <span class="string">&#39;n&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\n&#39;</span>),
+                <span class="string">&#39;t&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\t&#39;</span>),
+                <span class="string">&#39;0&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\0&#39;</span>),
+                <span class="string">&#39;\&#39;&#39; </span>=&gt; <a href="#567">result</a>.push(<span class="string">&#39;\&#39;&#39;</span>),
                 <span class="string">&#39;x&#39; </span>=&gt; {
-                    <span class="kw">let </span>string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="../../src/pest_meta/parser.rs.html#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">2</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    <span class="kw">let </span>string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">2</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
                     <span class="kw">if </span>string.len() != <span class="number">2 </span>{
                         <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -2137,14 +2137,14 @@
 
                     <span class="kw">let </span>value = u8::from_str_radix(<span class="kw-2">&amp;</span>string, <span class="number">16</span>).ok()<span class="question-mark">?</span>;
 
-                    <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(char::from(<a href="../../src/pest_meta/parser.rs.html#591">value</a>));
+                    <a href="#567">result</a>.push(char::from(<a href="#591">value</a>));
                 }
                 <span class="string">&#39;u&#39; </span>=&gt; {
                     <span class="kw">if </span>chars.next()<span class="question-mark">? </span>!= <span class="string">&#39;{&#39; </span>{
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     }
 
-                    <span class="kw">let </span>string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="../../src/pest_meta/parser.rs.html#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(|c| <span class="kw-2">*</span><a href="../../src/pest_meta/parser.rs.html#600">c</a> != <span class="string">&#39;}&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    <span class="kw">let </span>string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#568">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(|c| <span class="kw-2">*</span><a href="#600">c</a> != <span class="string">&#39;}&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
                     <span class="kw">if </span>string.len() &lt; <span class="number">2 </span>|| <span class="number">6 </span>&lt; string.len() {
                         <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -2156,12 +2156,12 @@
 
                     <span class="kw">let </span>value = u32::from_str_radix(<span class="kw-2">&amp;</span>string, <span class="number">16</span>).ok()<span class="question-mark">?</span>;
 
-                    <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(char::from_u32(value)<span class="question-mark">?</span>);
+                    <a href="#567">result</a>.push(char::from_u32(value)<span class="question-mark">?</span>);
                 }
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
             },
-            <span class="prelude-val">Some</span>(c) =&gt; <a href="../../src/pest_meta/parser.rs.html#567">result</a>.push(<a href="../../src/pest_meta/parser.rs.html#616">c</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/pest_meta/parser.rs.html#567">result</a>),
+            <span class="prelude-val">Some</span>(c) =&gt; <a href="#567">result</a>.push(<a href="#616">c</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#567">result</a>),
         };
     }
 }
@@ -3093,4 +3093,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

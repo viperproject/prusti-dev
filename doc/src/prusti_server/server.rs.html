@@ -130,11 +130,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use crate</span>::{<a href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>, <a href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>};
+</span><span class="kw">use crate</span>::{<a href="process_verification.rs.html#20-24">process_verification_request</a>, <a href="verification_request.rs.html#15">VerificationRequest</a>};
 <span class="kw">use </span><a href="../../log/macro.info.html">log::info</a>;
 <span class="kw">use </span>prusti_common::{<a href="../../prusti_common/config/index.html">config</a>, <a href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>};
 <span class="kw">use </span>std::{
-    net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>},
+    net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>},
     sync::{<a href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">mpsc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>},
     <a href="https://doc.rust-lang.org/nightly/std/thread/index.html">thread</a>,
 };
@@ -144,10 +144,10 @@
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">struct </span>BincodeReject(<a href="../../bincode/error/type.Error.html">bincode::Error</a>);
-<span class="kw">impl </span><a href="../../warp/reject/trait.Reject.html">warp::reject::Reject</a> <span class="kw">for </span><a href="../../src/prusti_server/server.rs.html#20">BincodeReject</a> {}
+<span class="kw">impl </span><a href="../../warp/reject/trait.Reject.html">warp::reject::Reject</a> <span class="kw">for </span><a href="#20">BincodeReject</a> {}
 
 <span class="kw">pub fn </span>start_server_on_port(port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-    <a href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(<a href="../../src/prusti_server/server.rs.html#23">port</a>, <span class="kw">move </span>|address| {
+    <a href="#49-51">listen_on_port_with_address_callback</a>(<a href="#23">port</a>, <span class="kw">move </span>|address| {
         <span class="kw">if </span>port == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
@@ -160,60 +160,60 @@
     });
 }
 
-<span class="kw">pub fn </span>spawn_server_thread() -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+<span class="kw">pub fn </span>spawn_server_thread() -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a> {
     <span class="kw">let </span>(sender, receiver) = mpsc::channel();
     thread::spawn(<span class="kw">move </span>|| {
-        <a href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(
+        <a href="#49-51">listen_on_port_with_address_callback</a>(
             <span class="number">0</span>, <span class="comment">// ask system for port
-            </span><span class="kw">move </span>|address| <a href="../../src/prusti_server/server.rs.html#38">sender</a>.send(<a href="../../src/prusti_server/server.rs.html#42">address</a>).unwrap(),
+            </span><span class="kw">move </span>|address| <a href="#38">sender</a>.send(<a href="#42">address</a>).unwrap(),
         );
     });
     <span class="comment">// Return the address received by the server thread.
-    </span><a href="../../src/prusti_server/server.rs.html#38">receiver</a>.recv().unwrap()
+    </span><a href="#38">receiver</a>.recv().unwrap()
 }
 
 <span class="kw">fn </span>listen_on_port_with_address_callback&lt;F&gt;(port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, address_callback: F) -&gt; !
 <span class="kw">where
-    </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>),
+    </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>),
 {
     <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
     <span class="kw">let </span>viper = Arc::new(Viper::new_with_args(
         <span class="kw-2">&amp;</span>config::viper_home(),
         config::extra_jvm_args(),
     ));
-    <a href="../../src/prusti_server/server.rs.html#53">stopwatch</a>.finish();
+    <a href="#53">stopwatch</a>.finish();
 
     <span class="kw">let </span>cache_data = PersistentCache::load_cache(config::cache_path());
-    <span class="kw">let </span>cache = Arc::new(Mutex::new(<a href="../../src/prusti_server/server.rs.html#60">cache_data</a>));
+    <span class="kw">let </span>cache = Arc::new(Mutex::new(<a href="#60">cache_data</a>));
     <span class="kw">let </span>build_verification_request_handler = |viper_arc: Arc&lt;<a href="../../viper/viper/struct.Viper.html">Viper</a>&gt;, cache| {
-        <span class="kw">move </span>|request: <a href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>| {
+        <span class="kw">move </span>|request: <a href="verification_request.rs.html#15">VerificationRequest</a>| {
             <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;attach thread to JVM&quot;</span>);
-            <span class="kw">let </span>viper_thread = <a href="../../src/prusti_server/server.rs.html#62">viper_arc</a>.attach_current_thread();
-            <a href="../../src/prusti_server/server.rs.html#64">stopwatch</a>.finish();
-            <a href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#65">viper_thread</a>, <a href="../../src/prusti_server/server.rs.html#63">request</a>, <span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#62">cache</a>)
+            <span class="kw">let </span>viper_thread = <a href="#62">viper_arc</a>.attach_current_thread();
+            <a href="#64">stopwatch</a>.finish();
+            <a href="process_verification.rs.html#20-24">process_verification_request</a>(<span class="kw-2">&amp;</span><a href="#65">viper_thread</a>, <a href="#63">request</a>, <span class="kw-2">&amp;</span><a href="#62">cache</a>)
         }
     };
 
     <span class="kw">let </span>json_verify = <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;json&quot; </span>/ <span class="string">&quot;verify&quot;</span>)
         .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::body::json())
-        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(
-            <a href="../../src/prusti_server/server.rs.html#54">viper</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="../../src/prusti_server/server.rs.html#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="#62">build_verification_request_handler</a>(
+            <a href="#54">viper</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         ))
-        .<a href="../../warp/filter/trait.Filter.html">map</a>(|response| warp::reply::json(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#77">response</a>));
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(|response| warp::reply::json(<span class="kw-2">&amp;</span><a href="#77">response</a>));
 
     <span class="kw">let </span>bincode_verify = <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;bincode&quot; </span>/ <span class="string">&quot;verify&quot;</span>)
         .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::body::bytes())
         .<a href="../../warp/filter/trait.Filter.html">and_then</a>(|buf: <a href="../../bytes/bytes/struct.Bytes.html">warp::hyper::body::Bytes</a>| <span class="kw">async move </span>{
-            bincode::deserialize(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#81">buf</a>).map_err(|err| {
+            bincode::deserialize(<span class="kw-2">&amp;</span><a href="#81">buf</a>).map_err(|err| {
                 <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;request bincode body error: {}&quot;</span>, err);
-                warp::reject::custom(<a href="../../src/prusti_server/server.rs.html#20">BincodeReject</a>(<a href="../../src/prusti_server/server.rs.html#82">err</a>))
+                warp::reject::custom(<a href="#20">BincodeReject</a>(<a href="#82">err</a>))
             })
         })
-        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(<a href="../../src/prusti_server/server.rs.html#54">viper</a>, <a href="../../src/prusti_server/server.rs.html#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="#62">build_verification_request_handler</a>(<a href="#54">viper</a>, <a href="#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
         .<a href="../../warp/filter/trait.Filter.html">map</a>(|result| {
             warp::http::Response::new(
-                bincode::serialize(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#88">result</a>).expect(<span class="string">&quot;could not encode verification result&quot;</span>),
+                bincode::serialize(<span class="kw-2">&amp;</span><a href="#88">result</a>).expect(<span class="string">&quot;could not encode verification result&quot;</span>),
             )
         });
 
@@ -221,11 +221,11 @@
         .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::path(<span class="string">&quot;save&quot;</span>))
         .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::path::end())
         .<a href="../../warp/filter/trait.Filter.html">map</a>(<span class="kw">move </span>|| {
-            <a href="../../src/prusti_server/server.rs.html#61">cache</a>.lock().unwrap().save();
+            <a href="#61">cache</a>.lock().unwrap().save();
             warp::reply::html(<span class="string">&quot;Saved&quot;</span>)
         });
 
-    <span class="kw">let </span>endpoints = <a href="../../src/prusti_server/server.rs.html#71">json_verify</a>.<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="../../src/prusti_server/server.rs.html#79">bincode_verify</a>).<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="../../src/prusti_server/server.rs.html#94">save_cache</a>);
+    <span class="kw">let </span>endpoints = <a href="#71">json_verify</a>.<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="#79">bincode_verify</a>).<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="#94">save_cache</a>);
 
     <span class="comment">// Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
@@ -236,13 +236,13 @@
         .build()
         .expect(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
 
-    <a href="../../src/prusti_server/server.rs.html#107">runtime</a>.block_on(<span class="kw">async </span>{
+    <a href="#107">runtime</a>.block_on(<span class="kw">async </span>{
         <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server binding to port {}&quot;</span>, port);
         <span class="kw">let </span>(address, server_loop) =
-            warp::serve(<a href="../../src/prusti_server/server.rs.html#102">endpoints</a>).bind_ephemeral((Ipv4Addr::LOCALHOST, <a href="../../src/prusti_server/server.rs.html#49">port</a>));
+            warp::serve(<a href="#102">endpoints</a>).bind_ephemeral((Ipv4Addr::LOCALHOST, <a href="#49">port</a>));
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(<span class="string">&quot;port: {}&quot;</span>, address.port());
-        <a href="../../src/prusti_server/server.rs.html#49">address_callback</a>(<a href="../../src/prusti_server/server.rs.html#115">address</a>);
+        <a href="#49">address_callback</a>(<a href="#115">address</a>);
 
         <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server listening on port {}&quot;</span>, address.port());
         server_loop.<span class="kw">await
@@ -251,4 +251,4 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;The server unexpectedly stopped.&quot;</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

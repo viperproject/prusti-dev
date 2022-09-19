@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.0/src/parser_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.1/src/parser_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1254,12 +1254,12 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">core::ops::Range</a>;
 <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../src/pest/error.rs.html#29">Error</a>, <a href="../../src/pest/error.rs.html#44">ErrorVariant</a>};
-<span class="kw">use </span><span class="kw">crate</span>::iterators::{<a href="../../src/pest/iterators/mod.rs.html#14">pairs</a>, <a href="../../src/pest/iterators/queueable_token.rs.html#17">QueueableToken</a>};
-<span class="kw">use </span><span class="kw">crate</span>::position::{<a class="self" href="../../src/pest/lib.rs.html#92">self</a>, <a href="../../src/pest/position.rs.html#21">Position</a>};
-<span class="kw">use </span><a href="../../src/pest/span.rs.html#23"><span class="kw">crate</span>::span::Span</a>;
-<span class="kw">use </span><a href="../../src/pest/stack.rs.html#17"><span class="kw">crate</span>::stack::Stack</a>;
-<span class="kw">use </span><a href="../../src/pest/lib.rs.html#107"><span class="kw">crate</span>::RuleType</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#29">Error</a>, <a href="error.rs.html#44">ErrorVariant</a>};
+<span class="kw">use </span><span class="kw">crate</span>::iterators::{<a href="iterators/mod.rs.html#14">pairs</a>, <a href="iterators/queueable_token.rs.html#17">QueueableToken</a>};
+<span class="kw">use </span><span class="kw">crate</span>::position::{<a class="self" href="lib.rs.html#92">self</a>, <a href="position.rs.html#21">Position</a>};
+<span class="kw">use </span><a href="span.rs.html#23"><span class="kw">crate</span>::span::Span</a>;
+<span class="kw">use </span><a href="stack.rs.html#17"><span class="kw">crate</span>::stack::Stack</a>;
+<span class="kw">use </span><a href="lib.rs.html#107"><span class="kw">crate</span>::RuleType</a>;
 
 <span class="doccomment">/// The current lookahead status of a [`ParserState`].
 ///
@@ -1305,7 +1305,7 @@
 /// * `limit` - The maximum number of calls. If None,
 ///             the number of calls is unlimited.
 </span><span class="kw">pub fn </span>set_call_limit(limit: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>&gt;) {
-    <a href="../../src/pest/parser_state.rs.html#56">CALL_LIMIT</a>.store(<a href="../../src/pest/parser_state.rs.html#69">limit</a>.map(|f| <a href="../../src/pest/parser_state.rs.html#70">f</a>.get()).unwrap_or(<span class="number">0</span>), Ordering::Relaxed);
+    <a href="#56">CALL_LIMIT</a>.store(<a href="#69">limit</a>.map(|f| <a href="#70">f</a>.get()).unwrap_or(<span class="number">0</span>), Ordering::Relaxed);
 }
 
 <span class="attribute">#[derive(Debug)]
@@ -1313,23 +1313,23 @@
     current_call_limit: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/pest/parser_state.rs.html#74">CallLimitTracker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#74">CallLimitTracker</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>limit = <a href="../../src/pest/parser_state.rs.html#56">CALL_LIMIT</a>.load(Ordering::Relaxed);
-        <span class="kw">let </span>current_call_limit = <span class="kw">if </span>limit &gt; <span class="number">0 </span>{ <span class="prelude-val">Some</span>((<span class="number">0</span>, <a href="../../src/pest/parser_state.rs.html#80">limit</a>)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-        <span class="self">Self </span>{ <a href="../../src/pest/parser_state.rs.html#81">current_call_limit</a> }
+        <span class="kw">let </span>limit = <a href="#56">CALL_LIMIT</a>.load(Ordering::Relaxed);
+        <span class="kw">let </span>current_call_limit = <span class="kw">if </span>limit &gt; <span class="number">0 </span>{ <span class="prelude-val">Some</span>((<span class="number">0</span>, <a href="#80">limit</a>)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="self">Self </span>{ <a href="#81">current_call_limit</a> }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/pest/parser_state.rs.html#74">CallLimitTracker</a> {
+<span class="kw">impl </span><a href="#74">CallLimitTracker</a> {
     <span class="kw">fn </span>limit_reached(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/pest/parser_state.rs.html#87">self</a>.current_call_limit
-            .map_or(<span class="bool-val">false</span>, |(current, limit)| <a href="../../src/pest/parser_state.rs.html#89">current</a> &gt;= <a href="../../src/pest/parser_state.rs.html#89">limit</a>)
+        <a class="self" href="#87">self</a>.current_call_limit
+            .map_or(<span class="bool-val">false</span>, |(current, limit)| <a href="#89">current</a> &gt;= <a href="#89">limit</a>)
     }
 
     <span class="kw">fn </span>increment_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((current, <span class="kw">_</span>)) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/pest/parser_state.rs.html#92">self</a>.current_call_limit {
-            <span class="kw-2">*</span><a href="../../src/pest/parser_state.rs.html#93">current</a> += <span class="number">1</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((current, <span class="kw">_</span>)) = <span class="kw-2">&amp;mut </span><a class="self" href="#92">self</a>.current_call_limit {
+            <span class="kw-2">*</span><a href="#93">current</a> += <span class="number">1</span>;
         }
     }
 }
@@ -1338,16 +1338,16 @@
 ///
 /// [`Parser`]: trait.Parser.html
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ParserState&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../src/pest/lib.rs.html#107">RuleType</a>&gt; {
+</span><span class="kw">pub struct </span>ParserState&lt;<span class="lifetime">&#39;i</span>, R: <a href="lib.rs.html#107">RuleType</a>&gt; {
     position: Position&lt;<span class="lifetime">&#39;i</span>&gt;,
     queue: Vec&lt;QueueableToken&lt;R&gt;&gt;,
-    lookahead: <a href="../../src/pest/parser_state.rs.html#30">Lookahead</a>,
+    lookahead: <a href="#30">Lookahead</a>,
     pos_attempts: Vec&lt;R&gt;,
     neg_attempts: Vec&lt;R&gt;,
     attempt_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    atomicity: <a href="../../src/pest/parser_state.rs.html#40">Atomicity</a>,
+    atomicity: <a href="#40">Atomicity</a>,
     stack: Stack&lt;Span&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
-    call_tracker: <a href="../../src/pest/parser_state.rs.html#74">CallLimitTracker</a>,
+    call_tracker: <a href="#74">CallLimitTracker</a>,
 }
 
 <span class="doccomment">/// Creates a `ParserState` from a `&amp;str`, supplying it to a closure `f`.
@@ -1359,43 +1359,43 @@
 /// let input = &quot;&quot;;
 /// pest::state::&lt;(), _&gt;(input, |s| Ok(s)).unwrap();
 /// ```
-</span><span class="kw">pub fn </span>state&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../src/pest/lib.rs.html#107">RuleType</a>, F&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;pairs::Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt;, Error&lt;R&gt;&gt;
+</span><span class="kw">pub fn </span>state&lt;<span class="lifetime">&#39;i</span>, R: <a href="lib.rs.html#107">RuleType</a>, F&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;pairs::Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt;, Error&lt;R&gt;&gt;
 <span class="kw">where
     </span>F: FnOnce(Box&lt;ParserState&lt;<span class="lifetime">&#39;i</span>, R&gt;&gt;) -&gt; ParseResult&lt;Box&lt;ParserState&lt;<span class="lifetime">&#39;i</span>, R&gt;&gt;&gt;,
 {
-    <span class="kw">let </span>state = ParserState::new(<a href="../../src/pest/parser_state.rs.html#124">input</a>);
+    <span class="kw">let </span>state = ParserState::new(<a href="#124">input</a>);
 
-    <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#124">f</a>(<a href="../../src/pest/parser_state.rs.html#128">state</a>) {
+    <span class="kw">match </span><a href="#124">f</a>(<a href="#128">state</a>) {
         <span class="prelude-val">Ok</span>(state) =&gt; {
-            <span class="kw">let </span>len = <a href="../../src/pest/parser_state.rs.html#131">state</a>.queue.len();
-            <span class="prelude-val">Ok</span>(<a href="../../src/pest/iterators/pairs.rs.html#41-46">pairs::new</a>(Rc::new(<a href="../../src/pest/parser_state.rs.html#131">state</a>.queue), <a href="../../src/pest/parser_state.rs.html#124">input</a>, <span class="number">0</span>, <a href="../../src/pest/parser_state.rs.html#132">len</a>))
+            <span class="kw">let </span>len = <a href="#131">state</a>.queue.len();
+            <span class="prelude-val">Ok</span>(<a href="iterators/pairs.rs.html#41-46">pairs::new</a>(Rc::new(<a href="#131">state</a>.queue), <a href="#124">input</a>, <span class="number">0</span>, <a href="#132">len</a>))
         }
         <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>state) =&gt; {
             <span class="kw">let </span>variant = <span class="kw">if </span>state.reached_call_limit() {
-                <a href="../../src/pest/error.rs.html#53">ErrorVariant::CustomError</a> {
+                <a href="error.rs.html#53">ErrorVariant::CustomError</a> {
                     message: <span class="string">&quot;call limit reached&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
                 }
             } <span class="kw">else </span>{
-                <a href="../../src/pest/parser_state.rs.html#135">state</a>.pos_attempts.sort();
-                <a href="../../src/pest/parser_state.rs.html#135">state</a>.pos_attempts.dedup();
-                <a href="../../src/pest/parser_state.rs.html#135">state</a>.neg_attempts.sort();
-                <a href="../../src/pest/parser_state.rs.html#135">state</a>.neg_attempts.dedup();
-                <a href="../../src/pest/error.rs.html#46">ErrorVariant::ParsingError</a> {
-                    positives: <a href="../../src/pest/parser_state.rs.html#135">state</a>.pos_attempts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    negatives: <a href="../../src/pest/parser_state.rs.html#135">state</a>.neg_attempts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <a href="#135">state</a>.pos_attempts.sort();
+                <a href="#135">state</a>.pos_attempts.dedup();
+                <a href="#135">state</a>.neg_attempts.sort();
+                <a href="#135">state</a>.neg_attempts.dedup();
+                <a href="error.rs.html#46">ErrorVariant::ParsingError</a> {
+                    positives: <a href="#135">state</a>.pos_attempts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    negatives: <a href="#135">state</a>.neg_attempts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 }
             };
 
             <span class="prelude-val">Err</span>(Error::new_from_pos(
-                <a href="../../src/pest/parser_state.rs.html#136">variant</a>,
+                <a href="#136">variant</a>,
                 <span class="comment">// TODO(performance): Guarantee state.attempt_pos is a valid position
-                </span>position::Position::new(<a href="../../src/pest/parser_state.rs.html#124">input</a>, <a href="../../src/pest/parser_state.rs.html#135">state</a>.attempt_pos).unwrap(),
+                </span>position::Position::new(<a href="#124">input</a>, <a href="#135">state</a>.attempt_pos).unwrap(),
             ))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../src/pest/lib.rs.html#107">RuleType</a>&gt; ParserState&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="lib.rs.html#107">RuleType</a>&gt; ParserState&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="doccomment">/// Allocates a fresh `ParserState` object to the heap and returns the owned `Box`. This `Box`
     /// will be passed from closure to closure based on the needs of the specified `Parser`.
     ///
@@ -1407,14 +1407,14 @@
     /// let state: Box&lt;pest::ParserState&lt;&amp;str&gt;&gt; = pest::ParserState::new(input);
     /// ```
     </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Box&lt;<span class="self">Self</span>&gt; {
-        Box::new(<a href="../../src/pest/parser_state.rs.html#103">ParserState</a> {
-            position: Position::from_start(<a href="../../src/pest/parser_state.rs.html#171">input</a>),
+        Box::new(<a href="#103">ParserState</a> {
+            position: Position::from_start(<a href="#171">input</a>),
             queue: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            lookahead: <a href="../../src/pest/parser_state.rs.html#33">Lookahead::None</a>,
+            lookahead: <a href="#33">Lookahead::None</a>,
             pos_attempts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             neg_attempts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             attempt_pos: <span class="number">0</span>,
-            atomicity: <a href="../../src/pest/parser_state.rs.html#43">Atomicity::NonAtomic</a>,
+            atomicity: <a href="#43">Atomicity::NonAtomic</a>,
             stack: Stack::new(),
             call_tracker: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         })
@@ -1438,7 +1438,7 @@
     /// assert_eq!(position.pos(), 0);
     /// ```
     </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Position&lt;<span class="lifetime">&#39;i</span>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/pest/parser_state.rs.html#202">self</a>.position
+        <span class="kw-2">&amp;</span><a class="self" href="#202">self</a>.position
     }
 
     <span class="doccomment">/// Returns the current atomicity of the `ParserState`.
@@ -1459,22 +1459,22 @@
     /// let atomicity = state.atomicity();
     /// assert_eq!(atomicity, Atomicity::NonAtomic);
     /// ```
-    </span><span class="kw">pub fn </span>atomicity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/pest/parser_state.rs.html#40">Atomicity</a> {
-        <a class="self" href="../../src/pest/parser_state.rs.html#224">self</a>.atomicity
+    </span><span class="kw">pub fn </span>atomicity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#40">Atomicity</a> {
+        <a class="self" href="#224">self</a>.atomicity
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>inc_call_check_limit(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.call_tracker.limit_reached() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#229">self</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#229">self</a>);
         }
-        <a class="self" href="../../src/pest/parser_state.rs.html#229">self</a>.call_tracker.<a href="../../src/pest/parser_state.rs.html#92">increment_depth</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#229">self</a>)
+        <a class="self" href="#229">self</a>.call_tracker.<a href="#92">increment_depth</a>();
+        <span class="prelude-val">Ok</span>(<a class="self" href="#229">self</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>reached_call_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/pest/parser_state.rs.html#238">self</a>.call_tracker.<a href="../../src/pest/parser_state.rs.html#87">limit_reached</a>()
+        <a class="self" href="#238">self</a>.call_tracker.<a href="#87">limit_reached</a>()
     }
 
     <span class="doccomment">/// Wrapper needed to generate tokens. This will associate the `R` type rule to the closure
@@ -1502,12 +1502,12 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#263">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span>actual_pos = <a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.position.<a href="../../src/pest/position.rs.html#83">pos</a>();
-        <span class="kw">let </span>index = <a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.queue.len();
+        <span class="self"><a href="#263">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span>actual_pos = <a class="self" href="#263">self</a>.position.<a href="position.rs.html#83">pos</a>();
+        <span class="kw">let </span>index = <a class="self" href="#263">self</a>.queue.len();
 
         <span class="kw">let </span>(pos_attempts_index, neg_attempts_index) = <span class="kw">if </span>actual_pos == <span class="self">self</span>.attempt_pos {
-            (<a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.pos_attempts.len(), <a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.neg_attempts.len())
+            (<a class="self" href="#263">self</a>.pos_attempts.len(), <a class="self" href="#263">self</a>.neg_attempts.len())
         } <span class="kw">else </span>{
             <span class="comment">// Attempts have not been cleared yet since the attempt_pos is older.
             </span>(<span class="number">0</span>, <span class="number">0</span>)
@@ -1515,25 +1515,25 @@
 
         <span class="kw">if </span><span class="self">self</span>.lookahead == Lookahead::None &amp;&amp; <span class="self">self</span>.atomicity != Atomicity::Atomic {
             <span class="comment">// Pair&#39;s position will only be known after running the closure.
-            </span><a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.queue.push(<a href="../../src/pest/iterators/queueable_token.rs.html#18">QueueableToken::Start</a> {
+            </span><a class="self" href="#263">self</a>.queue.push(<a href="iterators/queueable_token.rs.html#18">QueueableToken::Start</a> {
                 end_token_index: <span class="number">0</span>,
-                input_pos: <a href="../../src/pest/parser_state.rs.html#268">actual_pos</a>,
+                input_pos: <a href="#268">actual_pos</a>,
             });
         }
 
-        <span class="kw">let </span>attempts = <a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>.<a href="../../src/pest/parser_state.rs.html#349">attempts_at</a>(<a href="../../src/pest/parser_state.rs.html#268">actual_pos</a>);
+        <span class="kw">let </span>attempts = <a class="self" href="#263">self</a>.<a href="#349">attempts_at</a>(<a href="#268">actual_pos</a>);
 
-        <span class="kw">let </span>result = <a href="../../src/pest/parser_state.rs.html#263">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#263">self</a>);
+        <span class="kw">let </span>result = <a href="#263">f</a>(<a class="self" href="#263">self</a>);
 
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#288">result</a> {
+        <span class="kw">match </span><a href="#288">result</a> {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>new_state) =&gt; {
                 <span class="kw">if </span>new_state.lookahead == Lookahead::Negative {
-                    <a href="../../src/pest/parser_state.rs.html#291">new_state</a>.<a href="../../src/pest/parser_state.rs.html#357-364">track</a>(
-                        <a href="../../src/pest/parser_state.rs.html#263">rule</a>,
-                        <a href="../../src/pest/parser_state.rs.html#268">actual_pos</a>,
-                        <a href="../../src/pest/parser_state.rs.html#271">pos_attempts_index</a>,
-                        <a href="../../src/pest/parser_state.rs.html#271">neg_attempts_index</a>,
-                        <a href="../../src/pest/parser_state.rs.html#286">attempts</a>,
+                    <a href="#291">new_state</a>.<a href="#357-364">track</a>(
+                        <a href="#263">rule</a>,
+                        <a href="#268">actual_pos</a>,
+                        <a href="#271">pos_attempts_index</a>,
+                        <a href="#271">neg_attempts_index</a>,
+                        <a href="#286">attempts</a>,
                     );
                 }
 
@@ -1542,51 +1542,51 @@
                 {
                     <span class="comment">// Storing the pair&#39;s index in the first token that was added before the closure was
                     // run.
-                    </span><span class="kw">let </span>new_index = <a href="../../src/pest/parser_state.rs.html#291">new_state</a>.queue.len();
-                    <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#291">new_state</a>.queue[<a href="../../src/pest/parser_state.rs.html#269">index</a>] {
-                        <a href="../../src/pest/iterators/queueable_token.rs.html#18">QueueableToken::Start</a> {
+                    </span><span class="kw">let </span>new_index = <a href="#291">new_state</a>.queue.len();
+                    <span class="kw">match </span><a href="#291">new_state</a>.queue[<a href="#269">index</a>] {
+                        <a href="iterators/queueable_token.rs.html#18">QueueableToken::Start</a> {
                             <span class="kw-2">ref mut </span>end_token_index,
                             ..
-                        } =&gt; <span class="kw-2">*</span><a href="../../src/pest/parser_state.rs.html#310">end_token_index</a> = <a href="../../src/pest/parser_state.rs.html#307">new_index</a>,
+                        } =&gt; <span class="kw-2">*</span><a href="#310">end_token_index</a> = <a href="#307">new_index</a>,
                         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                     };
 
-                    <span class="kw">let </span>new_pos = <a href="../../src/pest/parser_state.rs.html#291">new_state</a>.position.<a href="../../src/pest/position.rs.html#83">pos</a>();
+                    <span class="kw">let </span>new_pos = <a href="#291">new_state</a>.position.<a href="position.rs.html#83">pos</a>();
 
-                    <a href="../../src/pest/parser_state.rs.html#291">new_state</a>.queue.push(<a href="../../src/pest/iterators/queueable_token.rs.html#22">QueueableToken::End</a> {
-                        start_token_index: <a href="../../src/pest/parser_state.rs.html#269">index</a>,
-                        <a href="../../src/pest/parser_state.rs.html#263">rule</a>,
-                        input_pos: <a href="../../src/pest/parser_state.rs.html#316">new_pos</a>,
+                    <a href="#291">new_state</a>.queue.push(<a href="iterators/queueable_token.rs.html#22">QueueableToken::End</a> {
+                        start_token_index: <a href="#269">index</a>,
+                        <a href="#263">rule</a>,
+                        input_pos: <a href="#316">new_pos</a>,
                     });
                 }
 
-                <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#291">new_state</a>)
+                <span class="prelude-val">Ok</span>(<a href="#291">new_state</a>)
             }
             <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>new_state) =&gt; {
                 <span class="kw">if </span>new_state.lookahead != Lookahead::Negative {
-                    <a href="../../src/pest/parser_state.rs.html#327">new_state</a>.<a href="../../src/pest/parser_state.rs.html#357-364">track</a>(
-                        <a href="../../src/pest/parser_state.rs.html#263">rule</a>,
-                        <a href="../../src/pest/parser_state.rs.html#268">actual_pos</a>,
-                        <a href="../../src/pest/parser_state.rs.html#271">pos_attempts_index</a>,
-                        <a href="../../src/pest/parser_state.rs.html#271">neg_attempts_index</a>,
-                        <a href="../../src/pest/parser_state.rs.html#286">attempts</a>,
+                    <a href="#327">new_state</a>.<a href="#357-364">track</a>(
+                        <a href="#263">rule</a>,
+                        <a href="#268">actual_pos</a>,
+                        <a href="#271">pos_attempts_index</a>,
+                        <a href="#271">neg_attempts_index</a>,
+                        <a href="#286">attempts</a>,
                     );
                 }
 
                 <span class="kw">if </span>new_state.lookahead == Lookahead::None
                     &amp;&amp; new_state.atomicity != Atomicity::Atomic
                 {
-                    <a href="../../src/pest/parser_state.rs.html#327">new_state</a>.queue.truncate(<a href="../../src/pest/parser_state.rs.html#269">index</a>);
+                    <a href="#327">new_state</a>.queue.truncate(<a href="#269">index</a>);
                 }
 
-                <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#327">new_state</a>)
+                <span class="prelude-val">Err</span>(<a href="#327">new_state</a>)
             }
         }
     }
 
     <span class="kw">fn </span>attempts_at(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">if </span><span class="self">self</span>.attempt_pos == pos {
-            <a class="self" href="../../src/pest/parser_state.rs.html#349">self</a>.pos_attempts.len() + <a class="self" href="../../src/pest/parser_state.rs.html#349">self</a>.neg_attempts.len()
+            <a class="self" href="#349">self</a>.pos_attempts.len() + <a class="self" href="#349">self</a>.neg_attempts.len()
         } <span class="kw">else </span>{
             <span class="number">0
         </span>}
@@ -1607,30 +1607,30 @@
         <span class="comment">// If nested rules made no progress, there is no use to report them; it&#39;s only useful to
         // track the current rule, the exception being when only one attempt has been made during
         // the children rules.
-        </span><span class="kw">let </span>curr_attempts = <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.<a href="../../src/pest/parser_state.rs.html#349">attempts_at</a>(<a href="../../src/pest/parser_state.rs.html#360">pos</a>);
+        </span><span class="kw">let </span>curr_attempts = <a class="self" href="#358">self</a>.<a href="#349">attempts_at</a>(<a href="#360">pos</a>);
         <span class="kw">if </span>curr_attempts &gt; prev_attempts &amp;&amp; curr_attempts - prev_attempts == <span class="number">1 </span>{
             <span class="kw">return</span>;
         }
 
         <span class="kw">if </span>pos == <span class="self">self</span>.attempt_pos {
-            <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.pos_attempts.truncate(<a href="../../src/pest/parser_state.rs.html#361">pos_attempts_index</a>);
-            <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.neg_attempts.truncate(<a href="../../src/pest/parser_state.rs.html#362">neg_attempts_index</a>);
+            <a class="self" href="#358">self</a>.pos_attempts.truncate(<a href="#361">pos_attempts_index</a>);
+            <a class="self" href="#358">self</a>.neg_attempts.truncate(<a href="#362">neg_attempts_index</a>);
         }
 
         <span class="kw">if </span>pos &gt; <span class="self">self</span>.attempt_pos {
-            <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.pos_attempts.clear();
-            <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.neg_attempts.clear();
-            <a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.attempt_pos = <a href="../../src/pest/parser_state.rs.html#360">pos</a>;
+            <a class="self" href="#358">self</a>.pos_attempts.clear();
+            <a class="self" href="#358">self</a>.neg_attempts.clear();
+            <a class="self" href="#358">self</a>.attempt_pos = <a href="#360">pos</a>;
         }
 
         <span class="kw">let </span>attempts = <span class="kw">if </span><span class="self">self</span>.lookahead != Lookahead::Negative {
-            <span class="kw-2">&amp;mut </span><a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.pos_attempts
+            <span class="kw-2">&amp;mut </span><a class="self" href="#358">self</a>.pos_attempts
         } <span class="kw">else </span>{
-            <span class="kw-2">&amp;mut </span><a class="self" href="../../src/pest/parser_state.rs.html#358">self</a>.neg_attempts
+            <span class="kw-2">&amp;mut </span><a class="self" href="#358">self</a>.neg_attempts
         };
 
         <span class="kw">if </span>pos == <span class="self">self</span>.attempt_pos {
-            <a href="../../src/pest/parser_state.rs.html#388">attempts</a>.push(<a href="../../src/pest/parser_state.rs.html#359">rule</a>);
+            <a href="#388">attempts</a>.push(<a href="#359">rule</a>);
         }
     }
 
@@ -1671,19 +1671,19 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#432">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span>token_index = <a class="self" href="../../src/pest/parser_state.rs.html#432">self</a>.queue.len();
-        <span class="kw">let </span>initial_pos = <a class="self" href="../../src/pest/parser_state.rs.html#432">self</a>.position;
+        <span class="self"><a href="#432">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span>token_index = <a class="self" href="#432">self</a>.queue.len();
+        <span class="kw">let </span>initial_pos = <a class="self" href="#432">self</a>.position;
 
-        <span class="kw">let </span>result = <a href="../../src/pest/parser_state.rs.html#432">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#432">self</a>);
+        <span class="kw">let </span>result = <a href="#432">f</a>(<a class="self" href="#432">self</a>);
 
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#440">result</a> {
-            <span class="prelude-val">Ok</span>(new_state) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#443">new_state</a>),
+        <span class="kw">match </span><a href="#440">result</a> {
+            <span class="prelude-val">Ok</span>(new_state) =&gt; <span class="prelude-val">Ok</span>(<a href="#443">new_state</a>),
             <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>new_state) =&gt; {
                 <span class="comment">// Restore the initial position and truncate the token queue.
-                </span><a href="../../src/pest/parser_state.rs.html#444">new_state</a>.position = <a href="../../src/pest/parser_state.rs.html#438">initial_pos</a>;
-                <a href="../../src/pest/parser_state.rs.html#444">new_state</a>.queue.truncate(<a href="../../src/pest/parser_state.rs.html#437">token_index</a>);
-                <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#444">new_state</a>)
+                </span><a href="#444">new_state</a>.position = <a href="#438">initial_pos</a>;
+                <a href="#444">new_state</a>.queue.truncate(<a href="#437">token_index</a>);
+                <span class="prelude-val">Err</span>(<a href="#444">new_state</a>)
             }
         }
     }
@@ -1721,13 +1721,13 @@
     <span class="kw">where
         </span>F: FnMut(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#482">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="../../src/pest/parser_state.rs.html#482">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#482">self</a>);
+        <span class="self"><a href="#482">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="#482">f</a>(<a class="self" href="#482">self</a>);
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#487">result</a> {
-                <span class="prelude-val">Ok</span>(state) =&gt; <a href="../../src/pest/parser_state.rs.html#487">result</a> = <a href="../../src/pest/parser_state.rs.html#482">f</a>(<a href="../../src/pest/parser_state.rs.html#491">state</a>),
-                <span class="prelude-val">Err</span>(state) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#492">state</a>),
+            <span class="kw">match </span><a href="#487">result</a> {
+                <span class="prelude-val">Ok</span>(state) =&gt; <a href="#487">result</a> = <a href="#482">f</a>(<a href="#491">state</a>),
+                <span class="prelude-val">Err</span>(state) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#492">state</a>),
             };
         }
     }
@@ -1763,9 +1763,9 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#524">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#524">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#524">self</a>) {
-            <span class="prelude-val">Ok</span>(state) | <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#530">state</a>),
+        <span class="self"><a href="#524">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">match </span><a href="#524">f</a>(<a class="self" href="#524">self</a>) {
+            <span class="prelude-val">Ok</span>(state) | <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="#530">state</a>),
         }
     }
 
@@ -1799,9 +1799,9 @@
         </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <span class="kw">if </span><span class="self">self</span>.position.match_char_by(f) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#559">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#559">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#559">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#559">self</a>)
         }
     }
 
@@ -1830,9 +1830,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>match_string(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, string: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.match_string(string) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#593">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#593">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#593">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#593">self</a>)
         }
     }
 
@@ -1861,9 +1861,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>match_insensitive(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, string: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.match_insensitive(string) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#624">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#624">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#624">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#624">self</a>)
         }
     }
 
@@ -1892,9 +1892,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>match_range(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.match_range(range) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#655">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#655">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#655">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#655">self</a>)
         }
     }
 
@@ -1923,9 +1923,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>skip(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.skip(n) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#686">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#686">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#686">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#686">self</a>)
         }
     }
 
@@ -1948,8 +1948,8 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>skip_until(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, strings: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <a class="self" href="../../src/pest/parser_state.rs.html#712">self</a>.position.<a href="../../src/pest/position.rs.html#299">skip_until</a>(<a href="../../src/pest/parser_state.rs.html#712">strings</a>);
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#712">self</a>)
+        <a class="self" href="#712">self</a>.position.<a href="position.rs.html#268">skip_until</a>(<a href="#712">strings</a>);
+        <span class="prelude-val">Ok</span>(<a class="self" href="#712">self</a>)
     }
 
     <span class="doccomment">/// Attempts to match the start of the input. Returns `Ok` with the current `Box&lt;ParserState&gt;`
@@ -1976,9 +1976,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>start_of_input(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.at_start() {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#739">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#739">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#739">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#739">self</a>)
         }
     }
 
@@ -2006,9 +2006,9 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>end_of_input(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.position.at_end() {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#769">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#769">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#769">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#769">self</a>)
         }
     }
 
@@ -2041,44 +2041,44 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#802">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span>initial_lookahead = <a class="self" href="../../src/pest/parser_state.rs.html#802">self</a>.lookahead;
+        <span class="self"><a href="#802">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span>initial_lookahead = <a class="self" href="#802">self</a>.lookahead;
 
-        <a class="self" href="../../src/pest/parser_state.rs.html#802">self</a>.lookahead = <span class="kw">if </span>is_positive {
-            <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#807">initial_lookahead</a> {
-                <a href="../../src/pest/parser_state.rs.html#33">Lookahead::None</a> | <a href="../../src/pest/parser_state.rs.html#31">Lookahead::Positive</a> =&gt; <a href="../../src/pest/parser_state.rs.html#31">Lookahead::Positive</a>,
-                <a href="../../src/pest/parser_state.rs.html#32">Lookahead::Negative</a> =&gt; <a href="../../src/pest/parser_state.rs.html#32">Lookahead::Negative</a>,
+        <a class="self" href="#802">self</a>.lookahead = <span class="kw">if </span>is_positive {
+            <span class="kw">match </span><a href="#807">initial_lookahead</a> {
+                <a href="#33">Lookahead::None</a> | <a href="#31">Lookahead::Positive</a> =&gt; <a href="#31">Lookahead::Positive</a>,
+                <a href="#32">Lookahead::Negative</a> =&gt; <a href="#32">Lookahead::Negative</a>,
             }
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#807">initial_lookahead</a> {
-                <a href="../../src/pest/parser_state.rs.html#33">Lookahead::None</a> | <a href="../../src/pest/parser_state.rs.html#31">Lookahead::Positive</a> =&gt; <a href="../../src/pest/parser_state.rs.html#32">Lookahead::Negative</a>,
-                <a href="../../src/pest/parser_state.rs.html#32">Lookahead::Negative</a> =&gt; <a href="../../src/pest/parser_state.rs.html#31">Lookahead::Positive</a>,
+            <span class="kw">match </span><a href="#807">initial_lookahead</a> {
+                <a href="#33">Lookahead::None</a> | <a href="#31">Lookahead::Positive</a> =&gt; <a href="#32">Lookahead::Negative</a>,
+                <a href="#32">Lookahead::Negative</a> =&gt; <a href="#31">Lookahead::Positive</a>,
             }
         };
 
-        <span class="kw">let </span>initial_pos = <a class="self" href="../../src/pest/parser_state.rs.html#802">self</a>.position;
+        <span class="kw">let </span>initial_pos = <a class="self" href="#802">self</a>.position;
 
-        <span class="kw">let </span>result = <a href="../../src/pest/parser_state.rs.html#802">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#802">self</a>.<a href="../../src/pest/parser_state.rs.html#1177">checkpoint</a>());
+        <span class="kw">let </span>result = <a href="#802">f</a>(<a class="self" href="#802">self</a>.<a href="#1177">checkpoint</a>());
 
-        <span class="kw">let </span>result_state = <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#823">result</a> {
+        <span class="kw">let </span>result_state = <span class="kw">match </span><a href="#823">result</a> {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>new_state) =&gt; {
-                <a href="../../src/pest/parser_state.rs.html#826">new_state</a>.position = <a href="../../src/pest/parser_state.rs.html#821">initial_pos</a>;
-                <a href="../../src/pest/parser_state.rs.html#826">new_state</a>.lookahead = <a href="../../src/pest/parser_state.rs.html#807">initial_lookahead</a>;
-                <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#826">new_state</a>.<a href="../../src/pest/parser_state.rs.html#1192">restore</a>())
+                <a href="#826">new_state</a>.position = <a href="#821">initial_pos</a>;
+                <a href="#826">new_state</a>.lookahead = <a href="#807">initial_lookahead</a>;
+                <span class="prelude-val">Ok</span>(<a href="#826">new_state</a>.<a href="#1192">restore</a>())
             }
             <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>new_state) =&gt; {
-                <a href="../../src/pest/parser_state.rs.html#831">new_state</a>.position = <a href="../../src/pest/parser_state.rs.html#821">initial_pos</a>;
-                <a href="../../src/pest/parser_state.rs.html#831">new_state</a>.lookahead = <a href="../../src/pest/parser_state.rs.html#807">initial_lookahead</a>;
-                <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#831">new_state</a>.<a href="../../src/pest/parser_state.rs.html#1192">restore</a>())
+                <a href="#831">new_state</a>.position = <a href="#821">initial_pos</a>;
+                <a href="#831">new_state</a>.lookahead = <a href="#807">initial_lookahead</a>;
+                <span class="prelude-val">Err</span>(<a href="#831">new_state</a>.<a href="#1192">restore</a>())
             }
         };
 
         <span class="kw">if </span>is_positive {
-            <a href="../../src/pest/parser_state.rs.html#825">result_state</a>
+            <a href="#825">result_state</a>
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#825">result_state</a> {
-                <span class="prelude-val">Ok</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#842">state</a>),
-                <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#843">state</a>),
+            <span class="kw">match </span><a href="#825">result_state</a> {
+                <span class="prelude-val">Ok</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="#842">state</a>),
+                <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="#843">state</a>),
             }
         }
     }
@@ -2105,32 +2105,32 @@
     /// assert_eq!(pairs.len(), 0);
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>atomic&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, atomicity: <a href="../../src/pest/parser_state.rs.html#40">Atomicity</a>, f: F) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;
+    </span><span class="kw">pub fn </span>atomic&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, atomicity: <a href="#40">Atomicity</a>, f: F) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#870">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span>initial_atomicity = <a class="self" href="../../src/pest/parser_state.rs.html#870">self</a>.atomicity;
-        <span class="kw">let </span>should_toggle = <a class="self" href="../../src/pest/parser_state.rs.html#870">self</a>.atomicity != <a href="../../src/pest/parser_state.rs.html#870">atomicity</a>;
+        <span class="self"><a href="#870">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span>initial_atomicity = <a class="self" href="#870">self</a>.atomicity;
+        <span class="kw">let </span>should_toggle = <a class="self" href="#870">self</a>.atomicity != <a href="#870">atomicity</a>;
 
         <span class="kw">if </span>should_toggle {
-            <a class="self" href="../../src/pest/parser_state.rs.html#870">self</a>.atomicity = <a href="../../src/pest/parser_state.rs.html#870">atomicity</a>;
+            <a class="self" href="#870">self</a>.atomicity = <a href="#870">atomicity</a>;
         }
 
-        <span class="kw">let </span>result = <a href="../../src/pest/parser_state.rs.html#870">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#870">self</a>);
+        <span class="kw">let </span>result = <a href="#870">f</a>(<a class="self" href="#870">self</a>);
 
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#882">result</a> {
+        <span class="kw">match </span><a href="#882">result</a> {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>new_state) =&gt; {
                 <span class="kw">if </span>should_toggle {
-                    <a href="../../src/pest/parser_state.rs.html#885">new_state</a>.atomicity = <a href="../../src/pest/parser_state.rs.html#875">initial_atomicity</a>;
+                    <a href="#885">new_state</a>.atomicity = <a href="#875">initial_atomicity</a>;
                 }
-                <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#885">new_state</a>)
+                <span class="prelude-val">Ok</span>(<a href="#885">new_state</a>)
             }
             <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>new_state) =&gt; {
                 <span class="kw">if </span>should_toggle {
-                    <a href="../../src/pest/parser_state.rs.html#891">new_state</a>.atomicity = <a href="../../src/pest/parser_state.rs.html#875">initial_atomicity</a>;
+                    <a href="#891">new_state</a>.atomicity = <a href="#875">initial_atomicity</a>;
                 }
-                <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#891">new_state</a>)
+                <span class="prelude-val">Err</span>(<a href="#891">new_state</a>)
             }
         }
     }
@@ -2158,18 +2158,18 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#919">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
-        <span class="kw">let </span>start = <a class="self" href="../../src/pest/parser_state.rs.html#919">self</a>.position;
+        <span class="self"><a href="#919">self</a> </span>= <span class="self">self</span>.inc_call_check_limit()<span class="question-mark">?</span>;
+        <span class="kw">let </span>start = <a class="self" href="#919">self</a>.position;
 
-        <span class="kw">let </span>result = <a href="../../src/pest/parser_state.rs.html#919">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#919">self</a>);
+        <span class="kw">let </span>result = <a href="#919">f</a>(<a class="self" href="#919">self</a>);
 
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#926">result</a> {
+        <span class="kw">match </span><a href="#926">result</a> {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>state) =&gt; {
-                <span class="kw">let </span>end = <a href="../../src/pest/parser_state.rs.html#929">state</a>.position;
-                <a href="../../src/pest/parser_state.rs.html#929">state</a>.stack.<a href="../../src/pest/stack.rs.html#45">push</a>(<a href="../../src/pest/parser_state.rs.html#924">start</a>.<a href="../../src/pest/position.rs.html#105">span</a>(<span class="kw-2">&amp;</span><a href="../../src/pest/parser_state.rs.html#930">end</a>));
-                <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#929">state</a>)
+                <span class="kw">let </span>end = <a href="#929">state</a>.position;
+                <a href="#929">state</a>.stack.<a href="stack.rs.html#45">push</a>(<a href="#924">start</a>.<a href="position.rs.html#105">span</a>(<span class="kw-2">&amp;</span><a href="#930">end</a>));
+                <span class="prelude-val">Ok</span>(<a href="#929">state</a>)
             }
-            <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#934">state</a>),
+            <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="#934">state</a>),
         }
     }
 
@@ -2194,12 +2194,12 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>stack_peek(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>string = <span class="self"><a href="../../src/pest/parser_state.rs.html#958">self</a>
+        <span class="kw">let </span>string = <span class="self"><a href="#958">self</a>
             </span>.stack
-            .<a href="../../src/pest/stack.rs.html#40">peek</a>()
+            .<a href="stack.rs.html#40">peek</a>()
             .expect(<span class="string">&quot;peek was called on empty stack&quot;</span>)
-            .<a href="../../src/pest/span.rs.html#210">as_str</a>();
-        <a class="self" href="../../src/pest/parser_state.rs.html#958">self</a>.<a href="../../src/pest/parser_state.rs.html#593">match_string</a>(<a href="../../src/pest/parser_state.rs.html#959">string</a>)
+            .<a href="span.rs.html#210">as_str</a>();
+        <a class="self" href="#958">self</a>.<a href="#593">match_string</a>(<a href="#959">string</a>)
     }
 
     <span class="doccomment">/// Pops the top of the stack and attempts to match the string. Returns `Ok(Box&lt;ParserState&gt;)`
@@ -2223,12 +2223,12 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>stack_pop(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>string = <span class="self"><a href="../../src/pest/parser_state.rs.html#987">self</a>
+        <span class="kw">let </span>string = <span class="self"><a href="#987">self</a>
             </span>.stack
-            .<a href="../../src/pest/stack.rs.html#51">pop</a>()
+            .<a href="stack.rs.html#51">pop</a>()
             .expect(<span class="string">&quot;pop was called on empty stack&quot;</span>)
-            .<a href="../../src/pest/span.rs.html#210">as_str</a>();
-        <a class="self" href="../../src/pest/parser_state.rs.html#987">self</a>.<a href="../../src/pest/parser_state.rs.html#593">match_string</a>(<a href="../../src/pest/parser_state.rs.html#988">string</a>)
+            .<a href="span.rs.html#210">as_str</a>();
+        <a class="self" href="#987">self</a>.<a href="#593">match_string</a>(<a href="#988">string</a>)
     }
 
     <span class="doccomment">/// Matches part of the state of the stack.
@@ -2260,31 +2260,31 @@
         <span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
         start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
         end: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt;,
-        match_dir: <a href="../../src/pest/parser_state.rs.html#51">MatchDir</a>,
+        match_dir: <a href="#51">MatchDir</a>,
     ) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>range = <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#1198">constrain_idxs</a>(<a href="../../src/pest/parser_state.rs.html#1023">start</a>, <a href="../../src/pest/parser_state.rs.html#1024">end</a>, <a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>.stack.<a href="../../src/pest/stack.rs.html#60">len</a>()) {
-            <span class="prelude-val">Some</span>(r) =&gt; <a href="../../src/pest/parser_state.rs.html#1028">r</a>,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>),
+        <span class="kw">let </span>range = <span class="kw">match </span><a href="#1198">constrain_idxs</a>(<a href="#1023">start</a>, <a href="#1024">end</a>, <a class="self" href="#1022">self</a>.stack.<a href="stack.rs.html#60">len</a>()) {
+            <span class="prelude-val">Some</span>(r) =&gt; <a href="#1028">r</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1022">self</a>),
         };
         <span class="comment">// return true if an empty sequence is requested
         </span><span class="kw">if </span>range.end &lt;= range.start {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a class="self" href="#1022">self</a>);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>position = <a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>.position;
+        <span class="kw">let </span><span class="kw-2">mut </span>position = <a class="self" href="#1022">self</a>.position;
         <span class="kw">let </span>result = {
-            <span class="kw">let </span><span class="kw-2">mut </span>iter_b2t = <a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>.stack[<a href="../../src/pest/parser_state.rs.html#1027">range</a>].iter();
-            <span class="kw">let </span>matcher = |span: <span class="kw-2">&amp;</span><a href="../../src/pest/span.rs.html#23">Span</a>| <a href="../../src/pest/parser_state.rs.html#1036">position</a>.<a href="../../src/pest/position.rs.html#350">match_string</a>(<a href="../../src/pest/parser_state.rs.html#1039">span</a>.<a href="../../src/pest/span.rs.html#210">as_str</a>());
-            <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#1025">match_dir</a> {
-                <a href="../../src/pest/parser_state.rs.html#52">MatchDir::BottomToTop</a> =&gt; <a href="../../src/pest/parser_state.rs.html#1038">iter_b2t</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="../../src/pest/parser_state.rs.html#1039">matcher</a>),
-                <a href="../../src/pest/parser_state.rs.html#53">MatchDir::TopToBottom</a> =&gt; <a href="../../src/pest/parser_state.rs.html#1038">iter_b2t</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="../../src/pest/parser_state.rs.html#1039">matcher</a>),
+            <span class="kw">let </span><span class="kw-2">mut </span>iter_b2t = <a class="self" href="#1022">self</a>.stack[<a href="#1027">range</a>].iter();
+            <span class="kw">let </span>matcher = |span: <span class="kw-2">&amp;</span><a href="span.rs.html#23">Span</a>| <a href="#1036">position</a>.<a href="position.rs.html#319">match_string</a>(<a href="#1039">span</a>.<a href="span.rs.html#210">as_str</a>());
+            <span class="kw">match </span><a href="#1025">match_dir</a> {
+                <a href="#52">MatchDir::BottomToTop</a> =&gt; <a href="#1038">iter_b2t</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="#1039">matcher</a>),
+                <a href="#53">MatchDir::TopToBottom</a> =&gt; <a href="#1038">iter_b2t</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="#1039">matcher</a>),
             }
         };
         <span class="kw">if </span>result {
-            <a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>.position = <a href="../../src/pest/parser_state.rs.html#1036">position</a>;
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>)
+            <a class="self" href="#1022">self</a>.position = <a href="#1036">position</a>;
+            <span class="prelude-val">Ok</span>(<a class="self" href="#1022">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1022">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#1022">self</a>)
         }
     }
 
@@ -2309,7 +2309,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>stack_match_peek(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <a class="self" href="../../src/pest/parser_state.rs.html#1073">self</a>.<a href="../../src/pest/parser_state.rs.html#1021-1026">stack_match_peek_slice</a>(<span class="number">0</span>, <span class="prelude-val">None</span>, <a href="../../src/pest/parser_state.rs.html#53">MatchDir::TopToBottom</a>)
+        <a class="self" href="#1073">self</a>.<a href="#1021-1026">stack_match_peek_slice</a>(<span class="number">0</span>, <span class="prelude-val">None</span>, <a href="#53">MatchDir::TopToBottom</a>)
     }
 
     <span class="doccomment">/// Matches the full state of the stack. This method will clear the stack as it evaluates.
@@ -2332,7 +2332,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>stack_match_pop(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>position = <a class="self" href="../../src/pest/parser_state.rs.html#1096">self</a>.position;
+        <span class="kw">let </span><span class="kw-2">mut </span>position = <a class="self" href="#1096">self</a>.position;
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="bool-val">true</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(span) = <span class="self">self</span>.stack.pop() {
             result = position.match_string(span.as_str());
@@ -2342,10 +2342,10 @@
         }
 
         <span class="kw">if </span>result {
-            <a class="self" href="../../src/pest/parser_state.rs.html#1096">self</a>.position = <a href="../../src/pest/parser_state.rs.html#1097">position</a>;
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1096">self</a>)
+            <a class="self" href="#1096">self</a>.position = <a href="#1097">position</a>;
+            <span class="prelude-val">Ok</span>(<a class="self" href="#1096">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1096">self</a>)
+            <span class="prelude-val">Err</span>(<a class="self" href="#1096">self</a>)
         }
     }
 
@@ -2370,9 +2370,9 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>stack_drop(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/pest/parser_state.rs.html#1134">self</a>.stack.<a href="../../src/pest/stack.rs.html#51">pop</a>() {
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1134">self</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="../../src/pest/parser_state.rs.html#1134">self</a>),
+        <span class="kw">match </span><a class="self" href="#1134">self</a>.stack.<a href="stack.rs.html#51">pop</a>() {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="self" href="#1134">self</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1134">self</a>),
         }
     }
 
@@ -2404,39 +2404,39 @@
     <span class="kw">where
         </span>F: FnOnce(Box&lt;<span class="self">Self</span>&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt;,
     {
-        <span class="kw">match </span><a href="../../src/pest/parser_state.rs.html#1165">f</a>(<a class="self" href="../../src/pest/parser_state.rs.html#1165">self</a>.<a href="../../src/pest/parser_state.rs.html#1177">checkpoint</a>()) {
-            <span class="prelude-val">Ok</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/pest/parser_state.rs.html#1170">state</a>.<a href="../../src/pest/parser_state.rs.html#1185">checkpoint_ok</a>()),
-            <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/pest/parser_state.rs.html#1171">state</a>.<a href="../../src/pest/parser_state.rs.html#1192">restore</a>()),
+        <span class="kw">match </span><a href="#1165">f</a>(<a class="self" href="#1165">self</a>.<a href="#1177">checkpoint</a>()) {
+            <span class="prelude-val">Ok</span>(state) =&gt; <span class="prelude-val">Ok</span>(<a href="#1170">state</a>.<a href="#1185">checkpoint_ok</a>()),
+            <span class="prelude-val">Err</span>(state) =&gt; <span class="prelude-val">Err</span>(<a href="#1171">state</a>.<a href="#1192">restore</a>()),
         }
     }
 
     <span class="comment">// Mark the current state as a checkpoint and return the `Box`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>checkpoint(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;<span class="self">Self</span>&gt; {
-        <a class="self" href="../../src/pest/parser_state.rs.html#1177">self</a>.stack.<a href="../../src/pest/stack.rs.html#65">snapshot</a>();
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#1177">self</a>
+        <a class="self" href="#1177">self</a>.stack.<a href="stack.rs.html#65">snapshot</a>();
+        <span class="self"><a href="#1177">self</a>
     </span>}
 
     <span class="comment">// The checkpoint was cleared successfully
     // so remove it without touching other stack state.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>checkpoint_ok(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;<span class="self">Self</span>&gt; {
-        <a class="self" href="../../src/pest/parser_state.rs.html#1185">self</a>.stack.<a href="../../src/pest/stack.rs.html#70">clear_snapshot</a>();
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#1185">self</a>
+        <a class="self" href="#1185">self</a>.stack.<a href="stack.rs.html#70">clear_snapshot</a>();
+        <span class="self"><a href="#1185">self</a>
     </span>}
 
     <span class="comment">// Restore the current state to the most recent checkpoint.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>restore(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;<span class="self">Self</span>&gt; {
-        <a class="self" href="../../src/pest/parser_state.rs.html#1192">self</a>.stack.<a href="../../src/pest/stack.rs.html#76">restore</a>();
-        <span class="self"><a href="../../src/pest/parser_state.rs.html#1192">self</a>
+        <a class="self" href="#1192">self</a>.stack.<a href="stack.rs.html#76">restore</a>();
+        <span class="self"><a href="#1192">self</a>
     </span>}
 }
 
 <span class="kw">fn </span>constrain_idxs(start: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, end: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt;, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
     <span class="kw">let </span>start_norm = normalize_index(start, len)<span class="question-mark">?</span>;
     <span class="kw">let </span>end_norm = end.map_or(<span class="prelude-val">Some</span>(len), |e| normalize_index(e, len))<span class="question-mark">?</span>;
-    <span class="prelude-val">Some</span>(<a href="../../src/pest/parser_state.rs.html#1199">start_norm</a>..<a href="../../src/pest/parser_state.rs.html#1200">end_norm</a>)
+    <span class="prelude-val">Some</span>(<a href="#1199">start_norm</a>..<a href="#1200">end_norm</a>)
 }
 
 <span class="doccomment">/// Normalizes the index using its sequence’s length.
@@ -2445,11 +2445,11 @@
     <span class="kw">if </span>i &gt; len <span class="kw">as </span>i32 {
         <span class="prelude-val">None
     </span>} <span class="kw">else if </span>i &gt;= <span class="number">0 </span>{
-        <span class="prelude-val">Some</span>(<a href="../../src/pest/parser_state.rs.html#1206">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="prelude-val">Some</span>(<a href="#1206">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     } <span class="kw">else </span>{
-        <span class="kw">let </span>real_i = <a href="../../src/pest/parser_state.rs.html#1206">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> + <a href="../../src/pest/parser_state.rs.html#1206">i</a>;
+        <span class="kw">let </span>real_i = <a href="#1206">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> + <a href="#1206">i</a>;
         <span class="kw">if </span>real_i &gt;= <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(<a href="../../src/pest/parser_state.rs.html#1212">real_i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Some</span>(<a href="#1212">real_i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2475,4 +2475,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

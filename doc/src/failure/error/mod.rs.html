@@ -248,17 +248,17 @@
 <span id="248">248</span>
 </pre><pre class="rust"><code><span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
 
-<span class="kw">use </span>{<a href="../../../src/failure/lib.rs.html#287">Causes</a>, <a href="../../../failure_derive/derive.Fail.html">Fail</a>};
-<span class="kw">use </span><a href="../../../src/failure/backtrace/mod.rs.html#112">backtrace::Backtrace</a>;
-<span class="kw">use </span><a href="../../../src/failure/context.rs.html#76">context::Context</a>;
-<span class="kw">use </span><a href="../../../src/failure/compat.rs.html#8">compat::Compat</a>;
+<span class="kw">use </span>{<a href="../lib.rs.html#287">Causes</a>, <a href="../../../failure_derive/derive.Fail.html">Fail</a>};
+<span class="kw">use </span><a href="../backtrace/mod.rs.html#112">backtrace::Backtrace</a>;
+<span class="kw">use </span><a href="../context.rs.html#76">context::Context</a>;
+<span class="kw">use </span><a href="../compat.rs.html#8">compat::Compat</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../src/failure/box_std.rs.html#5">box_std::BoxStd</a>;
+</span><span class="kw">use </span><a href="../box_std.rs.html#5">box_std::BoxStd</a>;
 
 <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;small-error&quot;</span>, path = <span class="string">&quot;./error_impl_small.rs&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../src/failure/error/error_impl.rs.html#1-50">error_impl</a>;
-<span class="kw">use </span><a href="../../../src/failure/error/error_impl.rs.html#6"><span class="self">self</span>::error_impl::ErrorImpl</a>;
+</span><span class="kw">mod </span><a href="error_impl.rs.html#1-50">error_impl</a>;
+<span class="kw">use </span><a href="error_impl.rs.html#6"><span class="self">self</span>::error_impl::ErrorImpl</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
@@ -275,18 +275,18 @@
 /// information, and can be downcast into the failure that underlies it for
 /// more detailed inspection.
 </span><span class="kw">pub struct </span>Error {
-    imp: <a href="../../../src/failure/error/error_impl.rs.html#6">ErrorImpl</a>,
+    imp: <a href="error_impl.rs.html#6">ErrorImpl</a>,
 }
 
-<span class="kw">impl</span>&lt;F: <a href="../../../src/failure/lib.rs.html#108">Fail</a>&gt; From&lt;F&gt; <span class="kw">for </span><a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
-    <span class="kw">fn </span>from(failure: F) -&gt; <a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
-        <a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
-            imp: ErrorImpl::from(<a href="../../../src/failure/error/mod.rs.html#34">failure</a>)
+<span class="kw">impl</span>&lt;F: <a href="../lib.rs.html#108">Fail</a>&gt; From&lt;F&gt; <span class="kw">for </span><a href="#29">Error</a> {
+    <span class="kw">fn </span>from(failure: F) -&gt; <a href="#29">Error</a> {
+        <a href="#29">Error</a> {
+            imp: ErrorImpl::from(<a href="#34">failure</a>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
+<span class="kw">impl </span><a href="#29">Error</a> {
     <span class="doccomment">/// Creates an `Error` from `Box&lt;std::error::Error&gt;`.
     ///
     /// This method is useful for comparability with code,
@@ -308,19 +308,19 @@
     /// }
     /// ```
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">pub fn </span>from_boxed_compat(err: Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
-        Error::from(<a href="../../../src/failure/box_std.rs.html#5">BoxStd</a>(<a href="../../../src/failure/error/mod.rs.html#63">err</a>))
+    </span><span class="kw">pub fn </span>from_boxed_compat(err: Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#29">Error</a> {
+        Error::from(<a href="../box_std.rs.html#5">BoxStd</a>(<a href="#63">err</a>))
     }
 
     <span class="doccomment">/// Return a reference to the underlying failure that this `Error`
     /// contains.
-    </span><span class="kw">pub fn </span>as_fail(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#69">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#28">failure</a>()
+    </span><span class="kw">pub fn </span>as_fail(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a> {
+        <a class="self" href="#69">self</a>.imp.<a href="error_impl.rs.html#28">failure</a>()
     }
 
     <span class="doccomment">/// Returns the name of the underlying fail.
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#74">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>().<a href="../../../src/failure/lib.rs.html#115">name</a>()
+        <a class="self" href="#74">self</a>.<a href="#69">as_fail</a>().<a href="../lib.rs.html#115">name</a>()
     }
 
     <span class="doccomment">/// Returns a reference to the underlying cause of this `Error`. Unlike the
@@ -330,8 +330,8 @@
     /// This method has been deprecated in favor of the [Error::as_fail] method,
     /// which does the same thing.
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;please use &#39;as_fail()&#39; method instead&quot;</span>)]
-    </span><span class="kw">pub fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#85">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>()
+    </span><span class="kw">pub fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a> {
+        <a class="self" href="#85">self</a>.<a href="#69">as_fail</a>()
     }
 
     <span class="doccomment">/// Gets a reference to the `Backtrace` for this `Error`.
@@ -339,8 +339,8 @@
     /// If the failure this wrapped carried a backtrace, that backtrace will
     /// be returned. Otherwise, the backtrace will have been constructed at
     /// the point that failure was cast into the `Error` type.
-    </span><span class="kw">pub fn </span>backtrace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/failure/backtrace/mod.rs.html#112">Backtrace</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#94">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#28">failure</a>().<a href="../../../src/failure/lib.rs.html#138">backtrace</a>().unwrap_or(<span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/error/mod.rs.html#94">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#36">backtrace</a>())
+    </span><span class="kw">pub fn </span>backtrace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../backtrace/mod.rs.html#112">Backtrace</a> {
+        <a class="self" href="#94">self</a>.imp.<a href="error_impl.rs.html#28">failure</a>().<a href="../lib.rs.html#138">backtrace</a>().unwrap_or(<span class="kw-2">&amp;</span><a class="self" href="#94">self</a>.imp.<a href="error_impl.rs.html#36">backtrace</a>())
     }
 
     <span class="doccomment">/// Provides context for this `Error`.
@@ -357,7 +357,7 @@
     /// or a string literal, or a failure, or some other custom context-carrying
     /// type.
     </span><span class="kw">pub fn </span>context&lt;D: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="self">self</span>, context: D) -&gt; Context&lt;D&gt; {
-        Context::with_err(<a href="../../../src/failure/error/mod.rs.html#111">context</a>, <a class="self" href="../../../src/failure/error/mod.rs.html#111">self</a>)
+        Context::with_err(<a href="#111">context</a>, <a class="self" href="#111">self</a>)
     }
 
     <span class="doccomment">/// Wraps `Error` in a compatibility type.
@@ -365,8 +365,8 @@
     /// This type implements the `Error` trait from `std::error`. If you need
     /// to pass failure&#39;s `Error` to an interface that takes any `Error`, you
     /// can use this method to get a compatible type.
-    </span><span class="kw">pub fn </span>compat(<span class="self">self</span>) -&gt; Compat&lt;<a href="../../../src/failure/error/mod.rs.html#29">Error</a>&gt; {
-        <a href="../../../src/failure/compat.rs.html#8">Compat</a> { error: <span class="self"><a href="../../../src/failure/error/mod.rs.html#120">self</a> </span>}
+    </span><span class="kw">pub fn </span>compat(<span class="self">self</span>) -&gt; Compat&lt;<a href="#29">Error</a>&gt; {
+        <a href="../compat.rs.html#8">Compat</a> { error: <span class="self"><a href="#120">self</a> </span>}
     }
 
     <span class="doccomment">/// Attempts to downcast this `Error` to a particular `Fail` type.
@@ -375,22 +375,22 @@
     /// failure is of the type `T`. For this reason it returns a `Result` - in
     /// the case that the underlying error is of a different type, the
     /// original `Error` is returned.
-    </span><span class="kw">pub fn </span>downcast&lt;T: <a href="../../../src/failure/lib.rs.html#108">Fail</a>&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../src/failure/error/mod.rs.html#29">Error</a>&gt; {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#130">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#40">downcast</a>().map_err(|imp| <a href="../../../src/failure/error/mod.rs.html#29">Error</a> { <a href="../../../src/failure/error/mod.rs.html#131">imp</a> })
+    </span><span class="kw">pub fn </span>downcast&lt;T: <a href="../lib.rs.html#108">Fail</a>&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#29">Error</a>&gt; {
+        <a class="self" href="#130">self</a>.imp.<a href="error_impl.rs.html#40">downcast</a>().map_err(|imp| <a href="#29">Error</a> { <a href="#131">imp</a> })
     }
 
     <span class="doccomment">/// Returns the &quot;root cause&quot; of this error - the last value in the
     /// cause chain which does not return an underlying `cause`.
-    </span><span class="kw">pub fn </span>find_root_cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#136">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>().<a href="../../../src/failure/lib.rs.html#234">find_root_cause</a>()
+    </span><span class="kw">pub fn </span>find_root_cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a> {
+        <a class="self" href="#136">self</a>.<a href="#69">as_fail</a>().<a href="../lib.rs.html#234">find_root_cause</a>()
     }
 
     <span class="doccomment">/// Returns a iterator over the causes of this error with the cause
     /// of the fail as the first item and the `root_cause` as the final item.
     ///
     /// Use `iter_chain` to also include the fail of this error itself.
-    </span><span class="kw">pub fn </span>iter_causes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/failure/lib.rs.html#287">Causes</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#144">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>().<a href="../../../src/failure/lib.rs.html#242">iter_causes</a>()
+    </span><span class="kw">pub fn </span>iter_causes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../lib.rs.html#287">Causes</a> {
+        <a class="self" href="#144">self</a>.<a href="#69">as_fail</a>().<a href="../lib.rs.html#242">iter_causes</a>()
     }
 
     <span class="doccomment">/// Returns a iterator over all fails up the chain from the current
@@ -399,59 +399,59 @@
     /// This means that the chain also includes the fail itself which
     /// means that it does *not* start with `cause`.  To skip the outermost
     /// fail use `iter_causes` instead.
-    </span><span class="kw">pub fn </span>iter_chain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/failure/lib.rs.html#287">Causes</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#154">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>().<a href="../../../src/failure/lib.rs.html#252">iter_chain</a>()
+    </span><span class="kw">pub fn </span>iter_chain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../lib.rs.html#287">Causes</a> {
+        <a class="self" href="#154">self</a>.<a href="#69">as_fail</a>().<a href="../lib.rs.html#252">iter_chain</a>()
     }
 
     <span class="doccomment">/// Attempts to downcast this `Error` to a particular `Fail` type by
     /// reference.
     ///
     /// If the underlying error is not of type `T`, this will return `None`.
-    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="../../../src/failure/lib.rs.html#108">Fail</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#162">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#28">failure</a>().<a href="../../../src/failure/lib.rs.html#206">downcast_ref</a>()
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="../lib.rs.html#108">Fail</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <a class="self" href="#162">self</a>.imp.<a href="error_impl.rs.html#28">failure</a>().<a href="../lib.rs.html#206">downcast_ref</a>()
     }
 
     <span class="doccomment">/// Attempts to downcast this `Error` to a particular `Fail` type by
     /// mutable reference.
     ///
     /// If the underlying error is not of type `T`, this will return `None`.
-    </span><span class="kw">pub fn </span>downcast_mut&lt;T: <a href="../../../src/failure/lib.rs.html#108">Fail</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#170">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#32">failure_mut</a>().<a href="../../../src/failure/lib.rs.html#218">downcast_mut</a>()
+    </span><span class="kw">pub fn </span>downcast_mut&lt;T: <a href="../lib.rs.html#108">Fail</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <a class="self" href="#170">self</a>.imp.<a href="error_impl.rs.html#32">failure_mut</a>().<a href="../lib.rs.html#218">downcast_mut</a>()
     }
 
     <span class="doccomment">/// Deprecated alias to `find_root_cause`.
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;please use the &#39;find_root_cause()&#39; method instead&quot;</span>)]
-    </span><span class="kw">pub fn </span>root_cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a> {
-        <a href="../../../src/failure/lib.rs.html#301">::find_root_cause</a>(<a class="self" href="../../../src/failure/error/mod.rs.html#176">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>())
+    </span><span class="kw">pub fn </span>root_cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a> {
+        <a href="../lib.rs.html#301">::find_root_cause</a>(<a class="self" href="#176">self</a>.<a href="#69">as_fail</a>())
     }
 
     <span class="doccomment">/// Deprecated alias to `iter_causes`.
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;please use the &#39;iter_chain()&#39; method instead&quot;</span>)]
-    </span><span class="kw">pub fn </span>causes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/failure/lib.rs.html#287">Causes</a> {
-        <a href="../../../src/failure/lib.rs.html#287">Causes</a> { fail: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/failure/error/mod.rs.html#182">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>()) }
+    </span><span class="kw">pub fn </span>causes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../lib.rs.html#287">Causes</a> {
+        <a href="../lib.rs.html#287">Causes</a> { fail: <span class="prelude-val">Some</span>(<a class="self" href="#182">self</a>.<a href="#69">as_fail</a>()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#29">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/error/mod.rs.html#188">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#28">failure</a>(), <a href="../../../src/failure/error/mod.rs.html#188">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#188">self</a>.imp.<a href="error_impl.rs.html#28">failure</a>(), <a href="#188">f</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#29">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>backtrace = <a class="self" href="../../../src/failure/error/mod.rs.html#194">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#36">backtrace</a>();
+        <span class="kw">let </span>backtrace = <a class="self" href="#194">self</a>.imp.<a href="error_impl.rs.html#36">backtrace</a>();
         <span class="kw">if </span>backtrace.is_none() {
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/error/mod.rs.html#194">self</a>.imp.<a href="../../../src/failure/error/error_impl.rs.html#28">failure</a>(), <a href="../../../src/failure/error/mod.rs.html#194">f</a>)
+            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="#194">self</a>.imp.<a href="error_impl.rs.html#28">failure</a>(), <a href="#194">f</a>)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/failure/error/mod.rs.html#194">f</a>, <span class="string">&quot;{:?}\n\n{:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.imp.failure(), backtrace)
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#194">f</a>, <span class="string">&quot;{:?}\n\n{:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.imp.failure(), backtrace)
         }
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a>&gt; <span class="kw">for </span><a href="../../../src/failure/error/mod.rs.html#29">Error</a> {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/failure/lib.rs.html#108">Fail</a> {
-        <a class="self" href="../../../src/failure/error/mod.rs.html#205">self</a>.<a href="../../../src/failure/error/mod.rs.html#69">as_fail</a>()
+<span class="kw">impl </span>AsRef&lt;<span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a>&gt; <span class="kw">for </span><a href="#29">Error</a> {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../lib.rs.html#108">Fail</a> {
+        <a class="self" href="#205">self</a>.<a href="#69">as_fail</a>()
     }
 }
 
@@ -495,4 +495,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

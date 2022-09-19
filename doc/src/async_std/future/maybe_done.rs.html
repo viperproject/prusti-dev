@@ -108,7 +108,7 @@
 <span class="kw">impl</span>&lt;Fut: <a href="../../../async_std/future/trait.Future.html">Future</a>&gt; MaybeDone&lt;Fut&gt; {
     <span class="doccomment">/// Create a new instance of `MaybeDone`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(future: Fut) -&gt; MaybeDone&lt;Fut&gt; {
-        <span class="self">Self</span>::Future(<a href="../../../src/async_std/future/maybe_done.rs.html#29">future</a>)
+        <span class="self">Self</span>::Future(<a href="#29">future</a>)
     }
 
     <span class="doccomment">/// Returns an [`Option`] containing a reference to the output of the future.
@@ -117,9 +117,9 @@
     /// has not yet been called.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>output(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Fut::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/async_std/future/maybe_done.rs.html#38">self</a>.get_ref();
-        <span class="kw">match </span><a href="../../../src/async_std/future/maybe_done.rs.html#39">this</a> {
-            <a href="../../../src/async_std/future/maybe_done.rs.html#20">MaybeDone::Done</a>(res) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/async_std/future/maybe_done.rs.html#41">res</a>),
+        <span class="kw">let </span>this = <a class="self" href="#38">self</a>.get_ref();
+        <span class="kw">match </span><a href="#39">this</a> {
+            <a href="#20">MaybeDone::Done</a>(res) =&gt; <span class="prelude-val">Some</span>(<a href="#41">res</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -129,13 +129,13 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Fut::Output&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>this = <a class="self" href="../../../src/async_std/future/maybe_done.rs.html#49">self</a>.get_unchecked_mut();
-            <span class="kw">match </span><a href="../../../src/async_std/future/maybe_done.rs.html#51">this</a> {
-                <a href="../../../src/async_std/future/maybe_done.rs.html#20">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
-                <a href="../../../src/async_std/future/maybe_done.rs.html#17">MaybeDone::Future</a>(<span class="kw">_</span>) | <a href="../../../src/async_std/future/maybe_done.rs.html#24">MaybeDone::Gone</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            <span class="kw">let </span>this = <a class="self" href="#49">self</a>.get_unchecked_mut();
+            <span class="kw">match </span><a href="#51">this</a> {
+                <a href="#20">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
+                <a href="#17">MaybeDone::Future</a>(<span class="kw">_</span>) | <a href="#24">MaybeDone::Gone</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
             };
-            <span class="kw">if let </span><a href="../../../src/async_std/future/maybe_done.rs.html#20">MaybeDone::Done</a>(output) = mem::replace(<a href="../../../src/async_std/future/maybe_done.rs.html#51">this</a>, <a href="../../../src/async_std/future/maybe_done.rs.html#24">MaybeDone::Gone</a>) {
-                <span class="prelude-val">Some</span>(<a href="../../../src/async_std/future/maybe_done.rs.html#56">output</a>)
+            <span class="kw">if let </span><a href="#20">MaybeDone::Done</a>(output) = mem::replace(<a href="#51">this</a>, <a href="#24">MaybeDone::Gone</a>) {
+                <span class="prelude-val">Some</span>(<a href="#56">output</a>)
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
             }
@@ -148,15 +148,15 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-            <span class="kw">match </span>Pin::as_mut(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/async_std/future/maybe_done.rs.html#68">self</a>).get_unchecked_mut() {
-                <a href="../../../src/async_std/future/maybe_done.rs.html#17">MaybeDone::Future</a>(a) =&gt; <a class="macro" href="../../../async_std/task/macro.ready.html">ready!</a>(Pin::new_unchecked(a).poll(cx)),
-                <a href="../../../src/async_std/future/maybe_done.rs.html#20">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(()),
-                <a href="../../../src/async_std/future/maybe_done.rs.html#24">MaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;MaybeDone polled after value taken&quot;</span>),
+            <span class="kw">match </span>Pin::as_mut(<span class="kw-2">&amp;mut </span><a class="self" href="#68">self</a>).get_unchecked_mut() {
+                <a href="#17">MaybeDone::Future</a>(a) =&gt; <a class="macro" href="../../../async_std/task/macro.ready.html">ready!</a>(Pin::new_unchecked(a).poll(cx)),
+                <a href="#20">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(()),
+                <a href="#24">MaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;MaybeDone polled after value taken&quot;</span>),
             }
         };
-        <a class="self" href="../../../src/async_std/future/maybe_done.rs.html#68">self</a>.set(<a href="../../../src/async_std/future/maybe_done.rs.html#20">MaybeDone::Done</a>(<a href="../../../src/async_std/future/maybe_done.rs.html#69">res</a>));
+        <a class="self" href="#68">self</a>.set(<a href="#20">MaybeDone::Done</a>(<a href="#69">res</a>));
         Poll::Ready(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -73,26 +73,26 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use </span><a href="../../syn/macro.parse_quote.html">syn::parse_quote</a>;
 
-<span class="kw">mod </span><a href="../../src/vir_gen/ast/mod.rs.html#1-71">ast</a>;
-<span class="kw">mod </span><a href="../../src/vir_gen/deriver/mod.rs.html#1-66">deriver</a>;
-<span class="kw">mod </span><a href="../../src/vir_gen/generator/mod.rs.html#1-33">generator</a>;
-<span class="kw">mod </span><a href="../../src/vir_gen/helpers.rs.html#1-134">helpers</a>;
-<span class="kw">mod </span><a href="../../src/vir_gen/parser/mod.rs.html#1-70">parser</a>;
-<span class="kw">mod </span><a href="../../src/vir_gen/resolver/mod.rs.html#1-306">resolver</a>;
+<span class="kw">mod </span><a href="ast/mod.rs.html#1-71">ast</a>;
+<span class="kw">mod </span><a href="deriver/mod.rs.html#1-66">deriver</a>;
+<span class="kw">mod </span><a href="generator/mod.rs.html#1-33">generator</a>;
+<span class="kw">mod </span><a href="helpers.rs.html#1-134">helpers</a>;
+<span class="kw">mod </span><a href="parser/mod.rs.html#1-70">parser</a>;
+<span class="kw">mod </span><a href="resolver/mod.rs.html#1-306">resolver</a>;
 
 <span class="kw">pub fn </span>define_vir(input: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, source_file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>declarations: <a href="../../src/vir_gen/ast/mod.rs.html#1">ast::Declarations</a> = syn::parse2(<a href="../../src/vir_gen/lib.rs.html#16">input</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>declarations: <a href="ast/mod.rs.html#1">ast::Declarations</a> = syn::parse2(<a href="#16">input</a>)
         .unwrap_or_else(|error| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to parse {:?}: {}&quot;</span>, source_file, error));
     <span class="kw">let </span><span class="kw-2">mut </span>sentinel_item = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{ <span class="kw">mod </span>stub; };
     <span class="kw">let </span><span class="kw-2">mut </span>error_tokens = proc_macro2::TokenStream::new();
-    <a href="../../src/vir_gen/lib.rs.html#17">declarations</a>.components = {
+    <a href="#17">declarations</a>.components = {
         <span class="kw">let </span>(expanded_components, errors) =
-            <a href="../../src/vir_gen/parser/mod.rs.html#7">parser::expand</a>(<a href="../../src/vir_gen/lib.rs.html#17">declarations</a>.components, <a href="../../src/vir_gen/lib.rs.html#16">source_file</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a href="parser/mod.rs.html#7">parser::expand</a>(<a href="#17">declarations</a>.components, <a href="#16">source_file</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
         <span class="kw">for </span>error <span class="kw">in </span>errors {
             <span class="macro">eprintln!</span>(<span class="string">&quot;error in parsing declarations: {}&quot;</span>, error);
             error_tokens.extend(error.to_compile_error());
         }
-        <a href="../../src/vir_gen/lib.rs.html#22">expanded_components</a>
+        <a href="#22">expanded_components</a>
     };
     <span class="kw">for </span>ir <span class="kw">in </span><span class="kw-2">&amp;mut </span>declarations.irs {
         mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
@@ -113,8 +113,8 @@
         }
         resolved_irs.push(new_item);
     }
-    <a href="../../src/vir_gen/lib.rs.html#17">declarations</a>.irs = <a href="../../src/vir_gen/lib.rs.html#40">resolved_irs</a>;
-    <span class="kw">let </span>original_irs = <a href="../../src/vir_gen/lib.rs.html#17">declarations</a>.irs.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#17">declarations</a>.irs = <a href="#40">resolved_irs</a>;
+    <span class="kw">let </span>original_irs = <a href="#17">declarations</a>.irs.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">for </span>ir <span class="kw">in </span><span class="kw-2">&amp;mut </span>declarations.irs {
         mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
         <span class="kw">let </span>(new_item_with_derives, derive_errors) = deriver::expand(sentinel_item, <span class="kw-2">&amp;</span>original_irs);
@@ -133,4 +133,4 @@
     <a class="macro" href="../../quote/macro.quote.html">quote! </a>{ #declarations #error_tokens }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="vir_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="vir_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

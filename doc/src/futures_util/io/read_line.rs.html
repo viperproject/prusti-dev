@@ -55,7 +55,7 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/io/read_until.rs.html#27-33"><span class="kw">super</span>::read_until::read_until_internal</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="read_until.rs.html#27-33"><span class="kw">super</span>::read_until::read_until_internal</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
 <span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -79,7 +79,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; ReadLine&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../src/futures_util/io/read_line.rs.html#24">reader</a>, bytes: mem::take(<a href="../../../src/futures_util/io/read_line.rs.html#24">buf</a>).into_bytes(), <a href="../../../src/futures_util/io/read_line.rs.html#24">buf</a>, read: <span class="number">0 </span>}
+        <span class="self">Self </span>{ <a href="#24">reader</a>, bytes: mem::take(<a href="#24">buf</a>).into_bytes(), <a href="#24">buf</a>, read: <span class="number">0 </span>}
     }
 }
 
@@ -92,15 +92,15 @@
 ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
     <span class="kw">let </span>ret = <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(read_until_internal(reader, cx, <span class="string">b&#39;\n&#39;</span>, bytes, read));
     <span class="kw">if </span>str::from_utf8(bytes).is_err() {
-        Poll::Ready(<a href="../../../src/futures_util/io/read_line.rs.html#36">ret</a>.and_then(|<span class="kw">_</span>| {
+        Poll::Ready(<a href="#36">ret</a>.and_then(|<span class="kw">_</span>| {
             <span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::InvalidData, <span class="string">&quot;stream did not contain valid UTF-8&quot;</span>))
         }))
     } <span class="kw">else </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.is_empty());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span>read, <span class="number">0</span>);
         <span class="comment">// Safety: `bytes` is a valid UTF-8 because `str::from_utf8` returned `Ok`.
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.swap.html">mem::swap</a>(<span class="kw">unsafe </span>{ <a href="../../../src/futures_util/io/read_line.rs.html#32">buf</a>.as_mut_vec() }, <a href="../../../src/futures_util/io/read_line.rs.html#33">bytes</a>);
-        Poll::Ready(<a href="../../../src/futures_util/io/read_line.rs.html#36">ret</a>)
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.swap.html">mem::swap</a>(<span class="kw">unsafe </span>{ <a href="#32">buf</a>.as_mut_vec() }, <a href="#33">bytes</a>);
+        Poll::Ready(<a href="#36">ret</a>)
     }
 }
 
@@ -108,9 +108,9 @@
     <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="self">Self </span>{ reader, buf, bytes, read } = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/futures_util/io/read_line.rs.html#53">self</a>;
-        <a href="../../../src/futures_util/io/read_line.rs.html#29-35">read_line_internal</a>(Pin::new(<a href="../../../src/futures_util/io/read_line.rs.html#54">reader</a>), <a href="../../../src/futures_util/io/read_line.rs.html#53">cx</a>, <a href="../../../src/futures_util/io/read_line.rs.html#54">buf</a>, <a href="../../../src/futures_util/io/read_line.rs.html#54">bytes</a>, <a href="../../../src/futures_util/io/read_line.rs.html#54">read</a>)
+        <span class="kw">let </span><span class="self">Self </span>{ reader, buf, bytes, read } = <span class="kw-2">&amp;mut *</span><a class="self" href="#53">self</a>;
+        <a href="#29-35">read_line_internal</a>(Pin::new(<a href="#54">reader</a>), <a href="#53">cx</a>, <a href="#54">buf</a>, <a href="#54">bytes</a>, <a href="#54">read</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

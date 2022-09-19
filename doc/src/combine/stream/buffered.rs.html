@@ -142,8 +142,8 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">alloc::collections::VecDeque</a>;
 
 <span class="kw">use crate</span>::{
-    <a href="../../../src/combine/error.rs.html#367">error::StreamError</a>,
-    stream::{<a href="../../../src/combine/error.rs.html#456">ParseError</a>, <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>, <a href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a>, <a href="../../../src/combine/stream/mod.rs.html#109">StreamErrorFor</a>, <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>},
+    <a href="../error.rs.html#367">error::StreamError</a>,
+    stream::{<a href="../error.rs.html#456">ParseError</a>, <a href="mod.rs.html#76">Positioned</a>, <a href="mod.rs.html#143">ResetStream</a>, <a href="mod.rs.html#109">StreamErrorFor</a>, <a href="mod.rs.html#116">StreamOnce</a>},
 };
 
 <span class="doccomment">/// `Stream` which buffers items from an instance of `StreamOnce` into a ring buffer.
@@ -168,7 +168,7 @@
 </span><span class="attribute">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Stream&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> + <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>,
+    </span>Input: <a href="mod.rs.html#116">StreamOnce</a> + <a href="mod.rs.html#76">Positioned</a>,
 {
     offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     iter: Input,
@@ -176,25 +176,25 @@
     buffer: VecDeque&lt;(Input::Token, Input::Position)&gt;,
 }
 
-<span class="kw">impl</span>&lt;Input&gt; <a href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a> <span class="kw">for </span>Stream&lt;Input&gt;
+<span class="kw">impl</span>&lt;Input&gt; <a href="mod.rs.html#143">ResetStream</a> <span class="kw">for </span>Stream&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>,
+    </span>Input: <a href="mod.rs.html#76">Positioned</a>,
 {
     <span class="kw">type </span>Checkpoint = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
     <span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
-        <a class="self" href="../../../src/combine/stream/buffered.rs.html#44">self</a>.offset
+        <a class="self" href="#44">self</a>.offset
     }
 
     <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">if </span>checkpoint &lt; <span class="self">self</span>.buffer_offset - <span class="self">self</span>.buffer.len() {
             <span class="comment">// We have backtracked to far
             </span><span class="prelude-val">Err</span>(<span class="self">Self</span>::Error::from_error(
-                <a class="self" href="../../../src/combine/stream/buffered.rs.html#48">self</a>.<a href="../../../src/combine/stream/mod.rs.html#78">position</a>(),
+                <a class="self" href="#48">self</a>.<a href="mod.rs.html#78">position</a>(),
                 StreamErrorFor::&lt;<span class="self">Self</span>&gt;::message_static_message(<span class="string">&quot;Backtracked to far&quot;</span>),
             ))
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#48">self</a>.offset = <a href="../../../src/combine/stream/buffered.rs.html#48">checkpoint</a>;
+            <a class="self" href="#48">self</a>.offset = <a href="#48">checkpoint</a>;
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -202,47 +202,47 @@
 
 <span class="kw">impl</span>&lt;Input&gt; Stream&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> + <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>,
+    </span>Input: <a href="mod.rs.html#116">StreamOnce</a> + <a href="mod.rs.html#76">Positioned</a>,
     Input::Position: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     Input::Token: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
     <span class="doccomment">/// Constructs a new `BufferedStream` from a `StreamOnce` instance with a `lookahead`
     /// number of elements that can be stored in the buffer.
     </span><span class="kw">pub fn </span>new(iter: Input, lookahead: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Stream&lt;Input&gt; {
-        <a href="../../../src/combine/stream/buffered.rs.html#28">Stream</a> {
+        <a href="#28">Stream</a> {
             offset: <span class="number">0</span>,
-            <a href="../../../src/combine/stream/buffered.rs.html#70">iter</a>,
+            <a href="#70">iter</a>,
             buffer_offset: <span class="number">0</span>,
-            buffer: VecDeque::with_capacity(<a href="../../../src/combine/stream/buffered.rs.html#70">lookahead</a>),
+            buffer: VecDeque::with_capacity(<a href="#70">lookahead</a>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Input&gt; <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a> <span class="kw">for </span>Stream&lt;Input&gt;
+<span class="kw">impl</span>&lt;Input&gt; <a href="mod.rs.html#76">Positioned</a> <span class="kw">for </span>Stream&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> + <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>,
+    </span>Input: <a href="mod.rs.html#116">StreamOnce</a> + <a href="mod.rs.html#76">Positioned</a>,
 {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Position {
         <span class="kw">if </span><span class="self">self</span>.offset &gt;= <span class="self">self</span>.buffer_offset {
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.iter.<a href="../../../src/combine/stream/mod.rs.html#78">position</a>()
+            <a class="self" href="#85">self</a>.iter.<a href="mod.rs.html#78">position</a>()
         } <span class="kw">else if </span><span class="self">self</span>.offset &lt; <span class="self">self</span>.buffer_offset - <span class="self">self</span>.buffer.len() {
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.buffer
+            <a class="self" href="#85">self</a>.buffer
                 .front()
                 .expect(<span class="string">&quot;At least 1 element in the buffer&quot;</span>)
                 .<span class="number">1
                 </span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.buffer[<a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.buffer.len() - (<a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.buffer_offset - <a class="self" href="../../../src/combine/stream/buffered.rs.html#85">self</a>.offset)]
+            <a class="self" href="#85">self</a>.buffer[<a class="self" href="#85">self</a>.buffer.len() - (<a class="self" href="#85">self</a>.buffer_offset - <a class="self" href="#85">self</a>.offset)]
                 .<span class="number">1
                 </span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Input&gt; <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> <span class="kw">for </span>Stream&lt;Input&gt;
+<span class="kw">impl</span>&lt;Input&gt; <a href="mod.rs.html#116">StreamOnce</a> <span class="kw">for </span>Stream&lt;Input&gt;
 <span class="kw">where
-    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> + <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>,
+    </span>Input: <a href="mod.rs.html#116">StreamOnce</a> + <a href="mod.rs.html#76">Positioned</a>,
     Input::Token: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
     <span class="kw">type </span>Token = Input::Token;
@@ -253,32 +253,32 @@
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>uncons(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Token, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.offset &gt;= <span class="self">self</span>.buffer_offset {
-            <span class="kw">let </span>position = <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.iter.<a href="../../../src/combine/stream/mod.rs.html#78">position</a>();
+            <span class="kw">let </span>position = <a class="self" href="#113">self</a>.iter.<a href="mod.rs.html#78">position</a>();
             <span class="kw">let </span>token = <span class="self">self</span>.iter.uncons()<span class="question-mark">?</span>;
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer_offset += <span class="number">1</span>;
+            <a class="self" href="#113">self</a>.buffer_offset += <span class="number">1</span>;
             <span class="comment">// We want the VecDeque to only keep the last .capacity() elements so we need to remove
             // an element if it gets to large
             </span><span class="kw">if </span><span class="self">self</span>.buffer.len() == <span class="self">self</span>.buffer.capacity() {
-                <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer.pop_front();
+                <a class="self" href="#113">self</a>.buffer.pop_front();
             }
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer.push_back((<a href="../../../src/combine/stream/buffered.rs.html#116">token</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/combine/stream/buffered.rs.html#115">position</a>));
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.offset += <span class="number">1</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../../src/combine/stream/buffered.rs.html#116">token</a>)
+            <a class="self" href="#113">self</a>.buffer.push_back((<a href="#116">token</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#115">position</a>));
+            <a class="self" href="#113">self</a>.offset += <span class="number">1</span>;
+            <span class="prelude-val">Ok</span>(<a href="#116">token</a>)
         } <span class="kw">else if </span><span class="self">self</span>.offset &lt; <span class="self">self</span>.buffer_offset - <span class="self">self</span>.buffer.len() {
             <span class="comment">// We have backtracked to far
-            </span><span class="prelude-val">Err</span>(<a href="../../../src/combine/error.rs.html#413">StreamError::message_static_message</a>(<span class="string">&quot;Backtracked to far&quot;</span>))
+            </span><span class="prelude-val">Err</span>(<a href="../error.rs.html#413">StreamError::message_static_message</a>(<span class="string">&quot;Backtracked to far&quot;</span>))
         } <span class="kw">else </span>{
-            <span class="kw">let </span>value = <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer[<a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer.len() - (<a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.buffer_offset - <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.offset)]
+            <span class="kw">let </span>value = <a class="self" href="#113">self</a>.buffer[<a class="self" href="#113">self</a>.buffer.len() - (<a class="self" href="#113">self</a>.buffer_offset - <a class="self" href="#113">self</a>.offset)]
                 .<span class="number">0
                 </span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a class="self" href="../../../src/combine/stream/buffered.rs.html#113">self</a>.offset += <span class="number">1</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../../src/combine/stream/buffered.rs.html#130">value</a>)
+            <a class="self" href="#113">self</a>.offset += <span class="number">1</span>;
+            <span class="prelude-val">Ok</span>(<a href="#130">value</a>)
         }
     }
 
     <span class="kw">fn </span>is_partial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/combine/stream/buffered.rs.html#138">self</a>.iter.<a href="../../../src/combine/stream/mod.rs.html#137">is_partial</a>()
+        <a class="self" href="#138">self</a>.iter.<a href="mod.rs.html#137">is_partial</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="combine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="combine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

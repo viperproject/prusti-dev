@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/once_cell.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/sync/once_cell.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -455,8 +455,8 @@
 <span id="455">455</span>
 <span id="456">456</span>
 <span id="457">457</span>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../src/tokio/sync/semaphore.rs.html#79">Semaphore</a>, <a href="../../../src/tokio/sync/semaphore.rs.html#93">SemaphorePermit</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
-<span class="kw">use </span><a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="semaphore.rs.html#79">Semaphore</a>, <a href="semaphore.rs.html#93">SemaphorePermit</a>, <a href="batch_semaphore.rs.html#53">TryAcquireError</a>};
+<span class="kw">use </span><a href="../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -527,7 +527,7 @@
 </span><span class="kw">pub struct </span>OnceCell&lt;T&gt; {
     value_set: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
     value: UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;,
-    semaphore: <a href="../../../src/tokio/sync/semaphore.rs.html#79">Semaphore</a>,
+    semaphore: <a href="semaphore.rs.html#79">Semaphore</a>,
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>OnceCell&lt;T&gt; {
@@ -538,21 +538,21 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>OnceCell&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio/sync/once_cell.rs.html#83">fmt</a>.debug_struct(<span class="string">&quot;OnceCell&quot;</span>)
-            .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#83">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#226">get</a>())
+        <a href="#83">fmt</a>.debug_struct(<span class="string">&quot;OnceCell&quot;</span>)
+            .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#83">self</a>.<a href="#226">get</a>())
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>OnceCell&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OnceCell&lt;T&gt; {
-        OnceCell::new_with(<a class="self" href="../../../src/tokio/sync/once_cell.rs.html#91">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#226">get</a>().cloned())
+        OnceCell::new_with(<a class="self" href="#91">self</a>.<a href="#226">get</a>().cloned())
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>OnceCell&lt;T&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>OnceCell&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#97">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#226">get</a>() == <a href="../../../src/tokio/sync/once_cell.rs.html#97">other</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#226">get</a>()
+        <a class="self" href="#97">self</a>.<a href="#226">get</a>() == <a href="#97">other</a>.<a href="#226">get</a>()
     }
 }
 
@@ -562,8 +562,8 @@
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.initialized_mut() {
             <span class="kw">unsafe </span>{
-                <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#105">self</a>.value
-                    .<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>((<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/once_cell.rs.html#109">ptr</a>).as_mut_ptr()));
+                <a class="self" href="#105">self</a>.value
+                    .<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>((<span class="kw-2">&amp;mut *</span><a href="#109">ptr</a>).as_mut_ptr()));
             };
         }
     }
@@ -572,11 +572,11 @@
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>OnceCell&lt;T&gt; {
     <span class="kw">fn </span>from(value: T) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>semaphore = Semaphore::new(<span class="number">0</span>);
-        <a href="../../../src/tokio/sync/once_cell.rs.html#117">semaphore</a>.<a href="../../../src/tokio/sync/semaphore.rs.html#606">close</a>();
-        <a href="../../../src/tokio/sync/once_cell.rs.html#70">OnceCell</a> {
+        <a href="#117">semaphore</a>.<a href="semaphore.rs.html#606">close</a>();
+        <a href="#70">OnceCell</a> {
             value_set: AtomicBool::new(<span class="bool-val">true</span>),
-            value: UnsafeCell::new(MaybeUninit::new(<a href="../../../src/tokio/sync/once_cell.rs.html#116">value</a>)),
-            <a href="../../../src/tokio/sync/once_cell.rs.html#117">semaphore</a>,
+            value: UnsafeCell::new(MaybeUninit::new(<a href="#116">value</a>)),
+            <a href="#117">semaphore</a>,
         }
     }
 }
@@ -584,7 +584,7 @@
 <span class="kw">impl</span>&lt;T&gt; OnceCell&lt;T&gt; {
     <span class="doccomment">/// Creates a new empty `OnceCell` instance.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tokio/sync/once_cell.rs.html#70">OnceCell</a> {
+        <a href="#70">OnceCell</a> {
             value_set: AtomicBool::new(<span class="bool-val">false</span>),
             value: UnsafeCell::new(MaybeUninit::uninit()),
             semaphore: Semaphore::new(<span class="number">1</span>),
@@ -597,8 +597,8 @@
     ///
     /// [`OnceCell::new`]: crate::sync::OnceCell::new
     </span><span class="kw">pub fn </span>new_with(value: <span class="prelude-ty">Option</span>&lt;T&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="../../../src/tokio/sync/once_cell.rs.html#142">value</a> {
-            OnceCell::from(<a href="../../../src/tokio/sync/once_cell.rs.html#143">v</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#142">value</a> {
+            OnceCell::from(<a href="#143">v</a>)
         } <span class="kw">else </span>{
             OnceCell::new()
         }
@@ -643,46 +643,46 @@
     </span><span class="kw">pub fn </span>initialized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Using acquire ordering so any threads that read a true from this
         // atomic is able to read the value.
-        </span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#186">self</a>.value_set.load(Ordering::Acquire)
+        </span><a class="self" href="#186">self</a>.value_set.load(Ordering::Acquire)
     }
 
     <span class="doccomment">/// Returns `true` if the `OnceCell` currently contains a value, and `false`
     /// otherwise.
     </span><span class="kw">fn </span>initialized_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#194">self</a>.value_set.get_mut()
+        <span class="kw-2">*</span><a class="self" href="#194">self</a>.value_set.get_mut()
     }
 
     <span class="comment">// SAFETY: The OnceCell must not be empty.
     </span><span class="kw">unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#199">self</a>.value.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| (<span class="kw-2">*</span><a href="../../../src/tokio/sync/once_cell.rs.html#200">ptr</a>).as_ptr())
+        <span class="kw-2">&amp;*</span><a class="self" href="#199">self</a>.value.<a href="../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| (<span class="kw-2">*</span><a href="#200">ptr</a>).as_ptr())
     }
 
     <span class="comment">// SAFETY: The OnceCell must not be empty.
     </span><span class="kw">unsafe fn </span>get_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#204">self</a>.value.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| (<span class="kw-2">*</span><a href="../../../src/tokio/sync/once_cell.rs.html#205">ptr</a>).as_mut_ptr())
+        <span class="kw-2">&amp;mut *</span><a class="self" href="#204">self</a>.value.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| (<span class="kw-2">*</span><a href="#205">ptr</a>).as_mut_ptr())
     }
 
     <span class="kw">fn </span>set_value(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, permit: SemaphorePermit&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="comment">// SAFETY: We are holding the only permit on the semaphore.
         </span><span class="kw">unsafe </span>{
-            <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#208">self</a>.value.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| (<span class="kw-2">*</span><a href="../../../src/tokio/sync/once_cell.rs.html#211">ptr</a>).as_mut_ptr().write(<a href="../../../src/tokio/sync/once_cell.rs.html#208">value</a>));
+            <a class="self" href="#208">self</a>.value.<a href="../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| (<span class="kw-2">*</span><a href="#211">ptr</a>).as_mut_ptr().write(<a href="#208">value</a>));
         }
 
         <span class="comment">// Using release ordering so any threads that read a true from this
         // atomic is able to read the value we just stored.
-        </span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#208">self</a>.value_set.store(<span class="bool-val">true</span>, Ordering::Release);
-        <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#208">self</a>.semaphore.<a href="../../../src/tokio/sync/semaphore.rs.html#606">close</a>();
-        <a href="../../../src/tokio/sync/once_cell.rs.html#208">permit</a>.<a href="../../../src/tokio/sync/semaphore.rs.html#620">forget</a>();
+        </span><a class="self" href="#208">self</a>.value_set.store(<span class="bool-val">true</span>, Ordering::Release);
+        <a class="self" href="#208">self</a>.semaphore.<a href="semaphore.rs.html#606">close</a>();
+        <a href="#208">permit</a>.<a href="semaphore.rs.html#620">forget</a>();
 
         <span class="comment">// SAFETY: We just initialized the cell.
-        </span><span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#208">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#199">get_unchecked</a>() }
+        </span><span class="kw">unsafe </span>{ <a class="self" href="#208">self</a>.<a href="#199">get_unchecked</a>() }
     }
 
     <span class="doccomment">/// Returns a reference to the value currently stored in the `OnceCell`, or
     /// `None` if the `OnceCell` is empty.
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
         <span class="kw">if </span><span class="self">self</span>.initialized() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#226">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#199">get_unchecked</a>() })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="#226">self</a>.<a href="#199">get_unchecked</a>() })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -696,7 +696,7 @@
     /// no other references exist.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
         <span class="kw">if </span><span class="self">self</span>.initialized_mut() {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#240">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#204">get_unchecked_mut</a>() })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="#240">self</a>.<a href="#204">get_unchecked_mut</a>() })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -715,27 +715,27 @@
     /// [`SetError::InitializingError`]: crate::sync::SetError::InitializingError
     </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetError&lt;T&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.initialized() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/once_cell.rs.html#424">SetError::AlreadyInitializedError</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#259">value</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#424">SetError::AlreadyInitializedError</a>(<a href="#259">value</a>));
         }
 
         <span class="comment">// Another task might be initializing the cell, in which case
         // `try_acquire` will return an error. If we succeed to acquire the
         // permit, then we can set the value.
-        </span><span class="kw">match </span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#259">self</a>.semaphore.<a href="../../../src/tokio/sync/semaphore.rs.html#323">try_acquire</a>() {
+        </span><span class="kw">match </span><a class="self" href="#259">self</a>.semaphore.<a href="semaphore.rs.html#323">try_acquire</a>() {
             <span class="prelude-val">Ok</span>(permit) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.initialized());
-                <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#259">self</a>.<a href="../../../src/tokio/sync/once_cell.rs.html#208">set_value</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#259">value</a>, <a href="../../../src/tokio/sync/once_cell.rs.html#268">permit</a>);
+                <a class="self" href="#259">self</a>.<a href="#208">set_value</a>(<a href="#259">value</a>, <a href="#268">permit</a>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; {
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; {
                 <span class="comment">// Some other task is holding the permit. That task is
                 // currently trying to initialize the value.
-                </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/once_cell.rs.html#427">SetError::InitializingError</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#259">value</a>))
+                </span><span class="prelude-val">Err</span>(<a href="#427">SetError::InitializingError</a>(<a href="#259">value</a>))
             }
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; {
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; {
                 <span class="comment">// The semaphore was closed. Some other task has initialized
                 // the value.
-                </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/once_cell.rs.html#424">SetError::AlreadyInitializedError</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#259">value</a>))
+                </span><span class="prelude-val">Err</span>(<a href="#424">SetError::AlreadyInitializedError</a>(<a href="#259">value</a>))
             }
         }
     }
@@ -844,8 +844,8 @@
     </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">if </span><span class="self">self</span>.initialized_mut() {
             <span class="comment">// Set to uninitialized for the destructor of `OnceCell` to work properly
-            </span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/once_cell.rs.html#387">self</a>.value_set.get_mut() = <span class="bool-val">false</span>;
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/sync/once_cell.rs.html#387">self</a>.value.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| ptr::read(<a href="../../../src/tokio/sync/once_cell.rs.html#391">ptr</a>).assume_init()) })
+            </span><span class="kw-2">*</span><a class="self" href="#387">self</a>.value_set.get_mut() = <span class="bool-val">false</span>;
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="#387">self</a>.value.<a href="../loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| ptr::read(<a href="#391">ptr</a>).assume_init()) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -854,7 +854,7 @@
     <span class="doccomment">/// Takes ownership of the current value, leaving the cell empty.  Returns
     /// `None` if the cell is empty.
     </span><span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        std::mem::take(<a class="self" href="../../../src/tokio/sync/once_cell.rs.html#399">self</a>).<a href="../../../src/tokio/sync/once_cell.rs.html#387">into_inner</a>()
+        std::mem::take(<a class="self" href="#399">self</a>).<a href="#387">into_inner</a>()
     }
 }
 
@@ -886,9 +886,9 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>SetError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/sync/once_cell.rs.html#431">self</a> </span>{
-            <a href="../../../src/tokio/sync/once_cell.rs.html#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#431">f</a>, <span class="string">&quot;AlreadyInitializedError&quot;</span>),
-            <a href="../../../src/tokio/sync/once_cell.rs.html#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/once_cell.rs.html#431">f</a>, <span class="string">&quot;InitializingError&quot;</span>),
+        <span class="kw">match </span><span class="self"><a href="#431">self</a> </span>{
+            <a href="#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#431">f</a>, <span class="string">&quot;AlreadyInitializedError&quot;</span>),
+            <a href="#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#431">f</a>, <span class="string">&quot;InitializingError&quot;</span>),
         }
     }
 }
@@ -898,19 +898,19 @@
 <span class="kw">impl</span>&lt;T&gt; SetError&lt;T&gt; {
     <span class="doccomment">/// Whether `SetError` is `SetError::AlreadyInitializedError`.
     </span><span class="kw">pub fn </span>is_already_init_err(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/sync/once_cell.rs.html#443">self</a> </span>{
-            <a href="../../../src/tokio/sync/once_cell.rs.html#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/tokio/sync/once_cell.rs.html#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="self"><a href="#443">self</a> </span>{
+            <a href="#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Whether `SetError` is `SetError::InitializingError`
     </span><span class="kw">pub fn </span>is_initializing_err(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/sync/once_cell.rs.html#451">self</a> </span>{
-            <a href="../../../src/tokio/sync/once_cell.rs.html#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a href="../../../src/tokio/sync/once_cell.rs.html#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="self"><a href="#451">self</a> </span>{
+            <a href="#424">SetError::AlreadyInitializedError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <a href="#427">SetError::InitializingError</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

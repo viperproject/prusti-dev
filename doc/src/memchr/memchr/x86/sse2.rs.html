@@ -792,16 +792,16 @@
 </pre><pre class="rust"><code><span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">arch::x86_64</a>::<span class="kw-2">*</span>, <a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">mem::size_of</a>};
 
 <span class="kw">const </span>VECTOR_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = size_of::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;();
-<span class="kw">const </span>VECTOR_ALIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - <span class="number">1</span>;
+<span class="kw">const </span>VECTOR_ALIGN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#3">VECTOR_SIZE</a> - <span class="number">1</span>;
 
 <span class="comment">// The number of bytes to loop at in one iteration of memchr/memrchr.
-</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4 </span>* <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a>;
+</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4 </span>* <a href="#3">VECTOR_SIZE</a>;
 
 <span class="comment">// The number of bytes to loop at in one iteration of memchr2/memrchr2 and
 // memchr3/memrchr3. There was no observable difference between 64 and 32 bytes
 // in benchmarks. memchr3 in particular only gets a very slight speed up from
 // the loop unrolling.
-</span><span class="kw">const </span>LOOP_SIZE2: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a>;
+</span><span class="kw">const </span>LOOP_SIZE2: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="#3">VECTOR_SIZE</a>;
 
 <span class="attribute">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
 </span><span class="kw">pub unsafe fn </span>memchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
@@ -896,12 +896,12 @@
     // structure to what you see below, so this comment applies fairly well to
     // all of them.
 
-    </span><span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#16">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#16">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#7">LOOP_SIZE</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#109">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#16">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#111">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#16">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#111">start_ptr</a>;
+    </span><span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#16">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#16">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#7">LOOP_SIZE</a>, <a href="#109">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#16">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#111">start_ptr</a>.add(<a href="#16">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#111">start_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &lt; end_ptr {
@@ -913,11 +913,11 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#569-574">forward_search1</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#111">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#112">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#108">vn1</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#125">i</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#569-574">forward_search1</a>(<a href="#111">start_ptr</a>, <a href="#112">end_ptr</a>, <a href="#113">ptr</a>, <a href="#108">vn1</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#125">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#111">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>));
+    <a href="#113">ptr</a> = <a href="#113">ptr</a>.add(<a href="#3">VECTOR_SIZE</a> - (<a href="#111">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#4">VECTOR_ALIGN</a>));
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr &amp;&amp; end_ptr.sub(VECTOR_SIZE) &gt;= start_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -969,23 +969,23 @@
     }
     <span class="kw">if </span>ptr &lt; end_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(end_ptr, ptr) &lt; VECTOR_SIZE);
-        <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#112">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a>));
+        <a href="#113">ptr</a> = <a href="#113">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a> - <a href="#788">sub</a>(<a href="#112">end_ptr</a>, <a href="#113">ptr</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(sub(end_ptr, ptr), VECTOR_SIZE);
 
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#569-574">forward_search1</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#111">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#112">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#113">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#108">vn1</a>);
+        <span class="kw">return </span><a href="#569-574">forward_search1</a>(<a href="#111">start_ptr</a>, <a href="#112">end_ptr</a>, <a href="#113">ptr</a>, <a href="#108">vn1</a>);
     }
     <span class="prelude-val">None
 </span>}
 
 <span class="attribute">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
 </span><span class="kw">pub unsafe fn </span>memchr2(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#190">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#190">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#190">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#13">LOOP_SIZE2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#193">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#190">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#195">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#190">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#195">start_ptr</a>;
+    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#190">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="#190">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#190">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#13">LOOP_SIZE2</a>, <a href="#193">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#190">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#195">start_ptr</a>.add(<a href="#190">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#195">start_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &lt; end_ptr {
@@ -997,11 +997,11 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#589-595">forward_search2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#195">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#196">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#191">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#192">vn2</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#209">i</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#589-595">forward_search2</a>(<a href="#195">start_ptr</a>, <a href="#196">end_ptr</a>, <a href="#197">ptr</a>, <a href="#191">vn1</a>, <a href="#192">vn2</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#209">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#195">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>));
+    <a href="#197">ptr</a> = <a href="#197">ptr</a>.add(<a href="#3">VECTOR_SIZE</a> - (<a href="#195">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#4">VECTOR_ALIGN</a>));
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr &amp;&amp; end_ptr.sub(VECTOR_SIZE) &gt;= start_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE2 &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -1038,10 +1038,10 @@
     }
     <span class="kw">if </span>ptr &lt; end_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(end_ptr, ptr) &lt; VECTOR_SIZE);
-        <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#196">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a>));
+        <a href="#197">ptr</a> = <a href="#197">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a> - <a href="#788">sub</a>(<a href="#196">end_ptr</a>, <a href="#197">ptr</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(sub(end_ptr, ptr), VECTOR_SIZE);
 
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#589-595">forward_search2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#195">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#196">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#197">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#191">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#192">vn2</a>);
+        <span class="kw">return </span><a href="#589-595">forward_search2</a>(<a href="#195">start_ptr</a>, <a href="#196">end_ptr</a>, <a href="#197">ptr</a>, <a href="#191">vn1</a>, <a href="#192">vn2</a>);
     }
     <span class="prelude-val">None
 </span>}
@@ -1053,14 +1053,14 @@
     n3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#260">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#261">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn3 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#262">n3</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#263">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#13">LOOP_SIZE2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#268">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#263">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#270">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#263">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#270">start_ptr</a>;
+    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#260">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="#261">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn3 = _mm_set1_epi8(<a href="#262">n3</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#263">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#13">LOOP_SIZE2</a>, <a href="#268">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#263">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#270">start_ptr</a>.add(<a href="#263">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#270">start_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &lt; end_ptr {
@@ -1072,11 +1072,11 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#613-620">forward_search3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#270">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#271">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#265">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#266">vn2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#267">vn3</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#284">i</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#613-620">forward_search3</a>(<a href="#270">start_ptr</a>, <a href="#271">end_ptr</a>, <a href="#272">ptr</a>, <a href="#265">vn1</a>, <a href="#266">vn2</a>, <a href="#267">vn3</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#284">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#270">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>));
+    <a href="#272">ptr</a> = <a href="#272">ptr</a>.add(<a href="#3">VECTOR_SIZE</a> - (<a href="#270">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#4">VECTOR_ALIGN</a>));
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr &amp;&amp; end_ptr.sub(VECTOR_SIZE) &gt;= start_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE2 &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -1121,22 +1121,22 @@
     }
     <span class="kw">if </span>ptr &lt; end_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(end_ptr, ptr) &lt; VECTOR_SIZE);
-        <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#271">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a>));
+        <a href="#272">ptr</a> = <a href="#272">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a> - <a href="#788">sub</a>(<a href="#271">end_ptr</a>, <a href="#272">ptr</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(sub(end_ptr, ptr), VECTOR_SIZE);
 
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#613-620">forward_search3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#270">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#271">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#272">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#265">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#266">vn2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#267">vn3</a>);
+        <span class="kw">return </span><a href="#613-620">forward_search3</a>(<a href="#270">start_ptr</a>, <a href="#271">end_ptr</a>, <a href="#272">ptr</a>, <a href="#265">vn1</a>, <a href="#266">vn2</a>, <a href="#267">vn3</a>);
     }
     <span class="prelude-val">None
 </span>}
 
 <span class="attribute">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
 </span><span class="kw">pub unsafe fn </span>memrchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#342">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#342">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#7">LOOP_SIZE</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#344">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#342">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#346">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#342">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#347">end_ptr</a>;
+    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#342">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#342">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#7">LOOP_SIZE</a>, <a href="#344">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#342">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#346">start_ptr</a>.add(<a href="#342">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#347">end_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &gt; start_ptr {
@@ -1148,12 +1148,12 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#348">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#348">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#641-646">reverse_search1</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#346">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#347">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#348">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#343">vn1</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#361">i</a>);
+    <a href="#348">ptr</a> = <a href="#348">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#641-646">reverse_search1</a>(<a href="#346">start_ptr</a>, <a href="#347">end_ptr</a>, <a href="#348">ptr</a>, <a href="#343">vn1</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#361">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#348">ptr</a> = (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#347">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+    <a href="#348">ptr</a> = (<a href="#347">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -1203,20 +1203,20 @@
     }
     <span class="kw">if </span>ptr &gt; start_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(ptr, start_ptr) &lt; VECTOR_SIZE);
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#641-646">reverse_search1</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#346">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#347">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#346">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#343">vn1</a>);
+        <span class="kw">return </span><a href="#641-646">reverse_search1</a>(<a href="#346">start_ptr</a>, <a href="#347">end_ptr</a>, <a href="#346">start_ptr</a>, <a href="#343">vn1</a>);
     }
     <span class="prelude-val">None
 </span>}
 
 <span class="attribute">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
 </span><span class="kw">pub unsafe fn </span>memrchr2(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#421">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#421">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#421">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#13">LOOP_SIZE2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#424">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#421">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#426">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#421">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#427">end_ptr</a>;
+    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#421">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="#421">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#421">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#13">LOOP_SIZE2</a>, <a href="#424">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#421">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#426">start_ptr</a>.add(<a href="#421">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#427">end_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &gt; start_ptr {
@@ -1228,12 +1228,12 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#428">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#428">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#661-667">reverse_search2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#426">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#427">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#428">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#422">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#423">vn2</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#441">i</a>);
+    <a href="#428">ptr</a> = <a href="#428">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#661-667">reverse_search2</a>(<a href="#426">start_ptr</a>, <a href="#427">end_ptr</a>, <a href="#428">ptr</a>, <a href="#422">vn1</a>, <a href="#423">vn2</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#441">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#428">ptr</a> = (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#427">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+    <a href="#428">ptr</a> = (<a href="#427">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE2 &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -1270,7 +1270,7 @@
     }
     <span class="kw">if </span>ptr &gt; start_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(ptr, start_ptr) &lt; VECTOR_SIZE);
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#661-667">reverse_search2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#426">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#427">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#426">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#422">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#423">vn2</a>);
+        <span class="kw">return </span><a href="#661-667">reverse_search2</a>(<a href="#426">start_ptr</a>, <a href="#427">end_ptr</a>, <a href="#426">start_ptr</a>, <a href="#422">vn1</a>, <a href="#423">vn2</a>);
     }
     <span class="prelude-val">None
 </span>}
@@ -1282,14 +1282,14 @@
     n3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#489">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#490">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>vn3 = _mm_set1_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#491">n3</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-    <span class="kw">let </span>len = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#492">haystack</a>.len();
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#13">LOOP_SIZE2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#497">len</a>);
-    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#492">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#499">start_ptr</a>.add(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#492">haystack</a>.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#500">end_ptr</a>;
+    <span class="kw">let </span>vn1 = _mm_set1_epi8(<a href="#489">n1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn2 = _mm_set1_epi8(<a href="#490">n2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>vn3 = _mm_set1_epi8(<a href="#491">n3</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+    <span class="kw">let </span>len = <a href="#492">haystack</a>.len();
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#13">LOOP_SIZE2</a>, <a href="#497">len</a>);
+    <span class="kw">let </span>start_ptr = <a href="#492">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#499">start_ptr</a>.add(<a href="#492">haystack</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#500">end_ptr</a>;
 
     <span class="kw">if </span>haystack.len() &lt; VECTOR_SIZE {
         <span class="kw">while </span>ptr &gt; start_ptr {
@@ -1301,12 +1301,12 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#501">ptr</a> = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#501">ptr</a>.sub(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#685-692">reverse_search3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#499">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#500">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#501">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#494">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#495">vn2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#496">vn3</a>) {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#514">i</a>);
+    <a href="#501">ptr</a> = <a href="#501">ptr</a>.sub(<a href="#3">VECTOR_SIZE</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#685-692">reverse_search3</a>(<a href="#499">start_ptr</a>, <a href="#500">end_ptr</a>, <a href="#501">ptr</a>, <a href="#494">vn1</a>, <a href="#495">vn2</a>, <a href="#496">vn3</a>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#514">i</a>);
     }
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#501">ptr</a> = (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#500">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+    <a href="#501">ptr</a> = (<a href="#500">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#4">VECTOR_ALIGN</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
     <span class="kw">while </span>loop_size == LOOP_SIZE2 &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % VECTOR_SIZE);
@@ -1351,7 +1351,7 @@
     }
     <span class="kw">if </span>ptr &gt; start_ptr {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(sub(ptr, start_ptr) &lt; VECTOR_SIZE);
-        <span class="kw">return </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#685-692">reverse_search3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#499">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#500">end_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#499">start_ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#494">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#495">vn2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#496">vn3</a>);
+        <span class="kw">return </span><a href="#685-692">reverse_search3</a>(<a href="#499">start_ptr</a>, <a href="#500">end_ptr</a>, <a href="#499">start_ptr</a>, <a href="#494">vn1</a>, <a href="#495">vn2</a>, <a href="#496">vn3</a>);
     }
     <span class="prelude-val">None
 </span>}
@@ -1367,10 +1367,10 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#572">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>mask = _mm_movemask_epi8(_mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#579">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#573">vn1</a>));
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#572">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>mask = _mm_movemask_epi8(_mm_cmpeq_epi8(<a href="#579">chunk</a>, <a href="#573">vn1</a>));
     <span class="kw">if </span>mask != <span class="number">0 </span>{
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#572">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#570">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#716">forward_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#580">mask</a>))
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#572">ptr</a>, <a href="#570">start_ptr</a>) + <a href="#716">forward_pos</a>(<a href="#580">mask</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1388,13 +1388,13 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#592">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#600">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#593">vn1</a>);
-    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#600">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#594">vn2</a>);
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#592">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="#600">chunk</a>, <a href="#593">vn1</a>);
+    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="#600">chunk</a>, <a href="#594">vn2</a>);
     <span class="kw">if </span>_mm_movemask_epi8(_mm_or_si128(eq1, eq2)) != <span class="number">0 </span>{
-        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#601">eq1</a>);
-        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#602">eq2</a>);
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#592">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#590">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#730">forward_pos2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#604">mask1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#605">mask2</a>))
+        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="#601">eq1</a>);
+        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="#602">eq2</a>);
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#592">ptr</a>, <a href="#590">start_ptr</a>) + <a href="#730">forward_pos2</a>(<a href="#604">mask1</a>, <a href="#605">mask2</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1413,16 +1413,16 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#616">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#625">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#617">vn1</a>);
-    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#625">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#618">vn2</a>);
-    <span class="kw">let </span>eq3 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#625">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#619">vn3</a>);
-    <span class="kw">let </span>or = _mm_or_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#626">eq1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#627">eq2</a>);
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#616">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="#625">chunk</a>, <a href="#617">vn1</a>);
+    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="#625">chunk</a>, <a href="#618">vn2</a>);
+    <span class="kw">let </span>eq3 = _mm_cmpeq_epi8(<a href="#625">chunk</a>, <a href="#619">vn3</a>);
+    <span class="kw">let </span>or = _mm_or_si128(<a href="#626">eq1</a>, <a href="#627">eq2</a>);
     <span class="kw">if </span>_mm_movemask_epi8(_mm_or_si128(or, eq3)) != <span class="number">0 </span>{
-        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#626">eq1</a>);
-        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#627">eq2</a>);
-        <span class="kw">let </span>mask3 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#628">eq3</a>);
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#616">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#614">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#742">forward_pos3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#631">mask1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#632">mask2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#633">mask3</a>))
+        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="#626">eq1</a>);
+        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="#627">eq2</a>);
+        <span class="kw">let </span>mask3 = _mm_movemask_epi8(<a href="#628">eq3</a>);
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#616">ptr</a>, <a href="#614">start_ptr</a>) + <a href="#742">forward_pos3</a>(<a href="#631">mask1</a>, <a href="#632">mask2</a>, <a href="#633">mask3</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1439,10 +1439,10 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#644">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>mask = _mm_movemask_epi8(_mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#645">vn1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#651">chunk</a>));
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#644">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>mask = _mm_movemask_epi8(_mm_cmpeq_epi8(<a href="#645">vn1</a>, <a href="#651">chunk</a>));
     <span class="kw">if </span>mask != <span class="number">0 </span>{
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#644">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#642">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#752">reverse_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#652">mask</a>))
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#644">ptr</a>, <a href="#642">start_ptr</a>) + <a href="#752">reverse_pos</a>(<a href="#652">mask</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1460,13 +1460,13 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#664">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#672">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#665">vn1</a>);
-    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#672">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#666">vn2</a>);
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#664">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="#672">chunk</a>, <a href="#665">vn1</a>);
+    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="#672">chunk</a>, <a href="#666">vn2</a>);
     <span class="kw">if </span>_mm_movemask_epi8(_mm_or_si128(eq1, eq2)) != <span class="number">0 </span>{
-        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#673">eq1</a>);
-        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#674">eq2</a>);
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#664">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#662">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#768">reverse_pos2</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#676">mask1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#677">mask2</a>))
+        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="#673">eq1</a>);
+        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="#674">eq2</a>);
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#664">ptr</a>, <a href="#662">start_ptr</a>) + <a href="#768">reverse_pos2</a>(<a href="#676">mask1</a>, <a href="#677">mask2</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1485,16 +1485,16 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &lt;= end_ptr.sub(VECTOR_SIZE));
 
-    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#688">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
-    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#697">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#689">vn1</a>);
-    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#697">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#690">vn2</a>);
-    <span class="kw">let </span>eq3 = _mm_cmpeq_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#697">chunk</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#691">vn3</a>);
-    <span class="kw">let </span>or = _mm_or_si128(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#698">eq1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#699">eq2</a>);
+    <span class="kw">let </span>chunk = _mm_loadu_si128(<a href="#688">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>);
+    <span class="kw">let </span>eq1 = _mm_cmpeq_epi8(<a href="#697">chunk</a>, <a href="#689">vn1</a>);
+    <span class="kw">let </span>eq2 = _mm_cmpeq_epi8(<a href="#697">chunk</a>, <a href="#690">vn2</a>);
+    <span class="kw">let </span>eq3 = _mm_cmpeq_epi8(<a href="#697">chunk</a>, <a href="#691">vn3</a>);
+    <span class="kw">let </span>or = _mm_or_si128(<a href="#698">eq1</a>, <a href="#699">eq2</a>);
     <span class="kw">if </span>_mm_movemask_epi8(_mm_or_si128(or, eq3)) != <span class="number">0 </span>{
-        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#698">eq1</a>);
-        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#699">eq2</a>);
-        <span class="kw">let </span>mask3 = _mm_movemask_epi8(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#700">eq3</a>);
-        <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">sub</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#688">ptr</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#686">start_ptr</a>) + <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#780">reverse_pos3</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#703">mask1</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#704">mask2</a>, <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#705">mask3</a>))
+        <span class="kw">let </span>mask1 = _mm_movemask_epi8(<a href="#698">eq1</a>);
+        <span class="kw">let </span>mask2 = _mm_movemask_epi8(<a href="#699">eq2</a>);
+        <span class="kw">let </span>mask3 = _mm_movemask_epi8(<a href="#700">eq3</a>);
+        <span class="prelude-val">Some</span>(<a href="#788">sub</a>(<a href="#688">ptr</a>, <a href="#686">start_ptr</a>) + <a href="#780">reverse_pos3</a>(<a href="#703">mask1</a>, <a href="#704">mask2</a>, <a href="#705">mask3</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -1509,7 +1509,7 @@
     // is at a higher address. That means the least significant bit that is set
     // corresponds to the position of our first matching byte. That position
     // corresponds to the number of zeros after the least significant bit.
-    </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#716">mask</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    </span><a href="#716">mask</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
 <span class="doccomment">/// Compute the position of the first matching byte from the given masks. The
@@ -1521,7 +1521,7 @@
 </span><span class="kw">fn </span>forward_pos2(mask1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(mask1 != <span class="number">0 </span>|| mask2 != <span class="number">0</span>);
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#716">forward_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#730">mask1</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#730">mask2</a>)
+    <a href="#716">forward_pos</a>(<a href="#730">mask1</a> | <a href="#730">mask2</a>)
 }
 
 <span class="doccomment">/// Compute the position of the first matching byte from the given masks. The
@@ -1533,7 +1533,7 @@
 </span><span class="kw">fn </span>forward_pos3(mask1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask3: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(mask1 != <span class="number">0 </span>|| mask2 != <span class="number">0 </span>|| mask3 != <span class="number">0</span>);
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#716">forward_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#742">mask1</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#742">mask2</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#742">mask3</a>)
+    <a href="#716">forward_pos</a>(<a href="#742">mask1</a> | <a href="#742">mask2</a> | <a href="#742">mask3</a>)
 }
 
 <span class="doccomment">/// Compute the position of the last matching byte from the given mask. The
@@ -1547,7 +1547,7 @@
     // the end of the mask is therefore the number of leading zeros in a 16
     // bit integer, and the position from the start of the mask is therefore
     // 16 - (leading zeros) - 1.
-    </span><a href="../../../../src/memchr/memchr/x86/sse2.rs.html#3">VECTOR_SIZE</a> - (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#752">mask</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>).leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1
+    </span><a href="#3">VECTOR_SIZE</a> - (<a href="#752">mask</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>).leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1
 </span>}
 
 <span class="doccomment">/// Compute the position of the last matching byte from the given masks. The
@@ -1559,7 +1559,7 @@
 </span><span class="kw">fn </span>reverse_pos2(mask1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(mask1 != <span class="number">0 </span>|| mask2 != <span class="number">0</span>);
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#752">reverse_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#768">mask1</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#768">mask2</a>)
+    <a href="#752">reverse_pos</a>(<a href="#768">mask1</a> | <a href="#768">mask2</a>)
 }
 
 <span class="doccomment">/// Compute the position of the last matching byte from the given masks. The
@@ -1571,14 +1571,14 @@
 </span><span class="kw">fn </span>reverse_pos3(mask1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, mask3: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(mask1 != <span class="number">0 </span>|| mask2 != <span class="number">0 </span>|| mask3 != <span class="number">0</span>);
 
-    <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#752">reverse_pos</a>(<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#780">mask1</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#780">mask2</a> | <a href="../../../../src/memchr/memchr/x86/sse2.rs.html#780">mask3</a>)
+    <a href="#752">reverse_pos</a>(<a href="#780">mask1</a> | <a href="#780">mask2</a> | <a href="#780">mask3</a>)
 }
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` should be greater than
 /// or equal to `b`.
 </span><span class="kw">fn </span>sub(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
-    (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="../../../../src/memchr/memchr/x86/sse2.rs.html#788">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    (<a href="#788">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="#788">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

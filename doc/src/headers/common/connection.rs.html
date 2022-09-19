@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/headers-0.3.7/src/common/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../headers/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../headers/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../headers/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/headers-0.3.8/src/common/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../headers/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../headers/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../headers/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -136,8 +136,8 @@
 <span id="136">136</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
 
-<span class="kw">use </span><a href="../../../src/headers/common/connection.rs.html#108"><span class="self">self</span>::sealed::AsConnectionOption</a>;
-<span class="kw">use </span><a href="../../../src/headers/util/flat_csv.rs.html#11">util::FlatCsv</a>;
+<span class="kw">use </span><a href="#108"><span class="self">self</span>::sealed::AsConnectionOption</a>;
+<span class="kw">use </span><a href="../util/flat_csv.rs.html#11">util::FlatCsv</a>;
 <span class="kw">use </span>{<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
 
 <span class="doccomment">/// `Connection` header, defined in
@@ -171,30 +171,30 @@
 /// ```
 </span><span class="comment">// This is frequently just 1 or 2 values, so optimize for that case.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Connection(<a href="../../../src/headers/util/flat_csv.rs.html#11">FlatCsv</a>);
+</span><span class="kw">pub struct </span>Connection(<a href="../util/flat_csv.rs.html#11">FlatCsv</a>);
 
-<a class="macro" href="../../../src/headers/util/mod.rs.html#50-69">derive_header! </a>{
+<a class="macro" href="../util/mod.rs.html#50-69">derive_header! </a>{
     Connection(<span class="kw">_</span>),
     name: CONNECTION
 }
 
-<span class="kw">impl </span><a href="../../../src/headers/common/connection.rs.html#38">Connection</a> {
+<span class="kw">impl </span><a href="#38">Connection</a> {
     <span class="doccomment">/// A constructor to easily create a `Connection: close` header.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>close() -&gt; <a href="../../../src/headers/common/connection.rs.html#38">Connection</a> {
-        <a href="../../../src/headers/common/connection.rs.html#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;close&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>close() -&gt; <a href="#38">Connection</a> {
+        <a href="#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;close&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
     <span class="doccomment">/// A constructor to easily create a `Connection: keep-alive` header.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>keep_alive() -&gt; <a href="../../../src/headers/common/connection.rs.html#38">Connection</a> {
-        <a href="../../../src/headers/common/connection.rs.html#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;keep-alive&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>keep_alive() -&gt; <a href="#38">Connection</a> {
+        <a href="#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;keep-alive&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
     <span class="doccomment">/// A constructor to easily create a `Connection: Upgrade` header.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>upgrade() -&gt; <a href="../../../src/headers/common/connection.rs.html#38">Connection</a> {
-        <a href="../../../src/headers/common/connection.rs.html#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;upgrade&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    </span><span class="kw">pub fn </span>upgrade() -&gt; <a href="#38">Connection</a> {
+        <a href="#38">Connection</a>(HeaderValue::from_static(<span class="string">&quot;upgrade&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
     <span class="doccomment">/// Check if this header contains a given &quot;connection option&quot;.
@@ -221,54 +221,54 @@
     /// assert!(conn.contains(&quot;keep-alive&quot;));
     /// assert!(conn.contains(&quot;Keep-Alive&quot;));
     /// ```
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw">impl </span><a href="../../../src/headers/common/connection.rs.html#108">AsConnectionOption</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>s = <a href="../../../src/headers/common/connection.rs.html#88">name</a>.<a href="../../../src/headers/common/connection.rs.html#109">as_connection_option</a>();
-        <a class="self" href="../../../src/headers/common/connection.rs.html#88">self</a>.<span class="number">0
-            </span>.<a href="../../../src/headers/util/flat_csv.rs.html#38">iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>opt| <a href="../../../src/headers/common/connection.rs.html#92">opt</a>.eq_ignore_ascii_case(<a href="../../../src/headers/common/connection.rs.html#89">s</a>))
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw">impl </span><a href="#108">AsConnectionOption</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>s = <a href="#88">name</a>.<a href="#109">as_connection_option</a>();
+        <a class="self" href="#88">self</a>.<span class="number">0
+            </span>.<a href="../util/flat_csv.rs.html#38">iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>opt| <a href="#92">opt</a>.eq_ignore_ascii_case(<a href="#89">s</a>))
             .is_some()
     }
 }
 
-<span class="kw">impl </span>FromIterator&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt; <span class="kw">for </span><a href="../../../src/headers/common/connection.rs.html#38">Connection</a> {
+<span class="kw">impl </span>FromIterator&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt; <span class="kw">for </span><a href="#38">Connection</a> {
     <span class="kw">fn </span>from_iter&lt;I&gt;(iter: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;,
     {
-        <span class="kw">let </span>flat = <a href="../../../src/headers/common/connection.rs.html#98">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(HeaderValue::from).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../src/headers/common/connection.rs.html#38">Connection</a>(<a href="../../../src/headers/common/connection.rs.html#102">flat</a>)
+        <span class="kw">let </span>flat = <a href="#98">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(HeaderValue::from).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#38">Connection</a>(<a href="#102">flat</a>)
     }
 }
 
 <span class="kw">mod </span>sealed {
-    <span class="kw">pub trait </span>AsConnectionOption: <a href="../../../src/headers/common/connection.rs.html#111">Sealed</a> {
+    <span class="kw">pub trait </span>AsConnectionOption: <a href="#111">Sealed</a> {
         <span class="kw">fn </span>as_connection_option(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
     }
     <span class="kw">pub trait </span>Sealed {}
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/headers/common/connection.rs.html#108">AsConnectionOption</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#108">AsConnectionOption</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw">fn </span>as_connection_option(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <span class="kw-2">*</span><span class="self"><a href="../../../src/headers/common/connection.rs.html#114">self</a>
+            <span class="kw-2">*</span><span class="self"><a href="#114">self</a>
         </span>}
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/headers/common/connection.rs.html#111">Sealed</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {}
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#111">Sealed</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {}
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/headers/common/connection.rs.html#108">AsConnectionOption</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#108">AsConnectionOption</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {
         <span class="kw">fn </span>as_connection_option(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <a class="self" href="../../../src/headers/common/connection.rs.html#122">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+            <a class="self" href="#122">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/headers/common/connection.rs.html#111">Sealed</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {}
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#111">Sealed</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {}
 
-    <span class="kw">impl </span><a href="../../../src/headers/common/connection.rs.html#108">AsConnectionOption</a> <span class="kw">for </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {
+    <span class="kw">impl </span><a href="#108">AsConnectionOption</a> <span class="kw">for </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {
         <span class="kw">fn </span>as_connection_option(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <a class="self" href="../../../src/headers/common/connection.rs.html#130">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+            <a class="self" href="#130">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
         }
     }
 
-    <span class="kw">impl </span><a href="../../../src/headers/common/connection.rs.html#111">Sealed</a> <span class="kw">for </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {}
+    <span class="kw">impl </span><a href="#111">Sealed</a> <span class="kw">for </span><a href="../../../http/header/name/struct.HeaderName.html">::HeaderName</a> {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="headers" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="headers" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

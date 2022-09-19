@@ -168,7 +168,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 </span><span class="attribute">#![allow(dead_code)]
-</span><span class="kw">use </span><a href="../../src/getrandom/error.rs.html#25"><span class="kw">crate</span>::Error</a>;
+</span><span class="kw">use </span><a href="error.rs.html#25"><span class="kw">crate</span>::Error</a>;
 <span class="kw">use </span>core::{
     <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU32.html">num::NonZeroU32</a>,
     <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">ptr::NonNull</a>,
@@ -208,10 +208,10 @@
     }
 }
 
-<span class="kw">pub fn </span>last_os_error() -&gt; <a href="../../src/getrandom/error.rs.html#25">Error</a> {
-    <span class="kw">let </span>errno = <span class="kw">unsafe </span>{ <a href="../../src/getrandom/util_libc.rs.html#45">get_errno</a>() };
+<span class="kw">pub fn </span>last_os_error() -&gt; <a href="error.rs.html#25">Error</a> {
+    <span class="kw">let </span>errno = <span class="kw">unsafe </span>{ <a href="#45">get_errno</a>() };
     <span class="kw">if </span>errno &gt; <span class="number">0 </span>{
-        Error::from(NonZeroU32::new(<a href="../../src/getrandom/util_libc.rs.html#50">errno</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).unwrap())
+        Error::from(NonZeroU32::new(<a href="#50">errno</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).unwrap())
     } <span class="kw">else </span>{
         Error::ERRNO_NOT_POSITIVE
     }
@@ -223,7 +223,7 @@
 </span><span class="kw">pub fn </span>sys_fill_exact(
     <span class="kw-2">mut </span>buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     sys_fill: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/getrandom/error.rs.html#25">Error</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#25">Error</a>&gt; {
     <span class="kw">while </span>!buf.is_empty() {
         <span class="kw">let </span>res = sys_fill(buf);
         <span class="kw">if </span>res &lt; <span class="number">0 </span>{
@@ -251,7 +251,7 @@
     addr: AtomicPtr&lt;<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/getrandom/util_libc.rs.html#87">Weak</a> {
+<span class="kw">impl </span><a href="#87">Weak</a> {
     <span class="comment">// A non-null pointer value which indicates we are uninitialized. This
     // constant should ideally not be a valid address of a function pointer.
     // However, if by chance libc::dlsym does return UNINIT, there will not
@@ -264,7 +264,7 @@
     // unsafe because `name` _must_ be null terminated.
     </span><span class="kw">pub const unsafe fn </span>new(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="../../src/getrandom/util_libc.rs.html#103">name</a>,
+            <a href="#103">name</a>,
             addr: AtomicPtr::new(<span class="self">Self</span>::UNINIT),
         }
     }
@@ -280,18 +280,18 @@
         // the returned pointer (which occurs when the function is called).
         // Our implementation mirrors that of the one in libstd, meaning that
         // the use of non-Relaxed operations is probably unnecessary.
-        </span><span class="kw">match </span><a class="self" href="../../src/getrandom/util_libc.rs.html#114">self</a>.addr.load(Ordering::Relaxed) {
+        </span><span class="kw">match </span><a class="self" href="#114">self</a>.addr.load(Ordering::Relaxed) {
             <span class="self">Self</span>::UNINIT =&gt; {
-                <span class="kw">let </span>symbol = <a class="self" href="../../src/getrandom/util_libc.rs.html#114">self</a>.name.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>;
-                <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ libc::dlsym(libc::RTLD_DEFAULT, <a href="../../src/getrandom/util_libc.rs.html#123">symbol</a>) };
+                <span class="kw">let </span>symbol = <a class="self" href="#114">self</a>.name.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>;
+                <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ libc::dlsym(libc::RTLD_DEFAULT, <a href="#123">symbol</a>) };
                 <span class="comment">// Synchronizes with the Acquire fence below
-                </span><a class="self" href="../../src/getrandom/util_libc.rs.html#114">self</a>.addr.store(<a href="../../src/getrandom/util_libc.rs.html#124">addr</a>, Ordering::Release);
-                NonNull::new(<a href="../../src/getrandom/util_libc.rs.html#124">addr</a>)
+                </span><a class="self" href="#114">self</a>.addr.store(<a href="#124">addr</a>, Ordering::Release);
+                NonNull::new(<a href="#124">addr</a>)
             }
             addr =&gt; {
                 <span class="kw">let </span>func = NonNull::new(addr)<span class="question-mark">?</span>;
                 <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/fn.fence.html">fence</a>(Ordering::Acquire);
-                <span class="prelude-val">Some</span>(<a href="../../src/getrandom/util_libc.rs.html#130">func</a>)
+                <span class="prelude-val">Some</span>(<a href="#130">func</a>)
             }
         }
     }
@@ -306,19 +306,19 @@
 }
 
 <span class="comment">// SAFETY: path must be null terminated, FD must be manually closed.
-</span><span class="kw">pub unsafe fn </span>open_readonly(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.c_int.html">libc::c_int</a>, <a href="../../src/getrandom/error.rs.html#25">Error</a>&gt; {
+</span><span class="kw">pub unsafe fn </span>open_readonly(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.c_int.html">libc::c_int</a>, <a href="error.rs.html#25">Error</a>&gt; {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(path.as_bytes().last(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
     <span class="kw">loop </span>{
-        <span class="kw">let </span>fd = <a href="../../libc/unix/linux_like/fn.open64.html">open</a>(<a href="../../src/getrandom/util_libc.rs.html#147">path</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, libc::O_RDONLY | libc::O_CLOEXEC);
+        <span class="kw">let </span>fd = <a href="../../libc/unix/linux_like/fn.open64.html">open</a>(<a href="#147">path</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, libc::O_RDONLY | libc::O_CLOEXEC);
         <span class="kw">if </span>fd &gt;= <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/getrandom/util_libc.rs.html#150">fd</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#150">fd</a>);
         }
-        <span class="kw">let </span>err = <a href="../../src/getrandom/util_libc.rs.html#49">last_os_error</a>();
+        <span class="kw">let </span>err = <a href="#49">last_os_error</a>();
         <span class="comment">// We should try again if open() was interrupted.
         </span><span class="kw">if </span>err.raw_os_error() != <span class="prelude-val">Some</span>(libc::EINTR) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/getrandom/util_libc.rs.html#154">err</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#154">err</a>);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

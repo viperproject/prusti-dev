@@ -617,7 +617,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use </span><a href="../../../src/multipart/server/boundary.rs.html#27"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#27"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
 
 <span class="kw">pub const </span>MIN_BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
 
@@ -634,21 +634,21 @@
     source: BufReader&lt;R, <a href="../../../buf_redux/policy/struct.MinBuffered.html">MinBuffered</a>&gt;,
     boundary: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
     search_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    state: <a href="../../../src/multipart/server/boundary.rs.html#27">State</a>,
+    state: <a href="#27">State</a>,
 }
 
 <span class="kw">impl</span>&lt;R&gt; BoundaryReader&lt;R&gt; <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
     <span class="doccomment">/// Internal API
     </span><span class="kw">pub fn </span>from_reader&lt;B: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;(reader: R, boundary: B) -&gt; BoundaryReader&lt;R&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>boundary = <a href="../../../src/multipart/server/boundary.rs.html#44">boundary</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        safemem::prepend(<span class="string">b&quot;--&quot;</span>, <span class="kw-2">&amp;mut </span><a href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>);
-        <span class="kw">let </span>source = BufReader::new(<a href="../../../src/multipart/server/boundary.rs.html#44">reader</a>).set_policy(MinBuffered(<a href="../../../src/multipart/server/boundary.rs.html#24">MIN_BUF_SIZE</a>));
+        <span class="kw">let </span><span class="kw-2">mut </span>boundary = <a href="#44">boundary</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        safemem::prepend(<span class="string">b&quot;--&quot;</span>, <span class="kw-2">&amp;mut </span><a href="#45">boundary</a>);
+        <span class="kw">let </span>source = BufReader::new(<a href="#44">reader</a>).set_policy(MinBuffered(<a href="#24">MIN_BUF_SIZE</a>));
 
-        <a href="../../../src/multipart/server/boundary.rs.html#35">BoundaryReader</a> {
-            <a href="../../../src/multipart/server/boundary.rs.html#47">source</a>,
-            <a href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>,
+        <a href="#35">BoundaryReader</a> {
+            <a href="#47">source</a>,
+            <a href="#45">boundary</a>,
             search_idx: <span class="number">0</span>,
-            state: <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
+            state: <a href="#28">Searching</a>,
         }
     }
 
@@ -661,20 +661,20 @@
                buf.len(), <span class="self">self</span>.search_idx, <span class="self">self</span>.state);
 
         <span class="kw">if </span><span class="self">self</span>.state == BoundaryRead || <span class="self">self</span>.state == AtEnd {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx])
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="#58">buf</a>[..<a class="self" href="#57">self</a>.search_idx])
         }
 
         <span class="kw">if </span><span class="self">self</span>.state == Searching &amp;&amp; <span class="self">self</span>.search_idx &lt; buf.len() {
-            <span class="kw">let </span>lookahead = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx..];
+            <span class="kw">let </span>lookahead = <span class="kw-2">&amp;</span><a href="#58">buf</a>[<a class="self" href="#57">self</a>.search_idx..];
 
             <span class="comment">// Look for the boundary, or if it isn&#39;t found, stop near the end.
-            </span><span class="kw">match </span><a href="../../../src/multipart/server/boundary.rs.html#200">find_boundary</a>(<a href="../../../src/multipart/server/boundary.rs.html#70">lookahead</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.boundary) {
+            </span><span class="kw">match </span><a href="#200">find_boundary</a>(<a href="#70">lookahead</a>, <span class="kw-2">&amp;</span><a class="self" href="#57">self</a>.boundary) {
                 <span class="prelude-val">Ok</span>(found_idx) =&gt; {
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx += <a href="../../../src/multipart/server/boundary.rs.html#74">found_idx</a>;
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a>;
+                    <a class="self" href="#57">self</a>.search_idx += <a href="#74">found_idx</a>;
+                    <a class="self" href="#57">self</a>.state = <a href="#29">BoundaryRead</a>;
                 },
                 <span class="prelude-val">Err</span>(yield_len) =&gt; {
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx += <a href="../../../src/multipart/server/boundary.rs.html#78">yield_len</a>;
+                    <a class="self" href="#57">self</a>.search_idx += <a href="#78">yield_len</a>;
                 }
             }
         }        
@@ -684,29 +684,29 @@
 
         <span class="comment">// back up the cursor to before the boundary&#39;s preceding CRLF if we haven&#39;t already
         </span><span class="kw">if </span><span class="self">self</span>.search_idx &gt;= <span class="number">2 </span>&amp;&amp; !buf[<span class="self">self</span>.search_idx..].starts_with(<span class="string">b&quot;\r\n&quot;</span>) {
-            <span class="kw">let </span>two_bytes_before = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx - <span class="number">2 </span>.. <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx];
+            <span class="kw">let </span>two_bytes_before = <span class="kw-2">&amp;</span><a href="#58">buf</a>[<a class="self" href="#57">self</a>.search_idx - <span class="number">2 </span>.. <a class="self" href="#57">self</a>.search_idx];
 
             <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Two bytes before: {:?} ({:?}) (\&quot;\\r\\n\&quot;: {:?})&quot;</span>,
                    String::from_utf8_lossy(two_bytes_before), two_bytes_before, <span class="string">b&quot;\r\n&quot;</span>);
 
             <span class="kw">if </span>two_bytes_before == <span class="kw-2">*</span><span class="string">b&quot;\r\n&quot; </span>{
                 <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Subtract two!&quot;</span>);
-                <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx -= <span class="number">2</span>;
+                <a class="self" href="#57">self</a>.search_idx -= <span class="number">2</span>;
             }
         }
 
-        <span class="kw">let </span>ret_buf = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx];
+        <span class="kw">let </span>ret_buf = <span class="kw-2">&amp;</span><a href="#58">buf</a>[..<a class="self" href="#57">self</a>.search_idx];
 
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Returning buf: {:?}&quot;</span>, String::from_utf8_lossy(ret_buf));
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#100">ret_buf</a>)
+        <span class="prelude-val">Ok</span>(<a href="#100">ret_buf</a>)
     }
 
     <span class="kw">pub fn </span>set_min_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="comment">// ensure the minimum buf size is at least enough to find a boundary with some extra
-        </span><span class="kw">let </span>min_buf_size = cmp::max(<a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.boundary.len() * <span class="number">2</span>, <a href="../../../src/multipart/server/boundary.rs.html#107">min_buf_size</a>);
+        </span><span class="kw">let </span>min_buf_size = cmp::max(<a class="self" href="#107">self</a>.boundary.len() * <span class="number">2</span>, <a href="#107">min_buf_size</a>);
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.source.policy_mut().<span class="number">0 </span>= <a href="../../../src/multipart/server/boundary.rs.html#109">min_buf_size</a>;
+        <a class="self" href="#107">self</a>.source.policy_mut().<span class="number">0 </span>= <a href="#109">min_buf_size</a>;
     }
 
     <span class="kw">pub fn </span>consume_boundary(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
@@ -733,14 +733,14 @@
             <span class="kw">let </span>buf = <span class="self">self</span>.source.fill_buf()<span class="question-mark">?</span>;
 
             <span class="comment">// if the boundary is found we should have at least this much in-buffer
-            </span><span class="kw">let </span><span class="kw-2">mut </span>consume_amt = <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx + <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.boundary.len();
+            </span><span class="kw">let </span><span class="kw-2">mut </span>consume_amt = <a class="self" href="#114">self</a>.search_idx + <a class="self" href="#114">self</a>.boundary.len();
 
             <span class="comment">// we don&#39;t care about data before the cursor
-            </span><span class="kw">let </span>bnd_segment = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx..];
+            </span><span class="kw">let </span>bnd_segment = <span class="kw-2">&amp;</span><a href="#135">buf</a>[<a class="self" href="#114">self</a>.search_idx..];
 
             <span class="kw">if </span>bnd_segment.starts_with(<span class="string">b&quot;\r\n&quot;</span>) {
                 <span class="comment">// preceding CRLF needs to be consumed as well
-                </span><a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> += <span class="number">2</span>;
+                </span><a href="#138">consume_amt</a> += <span class="number">2</span>;
 
                 <span class="comment">// assert that we&#39;ve found the boundary after the CRLF
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="self">self</span>.boundary, bnd_segment[<span class="number">2 </span>.. <span class="self">self</span>.boundary.len() + <span class="number">2</span>]);
@@ -750,7 +750,7 @@
             }
 
             <span class="comment">// include the trailing CRLF or --
-            </span><a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> += <span class="number">2</span>;
+            </span><a href="#138">consume_amt</a> += <span class="number">2</span>;
 
             <span class="kw">if </span>buf.len() &lt; consume_amt {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::UnexpectedEof,
@@ -758,13 +758,13 @@
             }
 
             <span class="comment">// we have enough bytes to verify
-            </span><a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>;
+            </span><a class="self" href="#114">self</a>.state = <a href="#28">Searching</a>;
 
-            <span class="kw">let </span>last_two = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> - <span class="number">2 </span>.. <a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>];
+            <span class="kw">let </span>last_two = <span class="kw-2">&amp;</span><a href="#135">buf</a>[<a href="#138">consume_amt</a> - <span class="number">2 </span>.. <a href="#138">consume_amt</a>];
 
-            <span class="kw">match </span><a href="../../../src/multipart/server/boundary.rs.html#165">last_two</a> {
-                <span class="string">b&quot;\r\n&quot; </span>=&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
-                <span class="string">b&quot;--&quot; </span>=&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>,
+            <span class="kw">match </span><a href="#165">last_two</a> {
+                <span class="string">b&quot;\r\n&quot; </span>=&gt; <a class="self" href="#114">self</a>.state = <a href="#28">Searching</a>,
+                <span class="string">b&quot;--&quot; </span>=&gt; <a class="self" href="#114">self</a>.state = <a href="#30">AtEnd</a>,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                     io::ErrorKind::InvalidData,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unexpected bytes following multipart boundary: {:X} {:X}&quot;</span>,
@@ -772,35 +772,35 @@
                 )),
             }
 
-            <a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>
+            <a href="#138">consume_amt</a>
         };
 
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Consuming {} bytes, remaining buf: {:?}&quot;</span>,
                consume_amt,
                String::from_utf8_lossy(<span class="self">self</span>.source.buffer()));
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#134">consume_amt</a>);
+        <a class="self" href="#114">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#134">consume_amt</a>);
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
 
         }
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx = <span class="number">0</span>;
+        <a class="self" href="#114">self</a>.search_idx = <span class="number">0</span>;
 
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Consumed boundary (state: {:?}), remaining buf: {:?}&quot;</span>, <span class="self">self</span>.state,
                String::from_utf8_lossy(<span class="self">self</span>.source.buffer()));
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state != <a href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="#114">self</a>.state != <a href="#30">AtEnd</a>)
     }
 }
 
 <span class="doccomment">/// Find the boundary occurrence or the highest length to safely yield
 </span><span class="kw">fn </span>find_boundary(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], boundary: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = twoway::find_bytes(<a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>, <a href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>) {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#201">idx</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = twoway::find_bytes(<a href="#200">buf</a>, <a href="#200">boundary</a>) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#201">idx</a>);
     }
 
-    <span class="kw">let </span>search_start = <a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.len().saturating_sub(<a href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>.len());
+    <span class="kw">let </span>search_start = <a href="#200">buf</a>.len().saturating_sub(<a href="#200">boundary</a>.len());
 
     <span class="comment">// search for just the boundary fragment
     </span><span class="kw">for </span>i <span class="kw">in </span>search_start .. buf.len() {
@@ -809,7 +809,7 @@
         }
     }
 
-    <span class="prelude-val">Err</span>(<a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.len())
+    <span class="prelude-val">Err</span>(<a href="#200">buf</a>.len())
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;bench&quot;</span>)]
@@ -828,7 +828,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; Borrow&lt;R&gt; <span class="kw">for </span>BoundaryReader&lt;R&gt; {
     <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#232">self</a>.source.get_ref()
+        <a class="self" href="#232">self</a>.source.get_ref()
     }
 }
 
@@ -837,26 +837,26 @@
         <span class="kw">let </span>read = {
             <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="self">self</span>.read_to_boundary()<span class="question-mark">?</span>;
             <span class="comment">// This shouldn&#39;t ever be an error so unwrapping is fine.
-            </span><a href="../../../src/multipart/server/boundary.rs.html#240">buf</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/multipart/server/boundary.rs.html#238">out</a>).unwrap()
+            </span><a href="#240">buf</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#238">out</a>).unwrap()
         };
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#238">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#239">read</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#239">read</a>)
+        <a class="self" href="#238">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#239">read</a>);
+        <span class="prelude-val">Ok</span>(<a href="#239">read</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span>BoundaryReader&lt;R&gt; <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
     <span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#251">self</a>.<a href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()
+        <a class="self" href="#251">self</a>.<a href="#57">read_to_boundary</a>()
     }
 
     <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>true_amt = cmp::min(<a href="../../../src/multipart/server/boundary.rs.html#255">amt</a>, <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.search_idx);
+        <span class="kw">let </span>true_amt = cmp::min(<a href="#255">amt</a>, <a class="self" href="#255">self</a>.search_idx);
 
         <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Consume! amt: {} true amt: {}&quot;</span>, amt, true_amt);
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>);
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.search_idx -= <a href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>;
+        <a class="self" href="#255">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#256">true_amt</a>);
+        <a class="self" href="#255">self</a>.search_idx -= <a href="#256">true_amt</a>;
     }
 }
 
@@ -1195,4 +1195,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="multipart" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="multipart" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

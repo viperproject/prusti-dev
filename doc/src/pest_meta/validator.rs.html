@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.3.0/src/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest_meta/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.3.1/src/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pest_meta/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -815,12 +815,12 @@
 </span><span class="kw">use </span><a href="../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 <span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>};
 
-<span class="kw">use </span>pest::error::{<a href="../../pest/error/struct.Error.html">Error</a>, <a href="../../pest/error/enum.ErrorVariant.html">ErrorVariant</a>, <a href="../../pest/error/enum.InputLocation.html">InputLocation</a>};
-<span class="kw">use </span><a href="../../pest/iterators/pairs/struct.Pairs.html">pest::iterators::Pairs</a>;
-<span class="kw">use </span><a href="../../pest/span/struct.Span.html">pest::Span</a>;
+<span class="kw">use </span>pest::error::{<a href="https://docs.rs/pest/pest/error/struct.Error.html">Error</a>, <a href="https://docs.rs/pest/pest/error/enum.ErrorVariant.html">ErrorVariant</a>, <a href="https://docs.rs/pest/pest/error/enum.InputLocation.html">InputLocation</a>};
+<span class="kw">use </span><a href="https://docs.rs/pest/pest/iterators/pairs/struct.Pairs.html">pest::iterators::Pairs</a>;
+<span class="kw">use </span><a href="https://docs.rs/pest/pest/span/struct.Span.html">pest::Span</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::{<a href="../../src/pest_meta/parser.rs.html#111">ParserExpr</a>, <a href="../../src/pest_meta/parser.rs.html#40">ParserNode</a>, <a href="../../src/pest_meta/parser.rs.html#32">ParserRule</a>, <a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>};
-<span class="kw">use </span><a href="../../src/pest_meta/lib.rs.html#41"><span class="kw">crate</span>::UNICODE_PROPERTY_NAMES</a>;
+<span class="kw">use </span><span class="kw">crate</span>::parser::{<a href="parser.rs.html#111">ParserExpr</a>, <a href="parser.rs.html#40">ParserNode</a>, <a href="parser.rs.html#32">ParserRule</a>, <a href="grammar.rs.html#2">Rule</a>};
+<span class="kw">use </span><a href="lib.rs.html#41"><span class="kw">crate</span>::UNICODE_PROPERTY_NAMES</a>;
 
 <span class="kw">static </span>RUST_KEYWORDS: Lazy&lt;HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; = Lazy::new(|| {
     [
@@ -868,49 +868,49 @@
     ]
     .iter()
     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../../src/pest_meta/lib.rs.html#41">UNICODE_PROPERTY_NAMES</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>())
+    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="lib.rs.html#41">UNICODE_PROPERTY_NAMES</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>())
     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;HashSet&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;()
 });
 
-<span class="kw">pub fn </span>validate_pairs(pairs: Pairs&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
-    <span class="kw">let </span>definitions: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/pest_meta/validator.rs.html#70">pairs</a>
+<span class="kw">pub fn </span>validate_pairs(pairs: Pairs&lt;<a href="grammar.rs.html#2">Rule</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt;&gt; {
+    <span class="kw">let </span>definitions: Vec&lt;<span class="kw">_</span>&gt; = <a href="#70">pairs</a>
         .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="../../src/pest_meta/validator.rs.html#73">pair</a>.as_rule() == <a href="../../src/pest_meta/grammar.rs.html#2">Rule::grammar_rule</a>)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| <a href="../../src/pest_meta/validator.rs.html#74">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_span())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="#73">pair</a>.as_rule() == <a href="grammar.rs.html#2">Rule::grammar_rule</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| <a href="#74">pair</a>.into_inner().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().as_span())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <span class="kw">let </span>called_rules: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/pest_meta/validator.rs.html#70">pairs</a>
+    <span class="kw">let </span>called_rules: Vec&lt;<span class="kw">_</span>&gt; = <a href="#70">pairs</a>
         .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="../../src/pest_meta/validator.rs.html#78">pair</a>.as_rule() == <a href="../../src/pest_meta/grammar.rs.html#2">Rule::grammar_rule</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="#78">pair</a>.as_rule() == <a href="grammar.rs.html#2">Rule::grammar_rule</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|pair| {
-            <a href="../../src/pest_meta/validator.rs.html#79">pair</a>.into_inner()
+            <a href="#79">pair</a>.into_inner()
                 .flatten()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="../../src/pest_meta/validator.rs.html#83">pair</a>.as_rule() == <a href="../../src/pest_meta/grammar.rs.html#2">Rule::identifier</a>)
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| <a href="../../src/pest_meta/validator.rs.html#84">pair</a>.as_span())
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pair| <a href="#83">pair</a>.as_rule() == <a href="grammar.rs.html#2">Rule::identifier</a>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pair| <a href="#84">pair</a>.as_span())
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-    <a href="../../src/pest_meta/validator.rs.html#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#108">validate_rust_keywords</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#71">definitions</a>));
-    <a href="../../src/pest_meta/validator.rs.html#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#128">validate_pest_keywords</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#71">definitions</a>));
-    <a href="../../src/pest_meta/validator.rs.html#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#148">validate_already_defined</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#71">definitions</a>));
-    <a href="../../src/pest_meta/validator.rs.html#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#171-174">validate_undefined</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#71">definitions</a>, <span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#76">called_rules</a>));
+    <a href="#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#108">validate_rust_keywords</a>(<span class="kw-2">&amp;</span><a href="#71">definitions</a>));
+    <a href="#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#128">validate_pest_keywords</a>(<span class="kw-2">&amp;</span><a href="#71">definitions</a>));
+    <a href="#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#148">validate_already_defined</a>(<span class="kw-2">&amp;</span><a href="#71">definitions</a>));
+    <a href="#88">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#171-174">validate_undefined</a>(<span class="kw-2">&amp;</span><a href="#71">definitions</a>, <span class="kw-2">&amp;</span><a href="#76">called_rules</a>));
 
     <span class="kw">if </span>!errors.is_empty() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/pest_meta/validator.rs.html#88">errors</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#88">errors</a>);
     }
 
-    <span class="kw">let </span>definitions: HashSet&lt;<span class="kw">_</span>&gt; = <a href="../../src/pest_meta/validator.rs.html#71">definitions</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="../../src/pest_meta/validator.rs.html#99">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <span class="kw">let </span>called_rules: HashSet&lt;<span class="kw">_</span>&gt; = <a href="../../src/pest_meta/validator.rs.html#76">called_rules</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="../../src/pest_meta/validator.rs.html#100">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>definitions: HashSet&lt;<span class="kw">_</span>&gt; = <a href="#71">definitions</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="#99">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>called_rules: HashSet&lt;<span class="kw">_</span>&gt; = <a href="#76">called_rules</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="#100">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <span class="kw">let </span>defaults = <a href="../../src/pest_meta/validator.rs.html#100">called_rules</a>.difference(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#99">definitions</a>);
+    <span class="kw">let </span>defaults = <a href="#100">called_rules</a>.difference(<span class="kw-2">&amp;</span><a href="#99">definitions</a>);
 
-    <span class="prelude-val">Ok</span>(<a href="../../src/pest_meta/validator.rs.html#102">defaults</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+    <span class="prelude-val">Ok</span>(<a href="#102">defaults</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
 }
 
 <span class="attribute">#[allow(clippy::ptr_arg)]
-</span><span class="kw">pub fn </span>validate_rust_keywords(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="../../pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>validate_rust_keywords(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="https://docs.rs/pest/pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
     <span class="kw">for </span>definition <span class="kw">in </span>definitions {
@@ -926,11 +926,11 @@
         }
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#109">errors</a>
+    <a href="#109">errors</a>
 }
 
 <span class="attribute">#[allow(clippy::ptr_arg)]
-</span><span class="kw">pub fn </span>validate_pest_keywords(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="../../pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>validate_pest_keywords(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="https://docs.rs/pest/pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
     <span class="kw">for </span>definition <span class="kw">in </span>definitions {
@@ -946,11 +946,11 @@
         }
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#129">errors</a>
+    <a href="#129">errors</a>
 }
 
 <span class="attribute">#[allow(clippy::ptr_arg)]
-</span><span class="kw">pub fn </span>validate_already_defined(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="../../pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>validate_already_defined(definitions: <span class="kw-2">&amp;</span>Vec&lt;<a href="https://docs.rs/pest/pest/span/struct.Span.html">Span</a>&gt;) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let </span><span class="kw-2">mut </span>defined = HashSet::new();
 
@@ -969,16 +969,16 @@
         }
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#149">errors</a>
+    <a href="#149">errors</a>
 }
 
 <span class="attribute">#[allow(clippy::ptr_arg)]
 </span><span class="kw">pub fn </span>validate_undefined&lt;<span class="lifetime">&#39;i</span>&gt;(
     definitions: <span class="kw-2">&amp;</span>Vec&lt;Span&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
     called_rules: <span class="kw-2">&amp;</span>Vec&lt;Span&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
-) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">let </span>definitions: HashSet&lt;<span class="kw">_</span>&gt; = <a href="../../src/pest_meta/validator.rs.html#172">definitions</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="../../src/pest_meta/validator.rs.html#176">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>definitions: HashSet&lt;<span class="kw">_</span>&gt; = <a href="#172">definitions</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|span| <a href="#176">span</a>.as_str()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="kw">for </span>rule <span class="kw">in </span>called_rules {
         <span class="kw">let </span>name = rule.as_str();
@@ -993,24 +993,24 @@
         }
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#175">errors</a>
+    <a href="#175">errors</a>
 }
 
 <span class="attribute">#[allow(clippy::ptr_arg)]
-</span><span class="kw">pub fn </span>validate_ast&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;&gt;) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+</span><span class="kw">pub fn </span>validate_ast&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;&gt;) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#281">validate_repetition</a>(<a href="../../src/pest_meta/validator.rs.html#195">rules</a>));
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#325">validate_choices</a>(<a href="../../src/pest_meta/validator.rs.html#195">rules</a>));
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#362">validate_whitespace_comment</a>(<a href="../../src/pest_meta/validator.rs.html#195">rules</a>));
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/pest_meta/validator.rs.html#399">validate_left_recursion</a>(<a href="../../src/pest_meta/validator.rs.html#195">rules</a>));
+    <a href="#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#281">validate_repetition</a>(<a href="#195">rules</a>));
+    <a href="#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#325">validate_choices</a>(<a href="#195">rules</a>));
+    <a href="#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#362">validate_whitespace_comment</a>(<a href="#195">rules</a>));
+    <a href="#196">errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#399">validate_left_recursion</a>(<a href="#195">rules</a>));
 
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>.sort_by_key(|error| <span class="kw">match </span><a href="../../src/pest_meta/validator.rs.html#203">error</a>.location {
-        InputLocation::Span(span) =&gt; <a href="../../src/pest_meta/validator.rs.html#204">span</a>,
+    <a href="#196">errors</a>.sort_by_key(|error| <span class="kw">match </span><a href="#203">error</a>.location {
+        InputLocation::Span(span) =&gt; <a href="#204">span</a>,
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     });
 
-    <a href="../../src/pest_meta/validator.rs.html#196">errors</a>
+    <a href="#196">errors</a>
 }
 
 <span class="kw">fn </span>is_non_progressing&lt;<span class="lifetime">&#39;i</span>&gt;(
@@ -1018,34 +1018,34 @@
     rules: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
     trace: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><span class="kw-2">*</span><a href="../../src/pest_meta/validator.rs.html#212">expr</a> {
-        <a href="../../src/pest_meta/parser.rs.html#112">ParserExpr::Str</a>(<span class="kw-2">ref </span>string) =&gt; <a href="../../src/pest_meta/validator.rs.html#217">string</a>.is_empty(),
-        <a href="../../src/pest_meta/parser.rs.html#115">ParserExpr::Ident</a>(<span class="kw-2">ref </span>ident) =&gt; {
+    <span class="kw">match </span><span class="kw-2">*</span><a href="#212">expr</a> {
+        <a href="parser.rs.html#112">ParserExpr::Str</a>(<span class="kw-2">ref </span>string) =&gt; <a href="#217">string</a>.is_empty(),
+        <a href="parser.rs.html#115">ParserExpr::Ident</a>(<span class="kw-2">ref </span>ident) =&gt; {
             <span class="kw">if </span>ident == <span class="string">&quot;soi&quot; </span>|| ident == <span class="string">&quot;eoi&quot; </span>{
                 <span class="kw">return </span><span class="bool-val">true</span>;
             }
 
             <span class="kw">if </span>!trace.contains(ident) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="../../src/pest_meta/validator.rs.html#213">rules</a>.get(<a href="../../src/pest_meta/validator.rs.html#218">ident</a>) {
-                    <a href="../../src/pest_meta/validator.rs.html#214">trace</a>.push(<a href="../../src/pest_meta/validator.rs.html#218">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <span class="kw">let </span>result = <a href="../../src/pest_meta/validator.rs.html#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#224">node</a>.expr, <a href="../../src/pest_meta/validator.rs.html#213">rules</a>, <a href="../../src/pest_meta/validator.rs.html#214">trace</a>);
-                    <a href="../../src/pest_meta/validator.rs.html#214">trace</a>.pop().unwrap();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="#213">rules</a>.get(<a href="#218">ident</a>) {
+                    <a href="#214">trace</a>.push(<a href="#218">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <span class="kw">let </span>result = <a href="#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="#224">node</a>.expr, <a href="#213">rules</a>, <a href="#214">trace</a>);
+                    <a href="#214">trace</a>.pop().unwrap();
 
-                    <span class="kw">return </span><a href="../../src/pest_meta/validator.rs.html#226">result</a>;
+                    <span class="kw">return </span><a href="#226">result</a>;
                 }
             }
 
             <span class="bool-val">false
         </span>}
-        <a href="../../src/pest_meta/parser.rs.html#117">ParserExpr::PosPred</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-        <a href="../../src/pest_meta/parser.rs.html#118">ParserExpr::NegPred</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-        <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
-            <a href="../../src/pest_meta/validator.rs.html#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#237">lhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#213">rules</a>, <a href="../../src/pest_meta/validator.rs.html#214">trace</a>)
-                &amp;&amp; <a href="../../src/pest_meta/validator.rs.html#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#237">rhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#213">rules</a>, <a href="../../src/pest_meta/validator.rs.html#214">trace</a>)
+        <a href="parser.rs.html#117">ParserExpr::PosPred</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <a href="parser.rs.html#118">ParserExpr::NegPred</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <a href="parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+            <a href="#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="#237">lhs</a>.expr, <a href="#213">rules</a>, <a href="#214">trace</a>)
+                &amp;&amp; <a href="#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="#237">rhs</a>.expr, <a href="#213">rules</a>, <a href="#214">trace</a>)
         }
-        <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
-            <a href="../../src/pest_meta/validator.rs.html#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#241">lhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#213">rules</a>, <a href="../../src/pest_meta/validator.rs.html#214">trace</a>)
-                || <a href="../../src/pest_meta/validator.rs.html#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#241">rhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#213">rules</a>, <a href="../../src/pest_meta/validator.rs.html#214">trace</a>)
+        <a href="parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+            <a href="#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="#241">lhs</a>.expr, <a href="#213">rules</a>, <a href="#214">trace</a>)
+                || <a href="#211-215">is_non_progressing</a>(<span class="kw-2">&amp;</span><a href="#241">rhs</a>.expr, <a href="#213">rules</a>, <a href="#214">trace</a>)
         }
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
@@ -1056,36 +1056,36 @@
     rules: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
     trace: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><span class="kw-2">*</span><a href="../../src/pest_meta/validator.rs.html#250">expr</a> {
-        <a href="../../src/pest_meta/parser.rs.html#112">ParserExpr::Str</a>(<span class="kw-2">ref </span>string) =&gt; <a href="../../src/pest_meta/validator.rs.html#255">string</a>.is_empty(),
-        <a href="../../src/pest_meta/parser.rs.html#115">ParserExpr::Ident</a>(<span class="kw-2">ref </span>ident) =&gt; {
+    <span class="kw">match </span><span class="kw-2">*</span><a href="#250">expr</a> {
+        <a href="parser.rs.html#112">ParserExpr::Str</a>(<span class="kw-2">ref </span>string) =&gt; <a href="#255">string</a>.is_empty(),
+        <a href="parser.rs.html#115">ParserExpr::Ident</a>(<span class="kw-2">ref </span>ident) =&gt; {
             <span class="kw">if </span>!trace.contains(ident) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="../../src/pest_meta/validator.rs.html#251">rules</a>.get(<a href="../../src/pest_meta/validator.rs.html#256">ident</a>) {
-                    <a href="../../src/pest_meta/validator.rs.html#252">trace</a>.push(<a href="../../src/pest_meta/validator.rs.html#256">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <span class="kw">let </span>result = <a href="../../src/pest_meta/validator.rs.html#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#258">node</a>.expr, <a href="../../src/pest_meta/validator.rs.html#251">rules</a>, <a href="../../src/pest_meta/validator.rs.html#252">trace</a>);
-                    <a href="../../src/pest_meta/validator.rs.html#252">trace</a>.pop().unwrap();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="#251">rules</a>.get(<a href="#256">ident</a>) {
+                    <a href="#252">trace</a>.push(<a href="#256">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <span class="kw">let </span>result = <a href="#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="#258">node</a>.expr, <a href="#251">rules</a>, <a href="#252">trace</a>);
+                    <a href="#252">trace</a>.pop().unwrap();
 
-                    <span class="kw">return </span><a href="../../src/pest_meta/validator.rs.html#260">result</a>;
+                    <span class="kw">return </span><a href="#260">result</a>;
                 }
             }
 
             <span class="bool-val">false
         </span>}
-        <a href="../../src/pest_meta/parser.rs.html#121">ParserExpr::Opt</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-        <a href="../../src/pest_meta/parser.rs.html#122">ParserExpr::Rep</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-        <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
-            <a href="../../src/pest_meta/validator.rs.html#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#271">lhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#251">rules</a>, <a href="../../src/pest_meta/validator.rs.html#252">trace</a>) &amp;&amp; <a href="../../src/pest_meta/validator.rs.html#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#271">rhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#251">rules</a>, <a href="../../src/pest_meta/validator.rs.html#252">trace</a>)
+        <a href="parser.rs.html#121">ParserExpr::Opt</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <a href="parser.rs.html#122">ParserExpr::Rep</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <a href="parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+            <a href="#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="#271">lhs</a>.expr, <a href="#251">rules</a>, <a href="#252">trace</a>) &amp;&amp; <a href="#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="#271">rhs</a>.expr, <a href="#251">rules</a>, <a href="#252">trace</a>)
         }
-        <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
-            <a href="../../src/pest_meta/validator.rs.html#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#274">lhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#251">rules</a>, <a href="../../src/pest_meta/validator.rs.html#252">trace</a>) || <a href="../../src/pest_meta/validator.rs.html#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#274">rhs</a>.expr, <a href="../../src/pest_meta/validator.rs.html#251">rules</a>, <a href="../../src/pest_meta/validator.rs.html#252">trace</a>)
+        <a href="parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+            <a href="#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="#274">lhs</a>.expr, <a href="#251">rules</a>, <a href="#252">trace</a>) || <a href="#249-253">is_non_failing</a>(<span class="kw-2">&amp;</span><a href="#274">rhs</a>.expr, <a href="#251">rules</a>, <a href="#252">trace</a>)
         }
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">fn </span>validate_repetition&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+<span class="kw">fn </span>validate_repetition&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">let </span>map = <a href="../../src/pest_meta/validator.rs.html#403">to_hash_map</a>(<a href="../../src/pest_meta/validator.rs.html#281">rules</a>);
+    <span class="kw">let </span>map = <a href="#403">to_hash_map</a>(<a href="#281">rules</a>);
 
     <span class="kw">for </span>rule <span class="kw">in </span>rules {
         <span class="kw">let </span><span class="kw-2">mut </span>errors = rule.node
@@ -1124,12 +1124,12 @@
         result.append(<span class="kw-2">&amp;mut </span>errors);
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#282">result</a>
+    <a href="#282">result</a>
 }
 
-<span class="kw">fn </span>validate_choices&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+<span class="kw">fn </span>validate_choices&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-    <span class="kw">let </span>map = <a href="../../src/pest_meta/validator.rs.html#403">to_hash_map</a>(<a href="../../src/pest_meta/validator.rs.html#325">rules</a>);
+    <span class="kw">let </span>map = <a href="#403">to_hash_map</a>(<a href="#325">rules</a>);
 
     <span class="kw">for </span>rule <span class="kw">in </span>rules {
         <span class="kw">let </span><span class="kw-2">mut </span>errors = rule
@@ -1161,35 +1161,35 @@
         result.append(<span class="kw-2">&amp;mut </span>errors);
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#326">result</a>
+    <a href="#326">result</a>
 }
 
-<span class="kw">fn </span>validate_whitespace_comment&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
-    <span class="kw">let </span>map = <a href="../../src/pest_meta/validator.rs.html#403">to_hash_map</a>(<a href="../../src/pest_meta/validator.rs.html#362">rules</a>);
+<span class="kw">fn </span>validate_whitespace_comment&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
+    <span class="kw">let </span>map = <a href="#403">to_hash_map</a>(<a href="#362">rules</a>);
 
-    <a href="../../src/pest_meta/validator.rs.html#362">rules</a>
+    <a href="#362">rules</a>
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|rule| {
             <span class="kw">if </span>rule.name == <span class="string">&quot;WHITESPACE&quot; </span>|| rule.name == <span class="string">&quot;COMMENT&quot; </span>{
                 <span class="kw">if </span>is_non_failing(<span class="kw-2">&amp;</span>rule.node.expr, <span class="kw-2">&amp;</span>map, <span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[]) {
                     <span class="prelude-val">Some</span>(Error::new_from_span(
-                        <a href="../../pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
+                        <a href="https://docs.rs/pest/pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
                             message: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                                 <span class="string">&quot;{} cannot fail and will repeat infinitely&quot;</span>,
                                 <span class="kw-2">&amp;</span>rule.name
                             ),
                         },
-                        <a href="../../src/pest_meta/validator.rs.html#367">rule</a>.node.span,
+                        <a href="#367">rule</a>.node.span,
                     ))
                 } <span class="kw">else if </span>is_non_progressing(<span class="kw-2">&amp;</span>rule.node.expr, <span class="kw-2">&amp;</span>map, <span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[]) {
                     <span class="prelude-val">Some</span>(Error::new_from_span(
-                        <a href="../../pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
+                        <a href="https://docs.rs/pest/pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
                             message: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                                 <span class="string">&quot;{} is non-progressing and will repeat infinitely&quot;</span>,
                                 <span class="kw-2">&amp;</span>rule.name
                             ),
                         },
-                        <a href="../../src/pest_meta/validator.rs.html#367">rule</a>.node.span,
+                        <a href="#367">rule</a>.node.span,
                     ))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
@@ -1201,32 +1201,32 @@
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
-<span class="kw">fn </span>validate_left_recursion&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
-    <a href="../../src/pest_meta/validator.rs.html#407">left_recursion</a>(<a href="../../src/pest_meta/validator.rs.html#403">to_hash_map</a>(<a href="../../src/pest_meta/validator.rs.html#399">rules</a>))
+<span class="kw">fn </span>validate_left_recursion&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
+    <a href="#407">left_recursion</a>(<a href="#403">to_hash_map</a>(<a href="#399">rules</a>))
 }
 
 <span class="kw">fn </span>to_hash_map&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ParserRule&lt;<span class="lifetime">&#39;i</span>&gt;]) -&gt; HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt; {
-    <a href="../../src/pest_meta/validator.rs.html#403">rules</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|r| (<a href="../../src/pest_meta/validator.rs.html#404">r</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#404">r</a>.node)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    <a href="#403">rules</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|r| (<a href="#404">r</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">&amp;</span><a href="#404">r</a>.node)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
-<span class="kw">fn </span>left_recursion&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;) -&gt; Vec&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
+<span class="kw">fn </span>left_recursion&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(rules: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;) -&gt; Vec&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
     <span class="kw">fn </span>check_expr&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;i</span>: <span class="lifetime">&#39;a</span>&gt;(
         node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;,
         rules: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">&amp;</span>ParserNode&lt;<span class="lifetime">&#39;i</span>&gt;&gt;,
         trace: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Error&lt;<a href="../../src/pest_meta/grammar.rs.html#2">Rule</a>&gt;&gt; {
-        <span class="kw">match </span><a href="../../src/pest_meta/validator.rs.html#409">node</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <a href="../../src/pest_meta/parser.rs.html#115">ParserExpr::Ident</a>(other) =&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Error&lt;<a href="grammar.rs.html#2">Rule</a>&gt;&gt; {
+        <span class="kw">match </span><a href="#409">node</a>.expr.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+            <a href="parser.rs.html#115">ParserExpr::Ident</a>(other) =&gt; {
                 <span class="kw">if </span>trace[<span class="number">0</span>] == other {
-                    <a href="../../src/pest_meta/validator.rs.html#411">trace</a>.push(<a href="../../src/pest_meta/validator.rs.html#414">other</a>);
-                    <span class="kw">let </span>chain = <a href="../../src/pest_meta/validator.rs.html#411">trace</a>
+                    <a href="#411">trace</a>.push(<a href="#414">other</a>);
+                    <span class="kw">let </span>chain = <a href="#411">trace</a>
                         .iter()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ident| <a href="../../src/pest_meta/validator.rs.html#419">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ident| <a href="#419">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
                         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
                         .join(<span class="string">&quot; -&gt; &quot;</span>);
 
                     <span class="kw">return </span><span class="prelude-val">Some</span>(Error::new_from_span(
-                        <a href="../../pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
+                        <a href="https://docs.rs/pest/pest/error/enum.ErrorVariant.html">ErrorVariant::CustomError</a> {
                             message: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                                 <span class="string">&quot;rule {} is left-recursive ({}); pest::prec_climber might be useful \
                                  in this case&quot;</span>,
@@ -1234,38 +1234,38 @@
                                 chain
                             )
                         },
-                        <a href="../../src/pest_meta/validator.rs.html#409">node</a>.span
+                        <a href="#409">node</a>.span
                     ));
                 }
 
                 <span class="kw">if </span>!trace.contains(<span class="kw-2">&amp;</span>other) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="../../src/pest_meta/validator.rs.html#410">rules</a>.get(<span class="kw-2">&amp;</span><a href="../../src/pest_meta/validator.rs.html#414">other</a>) {
-                        <a href="../../src/pest_meta/validator.rs.html#411">trace</a>.push(<a href="../../src/pest_meta/validator.rs.html#414">other</a>);
-                        <span class="kw">let </span>result = <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#437">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>);
-                        <a href="../../src/pest_meta/validator.rs.html#411">trace</a>.pop().unwrap();
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = <a href="#410">rules</a>.get(<span class="kw-2">&amp;</span><a href="#414">other</a>) {
+                        <a href="#411">trace</a>.push(<a href="#414">other</a>);
+                        <span class="kw">let </span>result = <a href="#408-412">check_expr</a>(<a href="#437">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>);
+                        <a href="#411">trace</a>.pop().unwrap();
 
-                        <span class="kw">return </span><a href="../../src/pest_meta/validator.rs.html#439">result</a>;
+                        <span class="kw">return </span><a href="#439">result</a>;
                     }
                 }
 
                 <span class="prelude-val">None
             </span>}
-            <a href="../../src/pest_meta/parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+            <a href="parser.rs.html#119">ParserExpr::Seq</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
                 <span class="kw">if </span>is_non_failing(<span class="kw-2">&amp;</span>lhs.expr, rules, <span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[trace.last().unwrap().clone()]) {
-                    <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#448">rhs</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>)
+                    <a href="#408-412">check_expr</a>(<a href="#448">rhs</a>, <a href="#410">rules</a>, <a href="#411">trace</a>)
                 } <span class="kw">else </span>{
-                    <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#448">lhs</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>)
+                    <a href="#408-412">check_expr</a>(<a href="#448">lhs</a>, <a href="#410">rules</a>, <a href="#411">trace</a>)
                 }
             }
-            <a href="../../src/pest_meta/parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
-                <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#455">lhs</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>).or_else(|| <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#455">rhs</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>))
+            <a href="parser.rs.html#120">ParserExpr::Choice</a>(<span class="kw-2">ref </span>lhs, <span class="kw-2">ref </span>rhs) =&gt; {
+                <a href="#408-412">check_expr</a>(<a href="#455">lhs</a>, <a href="#410">rules</a>, <a href="#411">trace</a>).or_else(|| <a href="#408-412">check_expr</a>(<a href="#455">rhs</a>, <a href="#410">rules</a>, <a href="#411">trace</a>))
             }
-            <a href="../../src/pest_meta/parser.rs.html#122">ParserExpr::Rep</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#458">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
-            <a href="../../src/pest_meta/parser.rs.html#123">ParserExpr::RepOnce</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#459">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
-            <a href="../../src/pest_meta/parser.rs.html#121">ParserExpr::Opt</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#460">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
-            <a href="../../src/pest_meta/parser.rs.html#117">ParserExpr::PosPred</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#461">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
-            <a href="../../src/pest_meta/parser.rs.html#118">ParserExpr::NegPred</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#462">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
-            <a href="../../src/pest_meta/parser.rs.html#128">ParserExpr::Push</a>(<span class="kw-2">ref </span>node) =&gt; <a href="../../src/pest_meta/validator.rs.html#408-412">check_expr</a>(<a href="../../src/pest_meta/validator.rs.html#463">node</a>, <a href="../../src/pest_meta/validator.rs.html#410">rules</a>, <a href="../../src/pest_meta/validator.rs.html#411">trace</a>),
+            <a href="parser.rs.html#122">ParserExpr::Rep</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#458">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
+            <a href="parser.rs.html#123">ParserExpr::RepOnce</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#459">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
+            <a href="parser.rs.html#121">ParserExpr::Opt</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#460">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
+            <a href="parser.rs.html#117">ParserExpr::PosPred</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#461">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
+            <a href="parser.rs.html#118">ParserExpr::NegPred</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#462">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
+            <a href="parser.rs.html#128">ParserExpr::Push</a>(<span class="kw-2">ref </span>node) =&gt; <a href="#408-412">check_expr</a>(<a href="#463">node</a>, <a href="#410">rules</a>, <a href="#411">trace</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1280,7 +1280,7 @@
         }
     }
 
-    <a href="../../src/pest_meta/validator.rs.html#468">errors</a>
+    <a href="#468">errors</a>
 }
 
 <span class="attribute">#[cfg(test)]
@@ -1609,4 +1609,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1389,8 +1389,8 @@
 </span><span class="kw">const </span>MAX_THREADS_ENV: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;BLOCKING_MAX_THREADS&quot;</span>;
 
 <span class="doccomment">/// Lazily initialized global executor.
-</span><span class="kw">static </span>EXECUTOR: Lazy&lt;<a href="../../src/blocking/lib.rs.html#128">Executor</a>&gt; = Lazy::new(|| <a href="../../src/blocking/lib.rs.html#128">Executor</a> {
-    inner: Mutex::new(<a href="../../src/blocking/lib.rs.html#140">Inner</a> {
+</span><span class="kw">static </span>EXECUTOR: Lazy&lt;<a href="#128">Executor</a>&gt; = Lazy::new(|| <a href="#128">Executor</a> {
+    inner: Mutex::new(<a href="#140">Inner</a> {
         idle_count: <span class="number">0</span>,
         thread_count: <span class="number">0</span>,
         queue: VecDeque::new(),
@@ -1402,7 +1402,7 @@
 <span class="doccomment">/// The blocking executor.
 </span><span class="kw">struct </span>Executor {
     <span class="doccomment">/// Inner state of the executor.
-    </span>inner: Mutex&lt;<a href="../../src/blocking/lib.rs.html#140">Inner</a>&gt;,
+    </span>inner: Mutex&lt;<a href="#140">Inner</a>&gt;,
 
     <span class="doccomment">/// Used to put idle threads to sleep and wake them up when new work comes in.
     </span>cvar: <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
@@ -1427,33 +1427,33 @@
     </span>queue: VecDeque&lt;<a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/blocking/lib.rs.html#128">Executor</a> {
+<span class="kw">impl </span><a href="#128">Executor</a> {
     <span class="kw">fn </span>max_threads() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span>env::var(<a href="../../src/blocking/lib.rs.html#114">MAX_THREADS_ENV</a>) {
-            <span class="prelude-val">Ok</span>(v) =&gt; <a href="../../src/blocking/lib.rs.html#158">v</a>
+        <span class="kw">match </span>env::var(<a href="#114">MAX_THREADS_ENV</a>) {
+            <span class="prelude-val">Ok</span>(v) =&gt; <a href="#158">v</a>
                 .parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;()
-                .map(|v| <a href="../../src/blocking/lib.rs.html#160">v</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<a href="../../src/blocking/lib.rs.html#108">MIN_MAX_THREADS</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/blocking/lib.rs.html#111">MAX_MAX_THREADS</a>))
-                .unwrap_or(<a href="../../src/blocking/lib.rs.html#105">DEFAULT_MAX_THREADS</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="../../src/blocking/lib.rs.html#105">DEFAULT_MAX_THREADS</a>,
+                .map(|v| <a href="#160">v</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<a href="#108">MIN_MAX_THREADS</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#111">MAX_MAX_THREADS</a>))
+                .unwrap_or(<a href="#105">DEFAULT_MAX_THREADS</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#105">DEFAULT_MAX_THREADS</a>,
         }
     }
     <span class="doccomment">/// Spawns a future onto this executor.
     ///
     /// Returns a [`Task`] handle for the spawned task.
     </span><span class="kw">fn </span>spawn&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>) -&gt; Task&lt;T&gt; {
-        <span class="kw">let </span>(runnable, task) = async_task::spawn(<a href="../../src/blocking/lib.rs.html#168">future</a>, |r| <a href="../../src/blocking/lib.rs.html#117">EXECUTOR</a>.<a href="../../src/blocking/lib.rs.html#213">schedule</a>(<a href="../../src/blocking/lib.rs.html#169">r</a>));
-        <a href="../../src/blocking/lib.rs.html#169">runnable</a>.schedule();
-        <a href="../../src/blocking/lib.rs.html#169">task</a>
+        <span class="kw">let </span>(runnable, task) = async_task::spawn(<a href="#168">future</a>, |r| <a href="#117">EXECUTOR</a>.<a href="#213">schedule</a>(<a href="#169">r</a>));
+        <a href="#169">runnable</a>.schedule();
+        <a href="#169">task</a>
     }
 
     <span class="doccomment">/// Runs the main loop on the current thread.
     ///
     /// This function runs blocking tasks until it becomes idle and times out.
     </span><span class="kw">fn </span>main_loop(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="../../src/blocking/lib.rs.html#177">self</a>.inner.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#177">self</a>.inner.lock().unwrap();
         <span class="kw">loop </span>{
             <span class="comment">// This thread is not idle anymore because it&#39;s going to run tasks.
-            </span><a href="../../src/blocking/lib.rs.html#178">inner</a>.idle_count -= <span class="number">1</span>;
+            </span><a href="#178">inner</a>.idle_count -= <span class="number">1</span>;
 
             <span class="comment">// Run tasks in the queue.
             </span><span class="kw">while let </span><span class="prelude-val">Some</span>(runnable) = inner.queue.pop_front() {
@@ -1468,17 +1468,17 @@
             }
 
             <span class="comment">// This thread is now becoming idle.
-            </span><a href="../../src/blocking/lib.rs.html#178">inner</a>.idle_count += <span class="number">1</span>;
+            </span><a href="#178">inner</a>.idle_count += <span class="number">1</span>;
 
             <span class="comment">// Put the thread to sleep until another task is scheduled.
             </span><span class="kw">let </span>timeout = Duration::from_millis(<span class="number">500</span>);
-            <span class="kw">let </span>(lock, res) = <a class="self" href="../../src/blocking/lib.rs.html#177">self</a>.cvar.wait_timeout(<a href="../../src/blocking/lib.rs.html#178">inner</a>, <a href="../../src/blocking/lib.rs.html#199">timeout</a>).unwrap();
-            <a href="../../src/blocking/lib.rs.html#178">inner</a> = <a href="../../src/blocking/lib.rs.html#200">lock</a>;
+            <span class="kw">let </span>(lock, res) = <a class="self" href="#177">self</a>.cvar.wait_timeout(<a href="#178">inner</a>, <a href="#199">timeout</a>).unwrap();
+            <a href="#178">inner</a> = <a href="#200">lock</a>;
 
             <span class="comment">// If there are no tasks after a while, stop this thread.
             </span><span class="kw">if </span>res.timed_out() &amp;&amp; inner.queue.is_empty() {
-                <a href="../../src/blocking/lib.rs.html#178">inner</a>.idle_count -= <span class="number">1</span>;
-                <a href="../../src/blocking/lib.rs.html#178">inner</a>.thread_count -= <span class="number">1</span>;
+                <a href="#178">inner</a>.idle_count -= <span class="number">1</span>;
+                <a href="#178">inner</a>.thread_count -= <span class="number">1</span>;
                 <span class="kw">break</span>;
             }
         }
@@ -1486,16 +1486,16 @@
 
     <span class="doccomment">/// Schedules a runnable task for execution.
     </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, runnable: <a href="../../async_task/runnable/struct.Runnable.html">Runnable</a>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="../../src/blocking/lib.rs.html#213">self</a>.inner.lock().unwrap();
-        <a href="../../src/blocking/lib.rs.html#214">inner</a>.queue.push_back(<a href="../../src/blocking/lib.rs.html#213">runnable</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#213">self</a>.inner.lock().unwrap();
+        <a href="#214">inner</a>.queue.push_back(<a href="#213">runnable</a>);
 
         <span class="comment">// Notify a sleeping thread and spawn more threads if needed.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#213">self</a>.cvar.notify_one();
-        <a class="self" href="../../src/blocking/lib.rs.html#213">self</a>.<a href="../../src/blocking/lib.rs.html#223">grow_pool</a>(<a href="../../src/blocking/lib.rs.html#214">inner</a>);
+        </span><a class="self" href="#213">self</a>.cvar.notify_one();
+        <a class="self" href="#213">self</a>.<a href="#223">grow_pool</a>(<a href="#214">inner</a>);
     }
 
     <span class="doccomment">/// Spawns more blocking threads if the pool is overloaded with work.
-    </span><span class="kw">fn </span>grow_pool(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, <span class="kw-2">mut </span>inner: MutexGuard&lt;<span class="lifetime">&#39;static</span>, <a href="../../src/blocking/lib.rs.html#140">Inner</a>&gt;) {
+    </span><span class="kw">fn </span>grow_pool(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, <span class="kw-2">mut </span>inner: MutexGuard&lt;<span class="lifetime">&#39;static</span>, <a href="#140">Inner</a>&gt;) {
         <span class="comment">// If runnable tasks greatly outnumber idle threads and there aren&#39;t too many threads
         // already, then be aggressive: wake all idle threads and spawn one more thread.
         </span><span class="kw">while </span>inner.queue.len() &gt; inner.idle_count * <span class="number">5 </span>&amp;&amp; inner.thread_count &lt; EXECUTOR.thread_limit
@@ -1550,7 +1550,7 @@
     </span>F: FnOnce() -&gt; T + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    Executor::spawn(<span class="kw">async move </span>{ <a href="../../src/blocking/lib.rs.html#273">f</a>() })
+    Executor::spawn(<span class="kw">async move </span>{ <a href="#273">f</a>() })
 }
 
 <span class="doccomment">/// Runs blocking I/O on a thread pool.
@@ -1627,8 +1627,8 @@
     /// let stdin = Unblock::new(std::io::stdin());
     /// ```
     </span><span class="kw">pub fn </span>new(io: T) -&gt; Unblock&lt;T&gt; {
-        <a href="../../src/blocking/lib.rs.html#339">Unblock</a> {
-            state: <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(Box::new(<a href="../../src/blocking/lib.rs.html#354">io</a>))),
+        <a href="#339">Unblock</a> {
+            state: <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(Box::new(<a href="#354">io</a>))),
             cap: <span class="prelude-val">None</span>,
         }
     }
@@ -1653,9 +1653,9 @@
     /// let stdout = Unblock::with_capacity(64 * 1024, std::io::stdout());
     /// ```
     </span><span class="kw">pub fn </span>with_capacity(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, io: T) -&gt; Unblock&lt;T&gt; {
-        <a href="../../src/blocking/lib.rs.html#339">Unblock</a> {
-            state: <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(Box::new(<a href="../../src/blocking/lib.rs.html#380">io</a>))),
-            cap: <span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#380">cap</a>),
+        <a href="#339">Unblock</a> {
+            state: <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(Box::new(<a href="#380">io</a>))),
+            cap: <span class="prelude-val">Some</span>(<a href="#380">cap</a>),
         }
     }
 
@@ -1788,54 +1788,54 @@
     /// On success, the state machine is moved into the idle state.
     </span><span class="kw">fn </span>poll_stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state {
-                <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#514">self</a>.state {
+                <a href="#609">State::Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
 
-                <a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(task) =&gt; {
+                <a href="#612">State::WithMut</a>(task) =&gt; {
                     <span class="comment">// Poll the task to wait for it to finish.
                     </span><span class="kw">let </span>io = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
-                    <a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#521">io</a>));
+                    <a class="self" href="#514">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#521">io</a>));
                 }
 
-                <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(any, task) =&gt; {
+                <a href="#617">State::Streaming</a>(any, task) =&gt; {
                     <span class="comment">// Drop the receiver to close the channel. This stops the `send()` operation in
                     // the task, after which the task returns the iterator back.
-                    </span><a href="../../src/blocking/lib.rs.html#525">any</a>.take();
+                    </span><a href="#525">any</a>.take();
 
                     <span class="comment">// Poll the task to retrieve the iterator.
                     </span><span class="kw">let </span>iter = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
-                    <a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#531">iter</a>));
+                    <a class="self" href="#514">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#531">iter</a>));
                 }
 
-                <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(reader, task) =&gt; {
+                <a href="#620">State::Reading</a>(reader, task) =&gt; {
                     <span class="comment">// Drop the reader to close the pipe. This stops copying inside the task, after
                     // which the task returns the I/O handle back.
-                    </span><a href="../../src/blocking/lib.rs.html#535">reader</a>.take();
+                    </span><a href="#535">reader</a>.take();
 
                     <span class="comment">// Poll the task to retrieve the I/O handle.
                     </span><span class="kw">let </span>(res, io) = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
                     <span class="comment">// Make sure to move into the idle state before reporting errors.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#541">io</a>));
+                    </span><a class="self" href="#514">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#541">io</a>));
                     res<span class="question-mark">?</span>;
                 }
 
-                <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(writer, task) =&gt; {
+                <a href="#623">State::Writing</a>(writer, task) =&gt; {
                     <span class="comment">// Drop the writer to close the pipe. This stops copying inside the task, after
                     // which the task flushes the I/O handle and
-                    </span><a href="../../src/blocking/lib.rs.html#547">writer</a>.take();
+                    </span><a href="#547">writer</a>.take();
 
                     <span class="comment">// Poll the task to retrieve the I/O handle.
                     </span><span class="kw">let </span>(res, io) = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
                     <span class="comment">// Make sure to move into the idle state before reporting errors.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#553">io</a>));
+                    </span><a class="self" href="#514">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#553">io</a>));
                     res<span class="question-mark">?</span>;
                 }
 
-                <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(task) =&gt; {
+                <a href="#626">State::Seeking</a>(task) =&gt; {
                     <span class="comment">// Poll the task to wait for it to finish.
                     </span><span class="kw">let </span>(<span class="kw">_</span>, res, io) = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
                     <span class="comment">// Make sure to move into the idle state before reporting errors.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#514">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#561">io</a>));
+                    </span><a class="self" href="#514">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#561">io</a>));
                     res<span class="question-mark">?</span>;
                 }
             }
@@ -1846,30 +1846,30 @@
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Unblock&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">struct </span>Closed;
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#573">Closed</a> {
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#573">Closed</a> {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="../../src/blocking/lib.rs.html#575">f</a>.write_str(<span class="string">&quot;&lt;closed&gt;&quot;</span>)
+                <a href="#575">f</a>.write_str(<span class="string">&quot;&lt;closed&gt;&quot;</span>)
             }
         }
 
         <span class="kw">struct </span>Blocked;
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#580">Blocked</a> {
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#580">Blocked</a> {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="../../src/blocking/lib.rs.html#582">f</a>.write_str(<span class="string">&quot;&lt;blocked&gt;&quot;</span>)
+                <a href="#582">f</a>.write_str(<span class="string">&quot;&lt;blocked&gt;&quot;</span>)
             }
         }
 
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../src/blocking/lib.rs.html#572">self</a>.state {
-            <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">None</span>) =&gt; <a href="../../src/blocking/lib.rs.html#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/blocking/lib.rs.html#573">Closed</a>).finish(),
-            <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(io)) =&gt; {
-                <span class="kw">let </span>io: <span class="kw-2">&amp;</span>T = <span class="kw-2">&amp;*</span><a href="../../src/blocking/lib.rs.html#589">io</a>;
-                <a href="../../src/blocking/lib.rs.html#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <a href="../../src/blocking/lib.rs.html#590">io</a>).finish()
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#572">self</a>.state {
+            <a href="#609">State::Idle</a>(<span class="prelude-val">None</span>) =&gt; <a href="#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a href="#573">Closed</a>).finish(),
+            <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(io)) =&gt; {
+                <span class="kw">let </span>io: <span class="kw-2">&amp;</span>T = <span class="kw-2">&amp;*</span><a href="#589">io</a>;
+                <a href="#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <a href="#590">io</a>).finish()
             }
-            <a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-            | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(..)
-            | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(..)
-            | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(..)
-            | <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(..) =&gt; <a href="../../src/blocking/lib.rs.html#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/blocking/lib.rs.html#580">Blocked</a>).finish(),
+            <a href="#612">State::WithMut</a>(..)
+            | <a href="#617">State::Streaming</a>(..)
+            | <a href="#620">State::Reading</a>(..)
+            | <a href="#623">State::Writing</a>(..)
+            | <a href="#626">State::Seeking</a>(..) =&gt; <a href="#572">f</a>.debug_struct(<span class="string">&quot;Unblock&quot;</span>).field(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a href="#580">Blocked</a>).finish(),
         }
     }
 }
@@ -1892,10 +1892,10 @@
     </span>Streaming(<span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;, Task&lt;Box&lt;T&gt;&gt;),
 
     <span class="doccomment">/// The inner value is a [`Read`] currently reading in a task.
-    </span>Reading(<span class="prelude-ty">Option</span>&lt;<a href="../../src/blocking/lib.rs.html#936">Reader</a>&gt;, Task&lt;(io::Result&lt;()&gt;, Box&lt;T&gt;)&gt;),
+    </span>Reading(<span class="prelude-ty">Option</span>&lt;<a href="#936">Reader</a>&gt;, Task&lt;(io::Result&lt;()&gt;, Box&lt;T&gt;)&gt;),
 
     <span class="doccomment">/// The inner value is a [`Write`] currently writing in a task.
-    </span>Writing(<span class="prelude-ty">Option</span>&lt;<a href="../../src/blocking/lib.rs.html#952">Writer</a>&gt;, Task&lt;(io::Result&lt;()&gt;, Box&lt;T&gt;)&gt;),
+    </span>Writing(<span class="prelude-ty">Option</span>&lt;<a href="#952">Writer</a>&gt;, Task&lt;(io::Result&lt;()&gt;, Box&lt;T&gt;)&gt;),
 
     <span class="doccomment">/// The inner value is a [`Seek`] currently seeking in a task.
     </span>Seeking(Task&lt;(<a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>, io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;, Box&lt;T&gt;)&gt;),
@@ -1909,26 +1909,26 @@
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T::Item&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#635">self</a>.state {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#635">self</a>.state {
                 <span class="comment">// If not in idle or active streaming state, stop the running task.
-                </span><a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
-                | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(..) =&gt; {
+                </span><a href="#612">State::WithMut</a>(..)
+                | <a href="#617">State::Streaming</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
+                | <a href="#620">State::Reading</a>(..)
+                | <a href="#623">State::Writing</a>(..)
+                | <a href="#626">State::Seeking</a>(..) =&gt; {
                     <span class="comment">// Wait for the running task to stop.
                     </span><a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(<span class="self">self</span>.poll_stop(cx)).ok();
                 }
 
                 <span class="comment">// If idle, start a streaming task.
-                </span><a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(iter) =&gt; {
+                </span><a href="#609">State::Idle</a>(iter) =&gt; {
                     <span class="comment">// Take the iterator out to run it on a blocking task.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="../../src/blocking/lib.rs.html#649">iter</a>.take().expect(<span class="string">&quot;inner iterator was taken out&quot;</span>);
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#649">iter</a>.take().expect(<span class="string">&quot;inner iterator was taken out&quot;</span>);
 
                     <span class="comment">// This channel capacity seems to work well in practice. If it&#39;s too low, there
                     // will be too much synchronization between tasks. If too high, memory
                     // consumption increases.
-                    </span><span class="kw">let </span>(sender, receiver) = <a href="../../async_channel/fn.bounded.html">bounded</a>(<a class="self" href="../../src/blocking/lib.rs.html#635">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024</span>)); <span class="comment">// 8192 items
+                    </span><span class="kw">let </span>(sender, receiver) = <a href="../../async_channel/fn.bounded.html">bounded</a>(<a class="self" href="#635">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024</span>)); <span class="comment">// 8192 items
 
                     // Spawn a blocking task that runs the iterator and returns it when done.
                     </span><span class="kw">let </span>task = Executor::spawn(<span class="kw">async move </span>{
@@ -1937,16 +1937,16 @@
                                 <span class="kw">break</span>;
                             }
                         }
-                        <a href="../../src/blocking/lib.rs.html#651">iter</a>
+                        <a href="#651">iter</a>
                     });
 
                     <span class="comment">// Move into the busy state and poll again.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#635">self</a>.state = <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(<span class="prelude-val">Some</span>(Box::new(<a href="../../src/blocking/lib.rs.html#656">receiver</a>)), <a href="../../src/blocking/lib.rs.html#659">task</a>);
+                    </span><a class="self" href="#635">self</a>.state = <a href="#617">State::Streaming</a>(<span class="prelude-val">Some</span>(Box::new(<a href="#656">receiver</a>)), <a href="#659">task</a>);
                 }
 
                 <span class="comment">// If streaming, receive an item.
-                </span><a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(<span class="prelude-val">Some</span>(any), task) =&gt; {
-                    <span class="kw">let </span>receiver = <a href="../../src/blocking/lib.rs.html#673">any</a>.downcast_mut::&lt;Receiver&lt;T::Item&gt;&gt;().unwrap();
+                </span><a href="#617">State::Streaming</a>(<span class="prelude-val">Some</span>(any), task) =&gt; {
+                    <span class="kw">let </span>receiver = <a href="#673">any</a>.downcast_mut::&lt;Receiver&lt;T::Item&gt;&gt;().unwrap();
 
                     <span class="comment">// Poll the channel.
                     </span><span class="kw">let </span>opt = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(receiver).poll_next(cx));
@@ -1957,10 +1957,10 @@
                     </span><span class="kw">if </span>opt.is_none() {
                         <span class="comment">// Poll the task to retrieve the iterator.
                         </span><span class="kw">let </span>iter = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
-                        <a class="self" href="../../src/blocking/lib.rs.html#635">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#684">iter</a>));
+                        <a class="self" href="#635">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#684">iter</a>));
                     }
 
-                    <span class="kw">return </span>Poll::Ready(<a href="../../src/blocking/lib.rs.html#677">opt</a>);
+                    <span class="kw">return </span>Poll::Ready(<a href="#677">opt</a>);
                 }
             }
         }
@@ -1974,26 +1974,26 @@
         buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#697">self</a>.state {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#697">self</a>.state {
                 <span class="comment">// If not in idle or active reading state, stop the running task.
-                </span><a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
-                | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(..) =&gt; {
+                </span><a href="#612">State::WithMut</a>(..)
+                | <a href="#620">State::Reading</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
+                | <a href="#617">State::Streaming</a>(..)
+                | <a href="#623">State::Writing</a>(..)
+                | <a href="#626">State::Seeking</a>(..) =&gt; {
                     <span class="comment">// Wait for the running task to stop.
                     </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_stop(cx))<span class="question-mark">?</span>;
                 }
 
                 <span class="comment">// If idle, start a reading task.
-                </span><a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(io) =&gt; {
+                </span><a href="#609">State::Idle</a>(io) =&gt; {
                     <span class="comment">// Take the I/O handle out to read it on a blocking task.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="../../src/blocking/lib.rs.html#714">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="#714">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
 
                     <span class="comment">// This pipe capacity seems to work well in practice. If it&#39;s too low, there
                     // will be too much synchronization between tasks. If too high, memory
                     // consumption increases.
-                    </span><span class="kw">let </span>(reader, <span class="kw-2">mut </span>writer) = <a href="../../src/blocking/lib.rs.html#900">pipe</a>(<a class="self" href="../../src/blocking/lib.rs.html#697">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024 </span>* <span class="number">1024</span>)); <span class="comment">// 8 MB
+                    </span><span class="kw">let </span>(reader, <span class="kw-2">mut </span>writer) = <a href="#900">pipe</a>(<a class="self" href="#697">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024 </span>* <span class="number">1024</span>)); <span class="comment">// 8 MB
 
                     // Spawn a blocking task that reads and returns the I/O handle when done.
                     </span><span class="kw">let </span>task = Executor::spawn(<span class="kw">async move </span>{
@@ -2001,19 +2001,19 @@
                         // an error occurs.
                         </span><span class="kw">loop </span>{
                             <span class="kw">match </span>future::poll_fn(|cx| writer.fill(cx, <span class="kw-2">&amp;mut </span>io)).<span class="kw">await </span>{
-                                <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>(<span class="prelude-val">Ok</span>(()), <a href="../../src/blocking/lib.rs.html#716">io</a>),
+                                <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>(<span class="prelude-val">Ok</span>(()), <a href="#716">io</a>),
                                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-                                <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="prelude-val">Err</span>(<a href="../../src/blocking/lib.rs.html#731">err</a>), <a href="../../src/blocking/lib.rs.html#716">io</a>),
+                                <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="prelude-val">Err</span>(<a href="#731">err</a>), <a href="#716">io</a>),
                             }
                         }
                     });
 
                     <span class="comment">// Move into the busy state and poll again.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#697">self</a>.state = <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#721">reader</a>), <a href="../../src/blocking/lib.rs.html#724">task</a>);
+                    </span><a class="self" href="#697">self</a>.state = <a href="#620">State::Reading</a>(<span class="prelude-val">Some</span>(<a href="#721">reader</a>), <a href="#724">task</a>);
                 }
 
                 <span class="comment">// If reading, read bytes from the pipe.
-                </span><a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(<span class="prelude-val">Some</span>(reader), task) =&gt; {
+                </span><a href="#620">State::Reading</a>(<span class="prelude-val">Some</span>(reader), task) =&gt; {
                     <span class="comment">// Poll the pipe.
                     </span><span class="kw">let </span>n = <span class="macro">ready!</span>(reader.drain(cx, buf))<span class="question-mark">?</span>;
 
@@ -2024,11 +2024,11 @@
                         <span class="comment">// Poll the task to retrieve the I/O handle.
                         </span><span class="kw">let </span>(res, io) = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
                         <span class="comment">// Make sure to move into the idle state before reporting errors.
-                        </span><a class="self" href="../../src/blocking/lib.rs.html#697">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#750">io</a>));
+                        </span><a class="self" href="#697">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#750">io</a>));
                         res<span class="question-mark">?</span>;
                     }
 
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/blocking/lib.rs.html#743">n</a>));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#743">n</a>));
                 }
             }
         }
@@ -2042,26 +2042,26 @@
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#765">self</a>.state {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#765">self</a>.state {
                 <span class="comment">// If not in idle or active writing state, stop the running task.
-                </span><a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
-                | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(..) =&gt; {
+                </span><a href="#612">State::WithMut</a>(..)
+                | <a href="#623">State::Writing</a>(<span class="prelude-val">None</span>, <span class="kw">_</span>)
+                | <a href="#617">State::Streaming</a>(..)
+                | <a href="#620">State::Reading</a>(..)
+                | <a href="#626">State::Seeking</a>(..) =&gt; {
                     <span class="comment">// Wait for the running task to stop.
                     </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_stop(cx))<span class="question-mark">?</span>;
                 }
 
                 <span class="comment">// If idle, start the writing task.
-                </span><a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(io) =&gt; {
+                </span><a href="#609">State::Idle</a>(io) =&gt; {
                     <span class="comment">// Take the I/O handle out to write on a blocking task.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="../../src/blocking/lib.rs.html#782">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="#782">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
 
                     <span class="comment">// This pipe capacity seems to work well in practice. If it&#39;s too low, there will
                     // be too much synchronization between tasks. If too high, memory consumption
                     // increases.
-                    </span><span class="kw">let </span>(<span class="kw-2">mut </span>reader, writer) = <a href="../../src/blocking/lib.rs.html#900">pipe</a>(<a class="self" href="../../src/blocking/lib.rs.html#765">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024 </span>* <span class="number">1024</span>)); <span class="comment">// 8 MB
+                    </span><span class="kw">let </span>(<span class="kw-2">mut </span>reader, writer) = <a href="#900">pipe</a>(<a class="self" href="#765">self</a>.cap.unwrap_or(<span class="number">8 </span>* <span class="number">1024 </span>* <span class="number">1024</span>)); <span class="comment">// 8 MB
 
                     // Spawn a blocking task that writes and returns the I/O handle when done.
                     </span><span class="kw">let </span>task = Executor::spawn(<span class="kw">async move </span>{
@@ -2069,41 +2069,41 @@
                         // error occurs. Flush the I/O handle at the end.
                         </span><span class="kw">loop </span>{
                             <span class="kw">match </span>future::poll_fn(|cx| reader.drain(cx, <span class="kw-2">&amp;mut </span>io)).<span class="kw">await </span>{
-                                <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>(<a href="../../src/blocking/lib.rs.html#784">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(), <a href="../../src/blocking/lib.rs.html#784">io</a>),
+                                <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>(<a href="#784">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(), <a href="#784">io</a>),
                                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
                                 <span class="prelude-val">Err</span>(err) =&gt; {
-                                    <a href="../../src/blocking/lib.rs.html#784">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok();
-                                    <span class="kw">return </span>(<span class="prelude-val">Err</span>(<a href="../../src/blocking/lib.rs.html#799">err</a>), <a href="../../src/blocking/lib.rs.html#784">io</a>);
+                                    <a href="#784">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok();
+                                    <span class="kw">return </span>(<span class="prelude-val">Err</span>(<a href="#799">err</a>), <a href="#784">io</a>);
                                 }
                             }
                         }
                     });
 
                     <span class="comment">// Move into the busy state and poll again.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#765">self</a>.state = <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#789">writer</a>), <a href="../../src/blocking/lib.rs.html#792">task</a>);
+                    </span><a class="self" href="#765">self</a>.state = <a href="#623">State::Writing</a>(<span class="prelude-val">Some</span>(<a href="#789">writer</a>), <a href="#792">task</a>);
                 }
 
                 <span class="comment">// If writing, write more bytes into the pipe.
-                </span><a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(<span class="prelude-val">Some</span>(writer), <span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="../../src/blocking/lib.rs.html#812">writer</a>.<a href="../../src/blocking/lib.rs.html#1131">fill</a>(<a href="../../src/blocking/lib.rs.html#766">cx</a>, <a href="../../src/blocking/lib.rs.html#767">buf</a>),
+                </span><a href="#623">State::Writing</a>(<span class="prelude-val">Some</span>(writer), <span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="#812">writer</a>.<a href="#1131">fill</a>(<a href="#766">cx</a>, <a href="#767">buf</a>),
             }
         }
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#817">self</a>.state {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#817">self</a>.state {
                 <span class="comment">// If not in idle state, stop the running task.
-                </span><a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(..) =&gt; {
+                </span><a href="#612">State::WithMut</a>(..)
+                | <a href="#617">State::Streaming</a>(..)
+                | <a href="#623">State::Writing</a>(..)
+                | <a href="#620">State::Reading</a>(..)
+                | <a href="#626">State::Seeking</a>(..) =&gt; {
                     <span class="comment">// Wait for the running task to stop.
                     </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_stop(cx))<span class="question-mark">?</span>;
                 }
 
                 <span class="comment">// Idle implies flushed.
-                </span><a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
+                </span><a href="#609">State::Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
             }
         }
     }
@@ -2113,7 +2113,7 @@
         </span><span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>).poll_flush(cx))<span class="question-mark">?</span>;
 
         <span class="comment">// Then move into the idle state with no I/O handle, thus dropping it.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#836">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">None</span>);
+        </span><a class="self" href="#836">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">None</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -2125,37 +2125,37 @@
         pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../src/blocking/lib.rs.html#848">self</a>.state {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="#848">self</a>.state {
                 <span class="comment">// If not in idle state, stop the running task.
-                </span><a href="../../src/blocking/lib.rs.html#612">State::WithMut</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#617">State::Streaming</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#620">State::Reading</a>(..)
-                | <a href="../../src/blocking/lib.rs.html#623">State::Writing</a>(..) =&gt; {
+                </span><a href="#612">State::WithMut</a>(..)
+                | <a href="#617">State::Streaming</a>(..)
+                | <a href="#620">State::Reading</a>(..)
+                | <a href="#623">State::Writing</a>(..) =&gt; {
                     <span class="comment">// Wait for the running task to stop.
                     </span><span class="macro">ready!</span>(<span class="self">self</span>.poll_stop(cx))<span class="question-mark">?</span>;
                 }
 
-                <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(io) =&gt; {
+                <a href="#609">State::Idle</a>(io) =&gt; {
                     <span class="comment">// Take the I/O handle out to seek on a blocking task.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="../../src/blocking/lib.rs.html#863">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>io = <a href="#863">io</a>.take().expect(<span class="string">&quot;inner value was taken out&quot;</span>);
 
                     <span class="kw">let </span>task = Executor::spawn(<span class="kw">async move </span>{
-                        <span class="kw">let </span>res = <a href="../../src/blocking/lib.rs.html#865">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="../../src/blocking/lib.rs.html#850">pos</a>);
-                        (<a href="../../src/blocking/lib.rs.html#850">pos</a>, <a href="../../src/blocking/lib.rs.html#868">res</a>, <a href="../../src/blocking/lib.rs.html#865">io</a>)
+                        <span class="kw">let </span>res = <a href="#865">io</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="#850">pos</a>);
+                        (<a href="#850">pos</a>, <a href="#868">res</a>, <a href="#865">io</a>)
                     });
-                    <a class="self" href="../../src/blocking/lib.rs.html#848">self</a>.state = <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(<a href="../../src/blocking/lib.rs.html#867">task</a>);
+                    <a class="self" href="#848">self</a>.state = <a href="#626">State::Seeking</a>(<a href="#867">task</a>);
                 }
 
-                <a href="../../src/blocking/lib.rs.html#626">State::Seeking</a>(task) =&gt; {
+                <a href="#626">State::Seeking</a>(task) =&gt; {
                     <span class="comment">// Poll the task to wait for it to finish.
                     </span><span class="kw">let </span>(original_pos, res, io) = <a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(Pin::new(task).poll(cx));
                     <span class="comment">// Make sure to move into the idle state before reporting errors.
-                    </span><a class="self" href="../../src/blocking/lib.rs.html#848">self</a>.state = <a href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../src/blocking/lib.rs.html#876">io</a>));
+                    </span><a class="self" href="#848">self</a>.state = <a href="#609">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#876">io</a>));
                     <span class="kw">let </span>current = res<span class="question-mark">?</span>;
 
                     <span class="comment">// If the `pos` argument matches the original one, return the result.
                     </span><span class="kw">if </span>original_pos == pos {
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/blocking/lib.rs.html#879">current</a>));
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#879">current</a>));
                     }
                 }
             }
@@ -2172,45 +2172,45 @@
 ///
 /// When the receiver is dropped, the pipe is closed and no more bytes and be written into it.
 /// Further writes will result in `Ok(0)`, i.e. they will always &#39;successfully&#39; write 0 bytes.
-</span><span class="kw">fn </span>pipe(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="../../src/blocking/lib.rs.html#936">Reader</a>, <a href="../../src/blocking/lib.rs.html#952">Writer</a>) {
+</span><span class="kw">fn </span>pipe(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="#936">Reader</a>, <a href="#952">Writer</a>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cap.checked_mul(<span class="number">2</span>).is_some(), <span class="string">&quot;capacity is too large&quot;</span>);
 
     <span class="comment">// Allocate the ring buffer.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="../../src/blocking/lib.rs.html#900">cap</a>);
-    <span class="kw">let </span>buffer = <a href="../../src/blocking/lib.rs.html#905">v</a>.as_mut_ptr();
-    mem::forget(<a href="../../src/blocking/lib.rs.html#905">v</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#900">cap</a>);
+    <span class="kw">let </span>buffer = <a href="#905">v</a>.as_mut_ptr();
+    mem::forget(<a href="#905">v</a>);
 
-    <span class="kw">let </span>inner = Arc::new(<a href="../../src/blocking/lib.rs.html#985">Pipe</a> {
+    <span class="kw">let </span>inner = Arc::new(<a href="#985">Pipe</a> {
         head: AtomicUsize::new(<span class="number">0</span>),
         tail: AtomicUsize::new(<span class="number">0</span>),
         reader: AtomicWaker::new(),
         writer: AtomicWaker::new(),
         closed: AtomicBool::new(<span class="bool-val">false</span>),
-        <a href="../../src/blocking/lib.rs.html#906">buffer</a>,
-        <a href="../../src/blocking/lib.rs.html#900">cap</a>,
+        <a href="#906">buffer</a>,
+        <a href="#900">cap</a>,
     });
 
-    <span class="kw">let </span>r = <a href="../../src/blocking/lib.rs.html#936">Reader</a> {
-        inner: <a href="../../src/blocking/lib.rs.html#909">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>r = <a href="#936">Reader</a> {
+        inner: <a href="#909">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         head: <span class="number">0</span>,
         tail: <span class="number">0</span>,
     };
 
-    <span class="kw">let </span>w = <a href="../../src/blocking/lib.rs.html#952">Writer</a> {
-        <a href="../../src/blocking/lib.rs.html#909">inner</a>,
+    <span class="kw">let </span>w = <a href="#952">Writer</a> {
+        <a href="#909">inner</a>,
         head: <span class="number">0</span>,
         tail: <span class="number">0</span>,
         zeroed_until: <span class="number">0</span>,
     };
 
-    (<a href="../../src/blocking/lib.rs.html#919">r</a>, <a href="../../src/blocking/lib.rs.html#925">w</a>)
+    (<a href="#919">r</a>, <a href="#925">w</a>)
 }
 
 <span class="doccomment">/// The reading side of a pipe.
 </span><span class="kw">struct </span>Reader {
     <span class="doccomment">/// The inner ring buffer.
-    </span>inner: Arc&lt;<a href="../../src/blocking/lib.rs.html#985">Pipe</a>&gt;,
+    </span>inner: Arc&lt;<a href="#985">Pipe</a>&gt;,
 
     <span class="doccomment">/// The head index, moved by the reader, in the range `0..2*cap`.
     ///
@@ -2226,7 +2226,7 @@
 <span class="doccomment">/// The writing side of a pipe.
 </span><span class="kw">struct </span>Writer {
     <span class="doccomment">/// The inner ring buffer.
-    </span>inner: Arc&lt;<a href="../../src/blocking/lib.rs.html#985">Pipe</a>&gt;,
+    </span>inner: Arc&lt;<a href="#985">Pipe</a>&gt;,
 
     <span class="doccomment">/// The head index, moved by the reader, in the range `0..2*cap`.
     ///
@@ -2246,8 +2246,8 @@
     </span>zeroed_until: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#936">Reader</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#952">Writer</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#936">Reader</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#952">Writer</a> {}
 
 <span class="doccomment">/// The inner ring buffer.
 ///
@@ -2280,61 +2280,61 @@
     </span>cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#985">Pipe</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#985">Pipe</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#985">Pipe</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#985">Pipe</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#985">Pipe</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#985">Pipe</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Deallocate the byte buffer.
         </span><span class="kw">unsafe </span>{
-            Vec::from_raw_parts(<a class="self" href="../../src/blocking/lib.rs.html#1012">self</a>.buffer, <span class="number">0</span>, <a class="self" href="../../src/blocking/lib.rs.html#1012">self</a>.cap);
+            Vec::from_raw_parts(<a class="self" href="#1012">self</a>.buffer, <span class="number">0</span>, <a class="self" href="#1012">self</a>.cap);
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#936">Reader</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#936">Reader</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Dropping closes the pipe and then wakes the writer.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#1021">self</a>.inner.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
-        <a class="self" href="../../src/blocking/lib.rs.html#1021">self</a>.inner.writer.wake();
+        </span><a class="self" href="#1021">self</a>.inner.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
+        <a class="self" href="#1021">self</a>.inner.writer.wake();
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/blocking/lib.rs.html#952">Writer</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#952">Writer</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Dropping closes the pipe and then wakes the reader.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#1029">self</a>.inner.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
-        <a class="self" href="../../src/blocking/lib.rs.html#1029">self</a>.inner.reader.wake();
+        </span><a class="self" href="#1029">self</a>.inner.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
+        <a class="self" href="#1029">self</a>.inner.reader.wake();
     }
 }
 
-<span class="kw">impl </span><a href="../../src/blocking/lib.rs.html#936">Reader</a> {
+<span class="kw">impl </span><a href="#936">Reader</a> {
     <span class="doccomment">/// Reads bytes from this reader and writes into blocking `dest`.
     </span><span class="kw">fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">mut </span>dest: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span>cap = <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.cap;
+        <span class="kw">let </span>cap = <a class="self" href="#1038">self</a>.inner.cap;
 
         <span class="comment">// Calculates the distance between two indices.
         </span><span class="kw">let </span>distance = |a: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>| {
             <span class="kw">if </span>a &lt;= b {
-                <a href="../../src/blocking/lib.rs.html#1042">b</a> - <a href="../../src/blocking/lib.rs.html#1042">a</a>
+                <a href="#1042">b</a> - <a href="#1042">a</a>
             } <span class="kw">else </span>{
-                <span class="number">2 </span>* <a href="../../src/blocking/lib.rs.html#1039">cap</a> - (<a href="../../src/blocking/lib.rs.html#1042">a</a> - <a href="../../src/blocking/lib.rs.html#1042">b</a>)
+                <span class="number">2 </span>* <a href="#1039">cap</a> - (<a href="#1042">a</a> - <a href="#1042">b</a>)
             }
         };
 
         <span class="comment">// If the pipe appears to be empty...
         </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == <span class="number">0 </span>{
             <span class="comment">// Reload the tail in case it&#39;s become stale.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.tail = <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.tail.load(Ordering::Acquire);
+            </span><a class="self" href="#1038">self</a>.tail = <a class="self" href="#1038">self</a>.inner.tail.load(Ordering::Acquire);
 
             <span class="comment">// If the pipe is now really empty...
             </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == <span class="number">0 </span>{
                 <span class="comment">// Register the waker.
-                </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.reader.register(<a href="../../src/blocking/lib.rs.html#1038">cx</a>.waker());
+                </span><a class="self" href="#1038">self</a>.inner.reader.register(<a href="#1038">cx</a>.waker());
                 atomic::fence(Ordering::SeqCst);
 
                 <span class="comment">// Reload the tail after registering the waker.
-                </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.tail = <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.tail.load(Ordering::Acquire);
+                </span><a class="self" href="#1038">self</a>.tail = <a class="self" href="#1038">self</a>.inner.tail.load(Ordering::Acquire);
 
                 <span class="comment">// If the pipe is still empty...
                 </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == <span class="number">0 </span>{
@@ -2349,7 +2349,7 @@
         }
 
         <span class="comment">// The pipe is not empty so remove the waker.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.reader.take();
+        </span><a class="self" href="#1038">self</a>.inner.reader.take();
 
         <span class="comment">// Yield with some small probability - this improves fairness.
         </span><a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(maybe_yield(cx));
@@ -2357,9 +2357,9 @@
         <span class="comment">// Given an index in `0..2*cap`, returns the real index in `0..cap`.
         </span><span class="kw">let </span>real_index = |i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>| {
             <span class="kw">if </span>i &lt; cap {
-                <a href="../../src/blocking/lib.rs.html#1083">i</a>
+                <a href="#1083">i</a>
             } <span class="kw">else </span>{
-                <a href="../../src/blocking/lib.rs.html#1083">i</a> - <a href="../../src/blocking/lib.rs.html#1039">cap</a>
+                <a href="#1083">i</a> - <a href="#1039">cap</a>
             }
         };
 
@@ -2369,39 +2369,39 @@
         <span class="kw">loop </span>{
             <span class="comment">// Calculate how many bytes to read in this iteration.
             </span><span class="kw">let </span>n = (<span class="number">128 </span>* <span class="number">1024</span>) <span class="comment">// Not too many bytes in one go - better to wake the writer soon!
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/blocking/lib.rs.html#1042">distance</a>(<a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head, <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.tail)) <span class="comment">// No more than bytes in the pipe.
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/blocking/lib.rs.html#1039">cap</a> - <a href="../../src/blocking/lib.rs.html#1083">real_index</a>(<a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head)); <span class="comment">// Don&#39;t go past the buffer boundary.
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#1042">distance</a>(<a class="self" href="#1038">self</a>.head, <a class="self" href="#1038">self</a>.tail)) <span class="comment">// No more than bytes in the pipe.
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#1039">cap</a> - <a href="#1083">real_index</a>(<a class="self" href="#1038">self</a>.head)); <span class="comment">// Don&#39;t go past the buffer boundary.
 
             // Create a slice of data in the pipe buffer.
             </span><span class="kw">let </span>pipe_slice =
-                <span class="kw">unsafe </span>{ slice::from_raw_parts(<a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.buffer.add(<a href="../../src/blocking/lib.rs.html#1083">real_index</a>(<a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head)), <a href="../../src/blocking/lib.rs.html#1096">n</a>) };
+                <span class="kw">unsafe </span>{ slice::from_raw_parts(<a class="self" href="#1038">self</a>.inner.buffer.add(<a href="#1083">real_index</a>(<a class="self" href="#1038">self</a>.head)), <a href="#1096">n</a>) };
 
             <span class="comment">// Copy bytes from the pipe buffer into `dest`.
             </span><span class="kw">let </span>n = dest.write(pipe_slice)<span class="question-mark">?</span>;
-            <a href="../../src/blocking/lib.rs.html#1092">count</a> += <a href="../../src/blocking/lib.rs.html#1105">n</a>;
+            <a href="#1092">count</a> += <a href="#1105">n</a>;
 
             <span class="comment">// If pipe is empty or `dest` is full, return.
             </span><span class="kw">if </span>n == <span class="number">0 </span>{
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/blocking/lib.rs.html#1092">count</a>));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1092">count</a>));
             }
 
             <span class="comment">// Move the head forward.
             </span><span class="kw">if </span><span class="self">self</span>.head + n &lt; <span class="number">2 </span>* cap {
-                <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head += <a href="../../src/blocking/lib.rs.html#1105">n</a>;
+                <a class="self" href="#1038">self</a>.head += <a href="#1105">n</a>;
             } <span class="kw">else </span>{
-                <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head = <span class="number">0</span>;
+                <a class="self" href="#1038">self</a>.head = <span class="number">0</span>;
             }
 
             <span class="comment">// Store the current head index.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.head.store(<a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.head, Ordering::Release);
+            </span><a class="self" href="#1038">self</a>.inner.head.store(<a class="self" href="#1038">self</a>.head, Ordering::Release);
 
             <span class="comment">// Wake the writer because the pipe is not full.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.inner.writer.wake();
+            </span><a class="self" href="#1038">self</a>.inner.writer.wake();
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/blocking/lib.rs.html#952">Writer</a> {
+<span class="kw">impl </span><a href="#952">Writer</a> {
     <span class="doccomment">/// Reads bytes from blocking `src` and writes into this writer.
     </span><span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">mut </span>src: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
         <span class="comment">// Just a quick check if the pipe is closed, which is why a relaxed load is okay.
@@ -2410,28 +2410,28 @@
         }
 
         <span class="comment">// Calculates the distance between two indices.
-        </span><span class="kw">let </span>cap = <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.cap;
+        </span><span class="kw">let </span>cap = <a class="self" href="#1131">self</a>.inner.cap;
         <span class="kw">let </span>distance = |a: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>| {
             <span class="kw">if </span>a &lt;= b {
-                <a href="../../src/blocking/lib.rs.html#1139">b</a> - <a href="../../src/blocking/lib.rs.html#1139">a</a>
+                <a href="#1139">b</a> - <a href="#1139">a</a>
             } <span class="kw">else </span>{
-                <span class="number">2 </span>* <a href="../../src/blocking/lib.rs.html#1138">cap</a> - (<a href="../../src/blocking/lib.rs.html#1139">a</a> - <a href="../../src/blocking/lib.rs.html#1139">b</a>)
+                <span class="number">2 </span>* <a href="#1138">cap</a> - (<a href="#1139">a</a> - <a href="#1139">b</a>)
             }
         };
 
         <span class="comment">// If the pipe appears to be full...
         </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == cap {
             <span class="comment">// Reload the head in case it&#39;s become stale.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.head = <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.head.load(Ordering::Acquire);
+            </span><a class="self" href="#1131">self</a>.head = <a class="self" href="#1131">self</a>.inner.head.load(Ordering::Acquire);
 
             <span class="comment">// If the pipe is now really empty...
             </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == cap {
                 <span class="comment">// Register the waker.
-                </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.writer.register(<a href="../../src/blocking/lib.rs.html#1131">cx</a>.waker());
+                </span><a class="self" href="#1131">self</a>.inner.writer.register(<a href="#1131">cx</a>.waker());
                 atomic::fence(Ordering::SeqCst);
 
                 <span class="comment">// Reload the head after registering the waker.
-                </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.head = <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.head.load(Ordering::Acquire);
+                </span><a class="self" href="#1131">self</a>.head = <a class="self" href="#1131">self</a>.inner.head.load(Ordering::Acquire);
 
                 <span class="comment">// If the pipe is still full...
                 </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == cap {
@@ -2446,7 +2446,7 @@
         }
 
         <span class="comment">// The pipe is not full so remove the waker.
-        </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.writer.take();
+        </span><a class="self" href="#1131">self</a>.inner.writer.take();
 
         <span class="comment">// Yield with some small probability - this improves fairness.
         </span><a class="macro" href="../../futures_lite/macro.ready.html">ready!</a>(maybe_yield(cx));
@@ -2454,9 +2454,9 @@
         <span class="comment">// Given an index in `0..2*cap`, returns the real index in `0..cap`.
         </span><span class="kw">let </span>real_index = |i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>| {
             <span class="kw">if </span>i &lt; cap {
-                <a href="../../src/blocking/lib.rs.html#1180">i</a>
+                <a href="#1180">i</a>
             } <span class="kw">else </span>{
-                <a href="../../src/blocking/lib.rs.html#1180">i</a> - <a href="../../src/blocking/lib.rs.html#1138">cap</a>
+                <a href="#1180">i</a> - <a href="#1138">cap</a>
             }
         };
 
@@ -2466,48 +2466,48 @@
         <span class="kw">loop </span>{
             <span class="comment">// Calculate how many bytes to write in this iteration.
             </span><span class="kw">let </span>n = (<span class="number">128 </span>* <span class="number">1024</span>) <span class="comment">// Not too many bytes in one go - better to wake the reader soon!
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.zeroed_until * <span class="number">2 </span>+ <span class="number">4096</span>) <span class="comment">// Don&#39;t zero too many bytes when starting.
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/blocking/lib.rs.html#1138">cap</a> - <a href="../../src/blocking/lib.rs.html#1139">distance</a>(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.head, <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail)) <span class="comment">// No more than space in the pipe.
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/blocking/lib.rs.html#1138">cap</a> - <a href="../../src/blocking/lib.rs.html#1180">real_index</a>(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail)); <span class="comment">// Don&#39;t go past the buffer boundary.
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="self" href="#1131">self</a>.zeroed_until * <span class="number">2 </span>+ <span class="number">4096</span>) <span class="comment">// Don&#39;t zero too many bytes when starting.
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#1138">cap</a> - <a href="#1139">distance</a>(<a class="self" href="#1131">self</a>.head, <a class="self" href="#1131">self</a>.tail)) <span class="comment">// No more than space in the pipe.
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#1138">cap</a> - <a href="#1180">real_index</a>(<a class="self" href="#1131">self</a>.tail)); <span class="comment">// Don&#39;t go past the buffer boundary.
 
             // Create a slice of available space in the pipe buffer.
             </span><span class="kw">let </span>pipe_slice_mut = <span class="kw">unsafe </span>{
-                <span class="kw">let </span>from = <a href="../../src/blocking/lib.rs.html#1180">real_index</a>(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail);
-                <span class="kw">let </span>to = <a href="../../src/blocking/lib.rs.html#1200">from</a> + <a href="../../src/blocking/lib.rs.html#1193">n</a>;
+                <span class="kw">let </span>from = <a href="#1180">real_index</a>(<a class="self" href="#1131">self</a>.tail);
+                <span class="kw">let </span>to = <a href="#1200">from</a> + <a href="#1193">n</a>;
 
                 <span class="comment">// Make sure all bytes in the slice are initialized.
                 </span><span class="kw">if </span><span class="self">self</span>.zeroed_until &lt; to {
-                    <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner
+                    <a class="self" href="#1131">self</a>.inner
                         .buffer
-                        .add(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.zeroed_until)
-                        .write_bytes(<span class="number">0u8</span>, <a href="../../src/blocking/lib.rs.html#1201">to</a> - <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.zeroed_until);
-                    <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.zeroed_until = <a href="../../src/blocking/lib.rs.html#1201">to</a>;
+                        .add(<a class="self" href="#1131">self</a>.zeroed_until)
+                        .write_bytes(<span class="number">0u8</span>, <a href="#1201">to</a> - <a class="self" href="#1131">self</a>.zeroed_until);
+                    <a class="self" href="#1131">self</a>.zeroed_until = <a href="#1201">to</a>;
                 }
 
-                slice::from_raw_parts_mut(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.buffer.add(<a href="../../src/blocking/lib.rs.html#1200">from</a>), <a href="../../src/blocking/lib.rs.html#1193">n</a>)
+                slice::from_raw_parts_mut(<a class="self" href="#1131">self</a>.inner.buffer.add(<a href="#1200">from</a>), <a href="#1193">n</a>)
             };
 
             <span class="comment">// Copy bytes from `src` into the piper buffer.
             </span><span class="kw">let </span>n = src.read(pipe_slice_mut)<span class="question-mark">?</span>;
-            <a href="../../src/blocking/lib.rs.html#1189">count</a> += <a href="../../src/blocking/lib.rs.html#1216">n</a>;
+            <a href="#1189">count</a> += <a href="#1216">n</a>;
 
             <span class="comment">// If the pipe is full or closed, or `src` is empty, return.
             </span><span class="kw">if </span>n == <span class="number">0 </span>|| <span class="self">self</span>.inner.closed.load(Ordering::Relaxed) {
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/blocking/lib.rs.html#1189">count</a>));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1189">count</a>));
             }
 
             <span class="comment">// Move the tail forward.
             </span><span class="kw">if </span><span class="self">self</span>.tail + n &lt; <span class="number">2 </span>* cap {
-                <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail += <a href="../../src/blocking/lib.rs.html#1216">n</a>;
+                <a class="self" href="#1131">self</a>.tail += <a href="#1216">n</a>;
             } <span class="kw">else </span>{
-                <a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail = <span class="number">0</span>;
+                <a class="self" href="#1131">self</a>.tail = <span class="number">0</span>;
             }
 
             <span class="comment">// Store the current tail index.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.tail.store(<a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.tail, Ordering::Release);
+            </span><a class="self" href="#1131">self</a>.inner.tail.store(<a class="self" href="#1131">self</a>.tail, Ordering::Release);
 
             <span class="comment">// Wake the reader because the pipe is not empty.
-            </span><a class="self" href="../../src/blocking/lib.rs.html#1131">self</a>.inner.reader.wake();
+            </span><a class="self" href="#1131">self</a>.inner.reader.wake();
         }
     }
 }
@@ -2515,7 +2515,7 @@
 <span class="doccomment">/// Yield with some small probability.
 </span><span class="kw">fn </span>maybe_yield(cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
     <span class="kw">if </span>fastrand::usize(..<span class="number">100</span>) == <span class="number">0 </span>{
-        <a href="../../src/blocking/lib.rs.html#1241">cx</a>.waker().wake_by_ref();
+        <a href="#1241">cx</a>.waker().wake_by_ref();
         Poll::Pending
     } <span class="kw">else </span>{
         Poll::Ready(())
@@ -2549,4 +2549,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="blocking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="blocking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

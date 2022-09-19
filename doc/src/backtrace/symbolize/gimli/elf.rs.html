@@ -425,8 +425,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html"><span class="kw">super</span>::mystd::fs</a>;
 <span class="kw">use </span><span class="kw">super</span>::mystd::os::unix::ffi::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">OsStrExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">OsStringExt</a>};
 <span class="kw">use </span><span class="kw">super</span>::mystd::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use </span><a href="../../../../src/backtrace/symbolize/gimli.rs.html#64"><span class="kw">super</span>::Either</a>;
-<span class="kw">use super</span>::{<a href="../../../../src/backtrace/symbolize/gimli.rs.html#105">Context</a>, <a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>, <a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
+<span class="kw">use </span><a href="../gimli.rs.html#64"><span class="kw">super</span>::Either</a>;
+<span class="kw">use super</span>::{<a href="../gimli.rs.html#105">Context</a>, <a href="../gimli.rs.html#57">Mapping</a>, <a href="stash.rs.html#10">Stash</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
 <span class="kw">use </span>core::convert::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom</a>, <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">TryInto</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
 <span class="kw">use </span>object::elf::{<a href="../../../../object/elf/constant.ELFCOMPRESS_ZLIB.html">ELFCOMPRESS_ZLIB</a>, <a href="../../../../object/elf/static.ELF_NOTE_GNU.html">ELF_NOTE_GNU</a>, <a href="../../../../object/elf/constant.NT_GNU_BUILD_ID.html">NT_GNU_BUILD_ID</a>, <a href="../../../../object/elf/constant.SHF_COMPRESSED.html">SHF_COMPRESSED</a>};
@@ -439,53 +439,53 @@
 <span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
 </span><span class="kw">type </span>Elf = object::elf::FileHeader64&lt;<a href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a>&gt;;
 
-<span class="kw">impl </span><a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a> {
-    <span class="kw">pub fn </span>new(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>&gt; {
+<span class="kw">impl </span><a href="../gimli.rs.html#57">Mapping</a> {
+    <span class="kw">pub fn </span>new(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../gimli.rs.html#57">Mapping</a>&gt; {
         <span class="kw">let </span>map = <span class="kw">super</span>::mmap(path)<span class="question-mark">?</span>;
-        Mapping::mk_or_other(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#21">map</a>, |map, stash| {
+        Mapping::mk_or_other(<a href="#21">map</a>, |map, stash| {
             <span class="kw">let </span>object = Object::parse(<span class="kw-2">&amp;</span>map)<span class="question-mark">?</span>;
 
             <span class="comment">// Try to locate an external debug file using the build ID.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(path_debug) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#217">build_id</a>().and_then(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#26">path_debug</a>, <span class="prelude-val">None</span>) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#27">mapping</a>));
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(path_debug) = <a href="#23">object</a>.<a href="#217">build_id</a>().and_then(<a href="#307">locate_build_id</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="#26">path_debug</a>, <span class="prelude-val">None</span>) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../gimli.rs.html#66">Either::A</a>(<a href="#27">mapping</a>));
                 }
             }
 
             <span class="comment">// Try to locate an external debug file using the GNU debug link section.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_debug, crc)) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#232">gnu_debuglink_path</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#20">path</a>) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">path_debug</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">crc</a>)) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#34">mapping</a>));
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_debug, crc)) = <a href="#23">object</a>.<a href="#232">gnu_debuglink_path</a>(<a href="#20">path</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="#33">path_debug</a>, <span class="prelude-val">Some</span>(<a href="#33">crc</a>)) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../gimli.rs.html#66">Either::A</a>(<a href="#34">mapping</a>));
                 }
             }
 
-            Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#22">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>, <span class="prelude-val">None</span>).map(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#67">Either::B</a>)
+            Context::new(<a href="#22">stash</a>, <a href="#23">object</a>, <span class="prelude-val">None</span>).map(<a href="../gimli.rs.html#67">Either::B</a>)
         })
     }
 
     <span class="doccomment">/// Load debuginfo from an external debug file.
-    </span><span class="kw">fn </span>new_debug(path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, crc: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>&gt; {
+    </span><span class="kw">fn </span>new_debug(path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, crc: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../gimli.rs.html#57">Mapping</a>&gt; {
         <span class="kw">let </span>map = <span class="kw">super</span>::mmap(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
-        Mapping::mk(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#45">map</a>, |map, stash| {
+        Mapping::mk(<a href="#45">map</a>, |map, stash| {
             <span class="kw">let </span>object = Object::parse(<span class="kw-2">&amp;</span>map)<span class="question-mark">?</span>;
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(_crc) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">crc</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(_crc) = <a href="#44">crc</a> {
                 <span class="comment">// TODO: check crc
             </span>}
 
             <span class="comment">// Try to locate a supplementary object file.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_sup, build_id_sup)) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#247">gnu_debugaltlink_path</a>(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">path</a>) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(map_sup) = <a href="../../../../src/backtrace/symbolize/gimli.rs.html#136"><span class="kw">super</span>::mmap</a>(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#54">path_sup</a>) {
-                    <span class="kw">let </span>map_sup = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#38">set_mmap_aux</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#55">map_sup</a>);
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = Object::parse(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#56">map_sup</a>) {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_sup, build_id_sup)) = <a href="#47">object</a>.<a href="#247">gnu_debugaltlink_path</a>(<span class="kw-2">&amp;</span><a href="#44">path</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(map_sup) = <a href="../gimli.rs.html#136"><span class="kw">super</span>::mmap</a>(<span class="kw-2">&amp;</span><a href="#54">path_sup</a>) {
+                    <span class="kw">let </span>map_sup = <a href="#46">stash</a>.<a href="stash.rs.html#38">set_mmap_aux</a>(<a href="#55">map_sup</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = Object::parse(<a href="#56">map_sup</a>) {
                         <span class="kw">if </span>sup.build_id() == <span class="prelude-val">Some</span>(build_id_sup) {
-                            <span class="kw">return </span>Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#57">sup</a>));
+                            <span class="kw">return </span>Context::new(<a href="#46">stash</a>, <a href="#47">object</a>, <span class="prelude-val">Some</span>(<a href="#57">sup</a>));
                         }
                     }
                 }
             }
 
-            Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">None</span>)
+            Context::new(<a href="#46">stash</a>, <a href="#47">object</a>, <span class="prelude-val">None</span>)
         })
     }
 }
@@ -503,10 +503,10 @@
     </span>endian: <a href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a>,
     <span class="doccomment">/// The entire file data.
     </span>data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    sections: SectionTable&lt;<span class="lifetime">&#39;a</span>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a>&gt;,
+    sections: SectionTable&lt;<span class="lifetime">&#39;a</span>, <a href="#17">Elf</a>&gt;,
     strings: StringTable&lt;<span class="lifetime">&#39;a</span>&gt;,
     <span class="doccomment">/// List of pre-parsed and sorted symbols by base address.
-    </span>syms: Vec&lt;<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a>&gt;,
+    </span>syms: Vec&lt;<a href="#70">ParsedSym</a>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Object&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -518,13 +518,13 @@
             .symbols(endian, data, object::elf::SHT_SYMTAB)
             .ok()<span class="question-mark">?</span>;
         <span class="kw">if </span>syms.is_empty() {
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a> = sections
+            <a href="#94">syms</a> = sections
                 .symbols(endian, data, object::elf::SHT_DYNSYM)
                 .ok()<span class="question-mark">?</span>;
         }
-        <span class="kw">let </span>strings = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>.strings();
+        <span class="kw">let </span>strings = <a href="#94">syms</a>.strings();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>syms = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>syms = <a href="#94">syms</a>
             .iter()
             <span class="comment">// Only look at function/object symbols. This mirrors what
             // libbacktrace does and in general we&#39;re only symbolicating
@@ -532,44 +532,44 @@
             // to data, and maybe someone&#39;s crazy enough to have a
             // function go into static data?
             </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|sym| {
-                <span class="kw">let </span>st_type = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#111">sym</a>.st_type();
-                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> == object::elf::STT_FUNC || <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> == object::elf::STT_OBJECT
+                <span class="kw">let </span>st_type = <a href="#111">sym</a>.st_type();
+                <a href="#112">st_type</a> == object::elf::STT_FUNC || <a href="#112">st_type</a> == object::elf::STT_OBJECT
             })
             <span class="comment">// skip anything that&#39;s in an undefined section header,
             // since it means it&#39;s an imported function and we&#39;re only
             // symbolicating with locally defined functions.
-            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|sym| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#118">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_shndx</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>) != object::elf::SHN_UNDEF)
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|sym| <a href="#118">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_shndx</a>(<a href="#92">endian</a>) != object::elf::SHN_UNDEF)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sym| {
-                <span class="kw">let </span>address = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_value</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <span class="kw">let </span>size = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_size</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <span class="kw">let </span>name = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_name</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>);
-                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a> {
-                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#120">address</a>,
-                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#121">size</a>,
-                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#122">name</a>,
+                <span class="kw">let </span>address = <a href="#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_value</a>(<a href="#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">let </span>size = <a href="#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_size</a>(<a href="#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">let </span>name = <a href="#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_name</a>(<a href="#92">endian</a>);
+                <a href="#70">ParsedSym</a> {
+                    <a href="#120">address</a>,
+                    <a href="#121">size</a>,
+                    <a href="#122">name</a>,
                 }
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>.sort_unstable_by_key(|s| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#130">s</a>.address);
-        <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#76">Object</a> {
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>,
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#90">data</a>,
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#93">sections</a>,
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#102">strings</a>,
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>,
+        <a href="#104">syms</a>.sort_unstable_by_key(|s| <a href="#130">s</a>.address);
+        <span class="prelude-val">Some</span>(<a href="#76">Object</a> {
+            <a href="#92">endian</a>,
+            <a href="#90">data</a>,
+            <a href="#93">sections</a>,
+            <a href="#102">strings</a>,
+            <a href="#104">syms</a>,
         })
     }
 
-    <span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, stash: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(section) = <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">section_header</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>) {
+    <span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, stash: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="stash.rs.html#10">Stash</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(section) = <a class="self" href="#140">self</a>.<a href="#193">section_header</a>(<a href="#140">name</a>) {
             <span class="kw">let </span><span class="kw-2">mut </span>data = Bytes(section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>);
 
             <span class="comment">// Check for DWARF-standard (gABI) compression, i.e., as generated
             // by ld&#39;s `--compress-debug-sections=zlib-gabi` flag.
-            </span><span class="kw">let </span>flags: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#141">section</a>.<a href="../../../../object/read/elf/section/trait.SectionHeader.html">sh_flags</a>(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            </span><span class="kw">let </span>flags: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="#141">section</a>.<a href="../../../../object/read/elf/section/trait.SectionHeader.html">sh_flags</a>(<a class="self" href="#140">self</a>.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
             <span class="kw">if </span>(flags &amp; u64::from(SHF_COMPRESSED)) == <span class="number">0 </span>{
                 <span class="comment">// Not compressed.
-                </span><span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#142">data</a>.<span class="number">0</span>);
+                </span><span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#142">data</a>.<span class="number">0</span>);
             }
 
             <span class="kw">let </span>header = data.read::&lt;&lt;Elf <span class="kw">as </span>FileHeader&gt;::CompressionHeader&gt;().ok()<span class="question-mark">?</span>;
@@ -578,9 +578,9 @@
                 </span><span class="kw">return </span><span class="prelude-val">None</span>;
             }
             <span class="kw">let </span>size = usize::try_from(header.ch_size(<span class="self">self</span>.endian)).ok()<span class="question-mark">?</span>;
-            <span class="kw">let </span>buf = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#157">size</a>);
+            <span class="kw">let </span>buf = <a href="#140">stash</a>.<a href="stash.rs.html#25">allocate</a>(<a href="#157">size</a>);
             decompress_zlib(data.<span class="number">0</span>, buf)<span class="question-mark">?</span>;
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#158">buf</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#158">buf</a>);
         }
 
         <span class="comment">// Check for the nonstandard GNU compression format, i.e., as generated
@@ -590,7 +590,7 @@
         </span><span class="kw">if </span>!name.starts_with(<span class="string">&quot;.debug_&quot;</span>) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>debug_name = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>[<span class="number">7</span>..].as_bytes();
+        <span class="kw">let </span>debug_name = <a href="#140">name</a>[<span class="number">7</span>..].as_bytes();
         <span class="kw">let </span>compressed_section = <span class="self">self
             </span>.sections
             .iter()
@@ -608,26 +608,26 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">let </span>size = usize::try_from(data.read::&lt;object::U32Bytes&lt;<span class="kw">_</span>&gt;&gt;().ok()<span class="question-mark">?</span>.get(BigEndian)).ok()<span class="question-mark">?</span>;
-        <span class="kw">let </span>buf = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#187">size</a>);
+        <span class="kw">let </span>buf = <a href="#140">stash</a>.<a href="stash.rs.html#25">allocate</a>(<a href="#187">size</a>);
         decompress_zlib(data.<span class="number">0</span>, buf)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#188">buf</a>)
+        <span class="prelude-val">Some</span>(<a href="#188">buf</a>)
     }
 
-    <span class="kw">fn </span>section_header(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a> <span class="kw">as </span>FileHeader&gt;::SectionHeader&gt; {
-        <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.sections
-            .section_by_name(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.endian, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">name</a>.as_bytes())
-            .map(|(_index, section)| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#196">section</a>)
+    <span class="kw">fn </span>section_header(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>&lt;<a href="#17">Elf</a> <span class="kw">as </span>FileHeader&gt;::SectionHeader&gt; {
+        <a class="self" href="#193">self</a>.sections
+            .section_by_name(<a class="self" href="#193">self</a>.endian, <a href="#193">name</a>.as_bytes())
+            .map(|(_index, section)| <a href="#196">section</a>)
     }
 
     <span class="kw">pub fn </span>search_symtab&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
         <span class="comment">// Same sort of binary search as Windows above
-        </span><span class="kw">let </span>i = <span class="kw">match </span><a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.syms.binary_search_by_key(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">addr</a>, |sym| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#201">sym</a>.address) {
-            <span class="prelude-val">Ok</span>(i) =&gt; <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#202">i</a>,
+        </span><span class="kw">let </span>i = <span class="kw">match </span><a class="self" href="#199">self</a>.syms.binary_search_by_key(<span class="kw-2">&amp;</span><a href="#199">addr</a>, |sym| <a href="#201">sym</a>.address) {
+            <span class="prelude-val">Ok</span>(i) =&gt; <a href="#202">i</a>,
             <span class="prelude-val">Err</span>(i) =&gt; i.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>,
         };
         <span class="kw">let </span>sym = <span class="self">self</span>.syms.get(i)<span class="question-mark">?</span>;
         <span class="kw">if </span>sym.address &lt;= addr &amp;&amp; addr &lt;= sym.address + sym.size {
-            <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.strings.get(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#205">sym</a>.name).ok()
+            <a class="self" href="#199">self</a>.strings.get(<a href="#205">sym</a>.name).ok()
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -656,14 +656,14 @@
         <span class="kw">let </span>section = <span class="self">self</span>.section_header(<span class="string">&quot;.gnu_debuglink&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>data = section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>;
         <span class="kw">let </span>len = data.iter().position(|x| <span class="kw-2">*</span>x == <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#234">data</a>[..<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a>];
-        <span class="kw">let </span>offset = (<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a> + <span class="number">1 </span>+ <span class="number">3</span>) &amp; !<span class="number">3</span>;
+        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="#234">data</a>[..<a href="#235">len</a>];
+        <span class="kw">let </span>offset = (<a href="#235">len</a> + <span class="number">1 </span>+ <span class="number">3</span>) &amp; !<span class="number">3</span>;
         <span class="kw">let </span>crc_bytes = data
             .get(offset..offset + <span class="number">4</span>)
             .and_then(|bytes| bytes.try_into().ok())<span class="question-mark">?</span>;
-        <span class="kw">let </span>crc = u32::from_ne_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#238">crc_bytes</a>);
+        <span class="kw">let </span>crc = u32::from_ne_bytes(<a href="#238">crc_bytes</a>);
         <span class="kw">let </span>path_debug = locate_debuglink(path, filename)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#242">path_debug</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#241">crc</a>))
+        <span class="prelude-val">Some</span>((<a href="#242">path_debug</a>, <a href="#241">crc</a>))
     }
 
     <span class="comment">// The format of the &quot;.gnu_debugaltlink&quot; section is based on gdb.
@@ -671,10 +671,10 @@
         <span class="kw">let </span>section = <span class="self">self</span>.section_header(<span class="string">&quot;.gnu_debugaltlink&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>data = section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>;
         <span class="kw">let </span>len = data.iter().position(|x| <span class="kw-2">*</span>x == <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[..<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a>];
-        <span class="kw">let </span>build_id = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a> + <span class="number">1</span>..];
+        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="#249">data</a>[..<a href="#250">len</a>];
+        <span class="kw">let </span>build_id = <span class="kw-2">&amp;</span><a href="#249">data</a>[<a href="#250">len</a> + <span class="number">1</span>..];
         <span class="kw">let </span>path_sup = locate_debugaltlink(path, filename, build_id)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#253">path_sup</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#252">build_id</a>))
+        <span class="prelude-val">Some</span>((<a href="#253">path_sup</a>, <a href="#252">build_id</a>))
     }
 }
 
@@ -687,8 +687,8 @@
 
     <span class="kw">let </span>(status, in_read, out_read) = decompress(
         <span class="kw-2">&amp;mut </span>DecompressorOxide::new(),
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">input</a>,
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">output</a>,
+        <a href="#258">input</a>,
+        <a href="#258">output</a>,
         <span class="number">0</span>,
         TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF | TINFL_FLAG_PARSE_ZLIB_HEADER,
     );
@@ -707,16 +707,16 @@
             <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
             <span class="kw">static </span>DEBUG_PATH_EXISTS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a> = AtomicU8::new(<span class="number">0</span>);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>exists = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.load(Ordering::Relaxed);
+            <span class="kw">let </span><span class="kw-2">mut </span>exists = <a href="#285">DEBUG_PATH_EXISTS</a>.load(Ordering::Relaxed);
             <span class="kw">if </span>exists == <span class="number">0 </span>{
-                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> = <span class="kw">if </span>Path::new(OsStr::from_bytes(DEBUG_PATH)).is_dir() {
+                <a href="#287">exists</a> = <span class="kw">if </span>Path::new(OsStr::from_bytes(DEBUG_PATH)).is_dir() {
                     <span class="number">1
                 </span>} <span class="kw">else </span>{
                     <span class="number">2
                 </span>};
-                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.store(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a>, Ordering::Relaxed);
+                <a href="#285">DEBUG_PATH_EXISTS</a>.store(<a href="#287">exists</a>, Ordering::Relaxed);
             }
-            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> == <span class="number">1
+            <a href="#287">exists</a> == <span class="number">1
         </span>} <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -740,24 +740,24 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>path =
-        Vec::with_capacity(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>.len() * <span class="number">2 </span>+ <span class="number">1</span>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] &gt;&gt; <span class="number">4</span>));
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] &amp; <span class="number">0xf</span>));
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<span class="string">b&#39;/&#39;</span>);
+        Vec::with_capacity(<a href="#308">BUILD_ID_PATH</a>.len() + <a href="#309">BUILD_ID_SUFFIX</a>.len() + <a href="#307">build_id</a>.len() * <span class="number">2 </span>+ <span class="number">1</span>);
+    <a href="#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#308">BUILD_ID_PATH</a>);
+    <a href="#319">path</a>.push(<a href="#333">hex</a>(<a href="#307">build_id</a>[<span class="number">0</span>] &gt;&gt; <span class="number">4</span>));
+    <a href="#319">path</a>.push(<a href="#333">hex</a>(<a href="#307">build_id</a>[<span class="number">0</span>] &amp; <span class="number">0xf</span>));
+    <a href="#319">path</a>.push(<span class="string">b&#39;/&#39;</span>);
     <span class="kw">for </span>byte <span class="kw">in </span><span class="kw-2">&amp;</span>build_id[<span class="number">1</span>..] {
         path.push(hex(byte &gt;&gt; <span class="number">4</span>));
         path.push(hex(byte &amp; <span class="number">0xf</span>));
     }
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>);
-    <span class="prelude-val">Some</span>(PathBuf::from(OsString::from_vec(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>)))
+    <a href="#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#309">BUILD_ID_SUFFIX</a>);
+    <span class="prelude-val">Some</span>(PathBuf::from(OsString::from_vec(<a href="#319">path</a>)))
 }
 
 <span class="kw">fn </span>hex(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
     <span class="kw">if </span>byte &lt; <span class="number">10 </span>{
-        <span class="string">b&#39;0&#39; </span>+ <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a>
+        <span class="string">b&#39;0&#39; </span>+ <a href="#333">byte</a>
     } <span class="kw">else </span>{
-        <span class="string">b&#39;a&#39; </span>+ <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a> - <span class="number">10
+        <span class="string">b&#39;a&#39; </span>+ <a href="#333">byte</a> - <span class="number">10
     </span>}
 }
 
@@ -776,38 +776,38 @@
     <span class="kw">let </span>path = fs::canonicalize(path).ok()<span class="question-mark">?</span>;
     <span class="kw">let </span>parent = path.parent()<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>f = PathBuf::from(OsString::with_capacity(
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.as_os_str().len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>.len() + <span class="number">2</span>,
+        <a href="#279">DEBUG_PATH</a>.len() + <a href="#354">parent</a>.as_os_str().len() + <a href="#352">filename</a>.len() + <span class="number">2</span>,
     ));
-    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>));
+    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="#352">filename</a>));
 
     <span class="comment">// Try &quot;/parent/filename&quot; if it differs from &quot;path&quot;
-    </span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+    </span><a href="#355">f</a>.push(<a href="#354">parent</a>);
+    <a href="#355">f</a>.push(<a href="#358">filename</a>);
     <span class="kw">if </span>f != path &amp;&amp; f.is_file() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#355">f</a>);
     }
 
     <span class="comment">// Try &quot;/parent/.debug/filename&quot;
-    </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>.clear();
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<span class="string">&quot;.debug&quot;</span>);
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="#355">f</a>);
+    <a href="#368">s</a>.clear();
+    <a href="#355">f</a> = PathBuf::from(<a href="#368">s</a>);
+    <a href="#355">f</a>.push(<a href="#354">parent</a>);
+    <a href="#355">f</a>.push(<span class="string">&quot;.debug&quot;</span>);
+    <a href="#355">f</a>.push(<a href="#358">filename</a>);
     <span class="kw">if </span>f.is_file() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#355">f</a>);
     }
 
     <span class="kw">if </span>debug_path_exists() {
         <span class="comment">// Try &quot;/usr/lib/debug/parent/filename&quot;
-        </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>.clear();
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>);
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>));
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.strip_prefix(<span class="string">&quot;/&quot;</span>).unwrap());
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="#355">f</a>);
+        <a href="#380">s</a>.clear();
+        <a href="#355">f</a> = PathBuf::from(<a href="#380">s</a>);
+        <a href="#355">f</a>.push(OsStr::from_bytes(<a href="#279">DEBUG_PATH</a>));
+        <a href="#355">f</a>.push(<a href="#354">parent</a>.strip_prefix(<span class="string">&quot;/&quot;</span>).unwrap());
+        <a href="#355">f</a>.push(<a href="#358">filename</a>);
         <span class="kw">if </span>f.is_file() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#355">f</a>);
         }
     }
 
@@ -827,22 +827,22 @@
 ///
 /// gdb also supports debuginfod, but we don&#39;t yet.
 </span><span class="kw">fn </span>locate_debugaltlink(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, filename: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], build_id: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
-    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">filename</a>));
+    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="#406">filename</a>));
     <span class="kw">if </span>filename.is_absolute() {
         <span class="kw">if </span>filename.is_file() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#407">filename</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
     } <span class="kw">else </span>{
         <span class="kw">let </span>path = fs::canonicalize(path).ok()<span class="question-mark">?</span>;
         <span class="kw">let </span>parent = path.parent()<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>f = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#414">parent</a>);
-        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = PathBuf::from(<a href="#414">parent</a>);
+        <a href="#415">f</a>.push(<a href="#407">filename</a>);
         <span class="kw">if </span>f.is_file() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#415">f</a>);
         }
     }
 
-    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">build_id</a>)
+    <a href="#307">locate_build_id</a>(<a href="#406">build_id</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

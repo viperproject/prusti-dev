@@ -744,7 +744,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/index.html">std::string</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">std::string::String</a> <span class="kw">as </span>StdString;
 
-<span class="kw">use </span><a href="../../src/toml/tokens.rs.html#25"><span class="self">self</span>::Token</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#25"><span class="self">self</span>::Token</a>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A span, designating a range of bytes where a token is located.
 </span><span class="attribute">#[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -755,9 +755,9 @@
     </span><span class="kw">pub </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../src/toml/tokens.rs.html#11">Span</a>&gt; <span class="kw">for </span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">fn </span>from(<a href="../../src/toml/tokens.rs.html#11">Span</a> { start, end }: <a href="../../src/toml/tokens.rs.html#11">Span</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        (<a href="../../src/toml/tokens.rs.html#19">start</a>, <a href="../../src/toml/tokens.rs.html#19">end</a>)
+<span class="kw">impl </span>From&lt;<a href="#11">Span</a>&gt; <span class="kw">for </span>(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn </span>from(<a href="#11">Span</a> { start, end }: <a href="#11">Span</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        (<a href="#19">start</a>, <a href="#19">end</a>)
     }
 }
 
@@ -822,165 +822,165 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>t = <a href="../../src/toml/tokens.rs.html#67">Tokenizer</a> {
-            <a href="../../src/toml/tokens.rs.html#84">input</a>,
-            chars: <a href="../../src/toml/tokens.rs.html#73">CrlfFold</a> {
-                chars: <a href="../../src/toml/tokens.rs.html#84">input</a>.char_indices(),
+        <span class="kw">let </span><span class="kw-2">mut </span>t = <a href="#67">Tokenizer</a> {
+            <a href="#84">input</a>,
+            chars: <a href="#73">CrlfFold</a> {
+                chars: <a href="#84">input</a>.char_indices(),
             },
         };
         <span class="comment">// Eat utf-8 BOM
-        </span><a href="../../src/toml/tokens.rs.html#85">t</a>.<a href="../../src/toml/tokens.rs.html#250">eatc</a>(<span class="string">&#39;\u{feff}&#39;</span>);
-        <a href="../../src/toml/tokens.rs.html#85">t</a>
+        </span><a href="#85">t</a>.<a href="#250">eatc</a>(<span class="string">&#39;\u{feff}&#39;</span>);
+        <a href="#85">t</a>
     }
 
-    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="../../src/toml/tokens.rs.html#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <span class="kw">let </span>(start, token) = <span class="kw">match </span><a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#479">one</a>() {
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\n&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#98">start</a>, <a href="../../src/toml/tokens.rs.html#27">Newline</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39; &#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#99">start</a>, <a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#272">whitespace_token</a>(<a href="../../src/toml/tokens.rs.html#99">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\t&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#100">start</a>, <a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#272">whitespace_token</a>(<a href="../../src/toml/tokens.rs.html#100">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;#&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#101">start</a>, <a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#279">comment_token</a>(<a href="../../src/toml/tokens.rs.html#101">start</a>)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;=&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#102">start</a>, <a href="../../src/toml/tokens.rs.html#30">Equals</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;.&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#103">start</a>, <a href="../../src/toml/tokens.rs.html#31">Period</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;,&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#104">start</a>, <a href="../../src/toml/tokens.rs.html#32">Comma</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;:&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#105">start</a>, <a href="../../src/toml/tokens.rs.html#33">Colon</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;+&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#106">start</a>, <a href="../../src/toml/tokens.rs.html#34">Plus</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;{&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#107">start</a>, <a href="../../src/toml/tokens.rs.html#35">LeftBrace</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;}&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#108">start</a>, <a href="../../src/toml/tokens.rs.html#36">RightBrace</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;[&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#109">start</a>, <a href="../../src/toml/tokens.rs.html#37">LeftBracket</a>),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;]&#39;</span>)) =&gt; (<a href="../../src/toml/tokens.rs.html#110">start</a>, <a href="../../src/toml/tokens.rs.html#38">RightBracket</a>),
+    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="#49">Error</a>&gt; {
+        <span class="kw">let </span>(start, token) = <span class="kw">match </span><a class="self" href="#96">self</a>.<a href="#479">one</a>() {
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\n&#39;</span>)) =&gt; (<a href="#98">start</a>, <a href="#27">Newline</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39; &#39;</span>)) =&gt; (<a href="#99">start</a>, <a class="self" href="#96">self</a>.<a href="#272">whitespace_token</a>(<a href="#99">start</a>)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\t&#39;</span>)) =&gt; (<a href="#100">start</a>, <a class="self" href="#96">self</a>.<a href="#272">whitespace_token</a>(<a href="#100">start</a>)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;#&#39;</span>)) =&gt; (<a href="#101">start</a>, <a class="self" href="#96">self</a>.<a href="#279">comment_token</a>(<a href="#101">start</a>)),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;=&#39;</span>)) =&gt; (<a href="#102">start</a>, <a href="#30">Equals</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;.&#39;</span>)) =&gt; (<a href="#103">start</a>, <a href="#31">Period</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;,&#39;</span>)) =&gt; (<a href="#104">start</a>, <a href="#32">Comma</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;:&#39;</span>)) =&gt; (<a href="#105">start</a>, <a href="#33">Colon</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;+&#39;</span>)) =&gt; (<a href="#106">start</a>, <a href="#34">Plus</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;{&#39;</span>)) =&gt; (<a href="#107">start</a>, <a href="#35">LeftBrace</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;}&#39;</span>)) =&gt; (<a href="#108">start</a>, <a href="#36">RightBrace</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;[&#39;</span>)) =&gt; (<a href="#109">start</a>, <a href="#37">LeftBracket</a>),
+            <span class="prelude-val">Some</span>((start, <span class="string">&#39;]&#39;</span>)) =&gt; (<a href="#110">start</a>, <a href="#38">RightBracket</a>),
             <span class="prelude-val">Some</span>((start, <span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
-                <span class="kw">return </span><span class="self"><a href="../../src/toml/tokens.rs.html#96">self</a>
-                    </span>.<a href="../../src/toml/tokens.rs.html#365">literal_string</a>(<a href="../../src/toml/tokens.rs.html#111">start</a>)
-                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#465">step_span</a>(<a href="../../src/toml/tokens.rs.html#111">start</a>), <a href="../../src/toml/tokens.rs.html#114">t</a>)))
+                <span class="kw">return </span><span class="self"><a href="#96">self</a>
+                    </span>.<a href="#365">literal_string</a>(<a href="#111">start</a>)
+                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#111">start</a>), <a href="#114">t</a>)))
             }
             <span class="prelude-val">Some</span>((start, <span class="string">&#39;&quot;&#39;</span>)) =&gt; {
-                <span class="kw">return </span><span class="self"><a href="../../src/toml/tokens.rs.html#96">self</a>
-                    </span>.<a href="../../src/toml/tokens.rs.html#376">basic_string</a>(<a href="../../src/toml/tokens.rs.html#116">start</a>)
-                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#465">step_span</a>(<a href="../../src/toml/tokens.rs.html#116">start</a>), <a href="../../src/toml/tokens.rs.html#119">t</a>)))
+                <span class="kw">return </span><span class="self"><a href="#96">self</a>
+                    </span>.<a href="#376">basic_string</a>(<a href="#116">start</a>)
+                    .map(|t| <span class="prelude-val">Some</span>((<a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#116">start</a>), <a href="#119">t</a>)))
             }
-            <span class="prelude-val">Some</span>((start, ch)) <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#526">is_keylike</a>(<a href="../../src/toml/tokens.rs.html#121">ch</a>) =&gt; (<a href="../../src/toml/tokens.rs.html#121">start</a>, <a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#446">keylike</a>(<a href="../../src/toml/tokens.rs.html#121">start</a>)),
+            <span class="prelude-val">Some</span>((start, ch)) <span class="kw">if </span><a href="#526">is_keylike</a>(<a href="#121">ch</a>) =&gt; (<a href="#121">start</a>, <a class="self" href="#96">self</a>.<a href="#446">keylike</a>(<a href="#121">start</a>)),
 
-            <span class="prelude-val">Some</span>((start, ch)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#55">Error::Unexpected</a>(<a href="../../src/toml/tokens.rs.html#123">start</a>, <a href="../../src/toml/tokens.rs.html#123">ch</a>)),
+            <span class="prelude-val">Some</span>((start, ch)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#55">Error::Unexpected</a>(<a href="#123">start</a>, <a href="#123">ch</a>)),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <span class="kw">let </span>span = <a class="self" href="../../src/toml/tokens.rs.html#96">self</a>.<a href="../../src/toml/tokens.rs.html#465">step_span</a>(<a href="../../src/toml/tokens.rs.html#97">start</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../src/toml/tokens.rs.html#127">span</a>, <a href="../../src/toml/tokens.rs.html#97">token</a>)))
+        <span class="kw">let </span>span = <a class="self" href="#96">self</a>.<a href="#465">step_span</a>(<a href="#97">start</a>);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#127">span</a>, <a href="#97">token</a>)))
     }
 
-    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="../../src/toml/tokens.rs.html#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#131">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../src/toml/tokens.rs.html#96">next</a>()
+    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="#11">Span</a>, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, <a href="#49">Error</a>&gt; {
+        <a class="self" href="#131">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#96">next</a>()
     }
 
-    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#135">self</a>.<a href="../../src/toml/tokens.rs.html#140">eat_spanned</a>(<a href="../../src/toml/tokens.rs.html#135">expected</a>).map(|s| <a href="../../src/toml/tokens.rs.html#136">s</a>.is_some())
+    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#49">Error</a>&gt; {
+        <a class="self" href="#135">self</a>.<a href="#140">eat_spanned</a>(<a href="#135">expected</a>).map(|s| <a href="#136">s</a>.is_some())
     }
 
     <span class="doccomment">/// Eat a value, returning it&#39;s span if it was consumed.
-    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/toml/tokens.rs.html#11">Span</a>&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#11">Span</a>&gt;, <a href="#49">Error</a>&gt; {
         <span class="kw">let </span>span = <span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>((span, <span class="kw-2">ref </span>found)) <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#140">expected</a> == <span class="kw-2">*</span><a href="../../src/toml/tokens.rs.html#142">found</a> =&gt; <a href="../../src/toml/tokens.rs.html#142">span</a>,
+            <span class="prelude-val">Some</span>((span, <span class="kw-2">ref </span>found)) <span class="kw">if </span><a href="#140">expected</a> == <span class="kw-2">*</span><a href="#142">found</a> =&gt; <a href="#142">span</a>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/toml/tokens.rs.html#140">self</a>.<a href="../../src/toml/tokens.rs.html#96">next</a>());
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/toml/tokens.rs.html#141">span</a>))
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#140">self</a>.<a href="#96">next</a>());
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#141">span</a>))
     }
 
-    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
         <span class="comment">// ignore span
         </span><span class="kw">let _ </span>= <span class="self">self</span>.expect_spanned(expected)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Expect the given token returning its span.
-    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/tokens.rs.html#11">Span</a>, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="../../src/toml/tokens.rs.html#158">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>();
+    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">Span</a>, <a href="#49">Error</a>&gt; {
+        <span class="kw">let </span>current = <a class="self" href="#158">self</a>.<a href="#260">current</a>();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, found)) =&gt; {
                 <span class="kw">if </span>expected == found {
-                    <span class="prelude-val">Ok</span>(<a href="../../src/toml/tokens.rs.html#161">span</a>)
+                    <span class="prelude-val">Ok</span>(<a href="#161">span</a>)
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#59">Error::Wanted</a> {
-                        at: <a href="../../src/toml/tokens.rs.html#159">current</a>,
-                        expected: <a href="../../src/toml/tokens.rs.html#158">expected</a>.<a href="../../src/toml/tokens.rs.html#535">describe</a>(),
-                        found: <a href="../../src/toml/tokens.rs.html#161">found</a>.<a href="../../src/toml/tokens.rs.html#535">describe</a>(),
+                    <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
+                        at: <a href="#159">current</a>,
+                        expected: <a href="#158">expected</a>.<a href="#535">describe</a>(),
+                        found: <a href="#161">found</a>.<a href="#535">describe</a>(),
                     })
                 }
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#59">Error::Wanted</a> {
-                at: <a class="self" href="../../src/toml/tokens.rs.html#158">self</a>.input.len(),
-                expected: <a href="../../src/toml/tokens.rs.html#158">expected</a>.<a href="../../src/toml/tokens.rs.html#535">describe</a>(),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
+                at: <a class="self" href="#158">self</a>.input.len(),
+                expected: <a href="#158">expected</a>.<a href="#535">describe</a>(),
                 found: <span class="string">&quot;eof&quot;</span>,
             }),
         }
     }
 
-    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../src/toml/tokens.rs.html#11">Span</a>, Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;), <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="../../src/toml/tokens.rs.html#180">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>();
+    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#11">Span</a>, Cow&lt;<span class="lifetime">&#39;a</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;), <a href="#49">Error</a>&gt; {
+        <span class="kw">let </span>current = <a class="self" href="#180">self</a>.<a href="#260">current</a>();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>((span, <a href="../../src/toml/tokens.rs.html#40">Token::Keylike</a>(k))) =&gt; <span class="prelude-val">Ok</span>((<a href="../../src/toml/tokens.rs.html#183">span</a>, <a href="../../src/toml/tokens.rs.html#183">k</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            <span class="prelude-val">Some</span>((span, <a href="#40">Token::Keylike</a>(k))) =&gt; <span class="prelude-val">Ok</span>((<a href="#183">span</a>, <a href="#183">k</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
             <span class="prelude-val">Some</span>((
                 span,
-                <a href="../../src/toml/tokens.rs.html#41">Token::String</a> {
+                <a href="#41">Token::String</a> {
                     src,
                     val,
                     multiline,
                 },
             )) =&gt; {
-                <span class="kw">let </span>offset = <a class="self" href="../../src/toml/tokens.rs.html#180">self</a>.<a href="../../src/toml/tokens.rs.html#456">substr_offset</a>(<a href="../../src/toml/tokens.rs.html#187">src</a>);
+                <span class="kw">let </span>offset = <a class="self" href="#180">self</a>.<a href="#456">substr_offset</a>(<a href="#187">src</a>);
                 <span class="kw">if </span>multiline {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#58">Error::MultilineStringKey</a>(<a href="../../src/toml/tokens.rs.html#192">offset</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#58">Error::MultilineStringKey</a>(<a href="#192">offset</a>));
                 }
-                <span class="kw">match </span><a href="../../src/toml/tokens.rs.html#187">src</a>.find(<span class="string">&#39;\n&#39;</span>) {
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>((<a href="../../src/toml/tokens.rs.html#185">span</a>, <a href="../../src/toml/tokens.rs.html#188">val</a>)),
-                    <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#57">Error::NewlineInTableKey</a>(<a href="../../src/toml/tokens.rs.html#192">offset</a> + <a href="../../src/toml/tokens.rs.html#198">i</a>)),
+                <span class="kw">match </span><a href="#187">src</a>.find(<span class="string">&#39;\n&#39;</span>) {
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>((<a href="#185">span</a>, <a href="#188">val</a>)),
+                    <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Err</span>(<a href="#57">Error::NewlineInTableKey</a>(<a href="#192">offset</a> + <a href="#198">i</a>)),
                 }
             }
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#59">Error::Wanted</a> {
-                at: <a href="../../src/toml/tokens.rs.html#181">current</a>,
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
+                at: <a href="#181">current</a>,
                 expected: <span class="string">&quot;a table key&quot;</span>,
-                found: <a href="../../src/toml/tokens.rs.html#201">other</a>.<a href="../../src/toml/tokens.rs.html#535">describe</a>(),
+                found: <a href="#201">other</a>.<a href="#535">describe</a>(),
             }),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#59">Error::Wanted</a> {
-                at: <a class="self" href="../../src/toml/tokens.rs.html#180">self</a>.input.len(),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
+                at: <a class="self" href="#180">self</a>.input.len(),
                 expected: <span class="string">&quot;a table key&quot;</span>,
                 found: <span class="string">&quot;eof&quot;</span>,
             }),
         }
     }
 
-    <span class="kw">pub fn </span>eat_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>eat_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
         <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
             <span class="comment">// ...
         </span>}
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>eat_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
+    <span class="kw">pub fn </span>eat_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#49">Error</a>&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.eatc(<span class="string">&#39;#&#39;</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/toml/tokens.rs.html#221">self</a>.<a href="../../src/toml/tokens.rs.html#279">comment_token</a>(<span class="number">0</span>));
-        <a class="self" href="../../src/toml/tokens.rs.html#221">self</a>.<a href="../../src/toml/tokens.rs.html#229">eat_newline_or_eof</a>().map(|()| <span class="bool-val">true</span>)
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#221">self</a>.<a href="#279">comment_token</a>(<span class="number">0</span>));
+        <a class="self" href="#221">self</a>.<a href="#229">eat_newline_or_eof</a>().map(|()| <span class="bool-val">true</span>)
     }
 
-    <span class="kw">pub fn </span>eat_newline_or_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <span class="kw">let </span>current = <a class="self" href="../../src/toml/tokens.rs.html#229">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>();
+    <span class="kw">pub fn </span>eat_newline_or_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt; {
+        <span class="kw">let </span>current = <a class="self" href="#229">self</a>.<a href="#260">current</a>();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
-            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>((<span class="kw">_</span>, <a href="../../src/toml/tokens.rs.html#27">Token::Newline</a>)) =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#59">Error::Wanted</a> {
-                at: <a href="../../src/toml/tokens.rs.html#230">current</a>,
+            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>((<span class="kw">_</span>, <a href="#27">Token::Newline</a>)) =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(<a href="#59">Error::Wanted</a> {
+                at: <a href="#230">current</a>,
                 expected: <span class="string">&quot;newline&quot;</span>,
-                found: <a href="../../src/toml/tokens.rs.html#233">other</a>.<a href="../../src/toml/tokens.rs.html#535">describe</a>(),
+                found: <a href="#233">other</a>.<a href="#535">describe</a>(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>skip_to_newline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="../../src/toml/tokens.rs.html#241">self</a>.<a href="../../src/toml/tokens.rs.html#479">one</a>() {
+            <span class="kw">match </span><a class="self" href="#241">self</a>.<a href="#479">one</a>() {
                 <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) | <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
@@ -988,9 +988,9 @@
     }
 
     <span class="kw">fn </span>eatc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../src/toml/tokens.rs.html#250">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch2)) <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#250">ch</a> == <a href="../../src/toml/tokens.rs.html#252">ch2</a> =&gt; {
-                <a class="self" href="../../src/toml/tokens.rs.html#250">self</a>.<a href="../../src/toml/tokens.rs.html#479">one</a>();
+        <span class="kw">match </span><a class="self" href="#250">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch2)) <span class="kw">if </span><a href="#250">ch</a> == <a href="#252">ch2</a> =&gt; {
+                <a class="self" href="#250">self</a>.<a href="#479">one</a>();
                 <span class="bool-val">true
             </span>}
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
@@ -998,22 +998,22 @@
     }
 
     <span class="kw">pub fn </span>current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/toml/tokens.rs.html#260">self</a>.chars
+        <a class="self" href="#260">self</a>.chars
             .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|i| <a href="../../src/toml/tokens.rs.html#264">i</a>.<span class="number">0</span>)
-            .unwrap_or_else(|| <a class="self" href="../../src/toml/tokens.rs.html#260">self</a>.input.len())
+            .map(|i| <a href="#264">i</a>.<span class="number">0</span>)
+            .unwrap_or_else(|| <a class="self" href="#260">self</a>.input.len())
     }
 
     <span class="kw">pub fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/toml/tokens.rs.html#268">self</a>.input
+        <a class="self" href="#268">self</a>.input
     }
 
     <span class="kw">fn </span>whitespace_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
             <span class="comment">// ...
         </span>}
-        <a href="../../src/toml/tokens.rs.html#26">Whitespace</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#272">self</a>.input[<a href="../../src/toml/tokens.rs.html#272">start</a>..<a class="self" href="../../src/toml/tokens.rs.html#272">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>()])
+        <a href="#26">Whitespace</a>(<span class="kw-2">&amp;</span><a class="self" href="#272">self</a>.input[<a href="#272">start</a>..<a class="self" href="#272">self</a>.<a href="#260">current</a>()])
     }
 
     <span class="kw">fn </span>comment_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -1023,7 +1023,7 @@
             }
             <span class="self">self</span>.one();
         }
-        <a href="../../src/toml/tokens.rs.html#28">Comment</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#279">self</a>.input[<a href="../../src/toml/tokens.rs.html#279">start</a>..<a class="self" href="../../src/toml/tokens.rs.html#279">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>()])
+        <a href="#28">Comment</a>(<span class="kw-2">&amp;</span><a class="self" href="#279">self</a>.input[<a href="#279">start</a>..<a class="self" href="#279">self</a>.<a href="#260">current</a>()])
     }
 
     <span class="kw">fn </span>read_string(
@@ -1032,104 +1032,104 @@
         start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         new_ch: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
             <span class="kw-2">&amp;mut </span>Tokenizer&lt;<span class="lifetime">&#39;_</span>&gt;,
-            <span class="kw-2">&amp;mut </span><a href="../../src/toml/tokens.rs.html#78">MaybeString</a>,
+            <span class="kw-2">&amp;mut </span><a href="#78">MaybeString</a>,
             <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
             <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#49">Error</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>multiline = <span class="bool-val">false</span>;
         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
             <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                <a href="../../src/toml/tokens.rs.html#301">multiline</a> = <span class="bool-val">true</span>;
+                <a href="#301">multiline</a> = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/toml/tokens.rs.html#41">String</a> {
-                    src: <span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.input[<a href="../../src/toml/tokens.rs.html#292">start</a>..<a href="../../src/toml/tokens.rs.html#292">start</a> + <span class="number">2</span>],
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#41">String</a> {
+                    src: <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[<a href="#292">start</a>..<a href="#292">start</a> + <span class="number">2</span>],
                     val: Cow::Borrowed(<span class="string">&quot;&quot;</span>),
                     multiline: <span class="bool-val">false</span>,
                 });
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>val = <a href="../../src/toml/tokens.rs.html#79">MaybeString::NotEscaped</a>(<a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>val = <a href="#79">MaybeString::NotEscaped</a>(<a class="self" href="#290">self</a>.<a href="#260">current</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <a href="../../src/toml/tokens.rs.html#314">n</a> += <span class="number">1</span>;
-            <span class="kw">match </span><a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.<a href="../../src/toml/tokens.rs.html#479">one</a>() {
+            <a href="#314">n</a> += <span class="number">1</span>;
+            <span class="kw">match </span><a class="self" href="#290">self</a>.<a href="#479">one</a>() {
                 <span class="prelude-val">Some</span>((i, <span class="string">&#39;\n&#39;</span>)) =&gt; {
                     <span class="kw">if </span>multiline {
                         <span class="kw">if </span><span class="self">self</span>.input.as_bytes()[i] == <span class="string">b&#39;\r&#39; </span>{
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#509">to_owned</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.input[..<a href="../../src/toml/tokens.rs.html#318">i</a>]);
+                            <a href="#313">val</a>.<a href="#509">to_owned</a>(<span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[..<a href="#318">i</a>]);
                         }
                         <span class="kw">if </span>n == <span class="number">1 </span>{
-                            <a href="../../src/toml/tokens.rs.html#313">val</a> = <a href="../../src/toml/tokens.rs.html#79">MaybeString::NotEscaped</a>(<a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>());
+                            <a href="#313">val</a> = <a href="#79">MaybeString::NotEscaped</a>(<a class="self" href="#290">self</a>.<a href="#260">current</a>());
                         } <span class="kw">else </span>{
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\n&#39;</span>);
+                            <a href="#313">val</a>.<a href="#502">push</a>(<span class="string">&#39;\n&#39;</span>);
                         }
                         <span class="kw">continue</span>;
                     } <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#54">Error::NewlineInString</a>(<a href="../../src/toml/tokens.rs.html#318">i</a>));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#54">Error::NewlineInString</a>(<a href="#318">i</a>));
                     }
                 }
-                <span class="prelude-val">Some</span>((<span class="kw-2">mut </span>i, ch)) <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#333">ch</a> == <a href="../../src/toml/tokens.rs.html#291">delim</a> =&gt; {
+                <span class="prelude-val">Some</span>((<span class="kw-2">mut </span>i, ch)) <span class="kw">if </span><a href="#333">ch</a> == <a href="#291">delim</a> =&gt; {
                     <span class="kw">if </span>multiline {
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#291">delim</a>);
+                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
                             <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#291">delim</a>);
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#291">delim</a>);
+                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
+                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
                             <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                         }
                         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#291">delim</a>);
-                            <a href="../../src/toml/tokens.rs.html#333">i</a> += <span class="number">1</span>;
+                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
+                            <a href="#333">i</a> += <span class="number">1</span>;
                         }
                         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
-                            <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#291">delim</a>);
-                            <a href="../../src/toml/tokens.rs.html#333">i</a> += <span class="number">1</span>;
+                            <a href="#313">val</a>.<a href="#502">push</a>(<a href="#291">delim</a>);
+                            <a href="#333">i</a> += <span class="number">1</span>;
                         }
                     }
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/toml/tokens.rs.html#41">String</a> {
-                        src: <span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.input[<a href="../../src/toml/tokens.rs.html#292">start</a>..<a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>()],
-                        val: <a href="../../src/toml/tokens.rs.html#313">val</a>.<a href="../../src/toml/tokens.rs.html#518">into_cow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#290">self</a>.input[..<a href="../../src/toml/tokens.rs.html#333">i</a>]),
-                        <a href="../../src/toml/tokens.rs.html#301">multiline</a>,
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#41">String</a> {
+                        src: <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[<a href="#292">start</a>..<a class="self" href="#290">self</a>.<a href="#260">current</a>()],
+                        val: <a href="#313">val</a>.<a href="#518">into_cow</a>(<span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.input[..<a href="#333">i</a>]),
+                        <a href="#301">multiline</a>,
                     });
                 }
                 <span class="prelude-val">Some</span>((i, c)) =&gt; new_ch(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>val, multiline, i, c)<span class="question-mark">?</span>,
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#56">Error::UnterminatedString</a>(<a href="../../src/toml/tokens.rs.html#292">start</a>)),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#56">Error::UnterminatedString</a>(<a href="#292">start</a>)),
             }
         }
     }
 
-    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#365">self</a>.<a href="../../src/toml/tokens.rs.html#289-300">read_string</a>(<span class="string">&#39;\&#39;&#39;</span>, <a href="../../src/toml/tokens.rs.html#365">start</a>, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
+    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
+        <a class="self" href="#365">self</a>.<a href="#289-300">read_string</a>(<span class="string">&#39;\&#39;&#39;</span>, <a href="#365">start</a>, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
             <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| (<span class="string">&#39;\u{20}&#39; </span>&lt;= ch &amp;&amp; ch &lt;= <span class="string">&#39;\u{10ffff}&#39; </span>&amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) {
-                <a href="../../src/toml/tokens.rs.html#366">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#366">ch</a>);
+                <a href="#366">val</a>.<a href="#502">push</a>(<a href="#366">ch</a>);
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#50">Error::InvalidCharInString</a>(<a href="../../src/toml/tokens.rs.html#366">i</a>, <a href="../../src/toml/tokens.rs.html#366">ch</a>))
+                <span class="prelude-val">Err</span>(<a href="#50">Error::InvalidCharInString</a>(<a href="#366">i</a>, <a href="#366">ch</a>))
             }
         })
     }
 
-    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#376">self</a>.<a href="../../src/toml/tokens.rs.html#289-300">read_string</a>(<span class="string">&#39;&quot;&#39;</span>, <a href="../../src/toml/tokens.rs.html#376">start</a>, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span><a href="../../src/toml/tokens.rs.html#377">ch</a> {
+    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="#49">Error</a>&gt; {
+        <a class="self" href="#376">self</a>.<a href="#289-300">read_string</a>(<span class="string">&#39;&quot;&#39;</span>, <a href="#376">start</a>, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span><a href="#377">ch</a> {
             <span class="string">&#39;\\&#39; </span>=&gt; {
-                <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#509">to_owned</a>(<span class="kw-2">&amp;</span><a href="../../src/toml/tokens.rs.html#377">me</a>.input[..<a href="../../src/toml/tokens.rs.html#377">i</a>]);
-                <span class="kw">match </span><a href="../../src/toml/tokens.rs.html#377">me</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;&quot;&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\\&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;b&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\u{8}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;f&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\u{c}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\n&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\r&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<span class="string">&#39;\t&#39;</span>),
+                <a href="#377">val</a>.<a href="#509">to_owned</a>(<span class="kw-2">&amp;</span><a href="#377">me</a>.input[..<a href="#377">i</a>]);
+                <span class="kw">match </span><a href="#377">me</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;&quot;&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\\&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;b&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\u{8}&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;f&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\u{c}&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\n&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\r&#39;</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; <a href="#377">val</a>.<a href="#502">push</a>(<span class="string">&#39;\t&#39;</span>),
                     <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;u&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;U&#39;</span>)) =&gt; {
                         <span class="kw">let </span>len = <span class="kw">if </span>c == <span class="string">&#39;u&#39; </span>{ <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">8 </span>};
-                        <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(me.hex(start, i, len)<span class="question-mark">?</span>);
+                        <a href="#377">val</a>.<a href="#502">push</a>(me.hex(start, i, len)<span class="question-mark">?</span>);
                     }
-                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39; &#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\t&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\n&#39;</span>)) <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#377">multi</a> =&gt; {
+                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39; &#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\t&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\n&#39;</span>)) <span class="kw">if </span><a href="#377">multi</a> =&gt; {
                         <span class="kw">if </span>c != <span class="string">&#39;\n&#39; </span>{
                             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = me.chars.clone().next() {
                                 <span class="kw">match </span>ch {
@@ -1154,21 +1154,21 @@
                             }
                         }
                     }
-                    <span class="prelude-val">Some</span>((i, c)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#51">Error::InvalidEscape</a>(<a href="../../src/toml/tokens.rs.html#417">i</a>, <a href="../../src/toml/tokens.rs.html#417">c</a>)),
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#56">Error::UnterminatedString</a>(<a href="../../src/toml/tokens.rs.html#376">start</a>)),
+                    <span class="prelude-val">Some</span>((i, c)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#51">Error::InvalidEscape</a>(<a href="#417">i</a>, <a href="#417">c</a>)),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#56">Error::UnterminatedString</a>(<a href="#376">start</a>)),
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            ch <span class="kw">if </span><a href="../../src/toml/tokens.rs.html#422">ch</a> == <span class="string">&#39;\u{09}&#39; </span>|| (<span class="string">&#39;\u{20}&#39; </span>&lt;= <a href="../../src/toml/tokens.rs.html#422">ch</a> &amp;&amp; <a href="../../src/toml/tokens.rs.html#422">ch</a> &lt;= <span class="string">&#39;\u{10ffff}&#39; </span>&amp;&amp; <a href="../../src/toml/tokens.rs.html#422">ch</a> != <span class="string">&#39;\u{7f}&#39;</span>) =&gt; {
-                <a href="../../src/toml/tokens.rs.html#377">val</a>.<a href="../../src/toml/tokens.rs.html#502">push</a>(<a href="../../src/toml/tokens.rs.html#422">ch</a>);
+            ch <span class="kw">if </span><a href="#422">ch</a> == <span class="string">&#39;\u{09}&#39; </span>|| (<span class="string">&#39;\u{20}&#39; </span>&lt;= <a href="#422">ch</a> &amp;&amp; <a href="#422">ch</a> &lt;= <span class="string">&#39;\u{10ffff}&#39; </span>&amp;&amp; <a href="#422">ch</a> != <span class="string">&#39;\u{7f}&#39;</span>) =&gt; {
+                <a href="#377">val</a>.<a href="#502">push</a>(<a href="#422">ch</a>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#50">Error::InvalidCharInString</a>(<a href="../../src/toml/tokens.rs.html#377">i</a>, <a href="../../src/toml/tokens.rs.html#377">ch</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#50">Error::InvalidCharInString</a>(<a href="#377">i</a>, <a href="#377">ch</a>)),
         })
     }
 
-    <span class="kw">fn </span>hex(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="../../src/toml/tokens.rs.html#49">Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = StdString::with_capacity(<a href="../../src/toml/tokens.rs.html#430">len</a>);
+    <span class="kw">fn </span>hex(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="#49">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = StdString::with_capacity(<a href="#430">len</a>);
         <span class="kw">for _ in </span><span class="number">0</span>..len {
             <span class="kw">match </span><span class="self">self</span>.one() {
                 <span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) <span class="kw">if </span>ch <span class="kw">as </span>u32 &lt;= <span class="number">0x7F </span>&amp;&amp; ch.is_digit(<span class="number">16</span>) =&gt; buf.push(ch),
@@ -1176,10 +1176,10 @@
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnterminatedString(start)),
             }
         }
-        <span class="kw">let </span>val = u32::from_str_radix(<span class="kw-2">&amp;</span><a href="../../src/toml/tokens.rs.html#431">buf</a>, <span class="number">16</span>).unwrap();
-        <span class="kw">match </span>char::from_u32(<a href="../../src/toml/tokens.rs.html#439">val</a>) {
-            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/toml/tokens.rs.html#441">ch</a>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/tokens.rs.html#53">Error::InvalidEscapeValue</a>(<a href="../../src/toml/tokens.rs.html#430">i</a>, <a href="../../src/toml/tokens.rs.html#439">val</a>)),
+        <span class="kw">let </span>val = u32::from_str_radix(<span class="kw-2">&amp;</span><a href="#431">buf</a>, <span class="number">16</span>).unwrap();
+        <span class="kw">match </span>char::from_u32(<a href="#439">val</a>) {
+            <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(<a href="#441">ch</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="#53">Error::InvalidEscapeValue</a>(<a href="#430">i</a>, <a href="#439">val</a>)),
         }
     }
 
@@ -1190,34 +1190,34 @@
             }
             <span class="self">self</span>.one();
         }
-        <a href="../../src/toml/tokens.rs.html#40">Keylike</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/toml/tokens.rs.html#446">self</a>.input[<a href="../../src/toml/tokens.rs.html#446">start</a>..<a class="self" href="../../src/toml/tokens.rs.html#446">self</a>.<a href="../../src/toml/tokens.rs.html#260">current</a>()])
+        <a href="#40">Keylike</a>(<span class="kw-2">&amp;</span><a class="self" href="#446">self</a>.input[<a href="#446">start</a>..<a class="self" href="#446">self</a>.<a href="#260">current</a>()])
     }
 
     <span class="kw">pub fn </span>substr_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(s.len() &lt;= <span class="self">self</span>.input.len());
-        <span class="kw">let </span>a = <a class="self" href="../../src/toml/tokens.rs.html#456">self</a>.input.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>b = <a href="../../src/toml/tokens.rs.html#456">s</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>a = <a class="self" href="#456">self</a>.input.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>b = <a href="#456">s</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(a &lt;= b);
-        <a href="../../src/toml/tokens.rs.html#459">b</a> - <a href="../../src/toml/tokens.rs.html#458">a</a>
+        <a href="#459">b</a> - <a href="#458">a</a>
     }
 
     <span class="doccomment">/// Calculate the span of a single character.
-    </span><span class="kw">fn </span>step_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/toml/tokens.rs.html#11">Span</a> {
-        <span class="kw">let </span>end = <span class="self"><a href="../../src/toml/tokens.rs.html#465">self</a>
-            </span>.<a href="../../src/toml/tokens.rs.html#474">peek_one</a>()
-            .map(|t| <a href="../../src/toml/tokens.rs.html#468">t</a>.<span class="number">0</span>)
-            .unwrap_or_else(|| <a class="self" href="../../src/toml/tokens.rs.html#465">self</a>.input.len());
-        <a href="../../src/toml/tokens.rs.html#11">Span</a> { <a href="../../src/toml/tokens.rs.html#465">start</a>, <a href="../../src/toml/tokens.rs.html#466">end</a> }
+    </span><span class="kw">fn </span>step_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#11">Span</a> {
+        <span class="kw">let </span>end = <span class="self"><a href="#465">self</a>
+            </span>.<a href="#474">peek_one</a>()
+            .map(|t| <a href="#468">t</a>.<span class="number">0</span>)
+            .unwrap_or_else(|| <a class="self" href="#465">self</a>.input.len());
+        <a href="#11">Span</a> { <a href="#465">start</a>, <a href="#466">end</a> }
     }
 
     <span class="doccomment">/// Peek one char without consuming it.
     </span><span class="kw">fn </span>peek_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#474">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#474">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 
     <span class="doccomment">/// Take one char.
     </span><span class="kw">pub fn </span>one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#479">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#479">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 }
 
@@ -1225,75 +1225,75 @@
     <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)&gt; {
-        <a class="self" href="../../src/toml/tokens.rs.html#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(i, c)| {
+        <a class="self" href="#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(i, c)| {
             <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>attempt = <a class="self" href="../../src/toml/tokens.rs.html#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) = <a href="../../src/toml/tokens.rs.html#490">attempt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <a class="self" href="../../src/toml/tokens.rs.html#487">self</a>.chars = <a href="../../src/toml/tokens.rs.html#490">attempt</a>;
-                    <span class="kw">return </span>(<a href="../../src/toml/tokens.rs.html#488">i</a>, <span class="string">&#39;\n&#39;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>attempt = <a class="self" href="#487">self</a>.chars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) = <a href="#490">attempt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <a class="self" href="#487">self</a>.chars = <a href="#490">attempt</a>;
+                    <span class="kw">return </span>(<a href="#488">i</a>, <span class="string">&#39;\n&#39;</span>);
                 }
             }
-            (<a href="../../src/toml/tokens.rs.html#488">i</a>, <a href="../../src/toml/tokens.rs.html#488">c</a>)
+            (<a href="#488">i</a>, <a href="#488">c</a>)
         })
     }
 }
 
-<span class="kw">impl </span><a href="../../src/toml/tokens.rs.html#78">MaybeString</a> {
+<span class="kw">impl </span><a href="#78">MaybeString</a> {
     <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/toml/tokens.rs.html#502">self</a> </span>{
-            <a href="../../src/toml/tokens.rs.html#79">MaybeString::NotEscaped</a>(..) =&gt; {}
-            <a href="../../src/toml/tokens.rs.html#80">MaybeString::Owned</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/toml/tokens.rs.html#505">s</a>.push(<a href="../../src/toml/tokens.rs.html#502">ch</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#502">self</a> </span>{
+            <a href="#79">MaybeString::NotEscaped</a>(..) =&gt; {}
+            <a href="#80">MaybeString::Owned</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#505">s</a>.push(<a href="#502">ch</a>),
         }
     }
 
     <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/toml/tokens.rs.html#509">self</a> </span>{
-            <a href="../../src/toml/tokens.rs.html#79">MaybeString::NotEscaped</a>(start) =&gt; {
-                <span class="kw-2">*</span><span class="self"><a href="../../src/toml/tokens.rs.html#509">self</a> </span>= <a href="../../src/toml/tokens.rs.html#80">MaybeString::Owned</a>(<a href="../../src/toml/tokens.rs.html#509">input</a>[<a href="../../src/toml/tokens.rs.html#511">start</a>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#509">self</a> </span>{
+            <a href="#79">MaybeString::NotEscaped</a>(start) =&gt; {
+                <span class="kw-2">*</span><span class="self"><a href="#509">self</a> </span>= <a href="#80">MaybeString::Owned</a>(<a href="#509">input</a>[<a href="#511">start</a>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
             }
-            <a href="../../src/toml/tokens.rs.html#80">MaybeString::Owned</a>(..) =&gt; {}
+            <a href="#80">MaybeString::Owned</a>(..) =&gt; {}
         }
     }
 
     <span class="kw">fn </span>into_cow(<span class="self">self</span>, input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../src/toml/tokens.rs.html#518">self</a> </span>{
-            <a href="../../src/toml/tokens.rs.html#79">MaybeString::NotEscaped</a>(start) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span><a href="../../src/toml/tokens.rs.html#518">input</a>[<a href="../../src/toml/tokens.rs.html#520">start</a>..]),
-            <a href="../../src/toml/tokens.rs.html#80">MaybeString::Owned</a>(s) =&gt; Cow::Owned(<a href="../../src/toml/tokens.rs.html#521">s</a>),
+        <span class="kw">match </span><span class="self"><a href="#518">self</a> </span>{
+            <a href="#79">MaybeString::NotEscaped</a>(start) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span><a href="#518">input</a>[<a href="#520">start</a>..]),
+            <a href="#80">MaybeString::Owned</a>(s) =&gt; Cow::Owned(<a href="#521">s</a>),
         }
     }
 }
 
 <span class="kw">fn </span>is_keylike(ch: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    (<span class="string">&#39;A&#39; </span>&lt;= <a href="../../src/toml/tokens.rs.html#526">ch</a> &amp;&amp; <a href="../../src/toml/tokens.rs.html#526">ch</a> &lt;= <span class="string">&#39;Z&#39;</span>)
-        || (<span class="string">&#39;a&#39; </span>&lt;= <a href="../../src/toml/tokens.rs.html#526">ch</a> &amp;&amp; <a href="../../src/toml/tokens.rs.html#526">ch</a> &lt;= <span class="string">&#39;z&#39;</span>)
-        || (<span class="string">&#39;0&#39; </span>&lt;= <a href="../../src/toml/tokens.rs.html#526">ch</a> &amp;&amp; <a href="../../src/toml/tokens.rs.html#526">ch</a> &lt;= <span class="string">&#39;9&#39;</span>)
-        || <a href="../../src/toml/tokens.rs.html#526">ch</a> == <span class="string">&#39;-&#39;
-        </span>|| <a href="../../src/toml/tokens.rs.html#526">ch</a> == <span class="string">&#39;_&#39;
+    (<span class="string">&#39;A&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;Z&#39;</span>)
+        || (<span class="string">&#39;a&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;z&#39;</span>)
+        || (<span class="string">&#39;0&#39; </span>&lt;= <a href="#526">ch</a> &amp;&amp; <a href="#526">ch</a> &lt;= <span class="string">&#39;9&#39;</span>)
+        || <a href="#526">ch</a> == <span class="string">&#39;-&#39;
+        </span>|| <a href="#526">ch</a> == <span class="string">&#39;_&#39;
 </span>}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/toml/tokens.rs.html#535">self</a> </span>{
-            <a href="../../src/toml/tokens.rs.html#40">Token::Keylike</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;an identifier&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#30">Token::Equals</a> =&gt; <span class="string">&quot;an equals&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#31">Token::Period</a> =&gt; <span class="string">&quot;a period&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#28">Token::Comment</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;a comment&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#27">Token::Newline</a> =&gt; <span class="string">&quot;a newline&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#26">Token::Whitespace</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;whitespace&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#32">Token::Comma</a> =&gt; <span class="string">&quot;a comma&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#36">Token::RightBrace</a> =&gt; <span class="string">&quot;a right brace&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#35">Token::LeftBrace</a> =&gt; <span class="string">&quot;a left brace&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#38">Token::RightBracket</a> =&gt; <span class="string">&quot;a right bracket&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#37">Token::LeftBracket</a> =&gt; <span class="string">&quot;a left bracket&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#41">Token::String</a> { multiline, .. } =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#535">self</a> </span>{
+            <a href="#40">Token::Keylike</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;an identifier&quot;</span>,
+            <a href="#30">Token::Equals</a> =&gt; <span class="string">&quot;an equals&quot;</span>,
+            <a href="#31">Token::Period</a> =&gt; <span class="string">&quot;a period&quot;</span>,
+            <a href="#28">Token::Comment</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;a comment&quot;</span>,
+            <a href="#27">Token::Newline</a> =&gt; <span class="string">&quot;a newline&quot;</span>,
+            <a href="#26">Token::Whitespace</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;whitespace&quot;</span>,
+            <a href="#32">Token::Comma</a> =&gt; <span class="string">&quot;a comma&quot;</span>,
+            <a href="#36">Token::RightBrace</a> =&gt; <span class="string">&quot;a right brace&quot;</span>,
+            <a href="#35">Token::LeftBrace</a> =&gt; <span class="string">&quot;a left brace&quot;</span>,
+            <a href="#38">Token::RightBracket</a> =&gt; <span class="string">&quot;a right bracket&quot;</span>,
+            <a href="#37">Token::LeftBracket</a> =&gt; <span class="string">&quot;a left bracket&quot;</span>,
+            <a href="#41">Token::String</a> { multiline, .. } =&gt; {
                 <span class="kw">if </span>multiline {
                     <span class="string">&quot;a multiline string&quot;
                 </span>} <span class="kw">else </span>{
                     <span class="string">&quot;a string&quot;
                 </span>}
             }
-            <a href="../../src/toml/tokens.rs.html#33">Token::Colon</a> =&gt; <span class="string">&quot;a colon&quot;</span>,
-            <a href="../../src/toml/tokens.rs.html#34">Token::Plus</a> =&gt; <span class="string">&quot;a plus&quot;</span>,
+            <a href="#33">Token::Colon</a> =&gt; <span class="string">&quot;a colon&quot;</span>,
+            <a href="#34">Token::Plus</a> =&gt; <span class="string">&quot;a plus&quot;</span>,
         }
     }
 }
@@ -1479,4 +1479,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="toml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="toml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

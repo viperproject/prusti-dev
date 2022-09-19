@@ -79,7 +79,7 @@
 <span id="79">79</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use </span><a href="../../../src/h2/frame/mod.rs.html#133"><span class="kw">super</span>::Error</a>;
+<span class="kw">use </span><a href="mod.rs.html#133"><span class="kw">super</span>::Error</a>;
 <span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
 
 <span class="doccomment">/// Strip padding from the given payload.
@@ -95,36 +95,36 @@
 ///
 /// If the padded payload is invalid (e.g. the length of the padding is equal
 /// to the total length), returns `None`.
-</span><span class="kw">pub fn </span>strip_padding(payload: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/h2/frame/mod.rs.html#133">Error</a>&gt; {
-    <span class="kw">let </span>payload_len = <a href="../../../src/h2/frame/util.rs.html#19">payload</a>.len();
+</span><span class="kw">pub fn </span>strip_padding(payload: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="mod.rs.html#133">Error</a>&gt; {
+    <span class="kw">let </span>payload_len = <a href="#19">payload</a>.len();
     <span class="kw">if </span>payload_len == <span class="number">0 </span>{
         <span class="comment">// If this is the case, the frame is invalid as no padding length can be
         // extracted, even though the frame should be padded.
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/frame/mod.rs.html#139">Error::TooMuchPadding</a>);
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#139">Error::TooMuchPadding</a>);
     }
 
-    <span class="kw">let </span>pad_len = <a href="../../../src/h2/frame/util.rs.html#19">payload</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span>pad_len = <a href="#19">payload</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
     <span class="kw">if </span>pad_len &gt;= payload_len {
         <span class="comment">// This is invalid: the padding length MUST be less than the
         // total frame size.
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/frame/mod.rs.html#139">Error::TooMuchPadding</a>);
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#139">Error::TooMuchPadding</a>);
     }
 
-    <span class="kw">let _ </span>= <a href="../../../src/h2/frame/util.rs.html#19">payload</a>.split_to(<span class="number">1</span>);
-    <span class="kw">let _ </span>= <a href="../../../src/h2/frame/util.rs.html#19">payload</a>.split_off(<a href="../../../src/h2/frame/util.rs.html#20">payload_len</a> - <a href="../../../src/h2/frame/util.rs.html#27">pad_len</a> - <span class="number">1</span>);
+    <span class="kw">let _ </span>= <a href="#19">payload</a>.split_to(<span class="number">1</span>);
+    <span class="kw">let _ </span>= <a href="#19">payload</a>.split_off(<a href="#20">payload_len</a> - <a href="#27">pad_len</a> - <span class="number">1</span>);
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/h2/frame/util.rs.html#27">pad_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+    <span class="prelude-val">Ok</span>(<a href="#27">pad_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>debug_flags&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;f</span>: <span class="lifetime">&#39;a</span>&gt;(
     fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;f</span>&gt;,
     bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 ) -&gt; DebugFlags&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;f</span>&gt; {
-    <span class="kw">let </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/h2/frame/util.rs.html#42">fmt</a>, <span class="string">&quot;({:#x}&quot;</span>, bits);
-    <a href="../../../src/h2/frame/util.rs.html#53">DebugFlags</a> {
-        <a href="../../../src/h2/frame/util.rs.html#42">fmt</a>,
-        <a href="../../../src/h2/frame/util.rs.html#45">result</a>,
+    <span class="kw">let </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#42">fmt</a>, <span class="string">&quot;({:#x}&quot;</span>, bits);
+    <a href="#53">DebugFlags</a> {
+        <a href="#42">fmt</a>,
+        <a href="#45">result</a>,
         started: <span class="bool-val">false</span>,
     }
 }
@@ -138,23 +138,23 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;f</span>: <span class="lifetime">&#39;a</span>&gt; DebugFlags&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;f</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>flag_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="kw">if </span>enabled {
-            <a class="self" href="../../../src/h2/frame/util.rs.html#60">self</a>.result = <a class="self" href="../../../src/h2/frame/util.rs.html#60">self</a>.result.and_then(|()| {
+            <a class="self" href="#60">self</a>.result = <a class="self" href="#60">self</a>.result.and_then(|()| {
                 <span class="kw">let </span>prefix = <span class="kw">if </span><span class="self">self</span>.started {
                     <span class="string">&quot; | &quot;
                 </span>} <span class="kw">else </span>{
-                    <a class="self" href="../../../src/h2/frame/util.rs.html#60">self</a>.started = <span class="bool-val">true</span>;
+                    <a class="self" href="#60">self</a>.started = <span class="bool-val">true</span>;
                     <span class="string">&quot;: &quot;
                 </span>};
 
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="../../../src/h2/frame/util.rs.html#60">self</a>.fmt, <span class="string">&quot;{}{}&quot;</span>, prefix, name)
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="#60">self</a>.fmt, <span class="string">&quot;{}{}&quot;</span>, prefix, name)
             });
         }
-        <span class="self"><a href="../../../src/h2/frame/util.rs.html#60">self</a>
+        <span class="self"><a href="#60">self</a>
     </span>}
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/h2/frame/util.rs.html#76">self</a>.result.and_then(|()| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="../../../src/h2/frame/util.rs.html#76">self</a>.fmt, <span class="string">&quot;)&quot;</span>))
+        <a class="self" href="#76">self</a>.result.and_then(|()| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="#76">self</a>.fmt, <span class="string">&quot;)&quot;</span>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/process/unix/reap.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/process/unix/reap.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -296,9 +296,9 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::process::imp::orphan::{<a href="../../../../src/tokio/process/unix/orphan.rs.html#27">OrphanQueue</a>, <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>};
-<span class="kw">use </span><a href="../../../../src/tokio/process/kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
-<span class="kw">use </span><a href="../../../../src/tokio/signal/unix.rs.html#485"><span class="kw">crate</span>::signal::unix::InternalStream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::process::imp::orphan::{<a href="orphan.rs.html#27">OrphanQueue</a>, <a href="orphan.rs.html#9">Wait</a>};
+<span class="kw">use </span><a href="../kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
+<span class="kw">use </span><a href="../../signal/unix.rs.html#485"><span class="kw">crate</span>::signal::unix::InternalStream</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -313,7 +313,7 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    </span>W: <a href="orphan.rs.html#9">Wait</a>,
     Q: OrphanQueue&lt;W&gt;,
 {
     inner: <span class="prelude-ty">Option</span>&lt;W&gt;,
@@ -323,43 +323,43 @@
 
 <span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    </span>W: <a href="orphan.rs.html#9">Wait</a>,
     Q: OrphanQueue&lt;W&gt;,
 {
     <span class="kw">type </span>Target = W;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#33">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#51">inner</a>()
+        <a class="self" href="#33">self</a>.<a href="#51">inner</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;W, Q, S&gt; Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    </span>W: <a href="orphan.rs.html#9">Wait</a>,
     Q: OrphanQueue&lt;W&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: W, orphan_queue: Q, signal: S) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/process/unix/reap.rs.html#43">inner</a>),
-            <a href="../../../../src/tokio/process/unix/reap.rs.html#43">orphan_queue</a>,
-            <a href="../../../../src/tokio/process/unix/reap.rs.html#43">signal</a>,
+            inner: <span class="prelude-val">Some</span>(<a href="#43">inner</a>),
+            <a href="#43">orphan_queue</a>,
+            <a href="#43">signal</a>,
         }
     }
 
     <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#51">self</a>.inner.as_ref().expect(<span class="string">&quot;inner has gone away&quot;</span>)
+        <a class="self" href="#51">self</a>.inner.as_ref().expect(<span class="string">&quot;inner has gone away&quot;</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#55">self</a>.inner.as_mut().expect(<span class="string">&quot;inner has gone away&quot;</span>)
+        <a class="self" href="#55">self</a>.inner.as_mut().expect(<span class="string">&quot;inner has gone away&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>W: <a href="orphan.rs.html#9">Wait</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     Q: OrphanQueue&lt;W&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    S: <a href="../../../../src/tokio/signal/unix.rs.html#485">InternalStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../signal/unix.rs.html#485">InternalStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;;
 
@@ -382,10 +382,10 @@
             // this future&#39;s task will be notified/woken up again. Since the
             // futures model allows for spurious wake ups this extra wakeup
             // should not cause significant issues with parent futures.
-            </span><span class="kw">let </span>registered_interest = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#68">self</a>.signal.<a href="../../../../src/tokio/signal/unix.rs.html#486">poll_recv</a>(<a href="../../../../src/tokio/process/unix/reap.rs.html#68">cx</a>).is_pending();
+            </span><span class="kw">let </span>registered_interest = <a class="self" href="#68">self</a>.signal.<a href="../../signal/unix.rs.html#486">poll_recv</a>(<a href="#68">cx</a>).is_pending();
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = <span class="self">self</span>.inner_mut().try_wait()<span class="question-mark">? </span>{
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/process/unix/reap.rs.html#89">status</a>));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#89">status</a>));
             }
 
             <span class="comment">// If our attempt to poll for the next signal was not ready, then
@@ -402,28 +402,28 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="../kill.rs.html#4">Kill</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> + <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    </span>W: <a href="../kill.rs.html#4">Kill</a> + <a href="orphan.rs.html#9">Wait</a>,
     Q: OrphanQueue&lt;W&gt;,
 {
     <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#112">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a href="../../../../src/tokio/process/kill.rs.html#6">kill</a>()
+        <a class="self" href="#112">self</a>.<a href="#55">inner_mut</a>().<a href="../kill.rs.html#6">kill</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
 <span class="kw">where
-    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    </span>W: <a href="orphan.rs.html#9">Wait</a>,
     Q: OrphanQueue&lt;W&gt;,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a href="../../../../src/tokio/process/unix/orphan.rs.html#13">try_wait</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) = <a class="self" href="#122">self</a>.<a href="#55">inner_mut</a>().<a href="orphan.rs.html#13">try_wait</a>() {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>orphan = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.inner.take().unwrap();
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.orphan_queue.<a href="../../../../src/tokio/process/unix/orphan.rs.html#29">push_orphan</a>(<a href="../../../../src/tokio/process/unix/reap.rs.html#127">orphan</a>);
+        <span class="kw">let </span>orphan = <a class="self" href="#122">self</a>.inner.take().unwrap();
+        <a class="self" href="#122">self</a>.orphan_queue.<a href="orphan.rs.html#29">push_orphan</a>(<a href="#127">orphan</a>);
     }
 }
 
@@ -595,4 +595,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

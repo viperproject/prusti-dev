@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1419,7 +1419,7 @@
 //! [`Encoder`]: trait@Encoder
 //! [`BytesMut`]: bytes::BytesMut
 
-</span><span class="kw">use </span><span class="kw">crate</span>::codec::{<a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>, <a href="../../../src/tokio_util/codec/encoder.rs.html#8">Encoder</a>, <a href="../../../src/tokio_util/codec/framed.rs.html#16-31">Framed</a>, <a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a>, <a href="../../../src/tokio_util/codec/framed_write.rs.html#15-23">FramedWrite</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::codec::{<a href="decoder.rs.html#35">Decoder</a>, <a href="encoder.rs.html#8">Encoder</a>, <a href="framed.rs.html#16-31">Framed</a>, <a href="framed_read.rs.html#14-23">FramedRead</a>, <a href="framed_write.rs.html#15-23">FramedWrite</a>};
 
 <span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 
@@ -1471,10 +1471,10 @@
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>LengthDelimitedCodec {
     <span class="comment">// Configuration values
-    </span>builder: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a>,
+    </span>builder: <a href="#390">Builder</a>,
 
     <span class="comment">// Read state
-    </span>state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#434">DecodeState</a>,
+    </span>state: <a href="#434">DecodeState</a>,
 }
 
 <span class="attribute">#[derive(Debug, Clone, Copy)]
@@ -1485,18 +1485,18 @@
 
 <span class="comment">// ===== impl LengthDelimitedCodec ======
 
-</span><span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+</span><span class="kw">impl </span><a href="#425">LengthDelimitedCodec</a> {
     <span class="doccomment">/// Creates a new `LengthDelimitedCodec` with the default configuration values.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             builder: Builder::new(),
-            state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
+            state: <a href="#435">DecodeState::Head</a>,
         }
     }
 
     <span class="doccomment">/// Creates a new length delimited codec builder with default configuration
     /// values.
-    </span><span class="kw">pub fn </span>builder() -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+    </span><span class="kw">pub fn </span>builder() -&gt; <a href="#390">Builder</a> {
         Builder::new()
     }
 
@@ -1505,7 +1505,7 @@
     /// This is the largest size this codec will accept from the wire. Larger
     /// frames will be rejected.
     </span><span class="kw">pub fn </span>max_frame_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#460">self</a>.builder.max_frame_len
+        <a class="self" href="#460">self</a>.builder.max_frame_len
     }
 
     <span class="doccomment">/// Updates the max frame setting.
@@ -1515,12 +1515,12 @@
     /// size greater than `val` but less than the max frame length in effect
     /// before calling this function, then the frame will be allowed.
     </span><span class="kw">pub fn </span>set_max_frame_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#470">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">max_frame_length</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#470">val</a>);
+        <a class="self" href="#470">self</a>.builder.<a href="#793">max_frame_length</a>(<a href="#470">val</a>);
     }
 
     <span class="kw">fn </span>decode_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span>head_len = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>();
-        <span class="kw">let </span>field_len = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_field_len;
+        <span class="kw">let </span>head_len = <a class="self" href="#474">self</a>.builder.<a href="#1016">num_head_bytes</a>();
+        <span class="kw">let </span>field_len = <a class="self" href="#474">self</a>.builder.length_field_len;
 
         <span class="kw">if </span>src.len() &lt; head_len {
             <span class="comment">// Not enough data
@@ -1528,38 +1528,38 @@
         }
 
         <span class="kw">let </span>n = {
-            <span class="kw">let </span><span class="kw-2">mut </span>src = Cursor::new(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>src = Cursor::new(<span class="kw-2">&amp;mut *</span><a href="#474">src</a>);
 
             <span class="comment">// Skip the required bytes
-            </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_field_offset);
+            </span><a href="#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="#474">self</a>.builder.length_field_offset);
 
             <span class="comment">// match endianness
             </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_field_is_big_endian {
-                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
+                <a href="#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint</a>(<a href="#476">field_len</a>)
             } <span class="kw">else </span>{
-                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint_le</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
+                <a href="#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint_le</a>(<a href="#476">field_len</a>)
             };
 
             <span class="kw">if </span>n &gt; <span class="self">self</span>.builder.max_frame_len <span class="kw">as </span>u64 {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                     io::ErrorKind::InvalidData,
-                    <a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { _priv: () },
+                    <a href="#412">LengthDelimitedCodecError</a> { _priv: () },
                 ));
             }
 
             <span class="comment">// The check above ensures there is no overflow
-            </span><span class="kw">let </span>n = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#490">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            </span><span class="kw">let </span>n = <a href="#490">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
             <span class="comment">// Adjust `n` with bounds checking
             </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_adjustment &lt; <span class="number">0 </span>{
-                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.checked_sub(-<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+                <a href="#504">n</a>.checked_sub(-<a class="self" href="#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
             } <span class="kw">else </span>{
-                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.checked_add(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+                <a href="#504">n</a>.checked_add(<a class="self" href="#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
             };
 
             <span class="comment">// Error handling
-            </span><span class="kw">match </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#507">n</a> {
-                <span class="prelude-val">Some</span>(n) =&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#515">n</a>,
+            </span><span class="kw">match </span><a href="#507">n</a> {
+                <span class="prelude-val">Some</span>(n) =&gt; <a href="#515">n</a>,
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                         io::ErrorKind::InvalidInput,
@@ -1569,17 +1569,17 @@
             }
         };
 
-        <span class="kw">let </span>num_skip = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">get_num_skip</a>();
+        <span class="kw">let </span>num_skip = <a class="self" href="#474">self</a>.builder.<a href="#1021">get_num_skip</a>();
 
         <span class="kw">if </span>num_skip &gt; <span class="number">0 </span>{
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#525">num_skip</a>);
+            <a href="#474">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#525">num_skip</a>);
         }
 
         <span class="comment">// Ensure that the buffer has enough space to read the incoming
         // payload
-        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.reserve(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>);
+        </span><a href="#474">src</a>.reserve(<a href="#483">n</a>);
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#483">n</a>))
     }
 
     <span class="kw">fn </span>decode_data(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt; {
@@ -1589,59 +1589,59 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">src</a>.split_to(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">n</a>))
+        <span class="prelude-val">Some</span>(<a href="#538">src</a>.split_to(<a href="#538">n</a>))
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+<span class="kw">impl </span><a href="decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="#425">LengthDelimitedCodec</a> {
     <span class="kw">type </span>Item = <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>;
     <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
     <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;&gt; {
-        <span class="kw">let </span>n = <span class="kw">match </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state {
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a> =&gt; <span class="kw">match </span><span class="self">self</span>.decode_head(src)<span class="question-mark">? </span>{
+        <span class="kw">let </span>n = <span class="kw">match </span><a class="self" href="#553">self</a>.state {
+            <a href="#435">DecodeState::Head</a> =&gt; <span class="kw">match </span><span class="self">self</span>.decode_head(src)<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(n) =&gt; {
-                    <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>);
-                    <a href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>
+                    <a class="self" href="#553">self</a>.state = <a href="#436">DecodeState::Data</a>(<a href="#556">n</a>);
+                    <a href="#556">n</a>
                 }
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             },
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(n) =&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#562">n</a>,
+            <a href="#436">DecodeState::Data</a>(n) =&gt; <a href="#562">n</a>,
         };
 
-        <span class="kw">match </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">decode_data</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#554">n</a>, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>) {
+        <span class="kw">match </span><a class="self" href="#553">self</a>.<a href="#538">decode_data</a>(<a href="#554">n</a>, <a href="#553">src</a>) {
             <span class="prelude-val">Some</span>(data) =&gt; {
                 <span class="comment">// Update the decode state
-                </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>;
+                </span><a class="self" href="#553">self</a>.state = <a href="#435">DecodeState::Head</a>;
 
                 <span class="comment">// Make sure the buffer has enough space to read the next head
-                </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>.reserve(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>());
+                </span><a href="#553">src</a>.reserve(<a class="self" href="#553">self</a>.builder.<a href="#1016">num_head_bytes</a>());
 
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#566">data</a>))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#566">data</a>))
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl </span>Encoder&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+<span class="kw">impl </span>Encoder&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="#425">LengthDelimitedCodec</a> {
     <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
     <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
-        <span class="kw">let </span>n = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>.len();
+        <span class="kw">let </span>n = <a href="#583">data</a>.len();
 
         <span class="kw">if </span>n &gt; <span class="self">self</span>.builder.max_frame_len {
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { _priv: () },
+                <a href="#412">LengthDelimitedCodecError</a> { _priv: () },
             ));
         }
 
         <span class="comment">// Adjust `n` with bounds checking
         </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_adjustment &lt; <span class="number">0 </span>{
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.checked_add(-<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <a href="#584">n</a>.checked_add(-<a class="self" href="#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         } <span class="kw">else </span>{
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.checked_sub(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <a href="#584">n</a>.checked_sub(<a class="self" href="#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         };
 
         <span class="kw">let </span>n = n.ok_or_else(|| {
@@ -1653,22 +1653,22 @@
 
         <span class="comment">// Reserve capacity in the destination buffer to fit the frame and
         // length field (plus adjustment).
-        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.reserve(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len + <a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a>);
+        </span><a href="#583">dst</a>.reserve(<a class="self" href="#583">self</a>.builder.length_field_len + <a href="#600">n</a>);
 
         <span class="kw">if </span><span class="self">self</span>.builder.length_field_is_big_endian {
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len);
+            <a href="#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint</a>(<a href="#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="#583">self</a>.builder.length_field_len);
         } <span class="kw">else </span>{
-            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint_le</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len);
+            <a href="#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint_le</a>(<a href="#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="#583">self</a>.builder.length_field_len);
         }
 
         <span class="comment">// Write the frame to the buffer
-        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.extend_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>[..]);
+        </span><a href="#583">dst</a>.extend_from_slice(<span class="kw-2">&amp;</span><a href="#583">data</a>[..]);
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#425">LengthDelimitedCodec</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -1680,10 +1680,10 @@
     <span class="doccomment">/// Types that can be used with `Builder::length_field_type`.
     </span><span class="kw">pub trait </span>LengthFieldType {}
 
-    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {}
-    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {}
-    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {}
-    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {}
+    <span class="kw">impl </span><a href="#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {}
+    <span class="kw">impl </span><a href="#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {}
+    <span class="kw">impl </span><a href="#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {}
+    <span class="kw">impl </span><a href="#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {}
 
     <span class="attribute">#[cfg(any(
         target_pointer_width = <span class="string">&quot;8&quot;</span>,
@@ -1691,10 +1691,10 @@
         target_pointer_width = <span class="string">&quot;32&quot;</span>,
         target_pointer_width = <span class="string">&quot;64&quot;</span>,
     ))]
-    </span><span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
+    </span><span class="kw">impl </span><a href="#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+<span class="kw">impl </span><a href="#390">Builder</a> {
     <span class="doccomment">/// Creates a new length delimited codec builder with default configuration
     /// values.
     ///
@@ -1714,8 +1714,8 @@
     /// # }
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#390">Builder</a> {
+        <a href="#390">Builder</a> {
             <span class="comment">// Default max frame length of 8MB
             </span>max_frame_len: <span class="number">8 </span>* <span class="number">1_024 </span>* <span class="number">1_024</span>,
 
@@ -1756,8 +1756,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>big_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>.length_field_is_big_endian = <span class="bool-val">true</span>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>
+        <a class="self" href="#711">self</a>.length_field_is_big_endian = <span class="bool-val">true</span>;
+        <span class="self"><a href="#711">self</a>
     </span>}
 
     <span class="doccomment">/// Read the length field as a little endian integer
@@ -1780,8 +1780,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>little_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>.length_field_is_big_endian = <span class="bool-val">false</span>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>
+        <a class="self" href="#735">self</a>.length_field_is_big_endian = <span class="bool-val">false</span>;
+        <span class="self"><a href="#735">self</a>
     </span>}
 
     <span class="doccomment">/// Read the length field as a native endian integer
@@ -1805,9 +1805,9 @@
     /// ```
     </span><span class="kw">pub fn </span>native_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(target_endian = <span class="string">&quot;big&quot;</span>) {
-            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#711">big_endian</a>()
+            <a class="self" href="#759">self</a>.<a href="#711">big_endian</a>()
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#735">little_endian</a>()
+            <a class="self" href="#759">self</a>.<a href="#735">little_endian</a>()
         }
     }
 
@@ -1838,8 +1838,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>max_frame_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>.max_frame_len = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">val</a>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>
+        <a class="self" href="#793">self</a>.max_frame_len = <a href="#793">val</a>;
+        <span class="self"><a href="#793">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the unsigned integer type used to represent the length field.
@@ -1874,8 +1874,8 @@
     /// # }
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>length_field_type&lt;T: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">builder::LengthFieldType</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#830">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">length_field_length</a>(mem::size_of::&lt;T&gt;())
+    </span><span class="kw">pub fn </span>length_field_type&lt;T: <a href="#634">builder::LengthFieldType</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="#830">self</a>.<a href="#853">length_field_length</a>(mem::size_of::&lt;T&gt;())
     }
 
     <span class="doccomment">/// Sets the number of bytes used to represent the length field
@@ -1899,8 +1899,8 @@
     /// ```
     </span><span class="kw">pub fn </span>length_field_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(val &gt; <span class="number">0 </span>&amp;&amp; val &lt;= <span class="number">8</span>, <span class="string">&quot;invalid length field length&quot;</span>);
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>.length_field_len = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">val</a>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>
+        <a class="self" href="#853">self</a>.length_field_len = <a href="#853">val</a>;
+        <span class="self"><a href="#853">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the number of bytes in the header before the length field
@@ -1921,8 +1921,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>length_field_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>.length_field_offset = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#876">val</a>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>
+        <a class="self" href="#876">self</a>.length_field_offset = <a href="#876">val</a>;
+        <span class="self"><a href="#876">self</a>
     </span>}
 
     <span class="doccomment">/// Delta between the payload length specified in the header and the real
@@ -1942,8 +1942,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>length_adjustment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>.length_adjustment = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#897">val</a>;
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>
+        <a class="self" href="#897">self</a>.length_adjustment = <a href="#897">val</a>;
+        <span class="self"><a href="#897">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the number of bytes to skip before reading the payload
@@ -1966,8 +1966,8 @@
     /// # pub fn main() {}
     /// ```
     </span><span class="kw">pub fn </span>num_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>.num_skip = <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#921">val</a>);
-        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>
+        <a class="self" href="#921">self</a>.num_skip = <span class="prelude-val">Some</span>(<a href="#921">val</a>);
+        <span class="self"><a href="#921">self</a>
     </span>}
 
     <span class="doccomment">/// Create a configured length delimited `LengthDelimitedCodec`
@@ -1985,10 +1985,10 @@
     ///     .new_codec();
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>new_codec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-            builder: <span class="kw-2">*</span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">self</a>,
-            state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
+    </span><span class="kw">pub fn </span>new_codec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#425">LengthDelimitedCodec</a> {
+        <a href="#425">LengthDelimitedCodec</a> {
+            builder: <span class="kw-2">*</span><a class="self" href="#941">self</a>,
+            state: <a href="#435">DecodeState::Head</a>,
         }
     }
 
@@ -2010,11 +2010,11 @@
     /// # }
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>new_read&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, upstream: T) -&gt; FramedRead&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    </span><span class="kw">pub fn </span>new_read&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, upstream: T) -&gt; FramedRead&lt;T, <a href="#425">LengthDelimitedCodec</a>&gt;
     <span class="kw">where
         </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
     {
-        FramedRead::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#966">upstream</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#966">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        FramedRead::new(<a href="#966">upstream</a>, <a class="self" href="#966">self</a>.<a href="#941">new_codec</a>())
     }
 
     <span class="doccomment">/// Create a configured length delimited `FramedWrite`
@@ -2031,11 +2031,11 @@
     /// # }
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>new_write&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; FramedWrite&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    </span><span class="kw">pub fn </span>new_write&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; FramedWrite&lt;T, <a href="#425">LengthDelimitedCodec</a>&gt;
     <span class="kw">where
         </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
     {
-        FramedWrite::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#987">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#987">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        FramedWrite::new(<a href="#987">inner</a>, <a class="self" href="#987">self</a>.<a href="#941">new_codec</a>())
     }
 
     <span class="doccomment">/// Create a configured length delimited `Framed`
@@ -2053,25 +2053,25 @@
     /// # }
     /// # pub fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>new_framed&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; Framed&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    </span><span class="kw">pub fn </span>new_framed&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; Framed&lt;T, <a href="#425">LengthDelimitedCodec</a>&gt;
     <span class="kw">where
         </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
     {
-        Framed::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        Framed::new(<a href="#1009">inner</a>, <a class="self" href="#1009">self</a>.<a href="#941">new_codec</a>())
     }
 
     <span class="kw">fn </span>num_head_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>num = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.length_field_offset + <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.length_field_len;
-        cmp::max(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1017">num</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.num_skip.unwrap_or(<span class="number">0</span>))
+        <span class="kw">let </span>num = <a class="self" href="#1016">self</a>.length_field_offset + <a class="self" href="#1016">self</a>.length_field_len;
+        cmp::max(<a href="#1017">num</a>, <a class="self" href="#1016">self</a>.num_skip.unwrap_or(<span class="number">0</span>))
     }
 
     <span class="kw">fn </span>get_num_skip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.num_skip
-            .unwrap_or(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.length_field_offset + <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.length_field_len)
+        <a class="self" href="#1021">self</a>.num_skip
+            .unwrap_or(<a class="self" href="#1021">self</a>.length_field_offset + <a class="self" href="#1021">self</a>.length_field_len)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#390">Builder</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -2079,18 +2079,18 @@
 
 <span class="comment">// ===== impl LengthDelimitedCodecError =====
 
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#412">LengthDelimitedCodecError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#1036">f</a>.debug_struct(<span class="string">&quot;LengthDelimitedCodecError&quot;</span>).finish()
+        <a href="#1036">f</a>.debug_struct(<span class="string">&quot;LengthDelimitedCodecError&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#412">LengthDelimitedCodecError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#1042">f</a>.write_str(<span class="string">&quot;frame size too big&quot;</span>)
+        <a href="#1042">f</a>.write_str(<span class="string">&quot;frame size too big&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#412">LengthDelimitedCodecError</a> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

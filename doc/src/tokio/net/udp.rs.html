@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1611,13 +1611,102 @@
 <span id="1611">1611</span>
 <span id="1612">1612</span>
 <span id="1613">1613</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../src/tokio/io/poll_evented.rs.html#62">PollEvented</a>, <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>, <a href="../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>};
-<span class="kw">use </span><span class="kw">crate</span>::net::{<a href="../../../src/tokio/net/addr.rs.html#24-26">to_socket_addrs</a>, <a href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>};
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../io/interest.rs.html#14">Interest</a>, <a href="../io/poll_evented.rs.html#64">PollEvented</a>, <a href="../io/read_buf.rs.html#23">ReadBuf</a>, <a href="../io/ready.rs.html#16">Ready</a>};
+<span class="kw">use </span><span class="kw">crate</span>::net::{<a href="addr.rs.html#24-26">to_socket_addrs</a>, <a href="addr.rs.html#19">ToSocketAddrs</a>};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>std::net::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
+<span class="kw">use </span>std::net::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>};
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
 <span class="macro">cfg_io_util! </span>{
@@ -1737,7 +1826,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
+<span class="kw">impl </span><a href="#122">UdpSocket</a> {
     <span class="doccomment">/// This function will create a new UDP socket and attempt to bind it to
     /// the `addr` provided.
     ///
@@ -1759,7 +1848,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>bind&lt;A: <a href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>&gt;(addr: A) -&gt; io::Result&lt;<a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a>&gt; {
+    </span><span class="kw">pub async fn </span>bind&lt;A: <a href="addr.rs.html#19">ToSocketAddrs</a>&gt;(addr: A) -&gt; io::Result&lt;<a href="#122">UdpSocket</a>&gt; {
         <span class="kw">let </span>addrs = to_socket_addrs(addr).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
 
@@ -1778,14 +1867,15 @@
         }))
     }
 
-    <span class="kw">fn </span>bind_addr(addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a>&gt; {
+    <span class="kw">fn </span>bind_addr(addr: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="#122">UdpSocket</a>&gt; {
         <span class="kw">let </span>sys = mio::net::UdpSocket::bind(addr)<span class="question-mark">?</span>;
-        UdpSocket::new(<a href="../../../src/tokio/net/udp.rs.html#169">sys</a>)
+        UdpSocket::new(<a href="#169">sys</a>)
     }
 
-    <span class="kw">fn </span>new(socket: <a href="../../../mio/net/udp/struct.UdpSocket.html">mio::net::UdpSocket</a>) -&gt; io::Result&lt;<a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a>&gt; {
+    <span class="attribute">#[track_caller]
+    </span><span class="kw">fn </span>new(socket: <a href="../../../mio/net/udp/struct.UdpSocket.html">mio::net::UdpSocket</a>) -&gt; io::Result&lt;<a href="#122">UdpSocket</a>&gt; {
         <span class="kw">let </span>io = PollEvented::new(socket)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> { <a href="../../../src/tokio/net/udp.rs.html#174">io</a> })
+        <span class="prelude-val">Ok</span>(<a href="#122">UdpSocket</a> { <a href="#175">io</a> })
     }
 
     <span class="doccomment">/// Creates new `UdpSocket` from a previously bound `std::net::UdpSocket`.
@@ -1823,9 +1913,10 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>from_std(socket: <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; io::Result&lt;<a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a>&gt; {
-        <span class="kw">let </span>io = mio::net::UdpSocket::from_std(<a href="../../../src/tokio/net/udp.rs.html#213">socket</a>);
-        UdpSocket::new(<a href="../../../src/tokio/net/udp.rs.html#214">io</a>)
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>from_std(socket: <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; io::Result&lt;<a href="#122">UdpSocket</a>&gt; {
+        <span class="kw">let </span>io = mio::net::UdpSocket::from_std(<a href="#215">socket</a>);
+        UdpSocket::new(<a href="#216">io</a>)
     }
 
     <span class="doccomment">/// Turns a [`tokio::net::UdpSocket`] into a [`std::net::UdpSocket`].
@@ -1854,10 +1945,10 @@
         <span class="attribute">#[cfg(unix)]
         </span>{
             <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
-            <a class="self" href="../../../src/tokio/net/udp.rs.html#240">self</a>.io
-                .<a href="../../../src/tokio/io/poll_evented.rs.html#129">into_inner</a>()
-                .map(|io| <a href="../../../src/tokio/net/udp.rs.html#246">io</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
-                .map(|raw_fd| <span class="kw">unsafe </span>{ std::net::UdpSocket::from_raw_fd(<a href="../../../src/tokio/net/udp.rs.html#247">raw_fd</a>) })
+            <a class="self" href="#242">self</a>.io
+                .<a href="../io/poll_evented.rs.html#133">into_inner</a>()
+                .map(|io| <a href="#248">io</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
+                .map(|raw_fd| <span class="kw">unsafe </span>{ std::net::UdpSocket::from_raw_fd(<a href="#249">raw_fd</a>) })
         }
 
         <span class="attribute">#[cfg(windows)]
@@ -1868,6 +1959,10 @@
                 .map(|io| io.into_raw_socket())
                 .map(|raw_socket| <span class="kw">unsafe </span>{ std::net::UdpSocket::from_raw_socket(raw_socket) })
         }
+    }
+
+    <span class="kw">fn </span>as_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; socket2::SockRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+        socket2::SockRef::from(<a class="self" href="#262">self</a>)
     }
 
     <span class="doccomment">/// Returns the local address that this socket is bound to.
@@ -1887,8 +1982,8 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#277">self</a>.io.local_addr()
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#283">self</a>.io.local_addr()
     }
 
     <span class="doccomment">/// Returns the socket address of the remote peer this socket was connected to.
@@ -1909,8 +2004,8 @@
     /// #    Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#299">self</a>.io.peer_addr()
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#305">self</a>.io.peer_addr()
     }
 
     <span class="doccomment">/// Connects the UDP socket setting the default destination for send() and
@@ -1937,7 +2032,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>connect&lt;A: <a href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: A) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub async fn </span>connect&lt;A: <a href="addr.rs.html#19">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: A) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>addrs = to_socket_addrs(addr).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
 
@@ -2022,7 +2117,7 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>&gt; {
+    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../io/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../io/ready.rs.html#16">Ready</a>&gt; {
         <span class="kw">let </span>event = <span class="self">self</span>.io.registration().readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(event.ready)
     }
@@ -2112,7 +2207,7 @@
     ///
     /// [`writable`]: method@Self::writable
     </span><span class="kw">pub fn </span>poll_send_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#501">self</a>.io.<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../src/tokio/io/driver/registration.rs.html#112">poll_write_ready</a>(<a href="../../../src/tokio/net/udp.rs.html#501">cx</a>).map_ok(|<span class="kw">_</span>| ())
+        <a class="self" href="#507">self</a>.io.<a href="../io/poll_evented.rs.html#127">registration</a>().<a href="../runtime/io/registration.rs.html#113">poll_write_ready</a>(<a href="#507">cx</a>).map_ok(|<span class="kw">_</span>| ())
     }
 
     <span class="doccomment">/// Sends data on the socket to the remote address that the socket is
@@ -2183,9 +2278,9 @@
     ///
     /// [`connect`]: method@Self::connect
     </span><span class="kw">pub fn </span>poll_send(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#572">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#128-132">poll_write_io</a>(<a href="../../../src/tokio/net/udp.rs.html#572">cx</a>, || <a class="self" href="../../../src/tokio/net/udp.rs.html#572">self</a>.io.send(<a href="../../../src/tokio/net/udp.rs.html#572">buf</a>))
+        <a class="self" href="#578">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#130-134">poll_write_io</a>(<a href="#578">cx</a>, || <a class="self" href="#578">self</a>.io.send(<a href="#578">buf</a>))
     }
 
     <span class="doccomment">/// Tries to send data on the socket to the remote address to which it is
@@ -2237,9 +2332,9 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#626">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::WRITABLE, || <a class="self" href="../../../src/tokio/net/udp.rs.html#626">self</a>.io.send(<a href="../../../src/tokio/net/udp.rs.html#626">buf</a>))
+        <a class="self" href="#632">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::WRITABLE, || <a class="self" href="#632">self</a>.io.send(<a href="#632">buf</a>))
     }
 
     <span class="doccomment">/// Waits for the socket to become readable.
@@ -2332,7 +2427,7 @@
     ///
     /// [`readable`]: method@Self::readable
     </span><span class="kw">pub fn </span>poll_recv_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#721">self</a>.io.<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../src/tokio/io/driver/registration.rs.html#106">poll_read_ready</a>(<a href="../../../src/tokio/net/udp.rs.html#721">cx</a>).map_ok(|<span class="kw">_</span>| ())
+        <a class="self" href="#727">self</a>.io.<a href="../io/poll_evented.rs.html#127">registration</a>().<a href="../runtime/io/registration.rs.html#107">poll_read_ready</a>(<a href="#727">cx</a>).map_ok(|<span class="kw">_</span>| ())
     }
 
     <span class="doccomment">/// Receives a single datagram message on the socket from the remote address
@@ -2414,9 +2509,9 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.
         </span><span class="kw">unsafe </span>{
-            <a href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a href="../../../src/tokio/net/udp.rs.html#793">n</a>);
+            <a href="#798">buf</a>.<a href="../io/read_buf.rs.html#234">assume_init</a>(<a href="#799">n</a>);
         }
-        <a href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a href="../../../src/tokio/net/udp.rs.html#793">n</a>);
+        <a href="#798">buf</a>.<a href="../io/read_buf.rs.html#200">advance</a>(<a href="#799">n</a>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
@@ -2471,9 +2566,9 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#860">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::READABLE, || <a class="self" href="../../../src/tokio/net/udp.rs.html#860">self</a>.io.recv(<a href="../../../src/tokio/net/udp.rs.html#860">buf</a>))
+        <a class="self" href="#866">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || <a class="self" href="#866">self</a>.io.recv(<a href="#866">buf</a>))
     }
 
     <span class="macro">cfg_io_util! </span>{
@@ -2525,20 +2620,20 @@
         /// }
         /// ```
         </span><span class="kw">pub fn </span>try_recv_buf&lt;B: <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-            <a class="self" href="../../../src/tokio/net/udp.rs.html#914">self</a>.io.<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::READABLE, || {
-                <span class="kw">let </span>dst = <a href="../../../src/tokio/net/udp.rs.html#914">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
+            <a class="self" href="#920">self</a>.io.<a href="../io/poll_evented.rs.html#127">registration</a>().<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || {
+                <span class="kw">let </span>dst = <a href="#920">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
                 <span class="kw">let </span>dst =
-                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="../../../src/tokio/net/udp.rs.html#916">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
+                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#922">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
 
                 <span class="comment">// Safety: We trust `UdpSocket::recv` to have filled up `n` bytes in the
                 // buffer.
                 </span><span class="kw">let </span>n = (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).recv(dst)<span class="question-mark">?</span>;
 
                 <span class="kw">unsafe </span>{
-                    <a href="../../../src/tokio/net/udp.rs.html#914">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="../../../src/tokio/net/udp.rs.html#922">n</a>);
+                    <a href="#920">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="#928">n</a>);
                 }
 
-                <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/net/udp.rs.html#922">n</a>)
+                <span class="prelude-val">Ok</span>(<a href="#928">n</a>)
             })
         }
 
@@ -2588,21 +2683,21 @@
         ///     Ok(())
         /// }
         /// ```
-        </span><span class="kw">pub fn </span>try_recv_buf_from&lt;B: <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
-            <a class="self" href="../../../src/tokio/net/udp.rs.html#978">self</a>.io.<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::READABLE, || {
-                <span class="kw">let </span>dst = <a href="../../../src/tokio/net/udp.rs.html#978">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
+        </span><span class="kw">pub fn </span>try_recv_buf_from&lt;B: <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+            <a class="self" href="#984">self</a>.io.<a href="../io/poll_evented.rs.html#127">registration</a>().<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || {
+                <span class="kw">let </span>dst = <a href="#984">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
                 <span class="kw">let </span>dst =
-                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="../../../src/tokio/net/udp.rs.html#980">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
+                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<a href="#986">dst</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[std::mem::MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
 
                 <span class="comment">// Safety: We trust `UdpSocket::recv_from` to have filled up `n` bytes in the
                 // buffer.
                 </span><span class="kw">let </span>(n, addr) = (<span class="kw-2">&amp;*</span><span class="self">self</span>.io).recv_from(dst)<span class="question-mark">?</span>;
 
                 <span class="kw">unsafe </span>{
-                    <a href="../../../src/tokio/net/udp.rs.html#978">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="../../../src/tokio/net/udp.rs.html#986">n</a>);
+                    <a href="#984">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a href="#992">n</a>);
                 }
 
-                <span class="prelude-val">Ok</span>((<a href="../../../src/tokio/net/udp.rs.html#986">n</a>, <a href="../../../src/tokio/net/udp.rs.html#986">addr</a>))
+                <span class="prelude-val">Ok</span>((<a href="#992">n</a>, <a href="#992">addr</a>))
             })
         }
     }
@@ -2643,7 +2738,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>send_to&lt;A: <a href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: A) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub async fn </span>send_to&lt;A: <a href="addr.rs.html#19">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: A) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>addrs = to_socket_addrs(target).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">match </span>addrs.next() {
@@ -2676,11 +2771,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        target: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
+        target: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>,
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1063">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#128-132">poll_write_io</a>(<a href="../../../src/tokio/net/udp.rs.html#1064">cx</a>, || <a class="self" href="../../../src/tokio/net/udp.rs.html#1063">self</a>.io.send_to(<a href="../../../src/tokio/net/udp.rs.html#1065">buf</a>, <a href="../../../src/tokio/net/udp.rs.html#1066">target</a>))
+        <a class="self" href="#1069">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#130-134">poll_write_io</a>(<a href="#1070">cx</a>, || <a class="self" href="#1069">self</a>.io.send_to(<a href="#1071">buf</a>, <a href="#1072">target</a>))
     }
 
     <span class="doccomment">/// Tries to send data on the socket to the given address, but if the send is
@@ -2730,13 +2825,13 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_send_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1120">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::WRITABLE, || <a class="self" href="../../../src/tokio/net/udp.rs.html#1120">self</a>.io.send_to(<a href="../../../src/tokio/net/udp.rs.html#1120">buf</a>, <a href="../../../src/tokio/net/udp.rs.html#1120">target</a>))
+    </span><span class="kw">pub fn </span>try_send_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="#1126">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::WRITABLE, || <a class="self" href="#1126">self</a>.io.send_to(<a href="#1126">buf</a>, <a href="#1126">target</a>))
     }
 
-    <span class="kw">async fn </span>send_to_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">async fn </span>send_to_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="self">self</span>.io
             .registration()
             .async_io(Interest::WRITABLE, || <span class="self">self</span>.io.send_to(buf, target))
@@ -2775,7 +2870,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+    </span><span class="kw">pub async fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
         <span class="self">self</span>.io
             .registration()
             .async_io(Interest::READABLE, || <span class="self">self</span>.io.recv_from(buf))
@@ -2803,7 +2898,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt; {
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt; {
         <span class="kw">let </span>(n, addr) = <span class="macro">ready!</span>(<span class="self">self</span>.io.registration().poll_read_io(cx, || {
             <span class="comment">// Safety: will not read the maybe uninitialized bytes.
             </span><span class="kw">let </span>b = <span class="kw">unsafe </span>{
@@ -2815,10 +2910,10 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.
         </span><span class="kw">unsafe </span>{
-            <a href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
+            <a href="#1198">buf</a>.<a href="../io/read_buf.rs.html#234">assume_init</a>(<a href="#1200">n</a>);
         }
-        <a href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/net/udp.rs.html#1194">addr</a>))
+        <a href="#1198">buf</a>.<a href="../io/read_buf.rs.html#200">advance</a>(<a href="#1200">n</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1200">addr</a>))
     }
 
     <span class="doccomment">/// Tries to receive a single datagram message on the socket. On success,
@@ -2869,10 +2964,10 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1259">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(Interest::READABLE, || <a class="self" href="../../../src/tokio/net/udp.rs.html#1259">self</a>.io.recv_from(<a href="../../../src/tokio/net/udp.rs.html#1259">buf</a>))
+    </span><span class="kw">pub fn </span>try_recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <a class="self" href="#1265">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(Interest::READABLE, || <a class="self" href="#1265">self</a>.io.recv_from(<a href="#1265">buf</a>))
     }
 
     <span class="doccomment">/// Tries to read or write from the socket using a user-provided IO operation.
@@ -2904,12 +2999,12 @@
     /// [`ready()`]: UdpSocket::ready()
     </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+        interest: <a href="../io/interest.rs.html#14">Interest</a>,
         f: <span class="kw">impl </span>FnOnce() -&gt; io::Result&lt;R&gt;,
     ) -&gt; io::Result&lt;R&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1293">self</a>.io
-            .<a href="../../../src/tokio/io/poll_evented.rs.html#123">registration</a>()
-            .<a href="../../../src/tokio/io/driver/registration.rs.html#178-182">try_io</a>(<a href="../../../src/tokio/net/udp.rs.html#1294">interest</a>, || <a class="self" href="../../../src/tokio/net/udp.rs.html#1293">self</a>.io.try_io(<a href="../../../src/tokio/net/udp.rs.html#1295">f</a>))
+        <a class="self" href="#1299">self</a>.io
+            .<a href="../io/poll_evented.rs.html#127">registration</a>()
+            .<a href="../runtime/io/registration.rs.html#180-184">try_io</a>(<a href="#1300">interest</a>, || <a class="self" href="#1299">self</a>.io.try_io(<a href="#1301">f</a>))
     }
 
     <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.
@@ -2942,7 +3037,7 @@
     ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+    </span><span class="kw">pub async fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
         <span class="self">self</span>.io
             .registration()
             .async_io(Interest::READABLE, || <span class="self">self</span>.io.peek_from(buf))
@@ -2979,7 +3074,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt; {
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt; {
         <span class="kw">let </span>(n, addr) = <span class="macro">ready!</span>(<span class="self">self</span>.io.registration().poll_read_io(cx, || {
             <span class="comment">// Safety: will not read the maybe uninitialized bytes.
             </span><span class="kw">let </span>b = <span class="kw">unsafe </span>{
@@ -2991,10 +3086,10 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.
         </span><span class="kw">unsafe </span>{
-            <a href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
+            <a href="#1374">buf</a>.<a href="../io/read_buf.rs.html#234">assume_init</a>(<a href="#1376">n</a>);
         }
-        <a href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/net/udp.rs.html#1370">addr</a>))
+        <a href="#1374">buf</a>.<a href="../io/read_buf.rs.html#200">advance</a>(<a href="#1376">n</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1376">addr</a>))
     }
 
     <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.
@@ -3003,7 +3098,7 @@
     ///
     /// [`set_broadcast`]: method@Self::set_broadcast
     </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1392">self</a>.io.broadcast()
+        <a class="self" href="#1398">self</a>.io.broadcast()
     }
 
     <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.
@@ -3011,7 +3106,7 @@
     /// When enabled, this socket is allowed to send packets to a broadcast
     /// address.
     </span><span class="kw">pub fn </span>set_broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1400">self</a>.io.set_broadcast(<a href="../../../src/tokio/net/udp.rs.html#1400">on</a>)
+        <a class="self" href="#1406">self</a>.io.set_broadcast(<a href="#1406">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.
@@ -3020,7 +3115,7 @@
     ///
     /// [`set_multicast_loop_v4`]: method@Self::set_multicast_loop_v4
     </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1409">self</a>.io.multicast_loop_v4()
+        <a class="self" href="#1415">self</a>.io.multicast_loop_v4()
     }
 
     <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.
@@ -3031,7 +3126,7 @@
     ///
     /// This may not have any affect on IPv6 sockets.
     </span><span class="kw">pub fn </span>set_multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1420">self</a>.io.set_multicast_loop_v4(<a href="../../../src/tokio/net/udp.rs.html#1420">on</a>)
+        <a class="self" href="#1426">self</a>.io.set_multicast_loop_v4(<a href="#1426">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.
@@ -3040,7 +3135,7 @@
     ///
     /// [`set_multicast_ttl_v4`]: method@Self::set_multicast_ttl_v4
     </span><span class="kw">pub fn </span>multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1429">self</a>.io.multicast_ttl_v4()
+        <a class="self" href="#1435">self</a>.io.multicast_ttl_v4()
     }
 
     <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.
@@ -3053,7 +3148,7 @@
     ///
     /// This may not have any affect on IPv6 sockets.
     </span><span class="kw">pub fn </span>set_multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1442">self</a>.io.set_multicast_ttl_v4(<a href="../../../src/tokio/net/udp.rs.html#1442">ttl</a>)
+        <a class="self" href="#1448">self</a>.io.set_multicast_ttl_v4(<a href="#1448">ttl</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
@@ -3062,7 +3157,7 @@
     ///
     /// [`set_multicast_loop_v6`]: method@Self::set_multicast_loop_v6
     </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1451">self</a>.io.multicast_loop_v6()
+        <a class="self" href="#1457">self</a>.io.multicast_loop_v6()
     }
 
     <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
@@ -3073,7 +3168,7 @@
     ///
     /// This may not have any affect on IPv4 sockets.
     </span><span class="kw">pub fn </span>set_multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1462">self</a>.io.set_multicast_loop_v6(<a href="../../../src/tokio/net/udp.rs.html#1462">on</a>)
+        <a class="self" href="#1468">self</a>.io.set_multicast_loop_v6(<a href="#1468">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.
@@ -3096,7 +3191,7 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1485">self</a>.io.ttl()
+        <a class="self" href="#1491">self</a>.io.ttl()
     }
 
     <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.
@@ -3118,7 +3213,90 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1507">self</a>.io.set_ttl(<a href="../../../src/tokio/net/udp.rs.html#1507">ttl</a>)
+        <a class="self" href="#1513">self</a>.io.set_ttl(<a href="#1513">ttl</a>)
+    }
+
+    <span class="doccomment">/// Gets the value of the `IP_TOS` option for this socket.
+    ///
+    /// For more information about this option, see [`set_tos`].
+    ///
+    /// **NOTE:** On Windows, `IP_TOS` is only supported on [Windows 8+ or
+    /// Windows Server 2012+.](https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options)
+    ///
+    /// [`set_tos`]: Self::set_tos
+    </span><span class="comment">// https://docs.rs/socket2/0.4.2/src/socket2/socket.rs.html#1178
+    </span><span class="attribute">#[cfg(not(any(
+        target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+    )))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(not(any(
+            target_os = <span class="string">&quot;fuchsia&quot;</span>,
+            target_os = <span class="string">&quot;redox&quot;</span>,
+            target_os = <span class="string">&quot;solaris&quot;</span>,
+            target_os = <span class="string">&quot;illumos&quot;</span>,
+        ))))
+    )]
+    </span><span class="kw">pub fn </span>tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="#1541">self</a>.<a href="#262">as_socket</a>().tos()
+    }
+
+    <span class="doccomment">/// Sets the value for the `IP_TOS` option on this socket.
+    ///
+    /// This value sets the time-to-live field that is used in every packet sent
+    /// from this socket.
+    ///
+    /// **NOTE:** On Windows, `IP_TOS` is only supported on [Windows 8+ or
+    /// Windows Server 2012+.](https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options)
+    </span><span class="comment">// https://docs.rs/socket2/0.4.2/src/socket2/socket.rs.html#1178
+    </span><span class="attribute">#[cfg(not(any(
+        target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+    )))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(not(any(
+            target_os = <span class="string">&quot;fuchsia&quot;</span>,
+            target_os = <span class="string">&quot;redox&quot;</span>,
+            target_os = <span class="string">&quot;solaris&quot;</span>,
+            target_os = <span class="string">&quot;illumos&quot;</span>,
+        ))))
+    )]
+    </span><span class="kw">pub fn </span>set_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, tos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1568">self</a>.<a href="#262">as_socket</a>().set_tos(<a href="#1568">tos</a>)
+    }
+
+    <span class="doccomment">/// Gets the value for the `SO_BINDTODEVICE` option on this socket
+    ///
+    /// This value gets the socket-bound device&#39;s interface name.
+    </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>,))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>,)))
+    )]
+    </span><span class="kw">pub fn </span>device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt; {
+        <a class="self" href="#1580">self</a>.<a href="#262">as_socket</a>().device()
+    }
+
+    <span class="doccomment">/// Sets the value for the `SO_BINDTODEVICE` option on this socket
+    ///
+    /// If a socket is bound to an interface, only packets received from that
+    /// particular interface are processed by the socket. Note that this only
+    /// works for some socket types, particularly `AF_INET` sockets.
+    ///
+    /// If `interface` is `None` or an empty string it removes the binding.
+    </span><span class="attribute">#[cfg(all(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>)))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))
+    )]
+    </span><span class="kw">pub fn </span>bind_device(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1596">self</a>.<a href="#262">as_socket</a>().bind_device(<a href="#1596">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.
@@ -3128,8 +3306,8 @@
     /// address of the local interface with which the system should join the
     /// multicast group. If it&#39;s equal to `INADDR_ANY` then an appropriate
     /// interface is chosen by the system.
-    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1518">self</a>.io.join_multicast_v4(<span class="kw-2">&amp;</span><a href="../../../src/tokio/net/udp.rs.html#1518">multiaddr</a>, <span class="kw-2">&amp;</span><a href="../../../src/tokio/net/udp.rs.html#1518">interface</a>)
+    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1607">self</a>.io.join_multicast_v4(<span class="kw-2">&amp;</span><a href="#1607">multiaddr</a>, <span class="kw-2">&amp;</span><a href="#1607">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.
@@ -3137,8 +3315,8 @@
     /// This function specifies a new multicast group for this socket to join.
     /// The address must be a valid multicast address, and `interface` is the
     /// index of the interface to join/leave (or 0 to indicate any interface).
-    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1527">self</a>.io.join_multicast_v6(<a href="../../../src/tokio/net/udp.rs.html#1527">multiaddr</a>, <a href="../../../src/tokio/net/udp.rs.html#1527">interface</a>)
+    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1616">self</a>.io.join_multicast_v6(<a href="#1616">multiaddr</a>, <a href="#1616">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.
@@ -3146,8 +3324,8 @@
     /// For more information about this option, see [`join_multicast_v4`].
     ///
     /// [`join_multicast_v4`]: method@Self::join_multicast_v4
-    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1536">self</a>.io.leave_multicast_v4(<span class="kw-2">&amp;</span><a href="../../../src/tokio/net/udp.rs.html#1536">multiaddr</a>, <span class="kw-2">&amp;</span><a href="../../../src/tokio/net/udp.rs.html#1536">interface</a>)
+    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1625">self</a>.io.leave_multicast_v4(<span class="kw-2">&amp;</span><a href="#1625">multiaddr</a>, <span class="kw-2">&amp;</span><a href="#1625">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.
@@ -3155,8 +3333,8 @@
     /// For more information about this option, see [`join_multicast_v6`].
     ///
     /// [`join_multicast_v6`]: method@Self::join_multicast_v6
-    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1545">self</a>.io.leave_multicast_v6(<a href="../../../src/tokio/net/udp.rs.html#1545">multiaddr</a>, <a href="../../../src/tokio/net/udp.rs.html#1545">interface</a>)
+    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#1634">self</a>.io.leave_multicast_v6(<a href="#1634">multiaddr</a>, <a href="#1634">interface</a>)
     }
 
     <span class="doccomment">/// Returns the value of the `SO_ERROR` option.
@@ -3179,11 +3357,11 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1568">self</a>.io.take_error()
+        <a class="self" href="#1657">self</a>.io.take_error()
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
+<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>&gt; <span class="kw">for </span><a href="#122">UdpSocket</a> {
     <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
     <span class="doccomment">/// Consumes stream, returning the tokio I/O object.
@@ -3191,24 +3369,24 @@
     /// This is equivalent to
     /// [`UdpSocket::from_std(stream)`](UdpSocket::from_std).
     </span><span class="kw">fn </span>try_from(stream: <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <span class="self">Self</span>::from_std(<a href="../../../src/tokio/net/udp.rs.html#1580">stream</a>)
+        <span class="self">Self</span>::from_std(<a href="#1669">stream</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#122">UdpSocket</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/tokio/net/udp.rs.html#1586">self</a>.io.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/tokio/net/udp.rs.html#1586">f</a>)
+        <a class="self" href="#1675">self</a>.io.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#1675">f</a>)
     }
 }
 
 <span class="attribute">#[cfg(all(unix))]
 </span><span class="kw">mod </span>sys {
-    <span class="kw">use </span><a href="../../../src/tokio/net/udp.rs.html#122"><span class="kw">super</span>::UdpSocket</a>;
+    <span class="kw">use </span><a href="#122"><span class="kw">super</span>::UdpSocket</a>;
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#122">UdpSocket</a> {
         <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../src/tokio/net/udp.rs.html#1597">self</a>.io.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+            <a class="self" href="#1686">self</a>.io.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 }
@@ -3225,4 +3403,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -383,8 +383,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">core::cmp::max</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">core::ops::Range</a>;
 
-<span class="kw">use </span><a href="../../src/unicode_bidi/level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
-<span class="kw">use </span><span class="kw">super</span>::BidiClass::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>};
+<span class="kw">use </span><a href="level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
+<span class="kw">use </span><span class="kw">super</span>::BidiClass::{<a class="self" href="char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>};
 
 <span class="doccomment">/// A maximal substring of characters with the same embedding level.
 ///
@@ -394,9 +394,9 @@
 <span class="doccomment">/// Output of `isolating_run_sequences` (steps X9-X10)
 </span><span class="attribute">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>IsolatingRunSequence {
-    <span class="kw">pub </span>runs: Vec&lt;<a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>&gt;,
-    <span class="kw">pub </span>sos: <a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// Start-of-sequence type.
-    </span><span class="kw">pub </span>eos: <a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// End-of-sequence type.
+    <span class="kw">pub </span>runs: Vec&lt;<a href="#24">LevelRun</a>&gt;,
+    <span class="kw">pub </span>sos: <a href="char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// Start-of-sequence type.
+    </span><span class="kw">pub </span>eos: <a href="char_data/tables.rs.html#18">BidiClass</a>, <span class="comment">// End-of-sequence type.
 </span>}
 
 <span class="doccomment">/// Compute the set of isolating run sequences.
@@ -408,15 +408,15 @@
 /// Note: This function does *not* return the sequences in order by their first characters.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
 </span><span class="kw">pub fn </span>isolating_run_sequences(
-    para_level: <a href="../../src/unicode_bidi/level.rs.html#34">Level</a>,
-    original_classes: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>],
-    levels: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/level.rs.html#34">Level</a>],
-) -&gt; Vec&lt;<a href="../../src/unicode_bidi/prepare.rs.html#28">IsolatingRunSequence</a>&gt; {
-    <span class="kw">let </span>runs = <a href="../../src/unicode_bidi/prepare.rs.html#139">level_runs</a>(<a href="../../src/unicode_bidi/prepare.rs.html#45">levels</a>, <a href="../../src/unicode_bidi/prepare.rs.html#44">original_classes</a>);
+    para_level: <a href="level.rs.html#34">Level</a>,
+    original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>],
+    levels: <span class="kw-2">&amp;</span>[<a href="level.rs.html#34">Level</a>],
+) -&gt; Vec&lt;<a href="#28">IsolatingRunSequence</a>&gt; {
+    <span class="kw">let </span>runs = <a href="#139">level_runs</a>(<a href="#45">levels</a>, <a href="#44">original_classes</a>);
 
     <span class="comment">// Compute the set of isolating run sequences.
     // &lt;http://www.unicode.org/reports/tr9/#BD13&gt;
-    </span><span class="kw">let </span><span class="kw-2">mut </span>sequences = Vec::with_capacity(<a href="../../src/unicode_bidi/prepare.rs.html#47">runs</a>.len());
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sequences = Vec::with_capacity(<a href="#47">runs</a>.len());
 
     <span class="comment">// When we encounter an isolate initiator, we push the current sequence onto the
     // stack so we can resume it after the matching PDI.
@@ -448,18 +448,18 @@
         }
     }
     <span class="comment">// Pop any remaning sequences off the stack.
-    </span><a href="../../src/unicode_bidi/prepare.rs.html#51">sequences</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/unicode_bidi/prepare.rs.html#55">stack</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|seq| !<a href="../../src/unicode_bidi/prepare.rs.html#83">seq</a>.is_empty()));
+    </span><a href="#51">sequences</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#55">stack</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|seq| !<a href="#83">seq</a>.is_empty()));
 
     <span class="comment">// Determine the `sos` and `eos` class for each sequence.
     // &lt;http://www.unicode.org/reports/tr9/#X10&gt;
-    </span><a href="../../src/unicode_bidi/prepare.rs.html#51">sequences</a>
+    </span><a href="#51">sequences</a>
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sequence: Vec&lt;<a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>&gt;| {
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sequence: Vec&lt;<a href="#24">LevelRun</a>&gt;| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!sequence.is_empty());
 
-            <span class="kw">let </span>start_of_seq = <a href="../../src/unicode_bidi/prepare.rs.html#89">sequence</a>[<span class="number">0</span>].start;
-            <span class="kw">let </span>end_of_seq = <a href="../../src/unicode_bidi/prepare.rs.html#89">sequence</a>[<a href="../../src/unicode_bidi/prepare.rs.html#89">sequence</a>.len() - <span class="number">1</span>].end;
-            <span class="kw">let </span>seq_level = <a href="../../src/unicode_bidi/prepare.rs.html#45">levels</a>[<a href="../../src/unicode_bidi/prepare.rs.html#92">start_of_seq</a>];
+            <span class="kw">let </span>start_of_seq = <a href="#89">sequence</a>[<span class="number">0</span>].start;
+            <span class="kw">let </span>end_of_seq = <a href="#89">sequence</a>[<a href="#89">sequence</a>.len() - <span class="number">1</span>].end;
+            <span class="kw">let </span>seq_level = <a href="#45">levels</a>[<a href="#92">start_of_seq</a>];
 
             <span class="attribute">#[cfg(test)]
             </span><span class="kw">for </span>run <span class="kw">in </span>sequence.clone() {
@@ -471,31 +471,31 @@
             }
 
             <span class="comment">// Get the level of the last non-removed char before the runs.
-            </span><span class="kw">let </span>pred_level = <span class="kw">match </span><a href="../../src/unicode_bidi/prepare.rs.html#44">original_classes</a>[..<a href="../../src/unicode_bidi/prepare.rs.html#92">start_of_seq</a>]
+            </span><span class="kw">let </span>pred_level = <span class="kw">match </span><a href="#44">original_classes</a>[..<a href="#92">start_of_seq</a>]
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<a href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<a href="#173">not_removed_by_x9</a>)
             {
-                <span class="prelude-val">Some</span>(idx) =&gt; <a href="../../src/unicode_bidi/prepare.rs.html#45">levels</a>[<a href="../../src/unicode_bidi/prepare.rs.html#110">idx</a>],
-                <span class="prelude-val">None </span>=&gt; <a href="../../src/unicode_bidi/prepare.rs.html#43">para_level</a>,
+                <span class="prelude-val">Some</span>(idx) =&gt; <a href="#45">levels</a>[<a href="#110">idx</a>],
+                <span class="prelude-val">None </span>=&gt; <a href="#43">para_level</a>,
             };
 
             <span class="comment">// Get the level of the next non-removed char after the runs.
-            </span><span class="kw">let </span>succ_level = <span class="kw">if let </span><a href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> = <a href="../../src/unicode_bidi/prepare.rs.html#44">original_classes</a>[<a href="../../src/unicode_bidi/prepare.rs.html#93">end_of_seq</a> - <span class="number">1</span>] {
-                <a href="../../src/unicode_bidi/prepare.rs.html#43">para_level</a>
+            </span><span class="kw">let </span>succ_level = <span class="kw">if let </span><a href="char_data/tables.rs.html#38">RLI</a> | <a href="char_data/tables.rs.html#30">LRI</a> | <a href="char_data/tables.rs.html#27">FSI</a> = <a href="#44">original_classes</a>[<a href="#93">end_of_seq</a> - <span class="number">1</span>] {
+                <a href="#43">para_level</a>
             } <span class="kw">else </span>{
-                <span class="kw">match </span><a href="../../src/unicode_bidi/prepare.rs.html#44">original_classes</a>[<a href="../../src/unicode_bidi/prepare.rs.html#93">end_of_seq</a>..]
+                <span class="kw">match </span><a href="#44">original_classes</a>[<a href="#93">end_of_seq</a>..]
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<a href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>)
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<a href="#173">not_removed_by_x9</a>)
                 {
-                    <span class="prelude-val">Some</span>(idx) =&gt; <a href="../../src/unicode_bidi/prepare.rs.html#45">levels</a>[<a href="../../src/unicode_bidi/prepare.rs.html#93">end_of_seq</a> + <a href="../../src/unicode_bidi/prepare.rs.html#122">idx</a>],
-                    <span class="prelude-val">None </span>=&gt; <a href="../../src/unicode_bidi/prepare.rs.html#43">para_level</a>,
+                    <span class="prelude-val">Some</span>(idx) =&gt; <a href="#45">levels</a>[<a href="#93">end_of_seq</a> + <a href="#122">idx</a>],
+                    <span class="prelude-val">None </span>=&gt; <a href="#43">para_level</a>,
                 }
             };
 
-            <a href="../../src/unicode_bidi/prepare.rs.html#28">IsolatingRunSequence</a> {
-                runs: <a href="../../src/unicode_bidi/prepare.rs.html#89">sequence</a>,
-                sos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="../../src/unicode_bidi/prepare.rs.html#94">seq_level</a>, <a href="../../src/unicode_bidi/prepare.rs.html#106">pred_level</a>).<a href="../../src/unicode_bidi/level.rs.html#186">bidi_class</a>(),
-                eos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="../../src/unicode_bidi/prepare.rs.html#94">seq_level</a>, <a href="../../src/unicode_bidi/prepare.rs.html#115">succ_level</a>).<a href="../../src/unicode_bidi/level.rs.html#186">bidi_class</a>(),
+            <a href="#28">IsolatingRunSequence</a> {
+                runs: <a href="#89">sequence</a>,
+                sos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="#94">seq_level</a>, <a href="#106">pred_level</a>).<a href="level.rs.html#186">bidi_class</a>(),
+                eos: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a href="#94">seq_level</a>, <a href="#115">succ_level</a>).<a href="level.rs.html#186">bidi_class</a>(),
             }
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
@@ -504,15 +504,15 @@
 <span class="doccomment">/// Finds the level runs in a paragraph.
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#BD7&gt;
-</span><span class="kw">fn </span>level_runs(levels: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/level.rs.html#34">Level</a>], original_classes: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>]) -&gt; Vec&lt;<a href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>&gt; {
+</span><span class="kw">fn </span>level_runs(levels: <span class="kw-2">&amp;</span>[<a href="level.rs.html#34">Level</a>], original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>]) -&gt; Vec&lt;<a href="#24">LevelRun</a>&gt; {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(levels.len(), original_classes.len());
 
     <span class="kw">let </span><span class="kw-2">mut </span>runs = Vec::new();
     <span class="kw">if </span>levels.is_empty() {
-        <span class="kw">return </span><a href="../../src/unicode_bidi/prepare.rs.html#142">runs</a>;
+        <span class="kw">return </span><a href="#142">runs</a>;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>current_run_level = <a href="../../src/unicode_bidi/prepare.rs.html#139">levels</a>[<span class="number">0</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>current_run_level = <a href="#139">levels</a>[<span class="number">0</span>];
     <span class="kw">let </span><span class="kw-2">mut </span>current_run_start = <span class="number">0</span>;
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..levels.len() {
         <span class="kw">if </span>!removed_by_x9(original_classes[i]) &amp;&amp; levels[i] != current_run_level {
@@ -522,24 +522,24 @@
             current_run_start = i;
         }
     }
-    <a href="../../src/unicode_bidi/prepare.rs.html#142">runs</a>.push(<a href="../../src/unicode_bidi/prepare.rs.html#148">current_run_start</a>..<a href="../../src/unicode_bidi/prepare.rs.html#139">levels</a>.len());
+    <a href="#142">runs</a>.push(<a href="#148">current_run_start</a>..<a href="#139">levels</a>.len());
 
-    <a href="../../src/unicode_bidi/prepare.rs.html#142">runs</a>
+    <a href="#142">runs</a>
 }
 
 <span class="doccomment">/// Should this character be ignored in steps after X9?
 ///
 /// &lt;http://www.unicode.org/reports/tr9/#X9&gt;
-</span><span class="kw">pub fn </span>removed_by_x9(class: <a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="../../src/unicode_bidi/prepare.rs.html#165">class</a> {
-        <a href="../../src/unicode_bidi/char_data/tables.rs.html#37">RLE</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#29">LRE</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#39">RLO</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#31">LRO</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#34">PDF</a> | <a href="../../src/unicode_bidi/char_data/tables.rs.html#22">BN</a> =&gt; <span class="bool-val">true</span>,
+</span><span class="kw">pub fn </span>removed_by_x9(class: <a href="char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">match </span><a href="#165">class</a> {
+        <a href="char_data/tables.rs.html#37">RLE</a> | <a href="char_data/tables.rs.html#29">LRE</a> | <a href="char_data/tables.rs.html#39">RLO</a> | <a href="char_data/tables.rs.html#31">LRO</a> | <a href="char_data/tables.rs.html#34">PDF</a> | <a href="char_data/tables.rs.html#22">BN</a> =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="comment">// For use as a predicate for `position` / `rposition`
-</span><span class="kw">pub fn </span>not_removed_by_x9(class: <span class="kw-2">&amp;</span><a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    !<a href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>(<span class="kw-2">*</span><a href="../../src/unicode_bidi/prepare.rs.html#173">class</a>)
+</span><span class="kw">pub fn </span>not_removed_by_x9(class: <span class="kw-2">&amp;</span><a href="char_data/tables.rs.html#18">BidiClass</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    !<a href="#165">removed_by_x9</a>(<span class="kw-2">*</span><a href="#173">class</a>)
 }
 
 <span class="attribute">#[cfg(test)]
@@ -735,4 +735,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

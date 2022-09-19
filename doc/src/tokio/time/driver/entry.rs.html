@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/driver/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/time/driver/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -631,6 +631,13 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Timer state structures.
 //!
 //! This module contains the heart of the intrusive timer implementation, and as
@@ -669,7 +676,7 @@
 //! point than it was originally scheduled for.
 //!
 //! This is accomplished by lazily rescheduling timers. That is, we update the
-//! state field field with the true expiration of the timer from the holder of
+//! state field with the true expiration of the timer from the holder of
 //! the [`TimerEntry`]. When the driver services timers (ie, whenever it&#39;s
 //! walking lists of timers), it checks this &quot;true when&quot; value, and reschedules
 //! based on it.
@@ -687,25 +694,25 @@
 //!
 //! [mark_pending]: TimerHandle::mark_pending
 
-</span><span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+</span><span class="kw">use </span><a href="../../loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html"><span class="kw">crate</span>::loom::sync::atomic::AtomicU64</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html"><span class="kw">crate</span>::loom::sync::atomic::Ordering</a>;
 
-<span class="kw">use </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::sync::AtomicWaker</a>;
-<span class="kw">use </span><a href="../../../../src/tokio/time/instant.rs.html#34"><span class="kw">crate</span>::time::Instant</a>;
-<span class="kw">use </span><a href="../../../../src/tokio/util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
+<span class="kw">use </span><a href="../../sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::sync::AtomicWaker</a>;
+<span class="kw">use </span><a href="../instant.rs.html#34"><span class="kw">crate</span>::time::Instant</a>;
+<span class="kw">use </span><a href="../../util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
 
-<span class="kw">use </span><a href="../../../../src/tokio/time/driver/handle.rs.html#7"><span class="kw">super</span>::Handle</a>;
+<span class="kw">use </span><a href="handle.rs.html#7"><span class="kw">super</span>::Handle</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a> <span class="kw">as </span>StdUnsafeCell;
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 <span class="kw">use </span>std::{marker::PhantomPinned, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">ptr::NonNull</a>};
 
-<span class="kw">type </span>TimerResult = <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/tokio/time/error.rs.html#27"><span class="kw">crate</span>::time::error::Error</a>&gt;;
+<span class="kw">type </span>TimerResult = <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#27"><span class="kw">crate</span>::time::error::Error</a>&gt;;
 
 <span class="kw">const </span>STATE_DEREGISTERED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = u64::MAX;
-<span class="kw">const </span>STATE_PENDING_FIRE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="../../../../src/tokio/time/driver/entry.rs.html#73">STATE_DEREGISTERED</a> - <span class="number">1</span>;
-<span class="kw">const </span>STATE_MIN_VALUE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="../../../../src/tokio/time/driver/entry.rs.html#74">STATE_PENDING_FIRE</a>;
+<span class="kw">const </span>STATE_PENDING_FIRE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="#73">STATE_DEREGISTERED</a> - <span class="number">1</span>;
+<span class="kw">const </span>STATE_MIN_VALUE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="#74">STATE_PENDING_FIRE</a>;
 
 <span class="doccomment">/// This structure holds the current shared state of the timer - its scheduled
 /// time (if registered), or otherwise the result of the timer completing, as
@@ -726,66 +733,66 @@
     /// `u64::MAX`), holds the result that should be returned from
     /// polling the timer. Otherwise, the contents are unspecified and reading
     /// without holding the driver lock is undefined behavior.
-    </span>result: UnsafeCell&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a>&gt;,
+    </span>result: UnsafeCell&lt;<a href="#71">TimerResult</a>&gt;,
     <span class="doccomment">/// The currently-registered waker
-    </span>waker: CachePadded&lt;<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a>&gt;,
+    </span>waker: CachePadded&lt;<a href="../../sync/task/atomic_waker.rs.html#27">AtomicWaker</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#88">StateCell</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="#88">StateCell</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#108">f</a>, <span class="string">&quot;StateCell({:?})&quot;</span>, <span class="self">self</span>.read_state())
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#108">f</a>, <span class="string">&quot;StateCell({:?})&quot;</span>, <span class="self">self</span>.read_state())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
+<span class="kw">impl </span><a href="#88">StateCell</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            state: AtomicU64::new(<a href="../../../../src/tokio/time/driver/entry.rs.html#73">STATE_DEREGISTERED</a>),
+            state: AtomicU64::new(<a href="#73">STATE_DEREGISTERED</a>),
             result: UnsafeCell::new(<span class="prelude-val">Ok</span>(())),
-            waker: <a href="../../../../src/tokio/time/driver/entry.rs.html#633">CachePadded</a>(AtomicWaker::new()),
+            waker: <a href="#640">CachePadded</a>(AtomicWaker::new()),
         }
     }
 
     <span class="kw">fn </span>is_pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#122">self</a>.state.load(Ordering::Relaxed) == <a href="../../../../src/tokio/time/driver/entry.rs.html#74">STATE_PENDING_FIRE</a>
+        <a class="self" href="#122">self</a>.state.load(Ordering::Relaxed) == <a href="#74">STATE_PENDING_FIRE</a>
     }
 
     <span class="doccomment">/// Returns the current expiration time, or None if not currently scheduled.
     </span><span class="kw">fn </span>when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>cur_state = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#127">self</a>.state.load(Ordering::Relaxed);
+        <span class="kw">let </span>cur_state = <a class="self" href="#127">self</a>.state.load(Ordering::Relaxed);
 
         <span class="kw">if </span>cur_state == u64::MAX {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/time/driver/entry.rs.html#128">cur_state</a>)
+            <span class="prelude-val">Some</span>(<a href="#128">cur_state</a>)
         }
     }
 
     <span class="doccomment">/// If the timer is completed, returns the result of the timer. Otherwise,
     /// returns None and registers the waker.
-    </span><span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; Poll&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a>&gt; {
+    </span><span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; Poll&lt;<a href="#71">TimerResult</a>&gt; {
         <span class="comment">// We must register first. This ensures that either `fire` will
         // observe the new waker, or we will observe a racing fire to have set
         // the state, or both.
-        </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#139">self</a>.waker.<span class="number">0</span>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#139">waker</a>);
+        </span><a class="self" href="#139">self</a>.waker.<span class="number">0</span>.<a href="../../sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="#139">waker</a>);
 
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#139">self</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#148">read_state</a>()
+        <a class="self" href="#139">self</a>.<a href="#148">read_state</a>()
     }
 
-    <span class="kw">fn </span>read_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Poll&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a>&gt; {
-        <span class="kw">let </span>cur_state = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#148">self</a>.state.load(Ordering::Acquire);
+    <span class="kw">fn </span>read_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Poll&lt;<a href="#71">TimerResult</a>&gt; {
+        <span class="kw">let </span>cur_state = <a class="self" href="#148">self</a>.state.load(Ordering::Acquire);
 
         <span class="kw">if </span>cur_state == STATE_DEREGISTERED {
             <span class="comment">// SAFETY: The driver has fired this timer; this involves writing
             // the result, and then writing (with release ordering) the state
             // field.
-            </span>Poll::Ready(<span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#148">self</a>.result.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|p| <span class="kw-2">*</span><a href="../../../../src/tokio/time/driver/entry.rs.html#155">p</a>) })
+            </span>Poll::Ready(<span class="kw">unsafe </span>{ <a class="self" href="#148">self</a>.result.<a href="../../loom/std/unsafe_cell.rs.html#9">with</a>(|p| <span class="kw-2">*</span><a href="#155">p</a>) })
         } <span class="kw">else </span>{
             Poll::Pending
         }
@@ -803,18 +810,18 @@
         // firing the timer can only happen with the driver lock held, we know
         // we shouldn&#39;t be able to &quot;miss&quot; a transition to a fired state, even
         // with relaxed ordering.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>cur_state = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#168">self</a>.state.load(Ordering::Relaxed);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>cur_state = <a class="self" href="#168">self</a>.state.load(Ordering::Relaxed);
 
         <span class="kw">loop </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(cur_state &lt; STATE_MIN_VALUE);
 
             <span class="kw">if </span>cur_state &gt; not_after {
-                <span class="kw">break </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/time/driver/entry.rs.html#173">cur_state</a>);
+                <span class="kw">break </span><span class="prelude-val">Err</span>(<a href="#173">cur_state</a>);
             }
 
-            <span class="kw">match </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#168">self</a>.state.compare_exchange(
-                <a href="../../../../src/tokio/time/driver/entry.rs.html#173">cur_state</a>,
-                <a href="../../../../src/tokio/time/driver/entry.rs.html#74">STATE_PENDING_FIRE</a>,
+            <span class="kw">match </span><a class="self" href="#168">self</a>.state.compare_exchange(
+                <a href="#173">cur_state</a>,
+                <a href="#74">STATE_PENDING_FIRE</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
@@ -822,7 +829,7 @@
                     <span class="kw">break </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="prelude-val">Err</span>(actual_state) =&gt; {
-                    <a href="../../../../src/tokio/time/driver/entry.rs.html#173">cur_state</a> = <a href="../../../../src/tokio/time/driver/entry.rs.html#191">actual_state</a>;
+                    <a href="#173">cur_state</a> = <a href="#191">actual_state</a>;
                 }
             }
         }
@@ -837,12 +844,12 @@
     ///   already fired
     ///
     /// SAFETY: The driver lock must be held.
-    </span><span class="kw">unsafe fn </span>fire(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <a href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
+    </span><span class="kw">unsafe fn </span>fire(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <a href="#71">TimerResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
         <span class="comment">// Quick initial check to see if the timer is already fired. Since
         // firing the timer can only happen with the driver lock held, we know
         // we shouldn&#39;t be able to &quot;miss&quot; a transition to a fired state, even
         // with relaxed ordering.
-        </span><span class="kw">let </span>cur_state = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#207">self</a>.state.load(Ordering::Relaxed);
+        </span><span class="kw">let </span>cur_state = <a class="self" href="#207">self</a>.state.load(Ordering::Relaxed);
         <span class="kw">if </span>cur_state == STATE_DEREGISTERED {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -852,11 +859,11 @@
         //
         // We perform a release-ordered store to state below, to ensure this
         // write is visible before the state update is visible.
-        </span><span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#207">self</a>.result.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|p| <span class="kw-2">*</span><a href="../../../../src/tokio/time/driver/entry.rs.html#222">p</a> = <a href="../../../../src/tokio/time/driver/entry.rs.html#207">result</a>) };
+        </span><span class="kw">unsafe </span>{ <a class="self" href="#207">self</a>.result.<a href="../../loom/std/unsafe_cell.rs.html#13">with_mut</a>(|p| <span class="kw-2">*</span><a href="#222">p</a> = <a href="#207">result</a>) };
 
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#207">self</a>.state.store(<a href="../../../../src/tokio/time/driver/entry.rs.html#73">STATE_DEREGISTERED</a>, Ordering::Release);
+        <a class="self" href="#207">self</a>.state.store(<a href="#73">STATE_DEREGISTERED</a>, Ordering::Release);
 
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#207">self</a>.waker.<span class="number">0</span>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">take_waker</a>()
+        <a class="self" href="#207">self</a>.waker.<span class="number">0</span>.<a href="../../sync/task/atomic_waker.rs.html#313">take_waker</a>()
     }
 
     <span class="doccomment">/// Marks the timer as registered (poll will return None) and sets the
@@ -869,7 +876,7 @@
 
         <span class="comment">// We can use relaxed ordering because we hold the driver lock and will
         // fence when we release the lock.
-        </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#234">self</a>.state.store(<a href="../../../../src/tokio/time/driver/entry.rs.html#234">timestamp</a>, Ordering::Relaxed);
+        </span><a class="self" href="#234">self</a>.state.store(<a href="#234">timestamp</a>, Ordering::Relaxed);
     }
 
     <span class="doccomment">/// Attempts to adjust the timer to a new timestamp.
@@ -879,15 +886,15 @@
     /// spuriously) returns Err without changing the timer&#39;s state. In this
     /// case, the timer must be deregistered and re-registered.
     </span><span class="kw">fn </span>extend_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, new_timestamp: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>prior = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#248">self</a>.state.load(Ordering::Relaxed);
+        <span class="kw">let </span><span class="kw-2">mut </span>prior = <a class="self" href="#248">self</a>.state.load(Ordering::Relaxed);
         <span class="kw">loop </span>{
             <span class="kw">if </span>new_timestamp &lt; prior || prior &gt;= STATE_MIN_VALUE {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(());
             }
 
-            <span class="kw">match </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#248">self</a>.state.compare_exchange_weak(
-                <a href="../../../../src/tokio/time/driver/entry.rs.html#249">prior</a>,
-                <a href="../../../../src/tokio/time/driver/entry.rs.html#248">new_timestamp</a>,
+            <span class="kw">match </span><a class="self" href="#248">self</a>.state.compare_exchange_weak(
+                <a href="#249">prior</a>,
+                <a href="#248">new_timestamp</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
@@ -895,7 +902,7 @@
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="prelude-val">Err</span>(true_prior) =&gt; {
-                    <a href="../../../../src/tokio/time/driver/entry.rs.html#249">prior</a> = <a href="../../../../src/tokio/time/driver/entry.rs.html#264">true_prior</a>;
+                    <a href="#249">prior</a> = <a href="#264">true_prior</a>;
                 }
             }
         }
@@ -906,7 +913,7 @@
     /// ordering, but is conservative - if it returns false, the timer is
     /// definitely _not_ registered.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>might_be_registered(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#275">self</a>.state.load(Ordering::Relaxed) != u64::MAX
+        <a class="self" href="#275">self</a>.state.load(Ordering::Relaxed) != u64::MAX
     }
 }
 
@@ -919,23 +926,23 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>TimerEntry {
     <span class="doccomment">/// Arc reference to the driver. We can only free the driver after
     /// deregistering everything from their respective timer wheels.
-    </span>driver: <a href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>,
+    </span>driver: <a href="handle.rs.html#7">Handle</a>,
     <span class="doccomment">/// Shared inner structure; this is part of an intrusive linked list, and
     /// therefore other references can exist to it while mutable references to
     /// Entry exist.
     ///
     /// This is manipulated only under the inner mutex. TODO: Can we use loom
     /// cells for this?
-    </span>inner: StdUnsafeCell&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>&gt;,
+    </span>inner: StdUnsafeCell&lt;<a href="#330">TimerShared</a>&gt;,
     <span class="doccomment">/// Initial deadline for the timer. This is used to register on the first
     /// poll, as we can&#39;t register prior to being pinned.
-    </span>initial_deadline: <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>&gt;,
+    </span>initial_deadline: <span class="prelude-ty">Option</span>&lt;<a href="../instant.rs.html#34">Instant</a>&gt;,
     <span class="doccomment">/// Ensure the type is !Unpin
     </span>_m: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">std::marker::PhantomPinned</a>,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#286">TimerEntry</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#286">TimerEntry</a> {}
 
 <span class="doccomment">/// An TimerHandle is the (non-enforced) &quot;unique&quot; pointer from the driver to the
 /// timer entry. Generally, at most one TimerHandle exists for a timer at a time
@@ -949,34 +956,42 @@
 /// memory safety, all operations are unsafe.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TimerHandle {
-    inner: NonNull&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>&gt;,
+    inner: NonNull&lt;<a href="#330">TimerShared</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>EntryList = <span class="kw">crate</span>::util::linked_list::LinkedList&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>, <a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>&gt;;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>EntryList = <span class="kw">crate</span>::util::linked_list::LinkedList&lt;<a href="#330">TimerShared</a>, <a href="#330">TimerShared</a>&gt;;
 
 <span class="doccomment">/// The shared state structure of a timer. This structure is shared between the
 /// frontend (`Entry`) and driver backend.
 ///
 /// Note that this structure is located inside the `TimerEntry` structure.
 </span><span class="attribute">#[derive(Debug)]
-#[repr(C)] </span><span class="comment">// required by `link_list::Link` impl
+#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TimerShared {
     <span class="doccomment">/// Data manipulated by the driver thread itself, only.
-    </span>driver_state: CachePadded&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a>&gt;,
+    </span>driver_state: CachePadded&lt;<a href="#432">TimerSharedPadded</a>&gt;,
 
     <span class="doccomment">/// Current state. This records whether the timer entry is currently under
     /// the ownership of the driver, and if not, its current state (not
     /// complete, fired, error, etc).
-    </span>state: <a href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a>,
+    </span>state: <a href="#88">StateCell</a>,
 
     _p: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
+<a class="macro" href="../../macros/addr_of.rs.html#5-23">generate_addr_of_methods! </a>{
+    <span class="kw">impl</span>&lt;&gt; <a href="#330">TimerShared</a> {
+        <span class="kw">unsafe fn </span>addr_of_pointers(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;TimerShared&gt;&gt; {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.driver_state.<span class="number">0</span>.pointers
+        }
+    }
+}
+
+<span class="kw">impl </span><a href="#330">TimerShared</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             state: StateCell::default(),
-            driver_state: <a href="../../../../src/tokio/time/driver/entry.rs.html#633">CachePadded</a>(TimerSharedPadded::new()),
+            driver_state: <a href="#640">CachePadded</a>(TimerSharedPadded::new()),
             _p: PhantomPinned,
         }
     }
@@ -984,7 +999,7 @@
     <span class="doccomment">/// Gets the cached time-of-expiration value.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>cached_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="comment">// Cached-when is only accessed under the driver lock, so we can use relaxed
-        </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#352">self</a>.driver_state.<span class="number">0</span>.cached_when.load(Ordering::Relaxed)
+        </span><a class="self" href="#360">self</a>.driver_state.<span class="number">0</span>.cached_when.load(Ordering::Relaxed)
     }
 
     <span class="doccomment">/// Gets the true time-of-expiration value, and copies it into the cached
@@ -993,14 +1008,14 @@
     /// SAFETY: Must be called with the driver lock held, and when this entry is
     /// not in any timer wheel lists.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>sync_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span>true_when = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#362">self</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#385">true_when</a>();
+        <span class="kw">let </span>true_when = <a class="self" href="#370">self</a>.<a href="#393">true_when</a>();
 
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#362">self</a>.driver_state
+        <a class="self" href="#370">self</a>.driver_state
             .<span class="number">0
             </span>.cached_when
-            .store(<a href="../../../../src/tokio/time/driver/entry.rs.html#363">true_when</a>, Ordering::Relaxed);
+            .store(<a href="#371">true_when</a>, Ordering::Relaxed);
 
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#363">true_when</a>
+        <a href="#371">true_when</a>
     }
 
     <span class="doccomment">/// Sets the cached time-of-expiration value.
@@ -1008,15 +1023,15 @@
     /// SAFETY: Must be called with the driver lock held, and when this entry is
     /// not in any timer wheel lists.
     </span><span class="kw">unsafe fn </span>set_cached_when(<span class="kw-2">&amp;</span><span class="self">self</span>, when: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#377">self</a>.driver_state
+        <a class="self" href="#385">self</a>.driver_state
             .<span class="number">0
             </span>.cached_when
-            .store(<a href="../../../../src/tokio/time/driver/entry.rs.html#377">when</a>, Ordering::Relaxed);
+            .store(<a href="#385">when</a>, Ordering::Relaxed);
     }
 
     <span class="doccomment">/// Returns the true time-of-expiration value, with relaxed memory ordering.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>true_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#385">self</a>.state.<a href="../../../../src/tokio/time/driver/entry.rs.html#127">when</a>().expect(<span class="string">&quot;Timer already fired&quot;</span>)
+        <a class="self" href="#393">self</a>.state.<a href="#127">when</a>().expect(<span class="string">&quot;Timer already fired&quot;</span>)
     }
 
     <span class="doccomment">/// Sets the true time-of-expiration value, even if it is less than the
@@ -1025,19 +1040,19 @@
     /// SAFETY: Must only be called with the driver lock held and the entry not
     /// in the timer wheel.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, t: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#394">self</a>.state.<a href="../../../../src/tokio/time/driver/entry.rs.html#234">set_expiration</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#394">t</a>);
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#394">self</a>.driver_state.<span class="number">0</span>.cached_when.store(<a href="../../../../src/tokio/time/driver/entry.rs.html#394">t</a>, Ordering::Relaxed);
+        <a class="self" href="#402">self</a>.state.<a href="#234">set_expiration</a>(<a href="#402">t</a>);
+        <a class="self" href="#402">self</a>.driver_state.<span class="number">0</span>.cached_when.store(<a href="#402">t</a>, Ordering::Relaxed);
     }
 
     <span class="doccomment">/// Sets the true time-of-expiration only if it is after the current.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>extend_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, t: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#400">self</a>.state.<a href="../../../../src/tokio/time/driver/entry.rs.html#248">extend_expiration</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#400">t</a>)
+        <a class="self" href="#408">self</a>.state.<a href="#248">extend_expiration</a>(<a href="#408">t</a>)
     }
 
     <span class="doccomment">/// Returns a TimerHandle for this timer.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
-            inner: NonNull::from(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#405">self</a>),
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#318">TimerHandle</a> {
+        <a href="#318">TimerHandle</a> {
+            inner: NonNull::from(<a class="self" href="#413">self</a>),
         }
     }
 
@@ -1046,7 +1061,7 @@
     /// ordering, but is conservative - if it returns false, the timer is
     /// definitely _not_ registered.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>might_be_registered(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#415">self</a>.state.<a href="../../../../src/tokio/time/driver/entry.rs.html#275">might_be_registered</a>()
+        <a class="self" href="#423">self</a>.state.<a href="#275">might_be_registered</a>()
     }
 }
 
@@ -1054,13 +1069,12 @@
 /// padded. This contains the information that the driver thread accesses most
 /// frequently to minimize contention. In particular, we move it away from the
 /// waker, as the waker is updated on every poll.
-</span><span class="attribute">#[repr(C)] </span><span class="comment">// required by `link_list::Link` impl
 </span><span class="kw">struct </span>TimerSharedPadded {
     <span class="doccomment">/// A link within the doubly-linked list of timers on a particular level and
     /// slot. Valid only if state is equal to Registered.
     ///
     /// Only accessed under the entry lock.
-    </span>pointers: linked_list::Pointers&lt;<a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>&gt;,
+    </span>pointers: linked_list::Pointers&lt;<a href="#330">TimerShared</a>&gt;,
 
     <span class="doccomment">/// The expiration time for which this entry is currently registered.
     /// Generally owned by the driver, but is accessed by the entry when not
@@ -1071,16 +1085,16 @@
     </span>true_when: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="#432">TimerSharedPadded</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#442">f</a>.debug_struct(<span class="string">&quot;TimerSharedPadded&quot;</span>)
-            .field(<span class="string">&quot;when&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#442">self</a>.true_when.load(Ordering::Relaxed))
-            .field(<span class="string">&quot;cached_when&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#442">self</a>.cached_when.load(Ordering::Relaxed))
+        <a href="#449">f</a>.debug_struct(<span class="string">&quot;TimerSharedPadded&quot;</span>)
+            .field(<span class="string">&quot;when&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#449">self</a>.true_when.load(Ordering::Relaxed))
+            .field(<span class="string">&quot;cached_when&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#449">self</a>.cached_when.load(Ordering::Relaxed))
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a> {
+<span class="kw">impl </span><a href="#432">TimerSharedPadded</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             cached_when: AtomicU64::new(<span class="number">0</span>),
@@ -1090,49 +1104,49 @@
     }
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#330">TimerShared</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#330">TimerShared</a> {}
 
-<span class="kw">unsafe impl </span><a href="../../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
-    <span class="kw">type </span>Handle = <a href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a>;
+<span class="kw">unsafe impl </span><a href="../../util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="#330">TimerShared</a> {
+    <span class="kw">type </span>Handle = <a href="#318">TimerHandle</a>;
 
-    <span class="kw">type </span>Target = <a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>;
+    <span class="kw">type </span>Target = <a href="#330">TimerShared</a>;
 
     <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;<span class="self">Self</span>::Target&gt; {
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#468">handle</a>.inner
+        <a href="#475">handle</a>.inner
     }
 
     <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<span class="self">Self</span>::Target&gt;) -&gt; <span class="self">Self</span>::Handle {
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> { inner: <a href="../../../../src/tokio/time/driver/entry.rs.html#472">ptr</a> }
+        <a href="#318">TimerHandle</a> { inner: <a href="#479">ptr</a> }
     }
 
     <span class="kw">unsafe fn </span>pointers(
         target: NonNull&lt;<span class="self">Self</span>::Target&gt;,
     ) -&gt; NonNull&lt;linked_list::Pointers&lt;<span class="self">Self</span>::Target&gt;&gt; {
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#477">target</a>.cast()
+        TimerShared::addr_of_pointers(<a href="#484">target</a>)
     }
 }
 
 <span class="comment">// ===== impl Entry =====
 
-</span><span class="kw">impl </span><a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(handle: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>, deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>driver = <a href="../../../../src/tokio/time/driver/entry.rs.html#486">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+</span><span class="kw">impl </span><a href="#286">TimerEntry</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(handle: <span class="kw-2">&amp;</span><a href="handle.rs.html#7">Handle</a>, deadline: <a href="../instant.rs.html#34">Instant</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>driver = <a href="#493">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
         <span class="self">Self </span>{
-            <a href="../../../../src/tokio/time/driver/entry.rs.html#487">driver</a>,
+            <a href="#494">driver</a>,
             inner: StdUnsafeCell::new(TimerShared::new()),
-            initial_deadline: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/time/driver/entry.rs.html#486">deadline</a>),
+            initial_deadline: <span class="prelude-val">Some</span>(<a href="#493">deadline</a>),
             _m: std::marker::PhantomPinned,
         }
     }
 
-    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#497">self</a>.inner.get() }
+    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#330">TimerShared</a> {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#504">self</a>.inner.get() }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#501">self</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#497">inner</a>().state.<a href="../../../../src/tokio/time/driver/entry.rs.html#275">might_be_registered</a>() &amp;&amp; <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#501">self</a>.initial_deadline.is_none()
+        !<a class="self" href="#508">self</a>.<a href="#504">inner</a>().state.<a href="#275">might_be_registered</a>() &amp;&amp; <a class="self" href="#508">self</a>.initial_deadline.is_none()
     }
 
     <span class="doccomment">/// Cancels and deregisters the timer. This operation is irreversible.
@@ -1159,52 +1173,52 @@
         // driver did so far and happens-before everything the driver does in
         // the future. While we have the lock held, we also go ahead and
         // deregister the entry if necessary.
-        </span><span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#506">self</a>.driver.<a href="../../../../src/tokio/time/driver/mod.rs.html#355">clear_entry</a>(NonNull::from(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#506">self</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#497">inner</a>())) };
+        </span><span class="kw">unsafe </span>{ <a class="self" href="#513">self</a>.driver.<a href="mod.rs.html#355">clear_entry</a>(NonNull::from(<a class="self" href="#513">self</a>.<a href="#504">inner</a>())) };
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, new_time: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
-        <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.as_mut().get_unchecked_mut() }.initial_deadline = <span class="prelude-val">None</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, new_time: <a href="../instant.rs.html#34">Instant</a>) {
+        <span class="kw">unsafe </span>{ <a class="self" href="#539">self</a>.as_mut().get_unchecked_mut() }.initial_deadline = <span class="prelude-val">None</span>;
 
-        <span class="kw">let </span>tick = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.driver.<a href="../../../../src/tokio/time/driver/handle.rs.html#20">time_source</a>().<a href="../../../../src/tokio/time/driver/mod.rs.html#120">deadline_to_tick</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#532">new_time</a>);
+        <span class="kw">let </span>tick = <a class="self" href="#539">self</a>.driver.<a href="handle.rs.html#20">time_source</a>().<a href="mod.rs.html#120">deadline_to_tick</a>(<a href="#539">new_time</a>);
 
         <span class="kw">if </span><span class="self">self</span>.inner().extend_expiration(tick).is_ok() {
             <span class="kw">return</span>;
         }
 
         <span class="kw">unsafe </span>{
-            <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.driver.<a href="../../../../src/tokio/time/driver/mod.rs.html#373">reregister</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#535">tick</a>, <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#497">inner</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <a class="self" href="#539">self</a>.driver.<a href="mod.rs.html#373">reregister</a>(<a href="#542">tick</a>, <a class="self" href="#539">self</a>.<a href="#504">inner</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_elapsed(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/tokio/time/error.rs.html#27"><span class="kw">super</span>::Error</a>&gt;&gt; {
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#27"><span class="kw">super</span>::Error</a>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.driver.is_shutdown() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::RUNTIME_SHUTTING_DOWN_ERROR);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#547">self</a>.initial_deadline {
-            <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#547">self</a>.as_mut().<a href="../../../../src/tokio/time/driver/entry.rs.html#532">reset</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#554">deadline</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = <a class="self" href="#554">self</a>.initial_deadline {
+            <a class="self" href="#554">self</a>.as_mut().<a href="#539">reset</a>(<a href="#561">deadline</a>);
         }
 
-        <span class="kw">let </span>this = <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#547">self</a>.get_unchecked_mut() };
+        <span class="kw">let </span>this = <span class="kw">unsafe </span>{ <a class="self" href="#554">self</a>.get_unchecked_mut() };
 
-        <a href="../../../../src/tokio/time/driver/entry.rs.html#558">this</a>.<a href="../../../../src/tokio/time/driver/entry.rs.html#497">inner</a>().state.<a href="../../../../src/tokio/time/driver/entry.rs.html#139">poll</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#548">cx</a>.waker())
+        <a href="#565">this</a>.<a href="#504">inner</a>().state.<a href="#139">poll</a>(<a href="#555">cx</a>.waker())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
+<span class="kw">impl </span><a href="#318">TimerHandle</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>cached_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#565">self</a>.inner.as_ref().<a href="../../../../src/tokio/time/driver/entry.rs.html#352">cached_when</a>() }
+        <span class="kw">unsafe </span>{ <a class="self" href="#572">self</a>.inner.as_ref().<a href="#360">cached_when</a>() }
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>sync_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#569">self</a>.inner.as_ref().<a href="../../../../src/tokio/time/driver/entry.rs.html#362">sync_when</a>() }
+        <span class="kw">unsafe </span>{ <a class="self" href="#576">self</a>.inner.as_ref().<a href="#370">sync_when</a>() }
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>is_pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#573">self</a>.inner.as_ref().state.<a href="../../../../src/tokio/time/driver/entry.rs.html#122">is_pending</a>() }
+        <span class="kw">unsafe </span>{ <a class="self" href="#580">self</a>.inner.as_ref().state.<a href="#122">is_pending</a>() }
     }
 
     <span class="doccomment">/// Forcibly sets the true and cached expiration times to the given tick.
@@ -1212,7 +1226,7 @@
     /// SAFETY: The caller must ensure that the handle remains valid, the driver
     /// lock is held, and that the timer is not in any wheel linked lists.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, tick: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#581">self</a>.inner.as_ref().<a href="../../../../src/tokio/time/driver/entry.rs.html#394">set_expiration</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#581">tick</a>);
+        <a class="self" href="#588">self</a>.inner.as_ref().<a href="#402">set_expiration</a>(<a href="#588">tick</a>);
     }
 
     <span class="doccomment">/// Attempts to mark this entry as pending. If the expiration time is after
@@ -1225,15 +1239,15 @@
     /// lock is held, and that the timer is not in any wheel linked lists.
     /// After returning Ok, the entry must be added to the pending list.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>mark_pending(<span class="kw-2">&amp;</span><span class="self">self</span>, not_after: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#594">self</a>.inner.as_ref().state.<a href="../../../../src/tokio/time/driver/entry.rs.html#168">mark_pending</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#594">not_after</a>) {
+        <span class="kw">match </span><a class="self" href="#601">self</a>.inner.as_ref().state.<a href="#168">mark_pending</a>(<a href="#601">not_after</a>) {
             <span class="prelude-val">Ok</span>(()) =&gt; {
                 <span class="comment">// mark this as being on the pending queue in cached_when
-                </span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#594">self</a>.inner.as_ref().<a href="../../../../src/tokio/time/driver/entry.rs.html#377">set_cached_when</a>(u64::MAX);
+                </span><a class="self" href="#601">self</a>.inner.as_ref().<a href="#385">set_cached_when</a>(u64::MAX);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="prelude-val">Err</span>(tick) =&gt; {
-                <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#594">self</a>.inner.as_ref().<a href="../../../../src/tokio/time/driver/entry.rs.html#377">set_cached_when</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#601">tick</a>);
-                <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/time/driver/entry.rs.html#601">tick</a>)
+                <a class="self" href="#601">self</a>.inner.as_ref().<a href="#385">set_cached_when</a>(<a href="#608">tick</a>);
+                <span class="prelude-val">Err</span>(<a href="#608">tick</a>)
             }
         }
     }
@@ -1249,14 +1263,14 @@
     ///
     /// SAFETY: The driver lock must be held while invoking this function, and
     /// the entry must not be in any wheel linked lists.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>fire(<span class="self">self</span>, completed_state: <a href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
-        <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#619">self</a>.inner.as_ref().state.<a href="../../../../src/tokio/time/driver/entry.rs.html#207">fire</a>(<a href="../../../../src/tokio/time/driver/entry.rs.html#619">completed_state</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>fire(<span class="self">self</span>, completed_state: <a href="#71">TimerResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
+        <a class="self" href="#626">self</a>.inner.as_ref().state.<a href="#207">fire</a>(<a href="#626">completed_state</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#286">TimerEntry</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#625">self</a>) }.as_mut().<a href="../../../../src/tokio/time/driver/entry.rs.html#506">cancel</a>()
+        <span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="#632">self</a>) }.as_mut().<a href="#513">cancel</a>()
     }
 }
 
@@ -1265,4 +1279,4 @@
 #[derive(Debug, Default)]
 </span><span class="kw">struct </span>CachePadded&lt;T&gt;(T);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

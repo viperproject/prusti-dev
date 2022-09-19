@@ -1190,11 +1190,11 @@
     </span><span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if </span><span class="self">self</span>.queue.close() {
             <span class="comment">// Notify all send operations.
-            </span><a class="self" href="../../src/async_channel/lib.rs.html#70">self</a>.send_ops.notify(usize::MAX);
+            </span><a class="self" href="#70">self</a>.send_ops.notify(usize::MAX);
 
             <span class="comment">// Notify all receive and stream operations.
-            </span><a class="self" href="../../src/async_channel/lib.rs.html#70">self</a>.recv_ops.notify(usize::MAX);
-            <a class="self" href="../../src/async_channel/lib.rs.html#70">self</a>.stream_ops.notify(usize::MAX);
+            </span><a class="self" href="#70">self</a>.recv_ops.notify(usize::MAX);
+            <a class="self" href="#70">self</a>.stream_ops.notify(usize::MAX);
 
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
@@ -1229,8 +1229,8 @@
 </span><span class="kw">pub fn </span>bounded&lt;T&gt;(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity cannot be zero&quot;</span>);
 
-    <span class="kw">let </span>channel = Arc::new(<a href="../../src/async_channel/lib.rs.html#46">Channel</a> {
-        queue: ConcurrentQueue::bounded(<a href="../../src/async_channel/lib.rs.html#109">cap</a>),
+    <span class="kw">let </span>channel = Arc::new(<a href="#46">Channel</a> {
+        queue: ConcurrentQueue::bounded(<a href="#109">cap</a>),
         send_ops: Event::new(),
         recv_ops: Event::new(),
         stream_ops: Event::new(),
@@ -1238,14 +1238,14 @@
         receiver_count: AtomicUsize::new(<span class="number">1</span>),
     });
 
-    <span class="kw">let </span>s = <a href="../../src/async_channel/lib.rs.html#177">Sender</a> {
-        channel: <a href="../../src/async_channel/lib.rs.html#112">channel</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>s = <a href="#177">Sender</a> {
+        channel: <a href="#112">channel</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
     };
-    <span class="kw">let </span>r = <a href="../../src/async_channel/lib.rs.html#471">Receiver</a> {
-        <a href="../../src/async_channel/lib.rs.html#112">channel</a>,
+    <span class="kw">let </span>r = <a href="#471">Receiver</a> {
+        <a href="#112">channel</a>,
         listener: <span class="prelude-val">None</span>,
     };
-    (<a href="../../src/async_channel/lib.rs.html#121">s</a>, <a href="../../src/async_channel/lib.rs.html#124">r</a>)
+    (<a href="#121">s</a>, <a href="#124">r</a>)
 }
 
 <span class="doccomment">/// Creates an unbounded channel.
@@ -1269,7 +1269,7 @@
 /// # });
 /// ```
 </span><span class="kw">pub fn </span>unbounded&lt;T&gt;() -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
-    <span class="kw">let </span>channel = Arc::new(<a href="../../src/async_channel/lib.rs.html#46">Channel</a> {
+    <span class="kw">let </span>channel = Arc::new(<a href="#46">Channel</a> {
         queue: ConcurrentQueue::unbounded(),
         send_ops: Event::new(),
         recv_ops: Event::new(),
@@ -1278,14 +1278,14 @@
         receiver_count: AtomicUsize::new(<span class="number">1</span>),
     });
 
-    <span class="kw">let </span>s = <a href="../../src/async_channel/lib.rs.html#177">Sender</a> {
-        channel: <a href="../../src/async_channel/lib.rs.html#152">channel</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>s = <a href="#177">Sender</a> {
+        channel: <a href="#152">channel</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
     };
-    <span class="kw">let </span>r = <a href="../../src/async_channel/lib.rs.html#471">Receiver</a> {
-        <a href="../../src/async_channel/lib.rs.html#152">channel</a>,
+    <span class="kw">let </span>r = <a href="#471">Receiver</a> {
+        <a href="#152">channel</a>,
         listener: <span class="prelude-val">None</span>,
     };
-    (<a href="../../src/async_channel/lib.rs.html#161">s</a>, <a href="../../src/async_channel/lib.rs.html#164">r</a>)
+    (<a href="#161">s</a>, <a href="#164">r</a>)
 }
 
 <span class="doccomment">/// The sending side of a channel.
@@ -1318,20 +1318,20 @@
     /// assert_eq!(s.try_send(3), Err(TrySendError::Closed(3)));
     /// ```
     </span><span class="kw">pub fn </span>try_send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#200">self</a>.channel.queue.push(<a href="../../src/async_channel/lib.rs.html#200">msg</a>) {
+        <span class="kw">match </span><a class="self" href="#200">self</a>.channel.queue.push(<a href="#200">msg</a>) {
             <span class="prelude-val">Ok</span>(()) =&gt; {
                 <span class="comment">// Notify a single blocked receive operation. If the notified operation then
                 // receives a message or gets canceled, it will notify another blocked receive
                 // operation.
-                </span><a class="self" href="../../src/async_channel/lib.rs.html#200">self</a>.channel.recv_ops.notify(<span class="number">1</span>);
+                </span><a class="self" href="#200">self</a>.channel.recv_ops.notify(<span class="number">1</span>);
 
                 <span class="comment">// Notify all blocked streams.
-                </span><a class="self" href="../../src/async_channel/lib.rs.html#200">self</a>.channel.stream_ops.notify(usize::MAX);
+                </span><a class="self" href="#200">self</a>.channel.stream_ops.notify(usize::MAX);
 
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">Err</span>(PushError::Full(msg)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(<a href="../../src/async_channel/lib.rs.html#213">msg</a>)),
-            <span class="prelude-val">Err</span>(PushError::Closed(msg)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(<a href="../../src/async_channel/lib.rs.html#214">msg</a>)),
+            <span class="prelude-val">Err</span>(PushError::Full(msg)) =&gt; <span class="prelude-val">Err</span>(<a href="#845">TrySendError::Full</a>(<a href="#213">msg</a>)),
+            <span class="prelude-val">Err</span>(PushError::Closed(msg)) =&gt; <span class="prelude-val">Err</span>(<a href="#848">TrySendError::Closed</a>(<a href="#214">msg</a>)),
         }
     }
 
@@ -1355,10 +1355,10 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; Send&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="../../src/async_channel/lib.rs.html#953">Send</a> {
-            sender: <a class="self" href="../../src/async_channel/lib.rs.html#237">self</a>,
+        <a href="#953">Send</a> {
+            sender: <a class="self" href="#237">self</a>,
             listener: <span class="prelude-val">None</span>,
-            msg: <span class="prelude-val">Some</span>(<a href="../../src/async_channel/lib.rs.html#237">msg</a>),
+            msg: <span class="prelude-val">Some</span>(<a href="#237">msg</a>),
         }
     }
 
@@ -1388,7 +1388,7 @@
     /// assert_eq!(s.send_blocking(2), Err(SendError(2)));
     /// ```
     </span><span class="kw">pub fn </span>send_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#270">self</a>.<a href="../../src/async_channel/lib.rs.html#237">send</a>(<a href="../../src/async_channel/lib.rs.html#270">msg</a>).<a href="../../src/async_channel/lib.rs.html#999">wait</a>()
+        <a class="self" href="#270">self</a>.<a href="#237">send</a>(<a href="#270">msg</a>).<a href="#999">wait</a>()
     }
 
     <span class="doccomment">/// Closes the channel.
@@ -1412,7 +1412,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#294">self</a>.channel.<a href="../../src/async_channel/lib.rs.html#70">close</a>()
+        <a class="self" href="#294">self</a>.channel.<a href="#70">close</a>()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is closed.
@@ -1431,7 +1431,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#313">self</a>.channel.queue.is_closed()
+        <a class="self" href="#313">self</a>.channel.queue.is_closed()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is empty.
@@ -1450,7 +1450,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#332">self</a>.channel.queue.is_empty()
+        <a class="self" href="#332">self</a>.channel.queue.is_empty()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is full.
@@ -1471,7 +1471,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#353">self</a>.channel.queue.is_full()
+        <a class="self" href="#353">self</a>.channel.queue.is_full()
     }
 
     <span class="doccomment">/// Returns the number of messages in the channel.
@@ -1491,7 +1491,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#373">self</a>.channel.queue.len()
+        <a class="self" href="#373">self</a>.channel.queue.len()
     }
 
     <span class="doccomment">/// Returns the channel capacity if it&#39;s bounded.
@@ -1508,7 +1508,7 @@
     /// assert_eq!(s.capacity(), None);
     /// ```
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#390">self</a>.channel.queue.capacity()
+        <a class="self" href="#390">self</a>.channel.queue.capacity()
     }
 
     <span class="doccomment">/// Returns the number of receivers for the channel.
@@ -1527,7 +1527,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>receiver_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#409">self</a>.channel.receiver_count.load(Ordering::SeqCst)
+        <a class="self" href="#409">self</a>.channel.receiver_count.load(Ordering::SeqCst)
     }
 
     <span class="doccomment">/// Returns the number of senders for the channel.
@@ -1546,7 +1546,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>sender_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#428">self</a>.channel.sender_count.load(Ordering::SeqCst)
+        <a class="self" href="#428">self</a>.channel.sender_count.load(Ordering::SeqCst)
     }
 }
 
@@ -1554,28 +1554,28 @@
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Decrement the sender count and close the channel if it drops down to zero.
         </span><span class="kw">if </span><span class="self">self</span>.channel.sender_count.fetch_sub(<span class="number">1</span>, Ordering::AcqRel) == <span class="number">1 </span>{
-            <a class="self" href="../../src/async_channel/lib.rs.html#434">self</a>.channel.<a href="../../src/async_channel/lib.rs.html#70">close</a>();
+            <a class="self" href="#434">self</a>.channel.<a href="#70">close</a>();
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#443">f</a>, <span class="string">&quot;Sender {{ .. }}&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#443">f</a>, <span class="string">&quot;Sender {{ .. }}&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sender&lt;T&gt; {
-        <span class="kw">let </span>count = <a class="self" href="../../src/async_channel/lib.rs.html#449">self</a>.channel.sender_count.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+        <span class="kw">let </span>count = <a class="self" href="#449">self</a>.channel.sender_count.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
 
         <span class="comment">// Make sure the count never overflows, even if lots of sender clones are leaked.
         </span><span class="kw">if </span>count &gt; usize::MAX / <span class="number">2 </span>{
             process::abort();
         }
 
-        <a href="../../src/async_channel/lib.rs.html#177">Sender</a> {
-            channel: <a class="self" href="../../src/async_channel/lib.rs.html#449">self</a>.channel.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#177">Sender</a> {
+            channel: <a class="self" href="#449">self</a>.channel.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -1617,17 +1617,17 @@
     /// assert_eq!(r.try_recv(), Err(TryRecvError::Closed));
     /// # });
     /// ```
-    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/async_channel/lib.rs.html#913">TryRecvError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#500">self</a>.channel.queue.pop() {
+    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#913">TryRecvError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#500">self</a>.channel.queue.pop() {
             <span class="prelude-val">Ok</span>(msg) =&gt; {
                 <span class="comment">// Notify a single blocked send operation. If the notified operation then sends a
                 // message or gets canceled, it will notify another blocked send operation.
-                </span><a class="self" href="../../src/async_channel/lib.rs.html#500">self</a>.channel.send_ops.notify(<span class="number">1</span>);
+                </span><a class="self" href="#500">self</a>.channel.send_ops.notify(<span class="number">1</span>);
 
-                <span class="prelude-val">Ok</span>(<a href="../../src/async_channel/lib.rs.html#502">msg</a>)
+                <span class="prelude-val">Ok</span>(<a href="#502">msg</a>)
             }
-            <span class="prelude-val">Err</span>(PopError::Empty) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a>),
-            <span class="prelude-val">Err</span>(PopError::Closed) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a>),
+            <span class="prelude-val">Err</span>(PopError::Empty) =&gt; <span class="prelude-val">Err</span>(<a href="#915">TryRecvError::Empty</a>),
+            <span class="prelude-val">Err</span>(PopError::Closed) =&gt; <span class="prelude-val">Err</span>(<a href="#918">TryRecvError::Closed</a>),
         }
     }
 
@@ -1654,8 +1654,8 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Recv&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="../../src/async_channel/lib.rs.html#1020">Recv</a> {
-            receiver: <a class="self" href="../../src/async_channel/lib.rs.html#536">self</a>,
+        <a href="#1020">Recv</a> {
+            receiver: <a class="self" href="#536">self</a>,
             listener: <span class="prelude-val">None</span>,
         }
     }
@@ -1688,8 +1688,8 @@
     /// assert_eq!(r.recv_blocking(), Ok(1));
     /// assert_eq!(r.recv_blocking(), Err(RecvError));
     /// ```
-    </span><span class="kw">pub fn </span>recv_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/async_channel/lib.rs.html#901">RecvError</a>&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#571">self</a>.<a href="../../src/async_channel/lib.rs.html#536">recv</a>().<a href="../../src/async_channel/lib.rs.html#1068">wait</a>()
+    </span><span class="kw">pub fn </span>recv_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#901">RecvError</a>&gt; {
+        <a class="self" href="#571">self</a>.<a href="#536">recv</a>().<a href="#1068">wait</a>()
     }
 
     <span class="doccomment">/// Closes the channel.
@@ -1713,7 +1713,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#595">self</a>.channel.<a href="../../src/async_channel/lib.rs.html#70">close</a>()
+        <a class="self" href="#595">self</a>.channel.<a href="#70">close</a>()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is closed.
@@ -1732,7 +1732,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#614">self</a>.channel.queue.is_closed()
+        <a class="self" href="#614">self</a>.channel.queue.is_closed()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is empty.
@@ -1751,7 +1751,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#633">self</a>.channel.queue.is_empty()
+        <a class="self" href="#633">self</a>.channel.queue.is_empty()
     }
 
     <span class="doccomment">/// Returns `true` if the channel is full.
@@ -1772,7 +1772,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#654">self</a>.channel.queue.is_full()
+        <a class="self" href="#654">self</a>.channel.queue.is_full()
     }
 
     <span class="doccomment">/// Returns the number of messages in the channel.
@@ -1792,7 +1792,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#674">self</a>.channel.queue.len()
+        <a class="self" href="#674">self</a>.channel.queue.len()
     }
 
     <span class="doccomment">/// Returns the channel capacity if it&#39;s bounded.
@@ -1809,7 +1809,7 @@
     /// assert_eq!(r.capacity(), None);
     /// ```
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#691">self</a>.channel.queue.capacity()
+        <a class="self" href="#691">self</a>.channel.queue.capacity()
     }
 
     <span class="doccomment">/// Returns the number of receivers for the channel.
@@ -1828,7 +1828,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>receiver_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#710">self</a>.channel.receiver_count.load(Ordering::SeqCst)
+        <a class="self" href="#710">self</a>.channel.receiver_count.load(Ordering::SeqCst)
     }
 
     <span class="doccomment">/// Returns the number of senders for the channel.
@@ -1847,7 +1847,7 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>sender_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#729">self</a>.channel.sender_count.load(Ordering::SeqCst)
+        <a class="self" href="#729">self</a>.channel.sender_count.load(Ordering::SeqCst)
     }
 }
 
@@ -1855,28 +1855,28 @@
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Decrement the receiver count and close the channel if it drops down to zero.
         </span><span class="kw">if </span><span class="self">self</span>.channel.receiver_count.fetch_sub(<span class="number">1</span>, Ordering::AcqRel) == <span class="number">1 </span>{
-            <a class="self" href="../../src/async_channel/lib.rs.html#735">self</a>.channel.<a href="../../src/async_channel/lib.rs.html#70">close</a>();
+            <a class="self" href="#735">self</a>.channel.<a href="#70">close</a>();
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#744">f</a>, <span class="string">&quot;Receiver {{ .. }}&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#744">f</a>, <span class="string">&quot;Receiver {{ .. }}&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Receiver&lt;T&gt; {
-        <span class="kw">let </span>count = <a class="self" href="../../src/async_channel/lib.rs.html#750">self</a>.channel.receiver_count.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+        <span class="kw">let </span>count = <a class="self" href="#750">self</a>.channel.receiver_count.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
 
         <span class="comment">// Make sure the count never overflows, even if lots of receiver clones are leaked.
         </span><span class="kw">if </span>count &gt; usize::MAX / <span class="number">2 </span>{
             process::abort();
         }
 
-        <a href="../../src/async_channel/lib.rs.html#471">Receiver</a> {
-            channel: <a class="self" href="../../src/async_channel/lib.rs.html#750">self</a>.channel.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#471">Receiver</a> {
+            channel: <a class="self" href="#750">self</a>.channel.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             listener: <span class="prelude-val">None</span>,
         }
     }
@@ -1888,32 +1888,32 @@
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// If this stream is listening for events, first wait for a notification.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(listener) = <a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener.as_mut() {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(listener) = <a class="self" href="#768">self</a>.listener.as_mut() {
                 <a class="macro" href="../../futures_core/futures_core/macro.ready.html">futures_core::ready!</a>(Pin::new(listener).poll(cx));
-                <a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener = <span class="prelude-val">None</span>;
+                <a class="self" href="#768">self</a>.listener = <span class="prelude-val">None</span>;
             }
 
             <span class="kw">loop </span>{
                 <span class="comment">// Attempt to receive a message.
-                </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.<a href="../../src/async_channel/lib.rs.html#500">try_recv</a>() {
+                </span><span class="kw">match </span><a class="self" href="#768">self</a>.<a href="#500">try_recv</a>() {
                     <span class="prelude-val">Ok</span>(msg) =&gt; {
                         <span class="comment">// The stream is not blocked on an event - drop the listener.
-                        </span><a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener = <span class="prelude-val">None</span>;
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../src/async_channel/lib.rs.html#779">msg</a>));
+                        </span><a class="self" href="#768">self</a>.listener = <span class="prelude-val">None</span>;
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="#779">msg</a>));
                     }
-                    <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a>) =&gt; {
+                    <span class="prelude-val">Err</span>(<a href="#918">TryRecvError::Closed</a>) =&gt; {
                         <span class="comment">// The stream is not blocked on an event - drop the listener.
-                        </span><a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener = <span class="prelude-val">None</span>;
+                        </span><a class="self" href="#768">self</a>.listener = <span class="prelude-val">None</span>;
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
                     }
-                    <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a>) =&gt; {}
+                    <span class="prelude-val">Err</span>(<a href="#915">TryRecvError::Empty</a>) =&gt; {}
                 }
 
                 <span class="comment">// Receiving failed - now start listening for notifications or wait for one.
-                </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener.as_mut() {
+                </span><span class="kw">match </span><a class="self" href="#768">self</a>.listener.as_mut() {
                     <span class="prelude-val">None </span>=&gt; {
                         <span class="comment">// Create a listener and try sending the message again.
-                        </span><a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="../../src/async_channel/lib.rs.html#768">self</a>.channel.stream_ops.listen());
+                        </span><a class="self" href="#768">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="#768">self</a>.channel.stream_ops.listen());
                     }
                     <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// Go back to the outer loop to poll the listener.
@@ -1927,7 +1927,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="../../futures_core/stream/trait.FusedStream.html">futures_core::stream::FusedStream</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/async_channel/lib.rs.html#809">self</a>.channel.queue.is_closed() &amp;&amp; <a class="self" href="../../src/async_channel/lib.rs.html#809">self</a>.channel.queue.is_empty()
+        <a class="self" href="#809">self</a>.channel.queue.is_closed() &amp;&amp; <a class="self" href="#809">self</a>.channel.queue.is_empty()
     }
 }
 
@@ -1940,7 +1940,7 @@
 <span class="kw">impl</span>&lt;T&gt; SendError&lt;T&gt; {
     <span class="doccomment">/// Unwraps the message that couldn&#39;t be sent.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../src/async_channel/lib.rs.html#822">self</a>.<span class="number">0
+        <a class="self" href="#822">self</a>.<span class="number">0
     </span>}
 }
 
@@ -1948,13 +1948,13 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>SendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#830">f</a>, <span class="string">&quot;SendError(..)&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#830">f</a>, <span class="string">&quot;SendError(..)&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>SendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#836">f</a>, <span class="string">&quot;sending into a closed channel&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#836">f</a>, <span class="string">&quot;sending into a closed channel&quot;</span>)
     }
 }
 
@@ -1971,25 +1971,25 @@
 <span class="kw">impl</span>&lt;T&gt; TrySendError&lt;T&gt; {
     <span class="doccomment">/// Unwraps the message that couldn&#39;t be sent.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <span class="kw">match </span><span class="self"><a href="../../src/async_channel/lib.rs.html#853">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(t) =&gt; <a href="../../src/async_channel/lib.rs.html#855">t</a>,
-            <a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(t) =&gt; <a href="../../src/async_channel/lib.rs.html#856">t</a>,
+        <span class="kw">match </span><span class="self"><a href="#853">self</a> </span>{
+            <a href="#845">TrySendError::Full</a>(t) =&gt; <a href="#855">t</a>,
+            <a href="#848">TrySendError::Closed</a>(t) =&gt; <a href="#856">t</a>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the channel is full but not closed.
     </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/async_channel/lib.rs.html#861">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="self"><a href="#861">self</a> </span>{
+            <a href="#845">TrySendError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#848">TrySendError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the channel is closed.
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/async_channel/lib.rs.html#869">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="self"><a href="#869">self</a> </span>{
+            <a href="#845">TrySendError::Full</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <a href="#848">TrySendError::Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
@@ -1998,18 +1998,18 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TrySendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/async_channel/lib.rs.html#880">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#880">f</a>, <span class="string">&quot;Full(..)&quot;</span>),
-            <a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#880">f</a>, <span class="string">&quot;Closed(..)&quot;</span>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#880">self</a> </span>{
+            <a href="#845">TrySendError::Full</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#880">f</a>, <span class="string">&quot;Full(..)&quot;</span>),
+            <a href="#848">TrySendError::Closed</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#880">f</a>, <span class="string">&quot;Closed(..)&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>TrySendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/async_channel/lib.rs.html#889">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#889">f</a>, <span class="string">&quot;sending into a full channel&quot;</span>),
-            <a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#889">f</a>, <span class="string">&quot;sending into a closed channel&quot;</span>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#889">self</a> </span>{
+            <a href="#845">TrySendError::Full</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#889">f</a>, <span class="string">&quot;sending into a full channel&quot;</span>),
+            <a href="#848">TrySendError::Closed</a>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#889">f</a>, <span class="string">&quot;sending into a closed channel&quot;</span>),
         }
     }
 }
@@ -2020,11 +2020,11 @@
 </span><span class="attribute">#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>RecvError;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../src/async_channel/lib.rs.html#901">RecvError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#901">RecvError</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/async_channel/lib.rs.html#901">RecvError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#901">RecvError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#906">f</a>, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#906">f</a>, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>)
     }
 }
 
@@ -2038,31 +2038,31 @@
     </span>Closed,
 }
 
-<span class="kw">impl </span><a href="../../src/async_channel/lib.rs.html#913">TryRecvError</a> {
+<span class="kw">impl </span><a href="#913">TryRecvError</a> {
     <span class="doccomment">/// Returns `true` if the channel is empty but not closed.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/async_channel/lib.rs.html#923">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="self"><a href="#923">self</a> </span>{
+            <a href="#915">TryRecvError::Empty</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#918">TryRecvError::Closed</a> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the channel is empty and closed.
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/async_channel/lib.rs.html#931">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a> =&gt; <span class="bool-val">false</span>,
-            <a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="self"><a href="#931">self</a> </span>{
+            <a href="#915">TryRecvError::Empty</a> =&gt; <span class="bool-val">false</span>,
+            <a href="#918">TryRecvError::Closed</a> =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../src/async_channel/lib.rs.html#913">TryRecvError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#913">TryRecvError</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/async_channel/lib.rs.html#913">TryRecvError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#913">TryRecvError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/async_channel/lib.rs.html#942">self</a> </span>{
-            <a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#942">f</a>, <span class="string">&quot;receiving from an empty channel&quot;</span>),
-            <a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/async_channel/lib.rs.html#942">f</a>, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#942">self</a> </span>{
+            <a href="#915">TryRecvError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#942">f</a>, <span class="string">&quot;receiving from an empty channel&quot;</span>),
+            <a href="#918">TryRecvError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#942">f</a>, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>),
         }
     }
 }
@@ -2078,36 +2078,36 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Send&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>run_with_strategy&lt;S: <a href="../../src/async_channel/lib.rs.html#1085">Strategy</a>&gt;(
+    </span><span class="kw">fn </span>run_with_strategy&lt;S: <a href="#1085">Strategy</a>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>msg = <a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.msg.take().unwrap();
+            <span class="kw">let </span>msg = <a class="self" href="#962">self</a>.msg.take().unwrap();
             <span class="comment">// Attempt to send a message.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.sender.<a href="../../src/async_channel/lib.rs.html#200">try_send</a>(<a href="../../src/async_channel/lib.rs.html#966">msg</a>) {
+            </span><span class="kw">match </span><a class="self" href="#962">self</a>.sender.<a href="#200">try_send</a>(<a href="#966">msg</a>) {
                 <span class="prelude-val">Ok</span>(()) =&gt; {
                     <span class="comment">// If the capacity is larger than 1, notify another blocked send operation.
-                    </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.sender.channel.queue.capacity() {
+                    </span><span class="kw">match </span><a class="self" href="#962">self</a>.sender.channel.queue.capacity() {
                         <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; {}
-                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.sender.channel.send_ops.notify(<span class="number">1</span>),
+                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <a class="self" href="#962">self</a>.sender.channel.send_ops.notify(<span class="number">1</span>),
                     }
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 }
-                <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#848">TrySendError::Closed</a>(msg)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#818">SendError</a>(<a href="../../src/async_channel/lib.rs.html#977">msg</a>))),
-                <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#845">TrySendError::Full</a>(m)) =&gt; <a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.msg = <span class="prelude-val">Some</span>(<a href="../../src/async_channel/lib.rs.html#978">m</a>),
+                <span class="prelude-val">Err</span>(<a href="#848">TrySendError::Closed</a>(msg)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#818">SendError</a>(<a href="#977">msg</a>))),
+                <span class="prelude-val">Err</span>(<a href="#845">TrySendError::Full</a>(m)) =&gt; <a class="self" href="#962">self</a>.msg = <span class="prelude-val">Some</span>(<a href="#978">m</a>),
             }
 
             <span class="comment">// Sending failed - now start listening for notifications or wait for one.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.listener.take() {
+            </span><span class="kw">match </span><a class="self" href="#962">self</a>.listener.take() {
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// Start listening and then try sending again.
-                    </span><a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.sender.channel.send_ops.listen());
+                    </span><a class="self" href="#962">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="#962">self</a>.sender.channel.send_ops.listen());
                 }
                 <span class="prelude-val">Some</span>(l) =&gt; {
                     <span class="comment">// Poll using the given strategy
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(<a href="../../src/async_channel/lib.rs.html#987">l</a>, <a href="../../src/async_channel/lib.rs.html#963">cx</a>) {
-                        <a class="self" href="../../src/async_channel/lib.rs.html#962">self</a>.listener = <span class="prelude-val">Some</span>(<a href="../../src/async_channel/lib.rs.html#989">l</a>);
+                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(<a href="#987">l</a>, <a href="#963">cx</a>) {
+                        <a class="self" href="#962">self</a>.listener = <span class="prelude-val">Some</span>(<a href="#989">l</a>);
                         <span class="kw">return </span>Poll::Pending;
                     }
                 }
@@ -2117,8 +2117,8 @@
 
     <span class="doccomment">/// Run using the blocking strategy.
     </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#999">self</a>.<a href="../../src/async_channel/lib.rs.html#961-964">run_with_strategy</a>::&lt;<a href="../../src/async_channel/lib.rs.html#1111">Blocking</a>&gt;(<span class="kw-2">&amp;mut </span>()) {
-            Poll::Ready(res) =&gt; <a href="../../src/async_channel/lib.rs.html#1001">res</a>,
+        <span class="kw">match </span><a class="self" href="#999">self</a>.<a href="#961-964">run_with_strategy</a>::&lt;<a href="#1111">Blocking</a>&gt;(<span class="kw-2">&amp;mut </span>()) {
+            Poll::Ready(res) =&gt; <a href="#1001">res</a>,
             Poll::Pending =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
@@ -2130,7 +2130,7 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#1012">self</a>.<a href="../../src/async_channel/lib.rs.html#961-964">run_with_strategy</a>::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(<a href="../../src/async_channel/lib.rs.html#1012">cx</a>)
+        <a class="self" href="#1012">self</a>.<a href="#961-964">run_with_strategy</a>::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(<a href="#1012">cx</a>)
     }
 }
 
@@ -2146,37 +2146,37 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>run_with_strategy&lt;S: <a href="../../src/async_channel/lib.rs.html#1085">Strategy</a>&gt;(
+    </span><span class="kw">fn </span>run_with_strategy&lt;S: <a href="#1085">Strategy</a>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../../src/async_channel/lib.rs.html#901">RecvError</a>&gt;&gt; {
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="#901">RecvError</a>&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// Attempt to receive a message.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.receiver.<a href="../../src/async_channel/lib.rs.html#500">try_recv</a>() {
+            </span><span class="kw">match </span><a class="self" href="#1030">self</a>.receiver.<a href="#500">try_recv</a>() {
                 <span class="prelude-val">Ok</span>(msg) =&gt; {
                     <span class="comment">// If the capacity is larger than 1, notify another blocked receive operation.
                     // There is no need to notify stream operations because all of them get
                     // notified every time a message is sent into the channel.
-                    </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.receiver.channel.queue.capacity() {
+                    </span><span class="kw">match </span><a class="self" href="#1030">self</a>.receiver.channel.queue.capacity() {
                         <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; {}
-                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.receiver.channel.recv_ops.notify(<span class="number">1</span>),
+                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <a class="self" href="#1030">self</a>.receiver.channel.recv_ops.notify(<span class="number">1</span>),
                     }
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/async_channel/lib.rs.html#1036">msg</a>));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#1036">msg</a>));
                 }
-                <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#918">TryRecvError::Closed</a>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#901">RecvError</a>)),
-                <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#915">TryRecvError::Empty</a>) =&gt; {}
+                <span class="prelude-val">Err</span>(<a href="#918">TryRecvError::Closed</a>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#901">RecvError</a>)),
+                <span class="prelude-val">Err</span>(<a href="#915">TryRecvError::Empty</a>) =&gt; {}
             }
 
             <span class="comment">// Receiving failed - now start listening for notifications or wait for one.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.listener.take() {
+            </span><span class="kw">match </span><a class="self" href="#1030">self</a>.listener.take() {
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// Start listening and then try receiving again.
-                    </span><a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.receiver.channel.recv_ops.listen());
+                    </span><a class="self" href="#1030">self</a>.listener = <span class="prelude-val">Some</span>(<a class="self" href="#1030">self</a>.receiver.channel.recv_ops.listen());
                 }
                 <span class="prelude-val">Some</span>(l) =&gt; {
                     <span class="comment">// Poll using the given strategy.
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(<a href="../../src/async_channel/lib.rs.html#1056">l</a>, <a href="../../src/async_channel/lib.rs.html#1031">cx</a>) {
-                        <a class="self" href="../../src/async_channel/lib.rs.html#1030">self</a>.listener = <span class="prelude-val">Some</span>(<a href="../../src/async_channel/lib.rs.html#1058">l</a>);
+                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(<a href="#1056">l</a>, <a href="#1031">cx</a>) {
+                        <a class="self" href="#1030">self</a>.listener = <span class="prelude-val">Some</span>(<a href="#1058">l</a>);
                         <span class="kw">return </span>Poll::Pending;
                     }
                 }
@@ -2185,19 +2185,19 @@
     }
 
     <span class="doccomment">/// Run with the blocking strategy.
-    </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/async_channel/lib.rs.html#901">RecvError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/async_channel/lib.rs.html#1068">self</a>.<a href="../../src/async_channel/lib.rs.html#1029-1032">run_with_strategy</a>::&lt;<a href="../../src/async_channel/lib.rs.html#1111">Blocking</a>&gt;(<span class="kw-2">&amp;mut </span>()) {
-            Poll::Ready(res) =&gt; <a href="../../src/async_channel/lib.rs.html#1070">res</a>,
+    </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="#901">RecvError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#1068">self</a>.<a href="#1029-1032">run_with_strategy</a>::&lt;<a href="#1111">Blocking</a>&gt;(<span class="kw-2">&amp;mut </span>()) {
+            Poll::Ready(res) =&gt; <a href="#1070">res</a>,
             Poll::Pending =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/async_channel/lib.rs.html#901">RecvError</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, <a href="#901">RecvError</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/async_channel/lib.rs.html#1079">self</a>.<a href="../../src/async_channel/lib.rs.html#1029-1032">run_with_strategy</a>::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(<a href="../../src/async_channel/lib.rs.html#1079">cx</a>)
+        <a class="self" href="#1079">self</a>.<a href="#1029-1032">run_with_strategy</a>::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(<a href="#1079">cx</a>)
     }
 }
 
@@ -2216,13 +2216,13 @@
 <span class="doccomment">/// Non-blocking strategy for use in asynchronous code.
 </span><span class="kw">struct </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>());
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../src/async_channel/lib.rs.html#1085">Strategy</a> <span class="kw">for </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#1085">Strategy</a> <span class="kw">for </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">type </span>Context = Context&lt;<span class="lifetime">&#39;a</span>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span>evl: <a href="../../event_listener/struct.EventListener.html">EventListener</a>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../event_listener/struct.EventListener.html">EventListener</a>&gt; {
-        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../src/async_channel/lib.rs.html#1102">evl</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/async_channel/lib.rs.html#1102">cx</a>) {
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="#1102">evl</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1102">cx</a>) {
             Poll::Ready(()) =&gt; <span class="prelude-val">Ok</span>(()),
-            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="../../src/async_channel/lib.rs.html#1102">evl</a>),
+            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="#1102">evl</a>),
         }
     }
 }
@@ -2230,13 +2230,13 @@
 <span class="doccomment">/// Blocking strategy for use in synchronous code.
 </span><span class="kw">struct </span>Blocking;
 
-<span class="kw">impl </span><a href="../../src/async_channel/lib.rs.html#1085">Strategy</a> <span class="kw">for </span><a href="../../src/async_channel/lib.rs.html#1111">Blocking</a> {
+<span class="kw">impl </span><a href="#1085">Strategy</a> <span class="kw">for </span><a href="#1111">Blocking</a> {
     <span class="kw">type </span>Context = ();
 
     <span class="kw">fn </span>poll(evl: <a href="../../event_listener/struct.EventListener.html">EventListener</a>, _cx: <span class="kw-2">&amp;mut </span>()) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../event_listener/struct.EventListener.html">EventListener</a>&gt; {
-        <a href="../../src/async_channel/lib.rs.html#1116">evl</a>.wait();
+        <a href="#1116">evl</a>.wait();
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

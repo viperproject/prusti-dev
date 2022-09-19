@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/tcp/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/net/tcp/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -399,6 +399,10 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `TcpStream` split support.
 //!
 //! A `TcpStream` can be split into a `ReadHalf` and a
@@ -409,12 +413,12 @@
 //! split has no associated overhead and enforces all invariants at the type
 //! level.
 
-</span><span class="kw">use </span><a href="../../../../src/tokio/future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>, <a href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>};
-<span class="kw">use </span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67"><span class="kw">crate</span>::net::TcpStream</a>;
+</span><span class="kw">use </span><a href="../../future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../io/async_read.rs.html#43">AsyncRead</a>, <a href="../../io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../io/interest.rs.html#14">Interest</a>, <a href="../../io/read_buf.rs.html#23">ReadBuf</a>, <a href="../../io/ready.rs.html#16">Ready</a>};
+<span class="kw">use </span><a href="stream.rs.html#70"><span class="kw">crate</span>::net::TcpStream</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
@@ -431,7 +435,7 @@
 /// [`split`]: TcpStream::split()
 /// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ReadHalf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>);
+</span><span class="kw">pub struct </span>ReadHalf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="stream.rs.html#70">TcpStream</a>);
 
 <span class="doccomment">/// Borrowed write half of a [`TcpStream`], created by [`split`].
 ///
@@ -447,10 +451,10 @@
 /// [`poll_shutdown`]: fn@crate::io::AsyncWrite::poll_shutdown
 /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>WriteHalf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>);
+</span><span class="kw">pub struct </span>WriteHalf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="stream.rs.html#70">TcpStream</a>);
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>split(stream: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>) -&gt; (ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt;, WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt;) {
-    (<a href="../../../../src/tokio/net/tcp/split.rs.html#33">ReadHalf</a>(<span class="kw-2">&amp;*</span><a href="../../../../src/tokio/net/tcp/split.rs.html#51">stream</a>), <a href="../../../../src/tokio/net/tcp/split.rs.html#49">WriteHalf</a>(<span class="kw-2">&amp;*</span><a href="../../../../src/tokio/net/tcp/split.rs.html#51">stream</a>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>split(stream: <span class="kw-2">&amp;mut </span><a href="stream.rs.html#70">TcpStream</a>) -&gt; (ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt;, WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    (<a href="#33">ReadHalf</a>(<span class="kw-2">&amp;*</span><a href="#51">stream</a>), <a href="#49">WriteHalf</a>(<span class="kw-2">&amp;*</span><a href="#51">stream</a>))
 }
 
 <span class="kw">impl </span>ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -493,7 +497,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#91">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#332-336">poll_peek</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#92">cx</a>, <a href="../../../../src/tokio/net/tcp/split.rs.html#93">buf</a>)
+        <a class="self" href="#91">self</a>.<span class="number">0</span>.<a href="stream.rs.html#348-352">poll_peek</a>(<a href="#92">cx</a>, <a href="#93">buf</a>)
     }
 
     <span class="doccomment">/// Receives data on the socket from the remote address to which it is
@@ -554,7 +558,7 @@
     /// will continue to return immediately until the readiness event is
     /// consumed by an attempt to read or write that fails with `WouldBlock` or
     /// `Poll::Pending`.
-    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>&gt; {
+    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../io/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../io/ready.rs.html#16">Ready</a>&gt; {
         <span class="self">self</span>.<span class="number">0</span>.ready(interest).<span class="kw">await
     </span>}
 
@@ -591,11 +595,15 @@
     /// # Return
     ///
     /// If data is successfully read, `Ok(n)` is returned, where `n` is the
-    /// number of bytes read. `Ok(0)` indicates the stream&#39;s read half is closed
-    /// and will no longer yield data. If the stream is not ready to read data
+    /// number of bytes read. If `n` is `0`, then it can indicate one of two scenarios:
+    ///
+    /// 1. The stream&#39;s read half is closed and will no longer yield data.
+    /// 2. The specified buffer was 0 bytes in length.
+    ///
+    /// If the stream is not ready to read data,
     /// `Err(io::ErrorKind::WouldBlock)` is returned.
     </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#196">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#577">try_read</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#196">buf</a>)
+        <a class="self" href="#200">self</a>.<span class="number">0</span>.<a href="stream.rs.html#597">try_read</a>(<a href="#200">buf</a>)
     }
 
     <span class="doccomment">/// Tries to read data from the stream into the provided buffers, returning
@@ -624,7 +632,7 @@
     /// and will no longer yield data. If the stream is not ready to read data
     /// `Err(io::ErrorKind::WouldBlock)` is returned.
     </span><span class="kw">pub fn </span>try_read_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[io::IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#225">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#655">try_read_vectored</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#225">bufs</a>)
+        <a class="self" href="#229">self</a>.<span class="number">0</span>.<a href="stream.rs.html#675">try_read_vectored</a>(<a href="#229">bufs</a>)
     }
 
     <span class="macro">cfg_io_util! </span>{
@@ -648,18 +656,18 @@
         /// and will no longer yield data. If the stream is not ready to read data
         /// `Err(io::ErrorKind::WouldBlock)` is returned.
         </span><span class="kw">pub fn </span>try_read_buf&lt;B: <a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>B) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-            <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#249">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#721">try_read_buf</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#249">buf</a>)
+            <a class="self" href="#253">self</a>.<span class="number">0</span>.<a href="stream.rs.html#741">try_read_buf</a>(<a href="#253">buf</a>)
         }
     }
 
     <span class="doccomment">/// Returns the remote address that this stream is connected to.
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#255">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#286">peer_addr</a>()
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#259">self</a>.<span class="number">0</span>.<a href="stream.rs.html#302">peer_addr</a>()
     }
 
     <span class="doccomment">/// Returns the local address that this stream is bound to.
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#260">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#263">local_addr</a>()
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#264">self</a>.<span class="number">0</span>.<a href="stream.rs.html#279">local_addr</a>()
     }
 }
 
@@ -678,7 +686,7 @@
     /// will continue to return immediately until the readiness event is
     /// consumed by an attempt to read or write that fails with `WouldBlock` or
     /// `Poll::Pending`.
-    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>&gt; {
+    </span><span class="kw">pub async fn </span>ready(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../io/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../io/ready.rs.html#16">Ready</a>&gt; {
         <span class="self">self</span>.<span class="number">0</span>.ready(interest).<span class="kw">await
     </span>}
 
@@ -711,7 +719,7 @@
     /// number of bytes written. If the stream is not ready to write data,
     /// `Err(io::ErrorKind::WouldBlock)` is returned.
     </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#312">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#874">try_write</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#312">buf</a>)
+        <a class="self" href="#316">self</a>.<span class="number">0</span>.<a href="stream.rs.html#894">try_write</a>(<a href="#316">buf</a>)
     }
 
     <span class="doccomment">/// Tries to write several buffers to the stream, returning how many bytes
@@ -732,37 +740,37 @@
     /// number of bytes written. If the stream is not ready to write data,
     /// `Err(io::ErrorKind::WouldBlock)` is returned.
     </span><span class="kw">pub fn </span>try_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#333">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#936">try_write_vectored</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#333">bufs</a>)
+        <a class="self" href="#337">self</a>.<span class="number">0</span>.<a href="stream.rs.html#956">try_write_vectored</a>(<a href="#337">bufs</a>)
     }
 
     <span class="doccomment">/// Returns the remote address that this stream is connected to.
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#338">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#286">peer_addr</a>()
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#342">self</a>.<span class="number">0</span>.<a href="stream.rs.html#302">peer_addr</a>()
     }
 
     <span class="doccomment">/// Returns the local address that this stream is bound to.
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#343">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#263">local_addr</a>()
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#347">self</a>.<span class="number">0</span>.<a href="stream.rs.html#279">local_addr</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span>ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span><a href="../../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span>ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#350">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#1206-1210">poll_read_priv</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#351">cx</a>, <a href="../../../../src/tokio/net/tcp/split.rs.html#352">buf</a>)
+        <a class="self" href="#354">self</a>.<span class="number">0</span>.<a href="stream.rs.html#1228-1232">poll_read_priv</a>(<a href="#355">cx</a>, <a href="#356">buf</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span><a href="../../io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#360">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#1215-1219">poll_write_priv</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#361">cx</a>, <a href="../../../../src/tokio/net/tcp/split.rs.html#362">buf</a>)
+        <a class="self" href="#364">self</a>.<span class="number">0</span>.<a href="stream.rs.html#1237-1241">poll_write_priv</a>(<a href="#365">cx</a>, <a href="#366">buf</a>)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -770,11 +778,11 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#368">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#1223-1227">poll_write_vectored_priv</a>(<a href="../../../../src/tokio/net/tcp/split.rs.html#369">cx</a>, <a href="../../../../src/tokio/net/tcp/split.rs.html#370">bufs</a>)
+        <a class="self" href="#372">self</a>.<span class="number">0</span>.<a href="stream.rs.html#1245-1249">poll_write_vectored_priv</a>(<a href="#373">cx</a>, <a href="#374">bufs</a>)
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#375">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/io/async_write.rs.html#180">is_write_vectored</a>()
+        <a class="self" href="#379">self</a>.<span class="number">0</span>.<a href="../../io/async_write.rs.html#180">is_write_vectored</a>()
     }
 
     <span class="attribute">#[inline]
@@ -785,20 +793,20 @@
 
     <span class="comment">// `poll_shutdown` on a write half shutdowns the stream in the &quot;write&quot; direction.
     </span><span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#386">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/net/tcp/stream.rs.html#1030">shutdown_std</a>(Shutdown::Write).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#390">self</a>.<span class="number">0</span>.<a href="stream.rs.html#1050">shutdown_std</a>(Shutdown::Write).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>&gt; <span class="kw">for </span>ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a> {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#392">self</a>.<span class="number">0
+<span class="kw">impl </span>AsRef&lt;<a href="stream.rs.html#70">TcpStream</a>&gt; <span class="kw">for </span>ReadHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="stream.rs.html#70">TcpStream</a> {
+        <a class="self" href="#396">self</a>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>AsRef&lt;<a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>&gt; <span class="kw">for </span>WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a> {
-        <a class="self" href="../../../../src/tokio/net/tcp/split.rs.html#398">self</a>.<span class="number">0
+<span class="kw">impl </span>AsRef&lt;<a href="stream.rs.html#70">TcpStream</a>&gt; <span class="kw">for </span>WriteHalf&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="stream.rs.html#70">TcpStream</a> {
+        <a class="self" href="#402">self</a>.<span class="number">0
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

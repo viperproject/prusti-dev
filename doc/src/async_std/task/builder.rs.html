@@ -210,8 +210,8 @@
 
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use </span><a href="../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../src/async_std/task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../src/async_std/task/task.rs.html#8">Task</a>, <a href="../../../src/async_std/task/task_locals_wrapper.rs.html#13">TaskLocalsWrapper</a>};
+<span class="kw">use </span><a href="../lib.rs.html#307"><span class="kw">crate</span>::io</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="join_handle.rs.html#15">JoinHandle</a>, <a href="task.rs.html#8">Task</a>, <a href="task_locals_wrapper.rs.html#13">TaskLocalsWrapper</a>};
 
 <span class="doccomment">/// Task builder that configures the settings of a new task.
 </span><span class="attribute">#[derive(Debug, Default)]
@@ -219,35 +219,35 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/task/builder.rs.html#13">Builder</a> {
+<span class="kw">impl </span><a href="#13">Builder</a> {
     <span class="doccomment">/// Creates a new builder.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/async_std/task/builder.rs.html#13">Builder</a> {
-        <a href="../../../src/async_std/task/builder.rs.html#13">Builder</a> { name: <span class="prelude-val">None </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#13">Builder</a> {
+        <a href="#13">Builder</a> { name: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Configures the name of the task.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../../src/async_std/task/builder.rs.html#13">Builder</a> {
-        <a class="self" href="../../../src/async_std/task/builder.rs.html#26">self</a>.name = <span class="prelude-val">Some</span>(<a href="../../../src/async_std/task/builder.rs.html#26">name</a>);
-        <span class="self"><a href="../../../src/async_std/task/builder.rs.html#26">self</a>
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="#13">Builder</a> {
+        <a class="self" href="#26">self</a>.name = <span class="prelude-val">Some</span>(<a href="#26">name</a>);
+        <span class="self"><a href="#26">self</a>
     </span>}
 
     <span class="kw">fn </span>build&lt;F, T&gt;(<span class="self">self</span>, future: F) -&gt; SupportTaskLocals&lt;F&gt;
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt;,
     {
-        <span class="kw">let </span>name = <a class="self" href="../../../src/async_std/task/builder.rs.html#31">self</a>.name.map(Arc::new);
+        <span class="kw">let </span>name = <a class="self" href="#31">self</a>.name.map(Arc::new);
 
         <span class="comment">// Create a new task handle.
-        </span><span class="kw">let </span>task = Task::new(<a href="../../../src/async_std/task/builder.rs.html#35">name</a>);
+        </span><span class="kw">let </span>task = Task::new(<a href="#35">name</a>);
 
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
-        </span>once_cell::sync::Lazy::force(<span class="kw-2">&amp;</span><a href="../../../src/async_std/rt/mod.rs.html#11"><span class="kw">crate</span>::rt::RUNTIME</a>);
+        </span>once_cell::sync::Lazy::force(<span class="kw-2">&amp;</span><a href="../rt/mod.rs.html#11"><span class="kw">crate</span>::rt::RUNTIME</a>);
 
-        <span class="kw">let </span>tag = TaskLocalsWrapper::new(<a href="../../../src/async_std/task/builder.rs.html#38">task</a>);
+        <span class="kw">let </span>tag = TaskLocalsWrapper::new(<a href="#38">task</a>);
 
-        <a href="../../../src/async_std/task/builder.rs.html#183-190">SupportTaskLocals</a> { <a href="../../../src/async_std/task/builder.rs.html#43">tag</a>, <a href="../../../src/async_std/task/builder.rs.html#31">future</a> }
+        <a href="#183-190">SupportTaskLocals</a> { <a href="#43">tag</a>, <a href="#31">future</a> }
     }
 
     <span class="doccomment">/// Spawns a task with the configured settings.
@@ -257,17 +257,17 @@
         </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
         T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>wrapped = <a class="self" href="../../../src/async_std/task/builder.rs.html#50">self</a>.<a href="../../../src/async_std/task/builder.rs.html#31-33">build</a>(<a href="../../../src/async_std/task/builder.rs.html#50">future</a>);
+        <span class="kw">let </span>wrapped = <a class="self" href="#50">self</a>.<a href="#31-33">build</a>(<a href="#50">future</a>);
 
         <a class="macro" href="../../../kv_log_macro/kv_log_macro/macro.trace.html">kv_log_macro::trace!</a>(<span class="string">&quot;spawn&quot;</span>, {
             task_id: wrapped.tag.id().<span class="number">0</span>,
             parent_task_id: TaskLocalsWrapper::get_current(|t| t.id().<span class="number">0</span>).unwrap_or(<span class="number">0</span>),
         });
 
-        <span class="kw">let </span>task = <a href="../../../src/async_std/task/builder.rs.html#55">wrapped</a>.tag.<a href="../../../src/async_std/task/task_locals_wrapper.rs.html#41">task</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>handle = async_global_executor::spawn(<a href="../../../src/async_std/task/builder.rs.html#55">wrapped</a>);
+        <span class="kw">let </span>task = <a href="#55">wrapped</a>.tag.<a href="task_locals_wrapper.rs.html#41">task</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>handle = async_global_executor::spawn(<a href="#55">wrapped</a>);
 
-        <span class="prelude-val">Ok</span>(JoinHandle::new(<a href="../../../src/async_std/task/builder.rs.html#63">handle</a>, <a href="../../../src/async_std/task/builder.rs.html#62">task</a>))
+        <span class="prelude-val">Ok</span>(JoinHandle::new(<a href="#63">handle</a>, <a href="#62">task</a>))
     }
 
     <span class="doccomment">/// Spawns a task locally with the configured settings.
@@ -277,17 +277,17 @@
         </span>F: Future&lt;Output = T&gt; + <span class="lifetime">&#39;static</span>,
         T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>wrapped = <a class="self" href="../../../src/async_std/task/builder.rs.html#70">self</a>.<a href="../../../src/async_std/task/builder.rs.html#31-33">build</a>(<a href="../../../src/async_std/task/builder.rs.html#70">future</a>);
+        <span class="kw">let </span>wrapped = <a class="self" href="#70">self</a>.<a href="#31-33">build</a>(<a href="#70">future</a>);
 
         <a class="macro" href="../../../kv_log_macro/kv_log_macro/macro.trace.html">kv_log_macro::trace!</a>(<span class="string">&quot;spawn_local&quot;</span>, {
             task_id: wrapped.tag.id().<span class="number">0</span>,
             parent_task_id: TaskLocalsWrapper::get_current(|t| t.id().<span class="number">0</span>).unwrap_or(<span class="number">0</span>),
         });
 
-        <span class="kw">let </span>task = <a href="../../../src/async_std/task/builder.rs.html#75">wrapped</a>.tag.<a href="../../../src/async_std/task/task_locals_wrapper.rs.html#41">task</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>handle = async_global_executor::spawn_local(<a href="../../../src/async_std/task/builder.rs.html#75">wrapped</a>);
+        <span class="kw">let </span>task = <a href="#75">wrapped</a>.tag.<a href="task_locals_wrapper.rs.html#41">task</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>handle = async_global_executor::spawn_local(<a href="#75">wrapped</a>);
 
-        <span class="prelude-val">Ok</span>(JoinHandle::new(<a href="../../../src/async_std/task/builder.rs.html#83">handle</a>, <a href="../../../src/async_std/task/builder.rs.html#82">task</a>))
+        <span class="prelude-val">Ok</span>(JoinHandle::new(<a href="#83">handle</a>, <a href="#82">task</a>))
     }
 
     <span class="doccomment">/// Spawns a task locally with the configured settings.
@@ -349,7 +349,7 @@
     {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
 
-        <span class="kw">let </span>wrapped = <a class="self" href="../../../src/async_std/task/builder.rs.html#141">self</a>.<a href="../../../src/async_std/task/builder.rs.html#31-33">build</a>(<a href="../../../src/async_std/task/builder.rs.html#141">future</a>);
+        <span class="kw">let </span>wrapped = <a class="self" href="#141">self</a>.<a href="#31-33">build</a>(<a href="#141">future</a>);
 
         <span class="comment">// Log this `block_on` operation.
         </span><a class="macro" href="../../../kv_log_macro/kv_log_macro/macro.trace.html">kv_log_macro::trace!</a>(<span class="string">&quot;block_on&quot;</span>, {
@@ -363,22 +363,22 @@
         }
 
         <span class="comment">// Run the future as a task.
-        </span><a href="../../../src/async_std/task/builder.rs.html#155-158">NUM_NESTED_BLOCKING</a>.with(|num_nested_blocking| {
-            <span class="kw">let </span>count = <a href="../../../src/async_std/task/builder.rs.html#161">num_nested_blocking</a>.get();
-            <span class="kw">let </span>should_run = <a href="../../../src/async_std/task/builder.rs.html#162">count</a> == <span class="number">0</span>;
+        </span><a href="#155-158">NUM_NESTED_BLOCKING</a>.with(|num_nested_blocking| {
+            <span class="kw">let </span>count = <a href="#161">num_nested_blocking</a>.get();
+            <span class="kw">let </span>should_run = <a href="#162">count</a> == <span class="number">0</span>;
             <span class="comment">// increase the count
-            </span><a href="../../../src/async_std/task/builder.rs.html#161">num_nested_blocking</a>.replace(<a href="../../../src/async_std/task/builder.rs.html#162">count</a> + <span class="number">1</span>);
+            </span><a href="#161">num_nested_blocking</a>.replace(<a href="#162">count</a> + <span class="number">1</span>);
 
             <span class="kw">unsafe </span>{
-                TaskLocalsWrapper::set_current(<span class="kw-2">&amp;</span><a href="../../../src/async_std/task/builder.rs.html#147">wrapped</a>.tag, || {
+                TaskLocalsWrapper::set_current(<span class="kw-2">&amp;</span><a href="#147">wrapped</a>.tag, || {
                     <span class="kw">let </span>res = <span class="kw">if </span>should_run {
                         <span class="comment">// The first call should run the executor
-                        </span>async_global_executor::block_on(<a href="../../../src/async_std/task/builder.rs.html#147">wrapped</a>)
+                        </span>async_global_executor::block_on(<a href="#147">wrapped</a>)
                     } <span class="kw">else </span>{
-                        futures_lite::future::block_on(<a href="../../../src/async_std/task/builder.rs.html#147">wrapped</a>)
+                        futures_lite::future::block_on(<a href="#147">wrapped</a>)
                     };
-                    <a href="../../../src/async_std/task/builder.rs.html#161">num_nested_blocking</a>.replace(<a href="../../../src/async_std/task/builder.rs.html#161">num_nested_blocking</a>.get() - <span class="number">1</span>);
-                    <a href="../../../src/async_std/task/builder.rs.html#169">res</a>
+                    <a href="#161">num_nested_blocking</a>.replace(<a href="#161">num_nested_blocking</a>.get() - <span class="number">1</span>);
+                    <a href="#169">res</a>
                 })
             }
         })
@@ -388,7 +388,7 @@
 <a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
     <span class="doccomment">/// Wrapper to add support for task locals.
     </span><span class="kw">struct </span>SupportTaskLocals&lt;F&gt; {
-        tag: <a href="../../../src/async_std/task/task_locals_wrapper.rs.html#13">TaskLocalsWrapper</a>,
+        tag: <a href="task_locals_wrapper.rs.html#13">TaskLocalsWrapper</a>,
         <span class="attribute">#[pin]
         </span>future: F,
     }
@@ -399,12 +399,12 @@
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">unsafe </span>{
-            TaskLocalsWrapper::set_current(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/task/builder.rs.html#195">self</a>.tag, || {
-                <span class="kw">let </span>this = <a class="self" href="../../../src/async_std/task/builder.rs.html#195">self</a>.<a href="../../../src/async_std/task/builder.rs.html#183-190">project</a>();
-                <a href="../../../src/async_std/task/builder.rs.html#198">this</a>.future.<a href="../../../async_std/future/trait.Future.html">poll</a>(<a href="../../../src/async_std/task/builder.rs.html#195">cx</a>)
+            TaskLocalsWrapper::set_current(<span class="kw-2">&amp;</span><a class="self" href="#195">self</a>.tag, || {
+                <span class="kw">let </span>this = <a class="self" href="#195">self</a>.<a href="#183-190">project</a>();
+                <a href="#198">this</a>.future.<a href="../../../async_std/future/trait.Future.html">poll</a>(<a href="#195">cx</a>)
             })
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -75,12 +75,12 @@
 <span class="comment">// Need to use this one as libc only defines this on supported platforms. Given
 // that we want to at least compile on unsupported platforms, we define this in
 // our platform-specific modules.
-</span><span class="kw">use </span><a href="../../src/xattr/sys/mod.rs.html#37-40">sys::ENOATTR</a>;
+</span><span class="kw">use </span><a href="sys/mod.rs.html#37-40">sys::ENOATTR</a>;
 
 <span class="attribute">#[allow(dead_code)]
 </span><span class="kw">pub fn </span>name_to_c(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt; {
-    <span class="kw">match </span>CString::new(<a href="../../src/xattr/util.rs.html#16">name</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
-        <span class="prelude-val">Ok</span>(name) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/xattr/util.rs.html#18">name</a>),
+    <span class="kw">match </span>CString::new(<a href="#16">name</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
+        <span class="prelude-val">Ok</span>(name) =&gt; <span class="prelude-val">Ok</span>(<a href="#18">name</a>),
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
             io::ErrorKind::InvalidInput,
             <span class="string">&quot;name must not contain null bytes&quot;</span>,
@@ -89,44 +89,44 @@
 }
 
 <span class="kw">pub fn </span>path_to_c(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt; {
-    <span class="kw">match </span>CString::new(<a href="../../src/xattr/util.rs.html#26">path</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
-        <span class="prelude-val">Ok</span>(name) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/xattr/util.rs.html#28">name</a>),
+    <span class="kw">match </span>CString::new(<a href="#26">path</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
+        <span class="prelude-val">Ok</span>(name) =&gt; <span class="prelude-val">Ok</span>(<a href="#28">name</a>),
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::NotFound, <span class="string">&quot;file not found&quot;</span>)),
     }
 }
 
 <span class="kw">pub fn </span>extract_noattr(result: io::Result&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt; {
-    <a href="../../src/xattr/util.rs.html#33">result</a>.map(<span class="prelude-val">Some</span>).or_else(|e| <span class="kw">match </span><a href="../../src/xattr/util.rs.html#34">e</a>.raw_os_error() {
-        <span class="prelude-val">Some</span>(<a href="../../src/xattr/sys/mod.rs.html#37-40">ENOATTR</a>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/xattr/util.rs.html#34">e</a>),
+    <a href="#33">result</a>.map(<span class="prelude-val">Some</span>).or_else(|e| <span class="kw">match </span><a href="#34">e</a>.raw_os_error() {
+        <span class="prelude-val">Some</span>(<a href="sys/mod.rs.html#37-40">ENOATTR</a>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#34">e</a>),
     })
 }
 
 <span class="kw">pub unsafe fn </span>allocate_loop&lt;F: FnMut(<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../libc/unix/type.ssize_t.html">ssize_t</a>&gt;(<span class="kw-2">mut </span>f: F) -&gt; io::Result&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; = Vec::new();
     <span class="kw">loop </span>{
-        <span class="kw">let </span>ret = (<a href="../../src/xattr/util.rs.html#40">f</a>)(ptr::null_mut(), <span class="number">0</span>);
+        <span class="kw">let </span>ret = (<a href="#40">f</a>)(ptr::null_mut(), <span class="number">0</span>);
         <span class="kw">if </span>ret &lt; <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error());
         } <span class="kw">else if </span>ret == <span class="number">0 </span>{
             <span class="kw">break</span>;
         }
-        <a href="../../src/xattr/util.rs.html#41">vec</a>.reserve_exact(<a href="../../src/xattr/util.rs.html#43">ret</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="#41">vec</a>.reserve_exact(<a href="#43">ret</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <span class="kw">let </span>ret = (<a href="../../src/xattr/util.rs.html#40">f</a>)(<a href="../../src/xattr/util.rs.html#41">vec</a>.as_mut_ptr(), <a href="../../src/xattr/util.rs.html#41">vec</a>.capacity());
+        <span class="kw">let </span>ret = (<a href="#40">f</a>)(<a href="#41">vec</a>.as_mut_ptr(), <a href="#41">vec</a>.capacity());
         <span class="kw">if </span>ret &gt;= <span class="number">0 </span>{
-            <a href="../../src/xattr/util.rs.html#41">vec</a>.set_len(<a href="../../src/xattr/util.rs.html#51">ret</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+            <a href="#41">vec</a>.set_len(<a href="#51">ret</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
             <span class="kw">break</span>;
         } <span class="kw">else </span>{
             <span class="kw">let </span>error = io::Error::last_os_error();
             <span class="kw">if </span>error.raw_os_error() == <span class="prelude-val">Some</span>(ERANGE) {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/xattr/util.rs.html#56">error</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#56">error</a>);
         }
     }
-    <a href="../../src/xattr/util.rs.html#41">vec</a>.shrink_to_fit();
-    <span class="prelude-val">Ok</span>(<a href="../../src/xattr/util.rs.html#41">vec</a>)
+    <a href="#41">vec</a>.shrink_to_fit();
+    <span class="prelude-val">Ok</span>(<a href="#41">vec</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="xattr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="xattr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

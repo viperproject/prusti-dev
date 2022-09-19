@@ -54,59 +54,59 @@
 <span id="54">54</span>
 <span id="55">55</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use </span><a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span>quote::{<a href="../../quote/macro.quote.html">quote</a>, <a href="../../quote/macro.quote_spanned.html">quote_spanned</a>, <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
+<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span>quote::{<a href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote</a>, <a href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned</a>, <a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test(args: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, item: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">if </span>!args.is_empty() {
-        <span class="kw">return </span>syn::Error::new_spanned(proc_macro2::TokenStream::from(<a href="../../src/futures_macro/executor.rs.html#5">args</a>), <span class="string">&quot;invalid argument&quot;</span>)
+        <span class="kw">return </span>syn::Error::new_spanned(proc_macro2::TokenStream::from(<a href="#5">args</a>), <span class="string">&quot;invalid argument&quot;</span>)
             .to_compile_error()
             .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="macro" href="../../syn/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(item <span class="kw">as </span>syn::ItemFn);
+    <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(item <span class="kw">as </span>syn::ItemFn);
 
     <span class="kw">if </span>input.sig.asyncness.take().is_none() {
-        <span class="kw">return </span>syn::Error::new_spanned(<a href="../../src/futures_macro/executor.rs.html#12">input</a>.sig.fn_token, <span class="string">&quot;Only async functions are supported&quot;</span>)
+        <span class="kw">return </span>syn::Error::new_spanned(<a href="#12">input</a>.sig.fn_token, <span class="string">&quot;Only async functions are supported&quot;</span>)
             .to_compile_error()
             .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     }
 
     <span class="comment">// If type mismatch occurs, the current rustc points to the last statement.
     </span><span class="kw">let </span>(last_stmt_start_span, last_stmt_end_span) = {
-        <span class="kw">let </span><span class="kw-2">mut </span>last_stmt = <a href="../../src/futures_macro/executor.rs.html#12">input</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>last_stmt = <a href="#12">input</a>
             .block
             .stmts
             .last()
-            .map(<a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens::into_token_stream</a>)
+            .map(<a href="https://docs.rs/quote/1.0.21/quote/to_tokens/trait.ToTokens.html">ToTokens::into_token_stream</a>)
             .unwrap_or_default()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
         <span class="comment">// `Span` on stable Rust has a limitation that only points to the first
         // token, not the whole tokens. We can work around this limitation by
         // using the first/last span of the tokens like
         // `syn::Error::new_spanned` does.
-        </span><span class="kw">let </span>start = <a href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map_or_else(Span::call_site, |t| <a href="../../src/futures_macro/executor.rs.html#33">t</a>.span());
-        <span class="kw">let </span>end = <a href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>().map_or(<a href="../../src/futures_macro/executor.rs.html#33">start</a>, |t| <a href="../../src/futures_macro/executor.rs.html#34">t</a>.span());
-        (<a href="../../src/futures_macro/executor.rs.html#33">start</a>, <a href="../../src/futures_macro/executor.rs.html#34">end</a>)
+        </span><span class="kw">let </span>start = <a href="#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map_or_else(Span::call_site, |t| <a href="#33">t</a>.span());
+        <span class="kw">let </span>end = <a href="#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>().map_or(<a href="#33">start</a>, |t| <a href="#34">t</a>.span());
+        (<a href="#33">start</a>, <a href="#34">end</a>)
     };
 
-    <span class="kw">let </span>path = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned! </a>{last_stmt_start_span=&gt;
+    <span class="kw">let </span>path = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned! </a>{last_stmt_start_span=&gt;
         ::futures_test::__private
     };
-    <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a href="../../src/futures_macro/executor.rs.html#12">input</a>.block;
-    <a href="../../src/futures_macro/executor.rs.html#12">input</a>.block.stmts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[syn::Stmt::Expr(
+    <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a href="#12">input</a>.block;
+    <a href="#12">input</a>.block.stmts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[syn::Stmt::Expr(
         syn::parse2(<span class="macro">quote_spanned! </span>{last_stmt_end_span=&gt;
             #path::block_on(<span class="kw">async </span>#body)
         })
         .unwrap(),
     )];
 
-    <span class="kw">let </span>gen = <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>gen = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
         <span class="attribute">#[::core::prelude::v1::test]
         </span>#input
     };
 
-    <a href="../../src/futures_macro/executor.rs.html#49">gen</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <a href="#49">gen</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

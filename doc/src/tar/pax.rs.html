@@ -119,7 +119,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use </span><a href="../../src/tar/lib.rs.html#42"><span class="kw">crate</span>::other</a>;
+<span class="kw">use </span><a href="lib.rs.html#42"><span class="kw">crate</span>::other</a>;
 
 <span class="doccomment">/// An iterator over the pax extensions in an archive entry.
 ///
@@ -133,10 +133,10 @@
     <span class="doccomment">/// Create new pax extensions iterator from the given entry data.
     </span><span class="kw">pub fn </span>new(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;entry </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
         <span class="kw">fn </span>is_newline(a: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw-2">*</span><a href="../../src/tar/pax.rs.html#18">a</a> == <span class="string">b&#39;\n&#39;
+            <span class="kw-2">*</span><a href="#18">a</a> == <span class="string">b&#39;\n&#39;
         </span>}
-        <a href="../../src/tar/pax.rs.html#11">PaxExtensions</a> {
-            data: <a href="../../src/tar/pax.rs.html#17">a</a>.split(<a href="../../src/tar/pax.rs.html#18">is_newline</a>),
+        <a href="#11">PaxExtensions</a> {
+            data: <a href="#17">a</a>.split(<a href="#18">is_newline</a>),
         }
     }
 }
@@ -174,35 +174,35 @@
     <span class="kw">type </span>Item = io::Result&lt;PaxExtension&lt;<span class="lifetime">&#39;entry</span>&gt;&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;PaxExtension&lt;<span class="lifetime">&#39;entry</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>line = <span class="kw">match </span><a class="self" href="../../src/tar/pax.rs.html#59">self</a>.data.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(line) <span class="kw">if </span><a href="../../src/tar/pax.rs.html#61">line</a>.is_empty() =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(line) =&gt; <a href="../../src/tar/pax.rs.html#62">line</a>,
+        <span class="kw">let </span>line = <span class="kw">match </span><a class="self" href="#59">self</a>.data.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>(line) <span class="kw">if </span><a href="#61">line</a>.is_empty() =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(line) =&gt; <a href="#62">line</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
         <span class="prelude-val">Some</span>(
-            <a href="../../src/tar/pax.rs.html#60">line</a>.iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="../../src/tar/pax.rs.html#68">b</a> == <span class="string">b&#39; &#39;</span>)
+            <a href="#60">line</a>.iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="#68">b</a> == <span class="string">b&#39; &#39;</span>)
                 .and_then(|i| {
-                    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/pax.rs.html#60">line</a>[..<a href="../../src/tar/pax.rs.html#69">i</a>])
+                    <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#60">line</a>[..<a href="#69">i</a>])
                         .ok()
-                        .and_then(|len| <a href="../../src/tar/pax.rs.html#72">len</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;().ok().map(|j| (<a href="../../src/tar/pax.rs.html#69">i</a> + <span class="number">1</span>, <a href="../../src/tar/pax.rs.html#72">j</a>)))
+                        .and_then(|len| <a href="#72">len</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;().ok().map(|j| (<a href="#69">i</a> + <span class="number">1</span>, <a href="#72">j</a>)))
                 })
                 .and_then(|(kvstart, reported_len)| {
                     <span class="kw">if </span>line.len() + <span class="number">1 </span>== reported_len {
-                        <a href="../../src/tar/pax.rs.html#60">line</a>[<a href="../../src/tar/pax.rs.html#74">kvstart</a>..]
+                        <a href="#60">line</a>[<a href="#74">kvstart</a>..]
                             .iter()
-                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="../../src/tar/pax.rs.html#78">b</a> == <span class="string">b&#39;=&#39;</span>)
-                            .map(|equals| (<a href="../../src/tar/pax.rs.html#74">kvstart</a>, <a href="../../src/tar/pax.rs.html#79">equals</a>))
+                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="#78">b</a> == <span class="string">b&#39;=&#39;</span>)
+                            .map(|equals| (<a href="#74">kvstart</a>, <a href="#79">equals</a>))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
                 })
-                .map(|(kvstart, equals)| <a href="../../src/tar/pax.rs.html#28">PaxExtension</a> {
-                    key: <span class="kw-2">&amp;</span><a href="../../src/tar/pax.rs.html#60">line</a>[<a href="../../src/tar/pax.rs.html#84">kvstart</a>..<a href="../../src/tar/pax.rs.html#84">kvstart</a> + <a href="../../src/tar/pax.rs.html#84">equals</a>],
-                    value: <span class="kw-2">&amp;</span><a href="../../src/tar/pax.rs.html#60">line</a>[<a href="../../src/tar/pax.rs.html#84">kvstart</a> + <a href="../../src/tar/pax.rs.html#84">equals</a> + <span class="number">1</span>..],
+                .map(|(kvstart, equals)| <a href="#28">PaxExtension</a> {
+                    key: <span class="kw-2">&amp;</span><a href="#60">line</a>[<a href="#84">kvstart</a>..<a href="#84">kvstart</a> + <a href="#84">equals</a>],
+                    value: <span class="kw-2">&amp;</span><a href="#60">line</a>[<a href="#84">kvstart</a> + <a href="#84">equals</a> + <span class="number">1</span>..],
                 })
-                .ok_or_else(|| <a href="../../src/tar/lib.rs.html#42">other</a>(<span class="string">&quot;malformed pax extension&quot;</span>)),
+                .ok_or_else(|| <a href="lib.rs.html#42">other</a>(<span class="string">&quot;malformed pax extension&quot;</span>)),
         )
     }
 }
@@ -212,25 +212,25 @@
     ///
     /// May fail if the key isn&#39;t actually utf-8.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;entry </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/tar/pax.rs.html#97">self</a>.key)
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#97">self</a>.key)
     }
 
     <span class="doccomment">/// Returns the underlying raw bytes for the key of this key/value pair.
     </span><span class="kw">pub fn </span>key_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;entry </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../src/tar/pax.rs.html#102">self</a>.key
+        <a class="self" href="#102">self</a>.key
     }
 
     <span class="doccomment">/// Returns the value for this key/value pair parsed as a string.
     ///
     /// May fail if the value isn&#39;t actually utf-8.
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;entry </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/tar/pax.rs.html#109">self</a>.value)
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#109">self</a>.value)
     }
 
     <span class="doccomment">/// Returns the underlying raw bytes for this value of this key/value pair.
     </span><span class="kw">pub fn </span>value_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;entry </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../src/tar/pax.rs.html#114">self</a>.value
+        <a class="self" href="#114">self</a>.value
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

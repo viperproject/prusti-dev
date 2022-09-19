@@ -232,20 +232,20 @@
     <a href="../../syn/ty/struct.TypePath.html">TypePath</a>, <a href="../../syn/ty/struct.TypeReference.html">TypeReference</a>,
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="../../src/pin_project_internal/utils.rs.html#106">parse_as_empty</a>, <a href="../../src/pin_project_internal/utils.rs.html#396">prepend_underscore_to_self</a>, <a href="../../src/pin_project_internal/utils.rs.html#193">ReplaceReceiver</a>, <a href="../../src/pin_project_internal/utils.rs.html#136">SliceExt</a>};
+<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="utils.rs.html#106">parse_as_empty</a>, <a href="utils.rs.html#396">prepend_underscore_to_self</a>, <a href="utils.rs.html#193">ReplaceReceiver</a>, <a href="utils.rs.html#136">SliceExt</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>attribute(args: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="kw-2">mut </span>input: <a href="../../syn/item/struct.ItemImpl.html">ItemImpl</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>res = (|| -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         parse_as_empty(args)<span class="question-mark">?</span>;
         validate_impl(<span class="kw-2">&amp;</span>input)<span class="question-mark">?</span>;
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#177">expand_impl</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#11">input</a>);
+        <a href="#177">expand_impl</a>(<span class="kw-2">&amp;mut </span><a href="#11">input</a>);
         <span class="prelude-val">Ok</span>(())
     })();
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#12">res</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>tokens = <a href="../../src/pin_project_internal/pinned_drop.rs.html#19">e</a>.to_compile_error();
-        <span class="kw">if let </span>Type::Path(self_ty) = <span class="kw-2">&amp;*</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#11">input</a>.self_ty {
-            <span class="kw">let </span>(impl_generics, <span class="kw">_</span>, where_clause) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#11">input</a>.generics.split_for_impl();
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="#12">res</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>tokens = <a href="#19">e</a>.to_compile_error();
+        <span class="kw">if let </span>Type::Path(self_ty) = <span class="kw-2">&amp;*</span><a href="#11">input</a>.self_ty {
+            <span class="kw">let </span>(impl_generics, <span class="kw">_</span>, where_clause) = <a href="#11">input</a>.generics.split_for_impl();
 
             <span class="comment">// Generate a dummy impl of `PinnedDrop`.
             // In many cases, `#[pinned_drop] impl` is declared after `#[pin_project]`.
@@ -259,7 +259,7 @@
             // However, if `input.self_ty` is not Type::Path, there is a high possibility that
             // the type does not exist (since #[pin_project] can only be used on struct/enum
             // definitions), so do not generate a dummy impl.
-            </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#20">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+            </span><a href="#20">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
                 <span class="kw">impl </span>#impl_generics ::pin_project::__private::PinnedDrop <span class="kw">for </span>#self_ty
                 #where_clause
                 {
@@ -267,9 +267,9 @@
                 }
             });
         }
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#20">tokens</a>
+        <a href="#20">tokens</a>
     } <span class="kw">else </span>{
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#11">input</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
+        <a href="#11">input</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
     }
 }
 
@@ -278,45 +278,45 @@
     <span class="kw">const </span>INVALID_ITEM: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> =
         <span class="string">&quot;#[pinned_drop] may only be used on implementation for the `PinnedDrop` trait&quot;</span>;
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#51">item</a>.attrs.<a href="../../src/pin_project_internal/utils.rs.html#138">find</a>(<span class="string">&quot;pinned_drop&quot;</span>) {
-        <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;duplicate #[pinned_drop] attribute&quot;</span>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = <a href="#51">item</a>.attrs.<a href="utils.rs.html#138">find</a>(<span class="string">&quot;pinned_drop&quot;</span>) {
+        <a class="macro" href="utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;duplicate #[pinned_drop] attribute&quot;</span>);
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, path, <span class="kw">_</span>)) = <span class="kw-2">&amp;</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#51">item</a>.trait_ {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, path, <span class="kw">_</span>)) = <span class="kw-2">&amp;</span><a href="#51">item</a>.trait_ {
         <span class="kw">if </span>!path.is_ident(<span class="string">&quot;PinnedDrop&quot;</span>) {
-            <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(path, INVALID_ITEM);
+            <a class="macro" href="utils.rs.html#27-31">bail!</a>(path, INVALID_ITEM);
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(item.self_ty, INVALID_ITEM);
+        <a class="macro" href="utils.rs.html#27-31">bail!</a>(item.self_ty, INVALID_ITEM);
     }
 
     <span class="kw">if </span>item.unsafety.is_some() {
-        <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(item.unsafety, <span class="string">&quot;implementing the trait `PinnedDrop` is not unsafe&quot;</span>);
+        <a class="macro" href="utils.rs.html#27-31">bail!</a>(item.unsafety, <span class="string">&quot;implementing the trait `PinnedDrop` is not unsafe&quot;</span>);
     }
     <span class="kw">if </span>item.items.is_empty() {
-        <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;not all trait items implemented, missing: `drop`&quot;</span>);
+        <a class="macro" href="utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;not all trait items implemented, missing: `drop`&quot;</span>);
     }
 
-    <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#51">item</a>.self_ty {
+    <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#51">item</a>.self_ty {
         Type::Path(<span class="kw">_</span>) =&gt; {}
         ty =&gt; {
-            <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(ty, <span class="string">&quot;implementing the trait `PinnedDrop` on this type is unsupported&quot;</span>);
+            <a class="macro" href="utils.rs.html#27-31">bail!</a>(ty, <span class="string">&quot;implementing the trait `PinnedDrop` on this type is unsupported&quot;</span>);
         }
     }
 
-    <a href="../../src/pin_project_internal/pinned_drop.rs.html#51">item</a>.items.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(|(i, item)| <span class="kw">match </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#81">item</a> {
+    <a href="#51">item</a>.items.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(|(i, item)| <span class="kw">match </span><a href="#81">item</a> {
         ImplItem::Const(item) =&gt; {
-            <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;const `{}` is not a member of trait `PinnedDrop`&quot;</span>, item.ident)
+            <a class="macro" href="utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;const `{}` is not a member of trait `PinnedDrop`&quot;</span>, item.ident)
         }
         ImplItem::Type(item) =&gt; {
-            <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;type `{}` is not a member of trait `PinnedDrop`&quot;</span>, item.ident)
+            <a class="macro" href="utils.rs.html#27-31">bail!</a>(item, <span class="string">&quot;type `{}` is not a member of trait `PinnedDrop`&quot;</span>, item.ident)
         }
         ImplItem::Method(method) =&gt; {
             validate_sig(<span class="kw-2">&amp;</span>method.sig)<span class="question-mark">?</span>;
             <span class="kw">if </span>i == <span class="number">0 </span>{
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
-                <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(method, <span class="string">&quot;duplicate definitions with name `drop`&quot;</span>)
+                <a class="macro" href="utils.rs.html#27-31">bail!</a>(method, <span class="string">&quot;duplicate definitions with name `drop`&quot;</span>)
             }
         }
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unexpected ImplItem&quot;</span>),
@@ -328,8 +328,8 @@
 /// The correct signature is: `(mut) self: (&lt;path&gt;::)Pin&lt;&amp;mut Self&gt;`
 </span><span class="kw">fn </span>validate_sig(sig: <span class="kw-2">&amp;</span><a href="../../syn/item/struct.Signature.html">Signature</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">fn </span>get_ty_path(ty: <span class="kw-2">&amp;</span><a href="../../syn/ty/enum.Type.html">Type</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../syn/path/struct.Path.html">Path</a>&gt; {
-        <span class="kw">if let </span>Type::Path(<a href="../../syn/ty/struct.TypePath.html">TypePath</a> { qself: <span class="prelude-val">None</span>, path }) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#104">ty</a> {
-            <span class="prelude-val">Some</span>(<a href="../../src/pin_project_internal/pinned_drop.rs.html#105">path</a>)
+        <span class="kw">if let </span>Type::Path(<a href="../../syn/ty/struct.TypePath.html">TypePath</a> { qself: <span class="prelude-val">None</span>, path }) = <a href="#104">ty</a> {
+            <span class="prelude-val">Some</span>(<a href="#105">path</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -338,33 +338,33 @@
     <span class="kw">const </span>INVALID_ARGUMENT: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;method `drop` must take an argument `self: Pin&lt;&amp;mut Self&gt;`&quot;</span>;
 
     <span class="kw">if </span>sig.ident != <span class="string">&quot;drop&quot; </span>{
-        <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(sig.ident, <span class="string">&quot;method `{}` is not a member of trait `PinnedDrop&quot;</span>, sig.ident,);
+        <a class="macro" href="utils.rs.html#27-31">bail!</a>(sig.ident, <span class="string">&quot;method `{}` is not a member of trait `PinnedDrop&quot;</span>, sig.ident,);
     }
 
-    <span class="kw">if let </span>ReturnType::Type(<span class="kw">_</span>, ty) = <span class="kw-2">&amp;</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#103">sig</a>.output {
-        <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#118">ty</a> {
-            Type::Tuple(ty) <span class="kw">if </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#120">ty</a>.elems.is_empty() =&gt; {}
-            <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(ty, <span class="string">&quot;method `drop` must return the unit type&quot;</span>),
+    <span class="kw">if let </span>ReturnType::Type(<span class="kw">_</span>, ty) = <span class="kw-2">&amp;</span><a href="#103">sig</a>.output {
+        <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="#118">ty</a> {
+            Type::Tuple(ty) <span class="kw">if </span><a href="#120">ty</a>.elems.is_empty() =&gt; {}
+            <span class="kw">_ </span>=&gt; <a class="macro" href="utils.rs.html#27-31">bail!</a>(ty, <span class="string">&quot;method `drop` must return the unit type&quot;</span>),
         }
     }
 
-    <span class="kw">match </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#103">sig</a>.inputs.len() {
+    <span class="kw">match </span><a href="#103">sig</a>.inputs.len() {
         <span class="number">1 </span>=&gt; {}
-        <span class="number">0 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/pin_project_internal/pinned_drop.rs.html#103">sig</a>.paren_token.span, <a href="../../src/pin_project_internal/pinned_drop.rs.html#112">INVALID_ARGUMENT</a>)),
-        <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(sig.inputs, INVALID_ARGUMENT),
+        <span class="number">0 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#103">sig</a>.paren_token.span, <a href="#112">INVALID_ARGUMENT</a>)),
+        <span class="kw">_ </span>=&gt; <a class="macro" href="utils.rs.html#27-31">bail!</a>(sig.inputs, INVALID_ARGUMENT),
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(FnArg::Typed(arg)) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#103">sig</a>.receiver() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(FnArg::Typed(arg)) = <a href="#103">sig</a>.receiver() {
         <span class="comment">// (mut) self: &lt;path&gt;
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#104">get_ty_path</a>(<span class="kw-2">&amp;</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#131">arg</a>.ty) {
-            <span class="kw">let </span>ty = <a href="../../src/pin_project_internal/pinned_drop.rs.html#133">path</a>.segments.last().unwrap();
-            <span class="kw">if let </span>PathArguments::AngleBracketed(args) = <span class="kw-2">&amp;</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#134">ty</a>.arguments {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <a href="#104">get_ty_path</a>(<span class="kw-2">&amp;</span><a href="#131">arg</a>.ty) {
+            <span class="kw">let </span>ty = <a href="#133">path</a>.segments.last().unwrap();
+            <span class="kw">if let </span>PathArguments::AngleBracketed(args) = <span class="kw-2">&amp;</span><a href="#134">ty</a>.arguments {
                 <span class="comment">// (mut) self: (&lt;path&gt;::)&lt;ty&gt;&lt;&amp;mut &lt;elem&gt;..&gt;
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(GenericArgument::Type(Type::Reference(<a href="../../syn/ty/struct.TypeReference.html">TypeReference</a> {
                     mutability: <span class="prelude-val">Some</span>(<span class="kw">_</span>),
                     elem,
                     ..
-                }))) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#135">args</a>.args.first()
+                }))) = <a href="#135">args</a>.args.first()
                 {
                     <span class="comment">// (mut) self: (&lt;path&gt;::)Pin&lt;&amp;mut Self&gt;
                     </span><span class="kw">if </span>args.args.len() == <span class="number">1
@@ -372,7 +372,7 @@
                         </span>&amp;&amp; get_ty_path(elem).map_or(<span class="bool-val">false</span>, |path| path.is_ident(<span class="string">&quot;Self&quot;</span>))
                     {
                         <span class="kw">if </span>sig.unsafety.is_some() {
-                            <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(sig.unsafety, <span class="string">&quot;implementing the method `drop` is not unsafe&quot;</span>);
+                            <a class="macro" href="utils.rs.html#27-31">bail!</a>(sig.unsafety, <span class="string">&quot;implementing the method `drop` is not unsafe&quot;</span>);
                         }
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                     }
@@ -381,7 +381,7 @@
         }
     }
 
-    <a class="macro" href="../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(sig.inputs[<span class="number">0</span>], INVALID_ARGUMENT)
+    <a class="macro" href="utils.rs.html#27-31">bail!</a>(sig.inputs[<span class="number">0</span>], INVALID_ARGUMENT)
 }
 
 <span class="comment">// from:
@@ -402,53 +402,53 @@
 //
 </span><span class="kw">fn </span>expand_impl(item: <span class="kw-2">&amp;mut </span><a href="../../syn/item/struct.ItemImpl.html">ItemImpl</a>) {
     <span class="kw">fn </span>get_arg_pat(arg: <span class="kw-2">&amp;mut </span><a href="../../syn/item/enum.FnArg.html">FnArg</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../syn/pat/struct.PatIdent.html">PatIdent</a>&gt; {
-        <span class="kw">if let </span>FnArg::Typed(arg) = <a href="../../src/pin_project_internal/pinned_drop.rs.html#178">arg</a> {
-            <span class="kw">if let </span>Pat::Ident(ident) = <span class="kw-2">&amp;mut *</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#179">arg</a>.pat {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/pin_project_internal/pinned_drop.rs.html#180">ident</a>);
+        <span class="kw">if let </span>FnArg::Typed(arg) = <a href="#178">arg</a> {
+            <span class="kw">if let </span>Pat::Ident(ident) = <span class="kw-2">&amp;mut *</span><a href="#179">arg</a>.pat {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#180">ident</a>);
             }
         }
         <span class="prelude-val">None
     </span>}
 
     <span class="comment">// `PinnedDrop` is a private trait and should not appear in docs.
-    </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#177">item</a>.attrs.push(<a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(<span class="attribute">#[doc(hidden)]</span>));
+    </span><a href="#177">item</a>.attrs.push(<a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(<span class="attribute">#[doc(hidden)]</span>));
 
-    <span class="kw">let </span>path = <span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#177">item</a>.trait_.as_mut().unwrap().<span class="number">1</span>;
-    <span class="kw-2">*</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#190">path</a> = <a class="macro" href="../../src/pin_project_internal/utils.rs.html#33-37">parse_quote_spanned! </a>{ path.span() =&gt;
+    <span class="kw">let </span>path = <span class="kw-2">&amp;mut </span><a href="#177">item</a>.trait_.as_mut().unwrap().<span class="number">1</span>;
+    <span class="kw-2">*</span><a href="#190">path</a> = <a class="macro" href="utils.rs.html#33-37">parse_quote_spanned! </a>{ path.span() =&gt;
         ::pin_project::__private::PinnedDrop
     };
 
     <span class="kw">let </span>method =
-        <span class="kw">if let </span>ImplItem::Method(method) = <span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#177">item</a>.items[<span class="number">0</span>] { <a href="../../src/pin_project_internal/pinned_drop.rs.html#196">method</a> } <span class="kw">else </span>{ <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>() };
+        <span class="kw">if let </span>ImplItem::Method(method) = <span class="kw-2">&amp;mut </span><a href="#177">item</a>.items[<span class="number">0</span>] { <a href="#196">method</a> } <span class="kw">else </span>{ <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>() };
 
     <span class="comment">// `fn drop(mut self: Pin&lt;&amp;mut Self&gt;)` -&gt; `fn __drop_inner&lt;T&gt;(mut __self: Pin&lt;&amp;mut Receiver&gt;)`
     </span><span class="kw">let </span>drop_inner = {
-        <span class="kw">let </span><span class="kw-2">mut </span>drop_inner = <a href="../../src/pin_project_internal/pinned_drop.rs.html#195">method</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>drop_inner = <a href="#195">method</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span>ident = <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;__drop_inner&quot;</span>);
         <span class="comment">// Add a dummy `__drop_inner` function to prevent users call outer `__drop_inner`.
-        </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.block.stmts.insert(<span class="number">0</span>, <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(<span class="kw">fn </span>#ident() {}));
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.sig.ident = <a href="../../src/pin_project_internal/pinned_drop.rs.html#201">ident</a>;
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.sig.generics = <a href="../../src/pin_project_internal/pinned_drop.rs.html#177">item</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>self_pat = <a href="../../src/pin_project_internal/pinned_drop.rs.html#178">get_arg_pat</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.sig.inputs[<span class="number">0</span>]).unwrap();
-        <a href="../../src/pin_project_internal/utils.rs.html#396">prepend_underscore_to_self</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#206">self_pat</a>.ident);
-        <span class="kw">let </span>self_ty = <span class="kw">if let </span>Type::Path(ty) = <span class="kw-2">&amp;*</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#177">item</a>.self_ty { <a href="../../src/pin_project_internal/pinned_drop.rs.html#208">ty</a> } <span class="kw">else </span>{ <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>() };
-        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="../../src/pin_project_internal/utils.rs.html#193">ReplaceReceiver</a>(<a href="../../src/pin_project_internal/pinned_drop.rs.html#208">self_ty</a>);
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#209">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_signature_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.sig);
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#209">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>.block);
-        <a href="../../src/pin_project_internal/pinned_drop.rs.html#200">drop_inner</a>
+        </span><a href="#200">drop_inner</a>.block.stmts.insert(<span class="number">0</span>, <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(<span class="kw">fn </span>#ident() {}));
+        <a href="#200">drop_inner</a>.sig.ident = <a href="#201">ident</a>;
+        <a href="#200">drop_inner</a>.sig.generics = <a href="#177">item</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>self_pat = <a href="#178">get_arg_pat</a>(<span class="kw-2">&amp;mut </span><a href="#200">drop_inner</a>.sig.inputs[<span class="number">0</span>]).unwrap();
+        <a href="utils.rs.html#396">prepend_underscore_to_self</a>(<span class="kw-2">&amp;mut </span><a href="#206">self_pat</a>.ident);
+        <span class="kw">let </span>self_ty = <span class="kw">if let </span>Type::Path(ty) = <span class="kw-2">&amp;*</span><a href="#177">item</a>.self_ty { <a href="#208">ty</a> } <span class="kw">else </span>{ <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>() };
+        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="utils.rs.html#193">ReplaceReceiver</a>(<a href="#208">self_ty</a>);
+        <a href="#209">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_signature_mut</a>(<span class="kw-2">&amp;mut </span><a href="#200">drop_inner</a>.sig);
+        <a href="#209">visitor</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<span class="kw-2">&amp;mut </span><a href="#200">drop_inner</a>.block);
+        <a href="#200">drop_inner</a>
     };
 
     <span class="comment">// `fn drop(mut self: Pin&lt;&amp;mut Self&gt;)` -&gt; `unsafe fn drop(self: Pin&lt;&amp;mut Self&gt;)`
-    </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#195">method</a>.sig.unsafety = <span class="prelude-val">Some</span>(&lt;<a class="macro" href="../../syn/macro.Token.html">Token!</a>[<span class="kw">unsafe</span>]&gt;::default());
-    <span class="kw">let </span>self_pat = <a href="../../src/pin_project_internal/pinned_drop.rs.html#178">get_arg_pat</a>(<span class="kw-2">&amp;mut </span><a href="../../src/pin_project_internal/pinned_drop.rs.html#195">method</a>.sig.inputs[<span class="number">0</span>]).unwrap();
-    <a href="../../src/pin_project_internal/pinned_drop.rs.html#217">self_pat</a>.mutability = <span class="prelude-val">None</span>;
-    <span class="kw">let </span>self_token = <span class="kw-2">&amp;</span><a href="../../src/pin_project_internal/pinned_drop.rs.html#217">self_pat</a>.ident;
+    </span><a href="#195">method</a>.sig.unsafety = <span class="prelude-val">Some</span>(&lt;<a class="macro" href="../../syn/macro.Token.html">Token!</a>[<span class="kw">unsafe</span>]&gt;::default());
+    <span class="kw">let </span>self_pat = <a href="#178">get_arg_pat</a>(<span class="kw-2">&amp;mut </span><a href="#195">method</a>.sig.inputs[<span class="number">0</span>]).unwrap();
+    <a href="#217">self_pat</a>.mutability = <span class="prelude-val">None</span>;
+    <span class="kw">let </span>self_token = <span class="kw-2">&amp;</span><a href="#217">self_pat</a>.ident;
 
-    <a href="../../src/pin_project_internal/pinned_drop.rs.html#195">method</a>.block.stmts = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <a href="#195">method</a>.block.stmts = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{
         <span class="attribute">#[allow(clippy::needless_pass_by_value)] </span><span class="comment">// This lint does not warn the receiver.
         </span>#drop_inner
         __drop_inner(#self_token);
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pin_project_internal" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pin_project_internal" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

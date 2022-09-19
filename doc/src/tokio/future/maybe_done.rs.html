@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/future/maybe_done.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>maybe_done.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/future/maybe_done.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>maybe_done.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -98,7 +98,7 @@
 
 <span class="doccomment">/// Wraps a future into a `MaybeDone`.
 </span><span class="kw">pub fn </span>maybe_done&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(future: Fut) -&gt; MaybeDone&lt;Fut&gt; {
-    <a href="../../../src/tokio/future/maybe_done.rs.html#12">MaybeDone::Future</a>(<a href="../../../src/tokio/future/maybe_done.rs.html#24">future</a>)
+    <a href="#12">MaybeDone::Future</a>(<a href="#24">future</a>)
 }
 
 <span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; MaybeDone&lt;Fut&gt; {
@@ -108,9 +108,9 @@
     /// has not yet been called.
     </span><span class="kw">pub fn </span>output_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Fut::Output&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>this = <a class="self" href="../../../src/tokio/future/maybe_done.rs.html#33">self</a>.get_unchecked_mut();
-            <span class="kw">match </span><a href="../../../src/tokio/future/maybe_done.rs.html#35">this</a> {
-                <a href="../../../src/tokio/future/maybe_done.rs.html#14">MaybeDone::Done</a>(res) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/tokio/future/maybe_done.rs.html#37">res</a>),
+            <span class="kw">let </span>this = <a class="self" href="#33">self</a>.get_unchecked_mut();
+            <span class="kw">match </span><a href="#35">this</a> {
+                <a href="#14">MaybeDone::Done</a>(res) =&gt; <span class="prelude-val">Some</span>(<a href="#37">res</a>),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
@@ -121,13 +121,13 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>take_output(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Fut::Output&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>this = <a class="self" href="../../../src/tokio/future/maybe_done.rs.html#46">self</a>.get_unchecked_mut();
-            <span class="kw">match </span><a href="../../../src/tokio/future/maybe_done.rs.html#48">this</a> {
-                <a href="../../../src/tokio/future/maybe_done.rs.html#14">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
-                <a href="../../../src/tokio/future/maybe_done.rs.html#12">MaybeDone::Future</a>(<span class="kw">_</span>) | <a href="../../../src/tokio/future/maybe_done.rs.html#17">MaybeDone::Gone</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            <span class="kw">let </span>this = <a class="self" href="#46">self</a>.get_unchecked_mut();
+            <span class="kw">match </span><a href="#48">this</a> {
+                <a href="#14">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
+                <a href="#12">MaybeDone::Future</a>(<span class="kw">_</span>) | <a href="#17">MaybeDone::Gone</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
             };
-            <span class="kw">if let </span><a href="../../../src/tokio/future/maybe_done.rs.html#14">MaybeDone::Done</a>(output) = mem::replace(<a href="../../../src/tokio/future/maybe_done.rs.html#48">this</a>, <a href="../../../src/tokio/future/maybe_done.rs.html#17">MaybeDone::Gone</a>) {
-                <span class="prelude-val">Some</span>(<a href="../../../src/tokio/future/maybe_done.rs.html#53">output</a>)
+            <span class="kw">if let </span><a href="#14">MaybeDone::Done</a>(output) = mem::replace(<a href="#48">this</a>, <a href="#17">MaybeDone::Gone</a>) {
+                <span class="prelude-val">Some</span>(<a href="#53">output</a>)
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
             }
@@ -140,15 +140,15 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-            <span class="kw">match </span><a class="self" href="../../../src/tokio/future/maybe_done.rs.html#65">self</a>.as_mut().get_unchecked_mut() {
-                <a href="../../../src/tokio/future/maybe_done.rs.html#12">MaybeDone::Future</a>(a) =&gt; <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(Pin::new_unchecked(a).poll(cx)),
-                <a href="../../../src/tokio/future/maybe_done.rs.html#14">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(()),
-                <a href="../../../src/tokio/future/maybe_done.rs.html#17">MaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;MaybeDone polled after value taken&quot;</span>),
+            <span class="kw">match </span><a class="self" href="#65">self</a>.as_mut().get_unchecked_mut() {
+                <a href="#12">MaybeDone::Future</a>(a) =&gt; <a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(Pin::new_unchecked(a).poll(cx)),
+                <a href="#14">MaybeDone::Done</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(()),
+                <a href="#17">MaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;MaybeDone polled after value taken&quot;</span>),
             }
         };
-        <a class="self" href="../../../src/tokio/future/maybe_done.rs.html#65">self</a>.set(<a href="../../../src/tokio/future/maybe_done.rs.html#14">MaybeDone::Done</a>(<a href="../../../src/tokio/future/maybe_done.rs.html#66">res</a>));
+        <a class="self" href="#65">self</a>.set(<a href="#14">MaybeDone::Done</a>(<a href="#66">res</a>));
         Poll::Ready(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

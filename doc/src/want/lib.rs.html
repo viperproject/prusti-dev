@@ -683,30 +683,30 @@
 <span class="kw">use </span><a href="../../try_lock/struct.TryLock.html">try_lock::TryLock</a>;
 
 <span class="doccomment">/// Create a new `want` channel.
-</span><span class="kw">pub fn </span>new() -&gt; (<a href="../../src/want/lib.rs.html#118">Giver</a>, <a href="../../src/want/lib.rs.html#123">Taker</a>) {
-    <span class="kw">let </span>inner = Arc::new(<a href="../../src/want/lib.rs.html#172">Inner</a> {
-        state: AtomicUsize::new(<a href="../../src/want/lib.rs.html#143">State::Idle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+</span><span class="kw">pub fn </span>new() -&gt; (<a href="#118">Giver</a>, <a href="#123">Taker</a>) {
+    <span class="kw">let </span>inner = Arc::new(<a href="#172">Inner</a> {
+        state: AtomicUsize::new(<a href="#143">State::Idle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         task: TryLock::new(<span class="prelude-val">None</span>),
     });
-    <span class="kw">let </span>inner2 = <a href="../../src/want/lib.rs.html#102">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>inner2 = <a href="#102">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     (
-        <a href="../../src/want/lib.rs.html#118">Giver</a> {
-            inner: <a href="../../src/want/lib.rs.html#102">inner</a>,
+        <a href="#118">Giver</a> {
+            inner: <a href="#102">inner</a>,
         },
-        <a href="../../src/want/lib.rs.html#123">Taker</a> {
-            inner: <a href="../../src/want/lib.rs.html#106">inner2</a>,
+        <a href="#123">Taker</a> {
+            inner: <a href="#106">inner2</a>,
         },
     )
 }
 
 <span class="doccomment">/// An entity that gives a value when wanted.
 </span><span class="kw">pub struct </span>Giver {
-    inner: Arc&lt;<a href="../../src/want/lib.rs.html#172">Inner</a>&gt;,
+    inner: Arc&lt;<a href="#172">Inner</a>&gt;,
 }
 
 <span class="doccomment">/// An entity that wants a value.
 </span><span class="kw">pub struct </span>Taker {
-    inner: Arc&lt;<a href="../../src/want/lib.rs.html#172">Inner</a>&gt;,
+    inner: Arc&lt;<a href="#172">Inner</a>&gt;,
 }
 
 <span class="doccomment">/// A cloneable `Giver`.
@@ -715,7 +715,7 @@
 /// usable as a cancellation watcher.
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>SharedGiver {
-    inner: Arc&lt;<a href="../../src/want/lib.rs.html#172">Inner</a>&gt;,
+    inner: Arc&lt;<a href="#172">Inner</a>&gt;,
 }
 
 <span class="doccomment">/// The `Taker` has canceled its interest in a value.
@@ -731,24 +731,24 @@
     Closed,
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../src/want/lib.rs.html#142">State</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">fn </span>from(s: <a href="../../src/want/lib.rs.html#142">State</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><a href="../../src/want/lib.rs.html#150">s</a> {
-            <a href="../../src/want/lib.rs.html#143">State::Idle</a> =&gt; <span class="number">0</span>,
-            <a href="../../src/want/lib.rs.html#144">State::Want</a> =&gt; <span class="number">1</span>,
-            <a href="../../src/want/lib.rs.html#145">State::Give</a> =&gt; <span class="number">2</span>,
-            <a href="../../src/want/lib.rs.html#146">State::Closed</a> =&gt; <span class="number">3</span>,
+<span class="kw">impl </span>From&lt;<a href="#142">State</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn </span>from(s: <a href="#142">State</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">match </span><a href="#150">s</a> {
+            <a href="#143">State::Idle</a> =&gt; <span class="number">0</span>,
+            <a href="#144">State::Want</a> =&gt; <span class="number">1</span>,
+            <a href="#145">State::Give</a> =&gt; <span class="number">2</span>,
+            <a href="#146">State::Closed</a> =&gt; <span class="number">3</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="../../src/want/lib.rs.html#142">State</a> {
-    <span class="kw">fn </span>from(num: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/want/lib.rs.html#142">State</a> {
-        <span class="kw">match </span><a href="../../src/want/lib.rs.html#161">num</a> {
-            <span class="number">0 </span>=&gt; <a href="../../src/want/lib.rs.html#143">State::Idle</a>,
-            <span class="number">1 </span>=&gt; <a href="../../src/want/lib.rs.html#144">State::Want</a>,
-            <span class="number">2 </span>=&gt; <a href="../../src/want/lib.rs.html#145">State::Give</a>,
-            <span class="number">3 </span>=&gt; <a href="../../src/want/lib.rs.html#146">State::Closed</a>,
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="#142">State</a> {
+    <span class="kw">fn </span>from(num: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#142">State</a> {
+        <span class="kw">match </span><a href="#161">num</a> {
+            <span class="number">0 </span>=&gt; <a href="#143">State::Idle</a>,
+            <span class="number">1 </span>=&gt; <a href="#144">State::Want</a>,
+            <span class="number">2 </span>=&gt; <a href="#145">State::Give</a>,
+            <span class="number">3 </span>=&gt; <a href="#146">State::Closed</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unknown state: {}&quot;</span>, num),
         }
     }
@@ -761,10 +761,10 @@
 
 <span class="comment">// ===== impl Giver ======
 
-</span><span class="kw">impl </span><a href="../../src/want/lib.rs.html#118">Giver</a> {
+</span><span class="kw">impl </span><a href="#118">Giver</a> {
     <span class="doccomment">/// Returns a `Future` that fulfills when the `Taker` has done some action.
-    </span><span class="kw">pub fn </span>want&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/want/lib.rs.html#137">Closed</a>&gt;&gt; + <span class="lifetime">&#39;a </span>{
-        <a href="../../src/want/lib.rs.html#406">Want</a>(<a class="self" href="../../src/want/lib.rs.html#181">self</a>)
+    </span><span class="kw">pub fn </span>want&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <a href="#137">Closed</a>&gt;&gt; + <span class="lifetime">&#39;a </span>{
+        <a href="#406">Want</a>(<a class="self" href="#181">self</a>)
     }
 
     <span class="doccomment">/// Poll whether the `Taker` has registered interest in another value.
@@ -777,41 +777,41 @@
     ///
     /// After knowing that the Taker is wanting, the state can be reset by
     /// calling [`give`](Giver::give).
-    </span><span class="kw">pub fn </span>poll_want(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../src/want/lib.rs.html#137">Closed</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_want(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#137">Closed</a>&gt;&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>state = <a class="self" href="../../src/want/lib.rs.html#195">self</a>.inner.state.load(SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <span class="kw">match </span><a href="../../src/want/lib.rs.html#197">state</a> {
-                <a href="../../src/want/lib.rs.html#144">State::Want</a> =&gt; {
+            <span class="kw">let </span>state = <a class="self" href="#195">self</a>.inner.state.load(SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <span class="kw">match </span><a href="#197">state</a> {
+                <a href="#144">State::Want</a> =&gt; {
                     <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;poll_want: taker wants!&quot;</span>);
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 },
-                <a href="../../src/want/lib.rs.html#146">State::Closed</a> =&gt; {
+                <a href="#146">State::Closed</a> =&gt; {
                     <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;poll_want: closed&quot;</span>);
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/want/lib.rs.html#137">Closed</a> { _inner: () }));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#137">Closed</a> { _inner: () }));
                 },
-                <a href="../../src/want/lib.rs.html#143">State::Idle</a> | <a href="../../src/want/lib.rs.html#145">State::Give</a> =&gt; {
+                <a href="#143">State::Idle</a> | <a href="#145">State::Give</a> =&gt; {
                     <span class="comment">// Taker doesn&#39;t want anything yet, so park.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>locked) = <a class="self" href="../../src/want/lib.rs.html#195">self</a>.inner.task.try_lock_order(SeqCst, SeqCst) {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>locked) = <a class="self" href="#195">self</a>.inner.task.try_lock_order(SeqCst, SeqCst) {
 
                         <span class="comment">// While we have the lock, try to set to GIVE.
-                        </span><span class="kw">let </span>old = <a class="self" href="../../src/want/lib.rs.html#195">self</a>.inner.state.compare_and_swap(
-                            <a href="../../src/want/lib.rs.html#197">state</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                            <a href="../../src/want/lib.rs.html#145">State::Give</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        </span><span class="kw">let </span>old = <a class="self" href="#195">self</a>.inner.state.compare_and_swap(
+                            <a href="#197">state</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                            <a href="#145">State::Give</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                             SeqCst,
                         );
                         <span class="comment">// If it&#39;s still the first state (Idle or Give), park current task.
                         </span><span class="kw">if </span>old == state.into() {
-                            <span class="kw">let </span>park = <a href="../../src/want/lib.rs.html#209">locked</a>.as_ref()
-                                .map(|w| !<a href="../../src/want/lib.rs.html#220">w</a>.will_wake(<a href="../../src/want/lib.rs.html#195">cx</a>.waker()))
+                            <span class="kw">let </span>park = <a href="#209">locked</a>.as_ref()
+                                .map(|w| !<a href="#220">w</a>.will_wake(<a href="#195">cx</a>.waker()))
                                 .unwrap_or(<span class="bool-val">true</span>);
                             <span class="kw">if </span>park {
-                                <span class="kw">let </span>old = mem::replace(<span class="kw-2">&amp;mut *</span><a href="../../src/want/lib.rs.html#209">locked</a>, <span class="prelude-val">Some</span>(<a href="../../src/want/lib.rs.html#195">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-                                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/want/lib.rs.html#209">locked</a>);
-                                <a href="../../src/want/lib.rs.html#223">old</a>.map(|prev_task| {
+                                <span class="kw">let </span>old = mem::replace(<span class="kw-2">&amp;mut *</span><a href="#209">locked</a>, <span class="prelude-val">Some</span>(<a href="#195">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+                                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#209">locked</a>);
+                                <a href="#223">old</a>.map(|prev_task| {
                                     <span class="comment">// there was an old task parked here.
                                     // it might be waiting to be notified,
                                     // so poke it before dropping.
-                                    </span><a href="../../src/want/lib.rs.html#225">prev_task</a>.wake();
+                                    </span><a href="#225">prev_task</a>.wake();
                                 });
                             }
                             <span class="kw">return </span>Poll::Pending;
@@ -835,11 +835,11 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>give(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// only set to IDLE if it is still Want
-        </span><a class="self" href="../../src/want/lib.rs.html#251">self</a>.inner.state.compare_and_swap(
-            <a href="../../src/want/lib.rs.html#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="../../src/want/lib.rs.html#143">State::Idle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        </span><a class="self" href="#251">self</a>.inner.state.compare_and_swap(
+            <a href="#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="#143">State::Idle</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             SeqCst,
-        ) == <a href="../../src/want/lib.rs.html#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        ) == <a href="#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
     <span class="doccomment">/// Check if the `Taker` has called `want()` without parking a task.
@@ -848,64 +848,64 @@
     /// means of being notified is left to the user.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_wanting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/want/lib.rs.html#265">self</a>.inner.state.load(SeqCst) == <a href="../../src/want/lib.rs.html#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#265">self</a>.inner.state.load(SeqCst) == <a href="#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
 
     <span class="doccomment">/// Check if the `Taker` has canceled interest without parking a task.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/want/lib.rs.html#272">self</a>.inner.state.load(SeqCst) == <a href="../../src/want/lib.rs.html#146">State::Closed</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#272">self</a>.inner.state.load(SeqCst) == <a href="#146">State::Closed</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
     <span class="doccomment">/// Converts this into a `SharedGiver`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>shared(<span class="self">self</span>) -&gt; <a href="../../src/want/lib.rs.html#132">SharedGiver</a> {
-        <a href="../../src/want/lib.rs.html#132">SharedGiver</a> {
-            inner: <a class="self" href="../../src/want/lib.rs.html#278">self</a>.inner,
+    </span><span class="kw">pub fn </span>shared(<span class="self">self</span>) -&gt; <a href="#132">SharedGiver</a> {
+        <a href="#132">SharedGiver</a> {
+            inner: <a class="self" href="#278">self</a>.inner,
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/want/lib.rs.html#118">Giver</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#118">Giver</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/want/lib.rs.html#286">f</a>.debug_struct(<span class="string">&quot;Giver&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/want/lib.rs.html#286">self</a>.inner.<a href="../../src/want/lib.rs.html#399">state</a>())
+        <a href="#286">f</a>.debug_struct(<span class="string">&quot;Giver&quot;</span>)
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#286">self</a>.inner.<a href="#399">state</a>())
             .finish()
     }
 }
 
 <span class="comment">// ===== impl SharedGiver ======
 
-</span><span class="kw">impl </span><a href="../../src/want/lib.rs.html#132">SharedGiver</a> {
+</span><span class="kw">impl </span><a href="#132">SharedGiver</a> {
     <span class="doccomment">/// Check if the `Taker` has called `want()` without parking a task.
     ///
     /// This is safe to call outside of a futures task context, but other
     /// means of being notified is left to the user.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_wanting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/want/lib.rs.html#301">self</a>.inner.state.load(SeqCst) == <a href="../../src/want/lib.rs.html#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#301">self</a>.inner.state.load(SeqCst) == <a href="#144">State::Want</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
 
     <span class="doccomment">/// Check if the `Taker` has canceled interest without parking a task.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/want/lib.rs.html#308">self</a>.inner.state.load(SeqCst) == <a href="../../src/want/lib.rs.html#146">State::Closed</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#308">self</a>.inner.state.load(SeqCst) == <a href="#146">State::Closed</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/want/lib.rs.html#132">SharedGiver</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#132">SharedGiver</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/want/lib.rs.html#314">f</a>.debug_struct(<span class="string">&quot;SharedGiver&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/want/lib.rs.html#314">self</a>.inner.<a href="../../src/want/lib.rs.html#399">state</a>())
+        <a href="#314">f</a>.debug_struct(<span class="string">&quot;SharedGiver&quot;</span>)
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#314">self</a>.inner.<a href="#399">state</a>())
             .finish()
     }
 }
 
 <span class="comment">// ===== impl Taker ======
 
-</span><span class="kw">impl </span><a href="../../src/want/lib.rs.html#123">Taker</a> {
+</span><span class="kw">impl </span><a href="#123">Taker</a> {
     <span class="doccomment">/// Signal to the `Giver` that the want is canceled.
     ///
     /// This is useful to tell that the channel is closed if you cannot
@@ -913,7 +913,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>cancel(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;signal: {:?}&quot;</span>, State::Closed);
-        <a class="self" href="../../src/want/lib.rs.html#329">self</a>.<a href="../../src/want/lib.rs.html#346">signal</a>(<a href="../../src/want/lib.rs.html#146">State::Closed</a>)
+        <a class="self" href="#329">self</a>.<a href="#346">signal</a>(<a href="#146">State::Closed</a>)
     }
 
     <span class="doccomment">/// Signal to the `Giver` that a value is wanted.
@@ -924,21 +924,21 @@
             <span class="string">&quot;want called after cancel&quot;
         </span>);
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;signal: {:?}&quot;</span>, State::Want);
-        <a class="self" href="../../src/want/lib.rs.html#336">self</a>.<a href="../../src/want/lib.rs.html#346">signal</a>(<a href="../../src/want/lib.rs.html#144">State::Want</a>)
+        <a class="self" href="#336">self</a>.<a href="#346">signal</a>(<a href="#144">State::Want</a>)
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>signal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="../../src/want/lib.rs.html#142">State</a>) {
-        <span class="kw">let </span>old_state = <a class="self" href="../../src/want/lib.rs.html#346">self</a>.inner.state.swap(<a href="../../src/want/lib.rs.html#346">state</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">match </span><a href="../../src/want/lib.rs.html#347">old_state</a> {
-            <a href="../../src/want/lib.rs.html#143">State::Idle</a> | <a href="../../src/want/lib.rs.html#144">State::Want</a> | <a href="../../src/want/lib.rs.html#146">State::Closed</a> =&gt; (),
-            <a href="../../src/want/lib.rs.html#145">State::Give</a> =&gt; {
+    </span><span class="kw">fn </span>signal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="#142">State</a>) {
+        <span class="kw">let </span>old_state = <a class="self" href="#346">self</a>.inner.state.swap(<a href="#346">state</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">match </span><a href="#347">old_state</a> {
+            <a href="#143">State::Idle</a> | <a href="#144">State::Want</a> | <a href="#146">State::Closed</a> =&gt; (),
+            <a href="#145">State::Give</a> =&gt; {
                 <span class="kw">loop </span>{
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>locked) = <a class="self" href="../../src/want/lib.rs.html#346">self</a>.inner.task.try_lock_order(SeqCst, SeqCst) {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a href="../../src/want/lib.rs.html#352">locked</a>.take() {
-                            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/want/lib.rs.html#352">locked</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>locked) = <a class="self" href="#346">self</a>.inner.task.try_lock_order(SeqCst, SeqCst) {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a href="#352">locked</a>.take() {
+                            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#352">locked</a>);
                             <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;signal found waiting giver, notifying&quot;</span>);
-                            <a href="../../src/want/lib.rs.html#353">task</a>.wake();
+                            <a href="#353">task</a>.wake();
                         }
                         <span class="kw">return</span>;
                     } <span class="kw">else </span>{
@@ -953,49 +953,49 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/want/lib.rs.html#123">Taker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#123">Taker</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/want/lib.rs.html#373">self</a>.<a href="../../src/want/lib.rs.html#346">signal</a>(<a href="../../src/want/lib.rs.html#146">State::Closed</a>);
+        <a class="self" href="#373">self</a>.<a href="#346">signal</a>(<a href="#146">State::Closed</a>);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/want/lib.rs.html#123">Taker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#123">Taker</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/want/lib.rs.html#379">f</a>.debug_struct(<span class="string">&quot;Taker&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/want/lib.rs.html#379">self</a>.inner.<a href="../../src/want/lib.rs.html#399">state</a>())
+        <a href="#379">f</a>.debug_struct(<span class="string">&quot;Taker&quot;</span>)
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#379">self</a>.inner.<a href="#399">state</a>())
             .finish()
     }
 }
 
 <span class="comment">// ===== impl Closed ======
 
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/want/lib.rs.html#137">Closed</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#137">Closed</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/want/lib.rs.html#389">f</a>.debug_struct(<span class="string">&quot;Closed&quot;</span>)
+        <a href="#389">f</a>.debug_struct(<span class="string">&quot;Closed&quot;</span>)
             .finish()
     }
 }
 
 <span class="comment">// ===== impl Inner ======
 
-</span><span class="kw">impl </span><a href="../../src/want/lib.rs.html#172">Inner</a> {
+</span><span class="kw">impl </span><a href="#172">Inner</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/want/lib.rs.html#142">State</a> {
-        <a class="self" href="../../src/want/lib.rs.html#399">self</a>.state.load(SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#142">State</a> {
+        <a class="self" href="#399">self</a>.state.load(SeqCst).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
 <span class="comment">// ===== impl PollFn ======
 
-</span><span class="kw">struct </span>Want&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../src/want/lib.rs.html#118">Giver</a>);
+</span><span class="kw">struct </span>Want&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#118">Giver</a>);
 
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Want&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/want/lib.rs.html#137">Closed</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), <a href="#137">Closed</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../src/want/lib.rs.html#412">self</a>.<span class="number">0</span>.<a href="../../src/want/lib.rs.html#195">poll_want</a>(<a href="../../src/want/lib.rs.html#412">cx</a>)
+        <a class="self" href="#412">self</a>.<span class="number">0</span>.<a href="#195">poll_want</a>(<a href="#412">cx</a>)
     }
 }
 
@@ -1169,4 +1169,4 @@
     */
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="want" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="want" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

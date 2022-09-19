@@ -164,7 +164,7 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
-</span><span class="kw">use </span><a href="../../../../src/ctrlc/error.rs.html#6"><span class="kw">crate</span>::error::Error</a> <span class="kw">as </span>CtrlcError;
+</span><span class="kw">use </span><a href="../../error.rs.html#6"><span class="kw">crate</span>::error::Error</a> <span class="kw">as </span>CtrlcError;
 <span class="kw">use </span><a href="../../../../nix/unistd/index.html">nix::unistd</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
 
@@ -179,7 +179,7 @@
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>os_handler(<span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">nix::libc::c_int</a>) {
     <span class="comment">// Assuming this always succeeds. Can&#39;t really handle errors in any meaningful way.
     </span><span class="kw">unsafe </span>{
-        <span class="kw">let _ </span>= unistd::write(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a>.<span class="number">1</span>, <span class="kw-2">&amp;</span>[<span class="number">0u8</span>]);
+        <span class="kw">let _ </span>= unistd::write(<a href="#14">PIPE</a>.<span class="number">1</span>, <span class="kw-2">&amp;</span>[<span class="number">0u8</span>]);
     }
 }
 
@@ -218,7 +218,7 @@
 <span class="attribute">#[inline]
 #[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
 </span><span class="kw">fn </span>pipe2(flags: <a href="../../../../nix/fcntl/struct.OFlag.html">nix::fcntl::OFlag</a>) -&gt; nix::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>)&gt; {
-    unistd::pipe2(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#63">flags</a>)
+    unistd::pipe2(<a href="#63">flags</a>)
 }
 
 <span class="doccomment">/// Register os signal handler.
@@ -230,36 +230,36 @@
 /// Will return an error if a system error occurred.
 ///
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub unsafe fn </span>init_os_handler() -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#17">Error</a>&gt; {
+</span><span class="kw">pub unsafe fn </span>init_os_handler() -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#17">Error</a>&gt; {
     <span class="kw">use </span>nix::fcntl;
     <span class="kw">use </span>nix::sys::signal;
 
-    <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a> = pipe2(fcntl::OFlag::O_CLOEXEC)<span class="question-mark">?</span>;
+    <a href="#14">PIPE</a> = pipe2(fcntl::OFlag::O_CLOEXEC)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>close_pipe = |e: <a href="../../../../nix/type.Error.html">nix::Error</a>| -&gt; <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#17">Error</a> {
+    <span class="kw">let </span>close_pipe = |e: <a href="../../../../nix/type.Error.html">nix::Error</a>| -&gt; <a href="#17">Error</a> {
         <span class="comment">// Try to close the pipes. close() should not fail,
         // but if it does, there isn&#39;t much we can do
-        </span><span class="kw">let _ </span>= unistd::close(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a>.<span class="number">1</span>);
-        <span class="kw">let _ </span>= unistd::close(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a>.<span class="number">0</span>);
-        <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#82">e</a>
+        </span><span class="kw">let _ </span>= unistd::close(<a href="#14">PIPE</a>.<span class="number">1</span>);
+        <span class="kw">let _ </span>= unistd::close(<a href="#14">PIPE</a>.<span class="number">0</span>);
+        <a href="#82">e</a>
     };
 
     <span class="comment">// Make sure we never block on write in the os handler.
-    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = fcntl::fcntl(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a>.<span class="number">1</span>, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK)) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#82">close_pipe</a>(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#91">e</a>));
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = fcntl::fcntl(<a href="#14">PIPE</a>.<span class="number">1</span>, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK)) {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#82">close_pipe</a>(<a href="#91">e</a>));
     }
 
-    <span class="kw">let </span>handler = signal::SigHandler::Handler(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#22">os_handler</a>);
+    <span class="kw">let </span>handler = signal::SigHandler::Handler(<a href="#22">os_handler</a>);
     <span class="kw">let </span>new_action = signal::SigAction::new(
-        <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#95">handler</a>,
+        <a href="#95">handler</a>,
         signal::SaFlags::SA_RESTART,
         signal::SigSet::empty(),
     );
 
     <span class="attribute">#[allow(unused_variables)]
-    </span><span class="kw">let </span>sigint_old = <span class="kw">match </span>signal::sigaction(signal::Signal::SIGINT, <span class="kw-2">&amp;</span><a href="../../../../src/ctrlc/platform/unix/mod.rs.html#96">new_action</a>) {
-        <span class="prelude-val">Ok</span>(old) =&gt; <a href="../../../../src/ctrlc/platform/unix/mod.rs.html#104">old</a>,
-        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#82">close_pipe</a>(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#105">e</a>)),
+    </span><span class="kw">let </span>sigint_old = <span class="kw">match </span>signal::sigaction(signal::Signal::SIGINT, <span class="kw-2">&amp;</span><a href="#96">new_action</a>) {
+        <span class="prelude-val">Ok</span>(old) =&gt; <a href="#104">old</a>,
+        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#82">close_pipe</a>(<a href="#105">e</a>)),
     };
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;termination&quot;</span>)]
@@ -294,7 +294,7 @@
 /// Will return an error if a system error occurred.
 ///
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub unsafe fn </span>block_ctrl_c() -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/ctrlc/error.rs.html#6">CtrlcError</a>&gt; {
+</span><span class="kw">pub unsafe fn </span>block_ctrl_c() -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../error.rs.html#6">CtrlcError</a>&gt; {
     <span class="kw">use </span>std::io;
     <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>];
 
@@ -302,15 +302,15 @@
     // with std::os::unix::io::FromRawFd, this would handle EINTR
     // and everything for us.
     </span><span class="kw">loop </span>{
-        <span class="kw">match </span>unistd::read(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#14">PIPE</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="../../../../src/ctrlc/platform/unix/mod.rs.html#142">buf</a>[..]) {
+        <span class="kw">match </span>unistd::read(<a href="#14">PIPE</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="#142">buf</a>[..]) {
             <span class="prelude-val">Ok</span>(<span class="number">1</span>) =&gt; <span class="kw">break</span>,
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/ctrlc/error.rs.html#12">CtrlcError::System</a>(io::ErrorKind::UnexpectedEof.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../error.rs.html#12">CtrlcError::System</a>(io::ErrorKind::UnexpectedEof.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
             <span class="prelude-val">Err</span>(nix::errno::Errno::EINTR) =&gt; {}
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/ctrlc/platform/unix/mod.rs.html#152">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#152">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="ctrlc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="ctrlc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/grouping_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouping_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/grouping_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouping_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -533,10 +533,9 @@
 <span id="533">533</span>
 <span id="534">534</span>
 <span id="535">535</span>
-<span id="536">536</span>
 </pre><pre class="rust"><code><span class="attribute">#![cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
 
-</span><span class="kw">use </span><a href="../../src/itertools/minmax.rs.html#6"><span class="kw">crate</span>::MinMaxResult</a>;
+</span><span class="kw">use </span><a href="minmax.rs.html#6"><span class="kw">crate</span>::MinMaxResult</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">std::hash::Hash</a>;
@@ -549,7 +548,7 @@
 
 <span class="kw">impl</span>&lt;I, F&gt; MapForGrouping&lt;I, F&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(iter: I, key_mapper: F) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="../../src/itertools/grouping_map.rs.html#15">iter</a>, <a href="../../src/itertools/grouping_map.rs.html#15">key_mapper</a>)
+        <span class="self">Self</span>(<a href="#15">iter</a>, <a href="#15">key_mapper</a>)
     }
 }
 
@@ -560,7 +559,7 @@
 {
     <span class="kw">type </span>Item = (K, V);
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#26">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|val| ((<a class="self" href="../../src/itertools/grouping_map.rs.html#26">self</a>.<span class="number">1</span>)(<span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#27">val</a>), <a href="../../src/itertools/grouping_map.rs.html#27">val</a>))
+        <a class="self" href="#26">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|val| ((<a class="self" href="#26">self</a>.<span class="number">1</span>)(<span class="kw-2">&amp;</span><a href="#27">val</a>), <a href="#27">val</a>))
     }
 }
 
@@ -569,13 +568,12 @@
     <span class="kw">where </span>I: Iterator&lt;Item = (K, V)&gt;,
           K: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
 {
-    <a href="../../src/itertools/grouping_map.rs.html#52">GroupingMap</a> { <a href="../../src/itertools/grouping_map.rs.html#32">iter</a> }
+    <a href="#51">GroupingMap</a> { <a href="#32">iter</a> }
 }
 
 <span class="doccomment">/// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
 /// 
 /// See [`GroupingMap`] for more informations.
-</span><span class="attribute">#[must_use = <span class="string">&quot;GroupingMapBy is lazy and do nothing unless consumed&quot;</span>]
 </span><span class="kw">pub type </span>GroupingMapBy&lt;I, F&gt; = GroupingMap&lt;MapForGrouping&lt;I, F&gt;&gt;;
 
 <span class="doccomment">/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
@@ -638,14 +636,14 @@
     {
         <span class="kw">let </span><span class="kw-2">mut </span>destination_map = HashMap::new();
 
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#100">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(key, val)| {
-            <span class="kw">let </span>acc = <a href="../../src/itertools/grouping_map.rs.html#103">destination_map</a>.remove(<span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#105">key</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(op_res) = <a href="../../src/itertools/grouping_map.rs.html#100">operation</a>(<a href="../../src/itertools/grouping_map.rs.html#106">acc</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#105">key</a>, <a href="../../src/itertools/grouping_map.rs.html#105">val</a>) {
-                <a href="../../src/itertools/grouping_map.rs.html#103">destination_map</a>.insert(<a href="../../src/itertools/grouping_map.rs.html#105">key</a>, <a href="../../src/itertools/grouping_map.rs.html#107">op_res</a>);
+        <a class="self" href="#99">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(key, val)| {
+            <span class="kw">let </span>acc = <a href="#102">destination_map</a>.remove(<span class="kw-2">&amp;</span><a href="#104">key</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(op_res) = <a href="#99">operation</a>(<a href="#105">acc</a>, <span class="kw-2">&amp;</span><a href="#104">key</a>, <a href="#104">val</a>) {
+                <a href="#102">destination_map</a>.insert(<a href="#104">key</a>, <a href="#106">op_res</a>);
             }
         });
 
-        <a href="../../src/itertools/grouping_map.rs.html#103">destination_map</a>
+        <a href="#102">destination_map</a>
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -677,9 +675,9 @@
         <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
               FO: FnMut(R, <span class="kw-2">&amp;</span>K, V) -&gt; R,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#140">self</a>.<a href="../../src/itertools/grouping_map.rs.html#100-101">aggregate</a>(|acc, key, val| {
-            <span class="kw">let </span>acc = <a href="../../src/itertools/grouping_map.rs.html#144">acc</a>.unwrap_or_else(|| <a href="../../src/itertools/grouping_map.rs.html#140">init</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="prelude-val">Some</span>(<a href="../../src/itertools/grouping_map.rs.html#140">operation</a>(<a href="../../src/itertools/grouping_map.rs.html#145">acc</a>, <a href="../../src/itertools/grouping_map.rs.html#144">key</a>, <a href="../../src/itertools/grouping_map.rs.html#144">val</a>))
+        <a class="self" href="#139">self</a>.<a href="#99-100">aggregate</a>(|acc, key, val| {
+            <span class="kw">let </span>acc = <a href="#143">acc</a>.unwrap_or_else(|| <a href="#139">init</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="prelude-val">Some</span>(<a href="#139">operation</a>(<a href="#144">acc</a>, <a href="#143">key</a>, <a href="#143">val</a>))
         })
     }
 
@@ -713,10 +711,10 @@
     </span><span class="kw">pub fn </span>fold_first&lt;FO&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>operation: FO) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>FO: FnMut(V, <span class="kw-2">&amp;</span>K, V) -&gt; V,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#177">self</a>.<a href="../../src/itertools/grouping_map.rs.html#100-101">aggregate</a>(|acc, key, val| {
-            <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="../../src/itertools/grouping_map.rs.html#180">acc</a> {
-                <span class="prelude-val">Some</span>(acc) =&gt; <a href="../../src/itertools/grouping_map.rs.html#177">operation</a>(<a href="../../src/itertools/grouping_map.rs.html#182">acc</a>, <a href="../../src/itertools/grouping_map.rs.html#180">key</a>, <a href="../../src/itertools/grouping_map.rs.html#180">val</a>),
-                <span class="prelude-val">None </span>=&gt; <a href="../../src/itertools/grouping_map.rs.html#180">val</a>,
+        <a class="self" href="#176">self</a>.<a href="#99-100">aggregate</a>(|acc, key, val| {
+            <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#179">acc</a> {
+                <span class="prelude-val">Some</span>(acc) =&gt; <a href="#176">operation</a>(<a href="#181">acc</a>, <a href="#179">key</a>, <a href="#179">val</a>),
+                <span class="prelude-val">None </span>=&gt; <a href="#179">val</a>,
             })
         })
     }
@@ -744,11 +742,11 @@
     {
         <span class="kw">let </span><span class="kw-2">mut </span>destination_map = HashMap::new();
 
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#206">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(key, val)| {
-            <a href="../../src/itertools/grouping_map.rs.html#209">destination_map</a>.entry(<a href="../../src/itertools/grouping_map.rs.html#211">key</a>).or_insert_with(C::default).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="../../src/itertools/grouping_map.rs.html#211">val</a>));
+        <a class="self" href="#205">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|(key, val)| {
+            <a href="#208">destination_map</a>.entry(<a href="#210">key</a>).or_insert_with(C::default).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a href="#210">val</a>));
         });
 
-        <a href="../../src/itertools/grouping_map.rs.html#209">destination_map</a>
+        <a href="#208">destination_map</a>
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
@@ -772,7 +770,7 @@
     </span><span class="kw">pub fn </span>max(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>V: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#236">self</a>.<a href="../../src/itertools/grouping_map.rs.html#261-262">max_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="../../src/itertools/grouping_map.rs.html#239">v1</a>, <a href="../../src/itertools/grouping_map.rs.html#239">v2</a>))
+        <a class="self" href="#235">self</a>.<a href="#260-261">max_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="#238">v1</a>, <a href="#238">v2</a>))
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
@@ -797,9 +795,9 @@
     </span><span class="kw">pub fn </span>max_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#261">self</a>.<a href="../../src/itertools/grouping_map.rs.html#177-178">fold_first</a>(|acc, key, val| <span class="kw">match </span><a href="../../src/itertools/grouping_map.rs.html#261">compare</a>(<a href="../../src/itertools/grouping_map.rs.html#264">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#264">acc</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#264">val</a>) {
-            Ordering::Less | Ordering::Equal =&gt; <a href="../../src/itertools/grouping_map.rs.html#264">val</a>,
-            Ordering::Greater =&gt; <a href="../../src/itertools/grouping_map.rs.html#264">acc</a>
+        <a class="self" href="#260">self</a>.<a href="#176-177">fold_first</a>(|acc, key, val| <span class="kw">match </span><a href="#260">compare</a>(<a href="#263">key</a>, <span class="kw-2">&amp;</span><a href="#263">acc</a>, <span class="kw-2">&amp;</span><a href="#263">val</a>) {
+            Ordering::Less | Ordering::Equal =&gt; <a href="#263">val</a>,
+            Ordering::Greater =&gt; <a href="#263">acc</a>
         })
     }
 
@@ -826,7 +824,7 @@
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
               CK: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#289">self</a>.<a href="../../src/itertools/grouping_map.rs.html#261-262">max_by</a>(|key, v1, v2| <a href="../../src/itertools/grouping_map.rs.html#289">f</a>(<a href="../../src/itertools/grouping_map.rs.html#293">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#293">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#289">f</a>(<a href="../../src/itertools/grouping_map.rs.html#293">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#293">v2</a>)))
+        <a class="self" href="#288">self</a>.<a href="#260-261">max_by</a>(|key, v1, v2| <a href="#288">f</a>(<a href="#292">key</a>, <a href="#292">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#288">f</a>(<a href="#292">key</a>, <a href="#292">v2</a>)))
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
@@ -850,7 +848,7 @@
     </span><span class="kw">pub fn </span>min(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>V: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#314">self</a>.<a href="../../src/itertools/grouping_map.rs.html#339-340">min_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="../../src/itertools/grouping_map.rs.html#317">v1</a>, <a href="../../src/itertools/grouping_map.rs.html#317">v2</a>))
+        <a class="self" href="#313">self</a>.<a href="#338-339">min_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="#316">v1</a>, <a href="#316">v2</a>))
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
@@ -875,9 +873,9 @@
     </span><span class="kw">pub fn </span>min_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#339">self</a>.<a href="../../src/itertools/grouping_map.rs.html#177-178">fold_first</a>(|acc, key, val| <span class="kw">match </span><a href="../../src/itertools/grouping_map.rs.html#339">compare</a>(<a href="../../src/itertools/grouping_map.rs.html#342">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#342">acc</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#342">val</a>) {
-            Ordering::Less | Ordering::Equal =&gt; <a href="../../src/itertools/grouping_map.rs.html#342">acc</a>,
-            Ordering::Greater =&gt; <a href="../../src/itertools/grouping_map.rs.html#342">val</a>
+        <a class="self" href="#338">self</a>.<a href="#176-177">fold_first</a>(|acc, key, val| <span class="kw">match </span><a href="#338">compare</a>(<a href="#341">key</a>, <span class="kw-2">&amp;</span><a href="#341">acc</a>, <span class="kw-2">&amp;</span><a href="#341">val</a>) {
+            Ordering::Less | Ordering::Equal =&gt; <a href="#341">acc</a>,
+            Ordering::Greater =&gt; <a href="#341">val</a>
         })
     }
 
@@ -904,7 +902,7 @@
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
               CK: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#367">self</a>.<a href="../../src/itertools/grouping_map.rs.html#339-340">min_by</a>(|key, v1, v2| <a href="../../src/itertools/grouping_map.rs.html#367">f</a>(<a href="../../src/itertools/grouping_map.rs.html#371">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#371">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#367">f</a>(<a href="../../src/itertools/grouping_map.rs.html#371">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#371">v2</a>)))
+        <a class="self" href="#366">self</a>.<a href="#338-339">min_by</a>(|key, v1, v2| <a href="#366">f</a>(<a href="#370">key</a>, <a href="#370">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#366">f</a>(<a href="#370">key</a>, <a href="#370">v2</a>)))
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -937,7 +935,7 @@
     </span><span class="kw">pub fn </span>minmax(<span class="self">self</span>) -&gt; HashMap&lt;K, MinMaxResult&lt;V&gt;&gt;
         <span class="kw">where </span>V: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#401">self</a>.<a href="../../src/itertools/grouping_map.rs.html#430-431">minmax_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="../../src/itertools/grouping_map.rs.html#404">v1</a>, <a href="../../src/itertools/grouping_map.rs.html#404">v2</a>))
+        <a class="self" href="#400">self</a>.<a href="#429-430">minmax_by</a>(|<span class="kw">_</span>, v1, v2| V::cmp(<a href="#403">v1</a>, <a href="#403">v2</a>))
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -966,26 +964,26 @@
     </span><span class="kw">pub fn </span>minmax_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, MinMaxResult&lt;V&gt;&gt;
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#430">self</a>.<a href="../../src/itertools/grouping_map.rs.html#100-101">aggregate</a>(|acc, key, val| {
-            <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="../../src/itertools/grouping_map.rs.html#433">acc</a> {
-                <span class="prelude-val">Some</span>(<a href="../../src/itertools/minmax.rs.html#11">MinMaxResult::OneElement</a>(e)) =&gt; {
+        <a class="self" href="#429">self</a>.<a href="#99-100">aggregate</a>(|acc, key, val| {
+            <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#432">acc</a> {
+                <span class="prelude-val">Some</span>(<a href="minmax.rs.html#11">MinMaxResult::OneElement</a>(e)) =&gt; {
                     <span class="kw">if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>e) == Ordering::Less {
-                        <a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="../../src/itertools/grouping_map.rs.html#433">val</a>, <a href="../../src/itertools/grouping_map.rs.html#435">e</a>)
+                        <a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="#432">val</a>, <a href="#434">e</a>)
                     } <span class="kw">else </span>{
-                        <a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="../../src/itertools/grouping_map.rs.html#435">e</a>, <a href="../../src/itertools/grouping_map.rs.html#433">val</a>)
+                        <a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="#434">e</a>, <a href="#432">val</a>)
                     }
                 }
-                <span class="prelude-val">Some</span>(<a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(min, max)) =&gt; {
+                <span class="prelude-val">Some</span>(<a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(min, max)) =&gt; {
                     <span class="kw">if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>min) == Ordering::Less {
-                        <a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="../../src/itertools/grouping_map.rs.html#433">val</a>, <a href="../../src/itertools/grouping_map.rs.html#442">max</a>)
+                        <a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="#432">val</a>, <a href="#441">max</a>)
                     } <span class="kw">else if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>max) != Ordering::Less {
-                        <a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="../../src/itertools/grouping_map.rs.html#442">min</a>, <a href="../../src/itertools/grouping_map.rs.html#433">val</a>)
+                        <a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="#441">min</a>, <a href="#432">val</a>)
                     } <span class="kw">else </span>{
-                        <a href="../../src/itertools/minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="../../src/itertools/grouping_map.rs.html#442">min</a>, <a href="../../src/itertools/grouping_map.rs.html#442">max</a>)
+                        <a href="minmax.rs.html#15">MinMaxResult::MinMax</a>(<a href="#441">min</a>, <a href="#441">max</a>)
                     }
                 }
-                <span class="prelude-val">None </span>=&gt; <a href="../../src/itertools/minmax.rs.html#11">MinMaxResult::OneElement</a>(<a href="../../src/itertools/grouping_map.rs.html#433">val</a>),
-                <span class="prelude-val">Some</span>(<a href="../../src/itertools/minmax.rs.html#8">MinMaxResult::NoElements</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="prelude-val">None </span>=&gt; <a href="minmax.rs.html#11">MinMaxResult::OneElement</a>(<a href="#432">val</a>),
+                <span class="prelude-val">Some</span>(<a href="minmax.rs.html#8">MinMaxResult::NoElements</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             })
         })
     }
@@ -1017,7 +1015,7 @@
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
               CK: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#480">self</a>.<a href="../../src/itertools/grouping_map.rs.html#430-431">minmax_by</a>(|key, v1, v2| <a href="../../src/itertools/grouping_map.rs.html#480">f</a>(<a href="../../src/itertools/grouping_map.rs.html#484">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#484">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#480">f</a>(<a href="../../src/itertools/grouping_map.rs.html#484">key</a>, <span class="kw-2">&amp;</span><a href="../../src/itertools/grouping_map.rs.html#484">v2</a>)))
+        <a class="self" href="#479">self</a>.<a href="#429-430">minmax_by</a>(|key, v1, v2| <a href="#479">f</a>(<a href="#483">key</a>, <a href="#483">v1</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#479">f</a>(<a href="#483">key</a>, <a href="#483">v2</a>)))
     }
     
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and sums them.
@@ -1042,7 +1040,7 @@
     </span><span class="kw">pub fn </span>sum(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>V: Add&lt;V, Output = V&gt;
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#506">self</a>.<a href="../../src/itertools/grouping_map.rs.html#177-178">fold_first</a>(|acc, <span class="kw">_</span>, val| <a href="../../src/itertools/grouping_map.rs.html#509">acc</a> + <a href="../../src/itertools/grouping_map.rs.html#509">val</a>)
+        <a class="self" href="#505">self</a>.<a href="#176-177">fold_first</a>(|acc, <span class="kw">_</span>, val| <a href="#508">acc</a> + <a href="#508">val</a>)
     }
 
     <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and multiply them.
@@ -1067,8 +1065,8 @@
     </span><span class="kw">pub fn </span>product(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
         <span class="kw">where </span>V: Mul&lt;V, Output = V&gt;,
     {
-        <a class="self" href="../../src/itertools/grouping_map.rs.html#531">self</a>.<a href="../../src/itertools/grouping_map.rs.html#177-178">fold_first</a>(|acc, <span class="kw">_</span>, val| <a href="../../src/itertools/grouping_map.rs.html#534">acc</a> * <a href="../../src/itertools/grouping_map.rs.html#534">val</a>)
+        <a class="self" href="#530">self</a>.<a href="#176-177">fold_first</a>(|acc, <span class="kw">_</span>, val| <a href="#533">acc</a> * <a href="#533">val</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

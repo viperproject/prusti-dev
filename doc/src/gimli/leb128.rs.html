@@ -662,25 +662,25 @@
 
 <span class="attribute">#[inline]
 </span><span class="kw">fn </span>low_bits_of_byte(byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-    <a href="../../src/gimli/leb128.rs.html#52">byte</a> &amp; !<a href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>
+    <a href="#52">byte</a> &amp; !<a href="#47">CONTINUATION_BIT</a>
 }
 
 <span class="attribute">#[inline]
 #[allow(dead_code)]
 </span><span class="kw">fn </span>low_bits_of_u64(val: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-    <span class="kw">let </span>byte = <a href="../../src/gimli/leb128.rs.html#58">val</a> &amp; u64::from(core::u8::MAX);
-    <a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#59">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)
+    <span class="kw">let </span>byte = <a href="#58">val</a> &amp; u64::from(core::u8::MAX);
+    <a href="#52">low_bits_of_byte</a>(<a href="#59">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)
 }
 
 <span class="doccomment">/// A module for reading signed and unsigned integers that have been LEB128
 /// encoded.
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;read-core&quot;</span>)]
 </span><span class="kw">pub mod </span>read {
-    <span class="kw">use super</span>::{<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>, <a href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>, <a href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use super</span>::{<a href="#52">low_bits_of_byte</a>, <a href="#47">CONTINUATION_BIT</a>, <a href="#49">SIGN_BIT</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::read::{<a href="read/mod.rs.html#271">Error</a>, <a href="read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
 
     <span class="doccomment">/// Read bytes until the LEB128 continuation bit is not set.
-    </span><span class="kw">pub fn </span>skip&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub fn </span>skip&lt;R: <a href="read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">loop </span>{
             <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
             <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
@@ -691,67 +691,67 @@
 
     <span class="doccomment">/// Read an unsigned LEB128 number from the given `Reader` and
     /// return it or an error if reading failed.
-    </span><span class="kw">pub fn </span>unsigned&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
+    </span><span class="kw">pub fn </span>unsigned&lt;R: <a href="read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
             <span class="kw">if </span>shift == <span class="number">63 </span>&amp;&amp; byte != <span class="number">0x00 </span>&amp;&amp; byte != <span class="number">0x01 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
             }
 
-            <span class="kw">let </span>low_bits = u64::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#87">byte</a>));
-            <a href="../../src/gimli/leb128.rs.html#83">result</a> |= <a href="../../src/gimli/leb128.rs.html#92">low_bits</a> &lt;&lt; <a href="../../src/gimli/leb128.rs.html#84">shift</a>;
+            <span class="kw">let </span>low_bits = u64::from(<a href="#52">low_bits_of_byte</a>(<a href="#87">byte</a>));
+            <a href="#83">result</a> |= <a href="#92">low_bits</a> &lt;&lt; <a href="#84">shift</a>;
 
             <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#83">result</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#83">result</a>);
             }
 
-            <a href="../../src/gimli/leb128.rs.html#84">shift</a> += <span class="number">7</span>;
+            <a href="#84">shift</a> += <span class="number">7</span>;
         }
     }
 
     <span class="doccomment">/// Read an LEB128 u16 from the given `Reader` and
     /// return it or an error if reading failed.
-    </span><span class="kw">pub fn </span>u16&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>&gt; {
+    </span><span class="kw">pub fn </span>u16&lt;R: <a href="read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>&gt; {
         <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>result = u16::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#106">byte</a>));
+        <span class="kw">let </span><span class="kw-2">mut </span>result = u16::from(<a href="#52">low_bits_of_byte</a>(<a href="#106">byte</a>));
         <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#107">result</a>);
         }
 
         <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
-        <a href="../../src/gimli/leb128.rs.html#107">result</a> |= u16::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#112">byte</a>)) &lt;&lt; <span class="number">7</span>;
+        <a href="#107">result</a> |= u16::from(<a href="#52">low_bits_of_byte</a>(<a href="#112">byte</a>)) &lt;&lt; <span class="number">7</span>;
         <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#107">result</a>);
         }
 
         <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
         <span class="kw">if </span>byte &gt; <span class="number">0x03 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
         }
-        <a href="../../src/gimli/leb128.rs.html#107">result</a> += u16::from(<a href="../../src/gimli/leb128.rs.html#118">byte</a>) &lt;&lt; <span class="number">14</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>)
+        <a href="#107">result</a> += u16::from(<a href="#118">byte</a>) &lt;&lt; <span class="number">14</span>;
+        <span class="prelude-val">Ok</span>(<a href="#107">result</a>)
     }
 
     <span class="doccomment">/// Read a signed LEB128 number from the given `Reader` and
     /// return it or an error if reading failed.
-    </span><span class="kw">pub fn </span>signed&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt; {
+    </span><span class="kw">pub fn </span>signed&lt;R: <a href="read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
         <span class="kw">let </span>size = <span class="number">64</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>byte;
 
         <span class="kw">loop </span>{
-            <a href="../../src/gimli/leb128.rs.html#132">byte</a> = r.read_u8()<span class="question-mark">?</span>;
+            <a href="#132">byte</a> = r.read_u8()<span class="question-mark">?</span>;
             <span class="kw">if </span>shift == <span class="number">63 </span>&amp;&amp; byte != <span class="number">0x00 </span>&amp;&amp; byte != <span class="number">0x7f </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#288">Error::BadSignedLeb128</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="read/mod.rs.html#288">Error::BadSignedLeb128</a>);
             }
 
-            <span class="kw">let </span>low_bits = i64::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#132">byte</a>));
-            <a href="../../src/gimli/leb128.rs.html#129">result</a> |= <a href="../../src/gimli/leb128.rs.html#140">low_bits</a> &lt;&lt; <a href="../../src/gimli/leb128.rs.html#130">shift</a>;
-            <a href="../../src/gimli/leb128.rs.html#130">shift</a> += <span class="number">7</span>;
+            <span class="kw">let </span>low_bits = i64::from(<a href="#52">low_bits_of_byte</a>(<a href="#132">byte</a>));
+            <a href="#129">result</a> |= <a href="#140">low_bits</a> &lt;&lt; <a href="#130">shift</a>;
+            <a href="#130">shift</a> += <span class="number">7</span>;
 
             <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
                 <span class="kw">break</span>;
@@ -760,10 +760,10 @@
 
         <span class="kw">if </span>shift &lt; size &amp;&amp; (SIGN_BIT &amp; byte) == SIGN_BIT {
             <span class="comment">// Sign extend the result.
-            </span><a href="../../src/gimli/leb128.rs.html#129">result</a> |= !<span class="number">0 </span>&lt;&lt; <a href="../../src/gimli/leb128.rs.html#130">shift</a>;
+            </span><a href="#129">result</a> |= !<span class="number">0 </span>&lt;&lt; <a href="#130">shift</a>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#129">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="#129">result</a>)
     }
 }
 
@@ -1223,4 +1223,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

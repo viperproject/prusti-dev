@@ -143,20 +143,20 @@
 </span><span class="doccomment">//! A module that contains various VIR optimizations.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../../../src/prusti_common/lib.rs.html#12">config</a>,
+    <a href="../../lib.rs.html#12">config</a>,
     vir::{
         polymorphic_vir::{<a href="../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">CfgMethod</a>, <a href="../../../../prusti_common/vir/polymorphic_vir/struct.Program.html">Program</a>},
-        <a href="../../../../src/prusti_common/vir/to_graphviz.rs.html#12">ToGraphViz</a>,
+        <a href="../to_graphviz.rs.html#12">ToGraphViz</a>,
     },
 };
 <span class="kw">use </span><a href="../../../../log/macro.debug.html">log::debug</a>;
 
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#1-264">bitvectors</a>;
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/folding/mod.rs.html#7-11">folding</a>;
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/functions/mod.rs.html#7-12">functions</a>;
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/methods/mod.rs.html#7-66">methods</a>;
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/predicates/mod.rs.html#7-9">predicates</a>;
-<span class="kw">pub mod </span><a href="../../../../src/prusti_common/vir/optimizations/purification/mod.rs.html#1-480">purification</a>;
+<span class="kw">pub mod </span><a href="bitvectors/mod.rs.html#1-264">bitvectors</a>;
+<span class="kw">pub mod </span><a href="folding/mod.rs.html#7-11">folding</a>;
+<span class="kw">pub mod </span><a href="functions/mod.rs.html#7-12">functions</a>;
+<span class="kw">pub mod </span><a href="methods/mod.rs.html#7-66">methods</a>;
+<span class="kw">pub mod </span><a href="predicates/mod.rs.html#7-9">predicates</a>;
+<span class="kw">pub mod </span><a href="purification/mod.rs.html#1-481">purification</a>;
 
 <span class="kw">fn </span>log_method(
     source_file_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
@@ -174,10 +174,10 @@
                 <span class="string">&quot;before&quot;
             </span>}
         );
-        <a href="../../../../src/prusti_common/report/log.rs.html#92-96"><span class="kw">crate</span>::report::log::report_with_writer</a>(
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#32">namespace</a>,
+        <a href="../../report/log.rs.html#92-96"><span class="kw">crate</span>::report::log::report_with_writer</a>(
+            <span class="kw-2">&amp;</span><a href="#32">namespace</a>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.{}.dot&quot;</span>, source_file_name, cfg.name()),
-            |writer| <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#27">cfg</a>.<a href="../../../../src/prusti_common/vir/to_graphviz.rs.html#13">to_graphviz</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#44">writer</a>),
+            |writer| <a href="#27">cfg</a>.<a href="../to_graphviz.rs.html#13">to_graphviz</a>(<a href="#44">writer</a>),
         );
     }
 }
@@ -194,23 +194,23 @@
 }
 
 <span class="kw">pub fn </span>optimize_program(p: <a href="../../../../prusti_common/vir/polymorphic_vir/struct.Program.html">Program</a>, source_file_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../../../prusti_common/vir/polymorphic_vir/struct.Program.html">Program</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>program = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">p</a>;
-    <span class="kw">let </span>optimizations = <a href="../../../../src/prusti_common/config.rs.html#627">config::optimizations</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>program = <a href="#60">p</a>;
+    <span class="kw">let </span>optimizations = <a href="../../config.rs.html#627">config::optimizations</a>();
     <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Enabled optimisations: {:?}&quot;</span>, optimizations);
 
     <span class="kw">if </span>config::encode_bitvectors() {
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(
-            <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods,
+        <a href="#49-54">log_methods</a>(
+            <a href="#60">source_file_name</a>,
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.methods,
             <span class="string">&quot;encode_bitvectors&quot;</span>,
             <span class="bool-val">false</span>,
         );
         <span class="kw">if </span>bitvectors::uses_bit_operations(<span class="kw-2">&amp;</span>program) {
-            <a href="../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#37">bitvectors::replace_all_ints</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>);
+            <a href="bitvectors/mod.rs.html#37">bitvectors::replace_all_ints</a>(<span class="kw-2">&amp;mut </span><a href="#61">program</a>);
         }
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(
-            <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods,
+        <a href="#49-54">log_methods</a>(
+            <a href="#60">source_file_name</a>,
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.methods,
             <span class="string">&quot;encode_bitvectors&quot;</span>,
             <span class="bool-val">true</span>,
         );
@@ -218,57 +218,57 @@
 
     <span class="comment">// can&#39;t borrow self because we need to move fields
     </span><span class="kw">if </span>optimizations.inline_constant_functions {
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(
-            <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods,
+        <a href="#49-54">log_methods</a>(
+            <a href="#60">source_file_name</a>,
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.methods,
             <span class="string">&quot;inline_constant_functions&quot;</span>,
             <span class="bool-val">false</span>,
         );
         <span class="kw">let </span>(new_methods, new_functions) =
-            <a href="../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#35-38">functions::inline_constant_functions</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.functions);
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#91">new_methods</a>;
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.functions = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#91">new_functions</a>;
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(
-            <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods,
+            <a href="functions/inliner.rs.html#35-38">functions::inline_constant_functions</a>(<a href="#61">program</a>.methods, <a href="#61">program</a>.functions);
+        <a href="#61">program</a>.methods = <a href="#91">new_methods</a>;
+        <a href="#61">program</a>.functions = <a href="#91">new_functions</a>;
+        <a href="#49-54">log_methods</a>(
+            <a href="#60">source_file_name</a>,
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.methods,
             <span class="string">&quot;inline_constant_functions&quot;</span>,
             <span class="bool-val">true</span>,
         );
     }
     <span class="kw">if </span>optimizations.optimize_folding {
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <span class="string">&quot;folding&quot;</span>, <span class="bool-val">false</span>);
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>
+        <a href="#49-54">log_methods</a>(<a href="#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="#61">program</a>.methods, <span class="string">&quot;folding&quot;</span>, <span class="bool-val">false</span>);
+        <a href="#61">program</a>.methods = <a href="#61">program</a>
             .methods
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">folding::FoldingOptimizer::optimize</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="folding/expressions.rs.html#29">folding::FoldingOptimizer::optimize</a>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.functions = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>
+        <a href="#61">program</a>.functions = <a href="#61">program</a>
             .functions
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">folding::FoldingOptimizer::optimize</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="folding/expressions.rs.html#29">folding::FoldingOptimizer::optimize</a>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <span class="string">&quot;folding&quot;</span>, <span class="bool-val">true</span>);
+        <a href="#49-54">log_methods</a>(<a href="#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="#61">program</a>.methods, <span class="string">&quot;folding&quot;</span>, <span class="bool-val">true</span>);
     }
-    <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods = <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>
+    <a href="#61">program</a>.methods = <a href="#61">program</a>
         .methods
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="../../../../src/prusti_common/vir/optimizations/methods/mod.rs.html#27-31">methods::optimize_method_encoding</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#119">method</a>, <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#62">optimizations</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="methods/mod.rs.html#27-31">methods::optimize_method_encoding</a>(<a href="#119">method</a>, <a href="#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="#62">optimizations</a>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">if </span>optimizations.delete_unused_predicates {
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.viper_predicates = <a href="../../../../src/prusti_common/vir/optimizations/predicates/delete_unused_predicates.rs.html#105-109">predicates::delete_unused_predicates</a>(
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods,
-            <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.functions,
-            <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.viper_predicates,
+        <a href="#61">program</a>.viper_predicates = <a href="predicates/delete_unused_predicates.rs.html#105-109">predicates::delete_unused_predicates</a>(
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.methods,
+            <span class="kw-2">&amp;</span><a href="#61">program</a>.functions,
+            <a href="#61">program</a>.viper_predicates,
         );
     }
 
     <span class="kw">if </span>config::enable_purification_optimization() {
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <span class="string">&quot;purify_methods&quot;</span>, <span class="bool-val">false</span>);
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods = <a href="../../../../src/prusti_common/vir/optimizations/purification/mod.rs.html#9-12">purification::purify_methods</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.viper_predicates);
-        <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#49-54">log_methods</a>(<a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>.methods, <span class="string">&quot;purify_methods&quot;</span>, <span class="bool-val">true</span>);
+        <a href="#49-54">log_methods</a>(<a href="#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="#61">program</a>.methods, <span class="string">&quot;purify_methods&quot;</span>, <span class="bool-val">false</span>);
+        <a href="#61">program</a>.methods = <a href="purification/mod.rs.html#8-11">purification::purify_methods</a>(<a href="#61">program</a>.methods, <span class="kw-2">&amp;</span><a href="#61">program</a>.viper_predicates);
+        <a href="#49-54">log_methods</a>(<a href="#60">source_file_name</a>, <span class="kw-2">&amp;</span><a href="#61">program</a>.methods, <span class="string">&quot;purify_methods&quot;</span>, <span class="bool-val">true</span>);
     }
 
-    <a href="../../../../src/prusti_common/vir/optimizations/mod.rs.html#61">program</a>
+    <a href="#61">program</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -79,18 +79,20 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+</span><span class="attribute">#![feature(let_chains)]
 
 </span><span class="kw">use </span><a href="../../prusti_launch/fn.get_rust_toolchain_channel.html">prusti_launch::get_rust_toolchain_channel</a>;
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/macro.env.html">env</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>};
 
 <span class="kw">fn </span>main() {
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = <a href="../../src/cargo_prusti/cargo-prusti.rs.html#16-18">process</a>(env::args().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)) {
-        <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="../../src/cargo_prusti/cargo-prusti.rs.html#11">code</a>);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = <a href="#17-19">process</a>(env::args().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)) {
+        <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#12">code</a>);
     }
 }
 
@@ -102,38 +104,38 @@
         .expect(<span class="string">&quot;current executable path invalid&quot;</span>)
         .with_file_name(<span class="string">&quot;prusti-rustc&quot;</span>);
     <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(windows) {
-        <a href="../../src/cargo_prusti/cargo-prusti.rs.html#20">prusti_rustc_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
+        <a href="#21">prusti_rustc_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
     }
 
     <span class="comment">// Remove the &quot;prusti&quot; argument when `cargo-prusti` is invocated
     // as `cargo --cflag prusti -flag` (note the space rather than `-`)
-    </span><span class="kw">let </span>args = <a href="../../src/cargo_prusti/cargo-prusti.rs.html#16">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip_while</a>(|arg| <a href="../../src/cargo_prusti/cargo-prusti.rs.html#29">arg</a> == <span class="string">&quot;prusti&quot;</span>);
+    </span><span class="kw">let </span>args = <a href="#17">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip_while</a>(|arg| <a href="#30">arg</a> == <span class="string">&quot;prusti&quot;</span>);
 
     <span class="kw">let </span>cargo_path = env::var(<span class="string">&quot;CARGO_PATH&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;cargo&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
     <span class="kw">let </span><span class="kw-2">mut </span>cargo_target =
         PathBuf::from(env::var(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;target&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
-    <a href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>.push(<span class="string">&quot;verify&quot;</span>);
+    <a href="#33">cargo_target</a>.push(<span class="string">&quot;verify&quot;</span>);
     <span class="kw">let </span>command = env::var(<span class="string">&quot;CARGO_PRUSTI_COMMAND&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;check&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <span class="kw">let </span>exit_status = Command::new(<a href="../../src/cargo_prusti/cargo-prusti.rs.html#31">cargo_path</a>)
-        .arg(<span class="kw-2">&amp;</span><a href="../../src/cargo_prusti/cargo-prusti.rs.html#35">command</a>)
-        .args(<a href="../../src/cargo_prusti/cargo-prusti.rs.html#29">args</a>)
+    <span class="kw">let </span>exit_status = Command::new(<a href="#32">cargo_path</a>)
+        .arg(<span class="kw-2">&amp;</span><a href="#36">command</a>)
+        .args(<a href="#30">args</a>)
         .env(<span class="string">&quot;RUST_TOOLCHAIN&quot;</span>, <a href="../../prusti_launch/fn.get_rust_toolchain_channel.html">get_rust_toolchain_channel</a>())
-        .env(<span class="string">&quot;RUSTC_WRAPPER&quot;</span>, <a href="../../src/cargo_prusti/cargo-prusti.rs.html#20">prusti_rustc_path</a>)
+        .env(<span class="string">&quot;RUSTC_WRAPPER&quot;</span>, <a href="#21">prusti_rustc_path</a>)
         .env(<span class="string">&quot;DEFAULT_PRUSTI_QUIET&quot;</span>, <span class="string">&quot;true&quot;</span>)
         .env(<span class="string">&quot;DEFAULT_PRUSTI_FULL_COMPILATION&quot;</span>, <span class="string">&quot;true&quot;</span>)
-        .env(<span class="string">&quot;DEFAULT_PRUSTI_LOG_DIR&quot;</span>, <a href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>.join(<span class="string">&quot;log&quot;</span>))
-        .env(<span class="string">&quot;DEFAULT_PRUSTI_CACHE_PATH&quot;</span>, <a href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>.join(<span class="string">&quot;cache.bin&quot;</span>))
-        .env(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>)
+        .env(<span class="string">&quot;DEFAULT_PRUSTI_LOG_DIR&quot;</span>, <a href="#33">cargo_target</a>.join(<span class="string">&quot;log&quot;</span>))
+        .env(<span class="string">&quot;DEFAULT_PRUSTI_CACHE_PATH&quot;</span>, <a href="#33">cargo_target</a>.join(<span class="string">&quot;cache.bin&quot;</span>))
+        .env(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>, <span class="kw-2">&amp;</span><a href="#33">cargo_target</a>)
         .status()
         .expect(<span class="string">&quot;could not run cargo&quot;</span>);
 
     <span class="kw">if </span>exit_status.success() {
         <span class="kw">if </span>command == <span class="string">&quot;build&quot; </span>{
-            <a href="../../src/cargo_prusti/cargo-prusti.rs.html#60">copy_exported_specs</a>(<a href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>).ok();
+            <a href="#61">copy_exported_specs</a>(<a href="#33">cargo_target</a>).ok();
         }
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="../../src/cargo_prusti/cargo-prusti.rs.html#36">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a href="#37">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
     }
 }
 
@@ -161,4 +163,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cargo_prusti" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cargo_prusti" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

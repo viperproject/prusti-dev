@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/fs/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/fs/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -777,15 +777,16 @@
 <span id="777">777</span>
 <span id="778">778</span>
 <span id="779">779</span>
+<span id="780">780</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Types for working with [`File`].
 //!
 //! [`File`]: File
 
-</span><span class="kw">use </span><a href="../../../src/tokio/fs/file.rs.html#110"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../../src/tokio/fs/mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
-<span class="kw">use </span><a href="../../../src/tokio/io/blocking.rs.html#24"><span class="kw">crate</span>::io::blocking::Buf</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a>, <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
-<span class="kw">use </span><a href="../../../src/tokio/sync/mutex.rs.html#128"><span class="kw">crate</span>::sync::Mutex</a>;
+</span><span class="kw">use </span><a href="#110"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
+<span class="kw">use </span><a href="../io/blocking.rs.html#24"><span class="kw">crate</span>::io::blocking::Buf</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../io/async_read.rs.html#43">AsyncRead</a>, <a href="../io/async_seek.rs.html#18">AsyncSeek</a>, <a href="../io/async_write.rs.html#45">AsyncWrite</a>, <a href="../io/read_buf.rs.html#23">ReadBuf</a>};
+<span class="kw">use </span><a href="../sync/mutex.rs.html#128"><span class="kw">crate</span>::sync::Mutex</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span>std::fs::{<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.Permissions.html">Permissions</a>};
@@ -805,9 +806,9 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">use </span><span class="kw">super</span>::mocks::{spawn_blocking, spawn_mandatory_blocking};
 <span class="attribute">#[cfg(not(test))]
-</span><span class="kw">use </span><a href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::blocking::JoinHandle</a>;
+</span><span class="kw">use </span><a href="../runtime/task/join.rs.html#154"><span class="kw">crate</span>::blocking::JoinHandle</a>;
 <span class="attribute">#[cfg(not(test))]
-</span><span class="kw">use </span><span class="kw">crate</span>::blocking::{<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>, <a href="../../../src/tokio/runtime/blocking/pool.rs.html#126-129">spawn_mandatory_blocking</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::blocking::{<a href="../runtime/blocking/pool.rs.html#129-132">spawn_blocking</a>, <a href="../runtime/blocking/pool.rs.html#147-150">spawn_mandatory_blocking</a>};
 <span class="attribute">#[cfg(not(test))]
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a> <span class="kw">as </span>StdFile;
 
@@ -871,11 +872,11 @@
 /// ```
 </span><span class="kw">pub struct </span>File {
     std: Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>&gt;,
-    inner: Mutex&lt;<a href="../../../src/tokio/fs/file.rs.html#98">Inner</a>&gt;,
+    inner: Mutex&lt;<a href="#98">Inner</a>&gt;,
 }
 
 <span class="kw">struct </span>Inner {
-    state: <a href="../../../src/tokio/fs/file.rs.html#110">State</a>,
+    state: <a href="#110">State</a>,
 
     <span class="doccomment">/// Errors from writes/flushes are returned in write/flush calls. If a write
     /// error is observed while performing a read, it is saved until the next
@@ -887,8 +888,8 @@
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">enum </span>State {
-    Idle(<span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/blocking.rs.html#24">Buf</a>&gt;),
-    Busy(JoinHandle&lt;(<a href="../../../src/tokio/fs/file.rs.html#116">Operation</a>, <a href="../../../src/tokio/io/blocking.rs.html#24">Buf</a>)&gt;),
+    Idle(<span class="prelude-ty">Option</span>&lt;<a href="../io/blocking.rs.html#24">Buf</a>&gt;),
+    Busy(JoinHandle&lt;(<a href="#116">Operation</a>, <a href="../io/blocking.rs.html#24">Buf</a>)&gt;),
 }
 
 <span class="attribute">#[derive(Debug)]
@@ -898,7 +899,7 @@
     Seek(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span><a href="#93">File</a> {
     <span class="doccomment">/// Attempts to open a file in read-only mode.
     ///
     /// See [`OpenOptions`] for more details.
@@ -932,7 +933,7 @@
     ///
     /// [`read_to_end`]: fn@crate::io::AsyncReadExt::read_to_end
     /// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt
-    </span><span class="kw">pub async fn </span>open(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+    </span><span class="kw">pub async fn </span>open(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="#93">File</a>&gt; {
         <span class="kw">let </span>path = path.as_ref().to_owned();
         <span class="kw">let </span>std = asyncify(|| StdFile::open(path)).<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -972,7 +973,7 @@
     ///
     /// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all
     /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
-    </span><span class="kw">pub async fn </span>create(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+    </span><span class="kw">pub async fn </span>create(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="#93">File</a>&gt; {
         <span class="kw">let </span>path = path.as_ref().to_owned();
         <span class="kw">let </span>std_file = asyncify(<span class="kw">move </span>|| StdFile::create(path)).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(File::from_std(std_file))
@@ -991,11 +992,11 @@
     /// let std_file = std::fs::File::open(&quot;foo.txt&quot;).unwrap();
     /// let file = tokio::fs::File::from_std(std_file);
     /// ```
-    </span><span class="kw">pub fn </span>from_std(std: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-        <a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-            std: Arc::new(<a href="../../../src/tokio/fs/file.rs.html#215">std</a>),
-            inner: Mutex::new(<a href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
-                state: <a href="../../../src/tokio/fs/file.rs.html#111">State::Idle</a>(<span class="prelude-val">Some</span>(Buf::with_capacity(<span class="number">0</span>))),
+    </span><span class="kw">pub fn </span>from_std(std: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <a href="#93">File</a> {
+        <a href="#93">File</a> {
+            std: Arc::new(<a href="#215">std</a>),
+            inner: Mutex::new(<a href="#98">Inner</a> {
+                state: <a href="#111">State::Idle</a>(<span class="prelude-val">Some</span>(Buf::with_capacity(<span class="number">0</span>))),
                 last_write_err: <span class="prelude-val">None</span>,
                 pos: <span class="number">0</span>,
             }),
@@ -1177,7 +1178,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub async fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+    </span><span class="kw">pub async fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="#93">File</a>&gt; {
         <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
         <span class="kw">let </span>std_file = asyncify(<span class="kw">move </span>|| std.try_clone()).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(File::from_std(std_file))
@@ -1227,11 +1228,11 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>try_into_std(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>, <span class="self">Self</span>&gt; {
-        <span class="kw">match </span>Arc::try_unwrap(<a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.std) {
-            <span class="prelude-val">Ok</span>(file) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#452">file</a>),
+        <span class="kw">match </span>Arc::try_unwrap(<a class="self" href="#450">self</a>.std) {
+            <span class="prelude-val">Ok</span>(file) =&gt; <span class="prelude-val">Ok</span>(<a href="#452">file</a>),
             <span class="prelude-val">Err</span>(std_file_arc) =&gt; {
-                <a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.std = <a href="../../../src/tokio/fs/file.rs.html#453">std_file_arc</a>;
-                <span class="prelude-val">Err</span>(<a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>)
+                <a class="self" href="#450">self</a>.std = <a href="#453">std_file_arc</a>;
+                <span class="prelude-val">Err</span>(<a class="self" href="#450">self</a>)
             }
         }
     }
@@ -1271,64 +1272,64 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span><a href="../io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         dst: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#497">self</a>.get_mut();
-        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#501">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+        <span class="kw">let </span>me = <a class="self" href="#497">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="#501">me</a>.inner.<a href="../sync/mutex.rs.html#548">get_mut</a>();
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state {
-                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a>.take().unwrap();
+            <span class="kw">match </span><a href="#502">inner</a>.state {
+                <a href="#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="#506">buf_cell</a>.take().unwrap();
 
                     <span class="kw">if </span>!buf.is_empty() {
-                        <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                        <span class="kw-2">*</span><a href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a> = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#507">buf</a>);
+                        <a href="#507">buf</a>.<a href="../io/blocking.rs.html#207">copy_to</a>(<a href="#499">dst</a>);
+                        <span class="kw-2">*</span><a href="#506">buf_cell</a> = <span class="prelude-val">Some</span>(<a href="#507">buf</a>);
                         <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
                     }
 
-                    <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#232">ensure_capacity_for</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#501">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <a href="#507">buf</a>.<a href="../io/blocking.rs.html#233">ensure_capacity_for</a>(<a href="#499">dst</a>);
+                    <span class="kw">let </span>std = <a href="#501">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                    <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move </span>|| {
-                        <span class="kw">let </span>res = <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#246">read_from</a>(<span class="kw-2">&amp;mut &amp;*</span><a href="../../../src/tokio/fs/file.rs.html#516">std</a>);
-                        (<a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<a href="../../../src/tokio/fs/file.rs.html#519">res</a>), <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>)
+                    <a href="#502">inner</a>.state = <a href="#112">Busy</a>(<a href="../runtime/blocking/pool.rs.html#129-132">spawn_blocking</a>(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>res = <a href="#507">buf</a>.<a href="../io/blocking.rs.html#247">read_from</a>(<span class="kw-2">&amp;mut &amp;*</span><a href="#516">std</a>);
+                        (<a href="#117">Operation::Read</a>(<a href="#519">res</a>), <a href="#507">buf</a>)
                     }));
                 }
-                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                <a href="#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
                     <span class="kw">let </span>(op, <span class="kw-2">mut </span>buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
 
-                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#524">op</a> {
-                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                            <a href="../../../src/tokio/fs/file.rs.html#524">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                    <span class="kw">match </span><a href="#524">op</a> {
+                        <a href="#117">Operation::Read</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
+                            <a href="#524">buf</a>.<a href="../io/blocking.rs.html#207">copy_to</a>(<a href="#499">dst</a>);
+                            <a href="#502">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#524">buf</a>));
                             <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                        <a href="#117">Operation::Read</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
 
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
-                            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#532">e</a>));
+                            <a href="#502">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#524">buf</a>));
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="#532">e</a>));
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
+                        <a href="#118">Operation::Write</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                            <a href="#502">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#524">buf</a>));
                             <span class="kw">continue</span>;
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                        <a href="#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(inner.last_write_err.is_none());
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#543">e</a>.kind());
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                            <a href="#502">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="#543">e</a>.kind());
+                            <a href="#502">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#524">buf</a>));
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(result) =&gt; {
+                        <a href="#119">Operation::Seek</a>(result) =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
-                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
-                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="../../../src/tokio/fs/file.rs.html#548">result</a> {
-                                <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.pos = <a href="../../../src/tokio/fs/file.rs.html#551">pos</a>;
+                            <a href="#502">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#524">buf</a>));
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="#548">result</a> {
+                                <a href="#502">inner</a>.pos = <a href="#551">pos</a>;
                             }
                             <span class="kw">continue</span>;
                         }
@@ -1339,60 +1340,61 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span><a href="../io/async_seek.rs.html#18">AsyncSeek</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>start_seek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw-2">mut </span>pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#564">self</a>.get_mut();
-        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#565">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+        <span class="kw">let </span>me = <a class="self" href="#564">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="#565">me</a>.inner.<a href="../sync/mutex.rs.html#548">get_mut</a>();
 
-        <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#566">inner</a>.state {
-                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;must wait for poll_complete before calling start_seek&quot;</span>),
-                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#571">buf_cell</a>.take().unwrap();
+        <span class="kw">match </span><a href="#566">inner</a>.state {
+            <a href="#112">Busy</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
+                io::ErrorKind::Other,
+                <span class="string">&quot;other file operation is pending, call poll_complete before start_seek&quot;</span>,
+            )),
+            <a href="#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="#573">buf_cell</a>.take().unwrap();
 
-                    <span class="comment">// Factor in any unread data from the buf
-                    </span><span class="kw">if </span>!buf.is_empty() {
-                        <span class="kw">let </span>n = <a href="../../../src/tokio/fs/file.rs.html#572">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>();
+                <span class="comment">// Factor in any unread data from the buf
+                </span><span class="kw">if </span>!buf.is_empty() {
+                    <span class="kw">let </span>n = <a href="#574">buf</a>.<a href="../io/blocking.rs.html#273">discard_read</a>();
 
-                        <span class="kw">if let </span>SeekFrom::Current(<span class="kw-2">ref mut </span>offset) = <a href="../../../src/tokio/fs/file.rs.html#564">pos</a> {
-                            <span class="kw-2">*</span><a href="../../../src/tokio/fs/file.rs.html#578">offset</a> += <a href="../../../src/tokio/fs/file.rs.html#576">n</a>;
-                        }
+                    <span class="kw">if let </span>SeekFrom::Current(<span class="kw-2">ref mut </span>offset) = <a href="#564">pos</a> {
+                        <span class="kw-2">*</span><a href="#580">offset</a> += <a href="#578">n</a>;
                     }
-
-                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#565">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-
-                    <a href="../../../src/tokio/fs/file.rs.html#566">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move </span>|| {
-                        <span class="kw">let </span>res = (<span class="kw-2">&amp;*</span><a href="../../../src/tokio/fs/file.rs.html#583">std</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="../../../src/tokio/fs/file.rs.html#564">pos</a>);
-                        (<a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<a href="../../../src/tokio/fs/file.rs.html#586">res</a>), <a href="../../../src/tokio/fs/file.rs.html#572">buf</a>)
-                    }));
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
+
+                <span class="kw">let </span>std = <a href="#565">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+                <a href="#566">inner</a>.state = <a href="#112">Busy</a>(<a href="../runtime/blocking/pool.rs.html#129-132">spawn_blocking</a>(<span class="kw">move </span>|| {
+                    <span class="kw">let </span>res = (<span class="kw-2">&amp;*</span><a href="#585">std</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="#564">pos</a>);
+                    (<a href="#119">Operation::Seek</a>(<a href="#588">res</a>), <a href="#574">buf</a>)
+                }));
+                <span class="prelude-val">Ok</span>(())
             }
         }
     }
 
     <span class="kw">fn </span>poll_complete(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/fs/file.rs.html#595">self</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+        <span class="kw">let </span>inner = <a class="self" href="#596">self</a>.inner.<a href="../sync/mutex.rs.html#548">get_mut</a>();
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.state {
-                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.pos)),
-                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+            <span class="kw">match </span><a href="#597">inner</a>.state {
+                <a href="#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#597">inner</a>.pos)),
+                <a href="#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
                     <span class="kw">let </span>(op, buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
-                    <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#602">buf</a>));
+                    <a href="#597">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#603">buf</a>));
 
-                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#602">op</a> {
-                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {}
-                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                    <span class="kw">match </span><a href="#603">op</a> {
+                        <a href="#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {}
+                        <a href="#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(inner.last_write_err.is_none());
-                            <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#607">e</a>.kind());
+                            <a href="#597">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="#608">e</a>.kind());
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="kw">_</span>) =&gt; {}
-                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(res) =&gt; {
-                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="../../../src/tokio/fs/file.rs.html#612">res</a> {
-                                <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.pos = <a href="../../../src/tokio/fs/file.rs.html#613">pos</a>;
+                        <a href="#118">Operation::Write</a>(<span class="kw">_</span>) =&gt; {}
+                        <a href="#119">Operation::Seek</a>(res) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="#613">res</a> {
+                                <a href="#597">inner</a>.pos = <a href="#614">pos</a>;
                             }
-                            <span class="kw">return </span>Ready(<a href="../../../src/tokio/fs/file.rs.html#612">res</a>);
+                            <span class="kw">return </span>Ready(<a href="#613">res</a>);
                         }
                     }
                 }
@@ -1401,32 +1403,32 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span><a href="../io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#627">self</a>.get_mut();
-        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#631">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+        <span class="kw">let </span>me = <a class="self" href="#628">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="#632">me</a>.inner.<a href="../sync/mutex.rs.html#548">get_mut</a>();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.last_write_err.take() {
-            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#634">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a href="#633">inner</a>.last_write_err.take() {
+            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="#635">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state {
-                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#640">buf_cell</a>.take().unwrap();
+            <span class="kw">match </span><a href="#633">inner</a>.state {
+                <a href="#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="#641">buf_cell</a>.take().unwrap();
 
                     <span class="kw">let </span>seek = <span class="kw">if </span>!buf.is_empty() {
-                        <span class="prelude-val">Some</span>(SeekFrom::Current(<a href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>()))
+                        <span class="prelude-val">Some</span>(SeekFrom::Current(<a href="#642">buf</a>.<a href="../io/blocking.rs.html#273">discard_read</a>()))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>};
 
-                    <span class="kw">let </span>n = <a href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#219">copy_from</a>(<a href="../../../src/tokio/fs/file.rs.html#629">src</a>);
-                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#631">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">let </span>n = <a href="#642">buf</a>.<a href="../io/blocking.rs.html#220">copy_from</a>(<a href="#630">src</a>);
+                    <span class="kw">let </span>std = <a href="#632">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
                     <span class="kw">let </span>blocking_task_join_handle = spawn_mandatory_blocking(<span class="kw">move </span>|| {
                         <span class="kw">let </span>res = <span class="kw">if let </span><span class="prelude-val">Some</span>(seek) = seek {
@@ -1441,28 +1443,28 @@
                         io::Error::new(io::ErrorKind::Other, <span class="string">&quot;background task failed&quot;</span>)
                     })<span class="question-mark">?</span>;
 
-                    <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/fs/file.rs.html#652">blocking_task_join_handle</a>);
+                    <a href="#633">inner</a>.state = <a href="#112">Busy</a>(<a href="#653">blocking_task_join_handle</a>);
 
-                    <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#649">n</a>));
+                    <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(<a href="#650">n</a>));
                 }
-                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                <a href="#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
                     <span class="kw">let </span>(op, buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
-                    <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#670">buf</a>));
+                    <a href="#633">inner</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#671">buf</a>));
 
-                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#670">op</a> {
-                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">match </span><a href="#671">op</a> {
+                        <a href="#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {
                             <span class="comment">// We don&#39;t care about the result here. The fact
                             // that the cursor has advanced will be reflected in
                             // the next iteration of the loop
                             </span><span class="kw">continue</span>;
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(res) =&gt; {
+                        <a href="#118">Operation::Write</a>(res) =&gt; {
                             <span class="comment">// If the previous write was successful, continue.
                             // Otherwise, error.
                             </span>res<span class="question-mark">?</span>;
                             <span class="kw">continue</span>;
                         }
-                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; {
+                        <a href="#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; {
                             <span class="comment">// Ignore the seek
                             </span><span class="kw">continue</span>;
                         }
@@ -1473,40 +1475,40 @@
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/fs/file.rs.html#696">self</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
-        <a href="../../../src/tokio/fs/file.rs.html#697">inner</a>.<a href="../../../src/tokio/fs/file.rs.html#757">poll_flush</a>(<a href="../../../src/tokio/fs/file.rs.html#696">cx</a>)
+        <span class="kw">let </span>inner = <a class="self" href="#697">self</a>.inner.<a href="../sync/mutex.rs.html#548">get_mut</a>();
+        <a href="#698">inner</a>.<a href="#758">poll_flush</a>(<a href="#697">cx</a>)
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/fs/file.rs.html#701">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/fs/file.rs.html#701">cx</a>)
+        <a class="self" href="#702">self</a>.<a href="../io/async_write.rs.html#73">poll_flush</a>(<a href="#702">cx</a>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>&gt; <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>from(std: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_std(<a href="../../../src/tokio/fs/file.rs.html#707">std</a>)
+        <span class="self">Self</span>::from_std(<a href="#708">std</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio/fs/file.rs.html#713">fmt</a>.debug_struct(<span class="string">&quot;tokio::fs::File&quot;</span>)
-            .field(<span class="string">&quot;std&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/fs/file.rs.html#713">self</a>.std)
+        <a href="#714">fmt</a>.debug_struct(<span class="string">&quot;tokio::fs::File&quot;</span>)
+            .field(<span class="string">&quot;std&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#714">self</a>.std)
             .finish()
     }
 }
 
 <span class="attribute">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a> {
-        <a class="self" href="../../../src/tokio/fs/file.rs.html#722">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="#723">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
 <span class="attribute">#[cfg(unix)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">std::os::unix::io::FromRawFd</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">std::os::unix::io::FromRawFd</a> <span class="kw">for </span><a href="#93">File</a> {
     <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>) -&gt; <span class="self">Self </span>{
-        StdFile::from_raw_fd(<a href="../../../src/tokio/fs/file.rs.html#729">fd</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        StdFile::from_raw_fd(<a href="#730">fd</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
@@ -1524,7 +1526,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
+<span class="kw">impl </span><a href="#98">Inner</a> {
     <span class="kw">async fn </span>complete_inflight(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
 
@@ -1534,22 +1536,22 @@
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.last_write_err.take() {
-            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#758">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a class="self" href="#758">self</a>.last_write_err.take() {
+            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="#759">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
 
-        <span class="kw">let </span>(op, buf) = <span class="kw">match </span><a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.state {
-            <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(())),
-            <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>,
+        <span class="kw">let </span>(op, buf) = <span class="kw">match </span><a class="self" href="#758">self</a>.state {
+            <a href="#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(())),
+            <a href="#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>,
         };
 
         <span class="comment">// The buffer is not used here
-        </span><a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#762">buf</a>));
+        </span><a class="self" href="#758">self</a>.state = <a href="#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="#763">buf</a>));
 
-        <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#762">op</a> {
-            <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
-            <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(res) =&gt; Ready(<a href="../../../src/tokio/fs/file.rs.html#772">res</a>),
-            <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
+        <span class="kw">match </span><a href="#763">op</a> {
+            <a href="#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
+            <a href="#118">Operation::Write</a>(res) =&gt; Ready(<a href="#773">res</a>),
+            <a href="#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
         }
     }
 }
@@ -1557,4 +1559,4 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -225,23 +225,23 @@
 <span id="225">225</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../proc_macro2/index.html">proc_macro2</a>;
 
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#20">ast</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#21">attr</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#28">matcher</a>;
+<span class="kw">use </span><a href="lib.rs.html#20">ast</a>;
+<span class="kw">use </span><a href="lib.rs.html#21">attr</a>;
+<span class="kw">use </span><a href="lib.rs.html#28">matcher</a>;
 <span class="kw">use </span><a href="../../syn/index.html">syn</a>;
 <span class="kw">use </span><a href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
-<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#30">utils</a>;
+<span class="kw">use </span><a href="lib.rs.html#30">utils</a>;
 
-<span class="kw">pub fn </span>derive(input: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
-    <span class="kw">let </span>debug_trait_path = <a href="../../src/derivative/debug.rs.html#120">debug_trait_path</a>();
-    <span class="kw">let </span>fmt_path = <a href="../../src/derivative/debug.rs.html#129">fmt_path</a>();
+<span class="kw">pub fn </span>derive(input: <span class="kw-2">&amp;</span><a href="ast.rs.html#7">ast::Input</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
+    <span class="kw">let </span>debug_trait_path = <a href="#120">debug_trait_path</a>();
+    <span class="kw">let </span>fmt_path = <a href="#129">fmt_path</a>();
 
     <span class="kw">let </span>formatter = <a class="macro" href="../../quote/quote/macro.quote_spanned.html">quote_spanned! </a>{input.span=&gt; __f};
 
-    <span class="kw">let </span>body = matcher::Matcher::new(<a href="../../src/derivative/matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a href="../../src/derivative/debug.rs.html#10">input</a>.attrs.is_packed)
-        .<a href="../../src/derivative/matcher.rs.html#95">with_field_filter</a>(|f: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>| !<a href="../../src/derivative/debug.rs.html#17">f</a>.attrs.<a href="../../src/derivative/attr.rs.html#587">ignore_debug</a>())
-        .<a href="../../src/derivative/matcher.rs.html#104-113">build_arms</a>(<a href="../../src/derivative/debug.rs.html#10">input</a>, <span class="string">&quot;__arg&quot;</span>, |<span class="kw">_</span>, <span class="kw">_</span>, arm_name, style, attrs, bis| {
-            <span class="kw">let </span>field_prints = <a href="../../src/derivative/debug.rs.html#18">bis</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|bi| {
+    <span class="kw">let </span>body = matcher::Matcher::new(<a href="matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a href="#10">input</a>.attrs.is_packed)
+        .<a href="matcher.rs.html#95">with_field_filter</a>(|f: <span class="kw-2">&amp;</span><a href="ast.rs.html#30">ast::Field</a>| !<a href="#17">f</a>.attrs.<a href="attr.rs.html#587">ignore_debug</a>())
+        .<a href="matcher.rs.html#104-113">build_arms</a>(<a href="#10">input</a>, <span class="string">&quot;__arg&quot;</span>, |<span class="kw">_</span>, <span class="kw">_</span>, arm_name, style, attrs, bis| {
+            <span class="kw">let </span>field_prints = <a href="#18">bis</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|bi| {
                 <span class="kw">if </span>bi.field.attrs.ignore_debug() {
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
@@ -252,17 +252,17 @@
                     });
                 }
 
-                <span class="kw">let </span>arg_expr = <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#19">bi</a>.expr;
-                <span class="kw">let </span>arg_ident = <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#19">bi</a>.ident;
+                <span class="kw">let </span>arg_expr = <span class="kw-2">&amp;</span><a href="#19">bi</a>.expr;
+                <span class="kw">let </span>arg_ident = <span class="kw-2">&amp;</span><a href="#19">bi</a>.ident;
 
-                <span class="kw">let </span>dummy_debug = <a href="../../src/derivative/debug.rs.html#19">bi</a>.field.attrs.<a href="../../src/derivative/attr.rs.html#583">debug_format_with</a>().map(|format_fn| {
-                    <a href="../../src/derivative/debug.rs.html#146-153">format_with</a>(
-                        <a href="../../src/derivative/debug.rs.html#19">bi</a>.field,
-                        <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#10">input</a>.attrs.<a href="../../src/derivative/attr.rs.html#390">debug_bound</a>(),
-                        <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#30">arg_expr</a>,
-                        <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#31">arg_ident</a>,
-                        <a href="../../src/derivative/debug.rs.html#33">format_fn</a>,
-                        <a href="../../src/derivative/debug.rs.html#10">input</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="kw">let </span>dummy_debug = <a href="#19">bi</a>.field.attrs.<a href="attr.rs.html#583">debug_format_with</a>().map(|format_fn| {
+                    <a href="#146-153">format_with</a>(
+                        <a href="#19">bi</a>.field,
+                        <span class="kw-2">&amp;</span><a href="#10">input</a>.attrs.<a href="attr.rs.html#390">debug_bound</a>(),
+                        <span class="kw-2">&amp;</span><a href="#30">arg_expr</a>,
+                        <span class="kw-2">&amp;</span><a href="#31">arg_ident</a>,
+                        <a href="#33">format_fn</a>,
+                        <a href="#10">input</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     )
                 });
                 <span class="kw">let </span>expr = <span class="kw">if </span>bi.field.attrs.debug_format_with().is_some() {
@@ -275,8 +275,8 @@
                     }
                 };
 
-                <span class="kw">let </span>builder = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>name) = <a href="../../src/derivative/debug.rs.html#19">bi</a>.field.ident {
-                    <span class="kw">let </span>name = <a href="../../src/derivative/debug.rs.html#53">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+                <span class="kw">let </span>builder = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>name) = <a href="#19">bi</a>.field.ident {
+                    <span class="kw">let </span>name = <a href="#53">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
                     <a class="macro" href="../../quote/quote/macro.quote_spanned.html">quote_spanned! </a>{arm_name.span()=&gt;
                         #dummy_debug
                         <span class="kw">let _ </span>= __debug_trait_builder.field(#name, #expr);
@@ -288,21 +288,21 @@
                     }
                 };
 
-                <span class="prelude-val">Some</span>(<a href="../../src/derivative/debug.rs.html#53">builder</a>)
+                <span class="prelude-val">Some</span>(<a href="#53">builder</a>)
             });
 
-            <span class="kw">let </span>method = <span class="kw">match </span><a href="../../src/derivative/debug.rs.html#18">style</a> {
-                <a href="../../src/derivative/ast.rs.html#39">ast::Style::Struct</a> =&gt; <span class="string">&quot;debug_struct&quot;</span>,
-                <a href="../../src/derivative/ast.rs.html#40">ast::Style::Tuple</a> | <a href="../../src/derivative/ast.rs.html#41">ast::Style::Unit</a> =&gt; <span class="string">&quot;debug_tuple&quot;</span>,
+            <span class="kw">let </span>method = <span class="kw">match </span><a href="#18">style</a> {
+                <a href="ast.rs.html#39">ast::Style::Struct</a> =&gt; <span class="string">&quot;debug_struct&quot;</span>,
+                <a href="ast.rs.html#40">ast::Style::Tuple</a> | <a href="ast.rs.html#41">ast::Style::Unit</a> =&gt; <span class="string">&quot;debug_tuple&quot;</span>,
             };
-            <span class="kw">let </span>method = syn::Ident::new(<a href="../../src/derivative/debug.rs.html#69">method</a>, proc_macro2::Span::call_site());
+            <span class="kw">let </span>method = syn::Ident::new(<a href="#69">method</a>, proc_macro2::Span::call_site());
 
             <span class="kw">if </span>attrs.debug_transparent() {
                 <a class="macro" href="../../quote/quote/macro.quote_spanned.html">quote_spanned! </a>{arm_name.span()=&gt;
                     #(#field_prints)*
                 }
             } <span class="kw">else </span>{
-                <span class="kw">let </span>name = <a href="../../src/derivative/debug.rs.html#18">arm_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+                <span class="kw">let </span>name = <a href="#18">arm_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
                 <a class="macro" href="../../quote/quote/macro.quote_spanned.html">quote_spanned! </a>{arm_name.span()=&gt;
                     <span class="kw">let </span><span class="kw-2">mut </span>__debug_trait_builder = #formatter.#method(#name);
                     #(#field_prints)*
@@ -311,16 +311,16 @@
             }
         });
 
-    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#10">input</a>.ident;
+    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="#10">input</a>.ident;
 
-    <span class="kw">let </span>generics = <a href="../../src/derivative/utils.rs.html#10-20">utils::build_impl_generics</a>(
-        <a href="../../src/derivative/debug.rs.html#10">input</a>,
-        <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#11">debug_trait_path</a>,
-        <a href="../../src/derivative/debug.rs.html#115">needs_debug_bound</a>,
-        |field| <a href="../../src/derivative/debug.rs.html#95">field</a>.<a href="../../src/derivative/attr.rs.html#579">debug_bound</a>(),
-        |input| <a href="../../src/derivative/debug.rs.html#96">input</a>.<a href="../../src/derivative/attr.rs.html#390">debug_bound</a>(),
+    <span class="kw">let </span>generics = <a href="utils.rs.html#10-20">utils::build_impl_generics</a>(
+        <a href="#10">input</a>,
+        <span class="kw-2">&amp;</span><a href="#11">debug_trait_path</a>,
+        <a href="#115">needs_debug_bound</a>,
+        |field| <a href="#95">field</a>.<a href="attr.rs.html#579">debug_bound</a>(),
+        |input| <a href="#96">input</a>.<a href="attr.rs.html#390">debug_bound</a>(),
     );
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derivative/debug.rs.html#91">generics</a>.split_for_impl();
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#91">generics</a>.split_for_impl();
 
     <span class="comment">// don&#39;t attach a span to prevent issue #58
     </span><span class="kw">let </span>match_self = <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>);
@@ -337,8 +337,8 @@
     }
 }
 
-<span class="kw">fn </span>needs_debug_bound(attrs: <span class="kw-2">&amp;</span><a href="../../src/derivative/attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    !<a href="../../src/derivative/debug.rs.html#115">attrs</a>.<a href="../../src/derivative/attr.rs.html#587">ignore_debug</a>() &amp;&amp; <a href="../../src/derivative/debug.rs.html#115">attrs</a>.<a href="../../src/derivative/attr.rs.html#579">debug_bound</a>().is_none()
+<span class="kw">fn </span>needs_debug_bound(attrs: <span class="kw-2">&amp;</span><a href="attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    !<a href="#115">attrs</a>.<a href="attr.rs.html#587">ignore_debug</a>() &amp;&amp; <a href="#115">attrs</a>.<a href="attr.rs.html#579">debug_bound</a>().is_none()
 }
 
 <span class="doccomment">/// Return the path of the `Debug` trait, that is `::std::fmt::Debug`.
@@ -369,66 +369,66 @@
 }
 
 <span class="kw">fn </span>format_with(
-    f: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>,
+    f: <span class="kw-2">&amp;</span><a href="ast.rs.html#30">ast::Field</a>,
     bounds: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="../../syn/generics/enum.WherePredicate.html">syn::WherePredicate</a>]&gt;,
     arg_expr: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
     arg_ident: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
     format_fn: <span class="kw-2">&amp;</span><a href="../../syn/path/struct.Path.html">syn::Path</a>,
     <span class="kw-2">mut </span>generics: <a href="../../syn/generics/struct.Generics.html">syn::Generics</a>,
 ) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
-    <span class="kw">let </span>debug_trait_path = <a href="../../src/derivative/debug.rs.html#120">debug_trait_path</a>();
-    <span class="kw">let </span>fmt_path = <a href="../../src/derivative/debug.rs.html#129">fmt_path</a>();
-    <span class="kw">let </span>phantom_path = <a href="../../src/derivative/debug.rs.html#138">phantom_path</a>();
+    <span class="kw">let </span>debug_trait_path = <a href="#120">debug_trait_path</a>();
+    <span class="kw">let </span>fmt_path = <a href="#129">fmt_path</a>();
+    <span class="kw">let </span>phantom_path = <a href="#138">phantom_path</a>();
 
-    <a href="../../src/derivative/debug.rs.html#152">generics</a>
+    <a href="#152">generics</a>
         .make_where_clause()
         .predicates
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/derivative/debug.rs.html#147">f</a>.attrs.<a href="../../src/derivative/attr.rs.html#579">debug_bound</a>().unwrap_or(<span class="kw-2">&amp;</span>[]).iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#147">f</a>.attrs.<a href="attr.rs.html#579">debug_bound</a>().unwrap_or(<span class="kw-2">&amp;</span>[]).iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
 
-    <a href="../../src/derivative/debug.rs.html#152">generics</a>
+    <a href="#152">generics</a>
         .params
         .push(syn::GenericParam::Lifetime(syn::LifetimeDef::new(
             <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="lifetime">&#39;_derivative</span>),
         )));
-    <span class="kw">let </span>where_predicates = <a href="../../src/derivative/debug.rs.html#152">generics</a>
+    <span class="kw">let </span>where_predicates = <a href="#152">generics</a>
         .type_params()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|ty| {
             <span class="kw">let </span><span class="kw-2">mut </span>bounds = syn::punctuated::Punctuated::new();
-            <a href="../../src/derivative/debug.rs.html#171">bounds</a>.push(syn::TypeParamBound::Lifetime(syn::Lifetime::new(
+            <a href="#171">bounds</a>.push(syn::TypeParamBound::Lifetime(syn::Lifetime::new(
                 <span class="string">&quot;&#39;_derivative&quot;</span>,
                 proc_macro2::Span::call_site(),
             )));
 
-            <span class="kw">let </span>path = syn::Path::from(syn::PathSegment::from(<a href="../../src/derivative/debug.rs.html#170">ty</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            <span class="kw">let </span>path = syn::Path::from(syn::PathSegment::from(<a href="#170">ty</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
 
             syn::WherePredicate::Type(<a href="../../syn/generics/struct.PredicateType.html">syn::PredicateType</a> {
                 lifetimes: <span class="prelude-val">None</span>,
-                bounded_ty: syn::Type::Path(<a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> { qself: <span class="prelude-val">None</span>, <a href="../../src/derivative/debug.rs.html#177">path</a> }),
+                bounded_ty: syn::Type::Path(<a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> { qself: <span class="prelude-val">None</span>, <a href="#177">path</a> }),
                 colon_token: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-                <a href="../../src/derivative/debug.rs.html#171">bounds</a>,
+                <a href="#171">bounds</a>,
             })
         })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../../src/derivative/debug.rs.html#148">bounds</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|b| <a href="../../src/derivative/debug.rs.html#186">b</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#148">bounds</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|b| <a href="#186">b</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <a href="../../src/derivative/debug.rs.html#152">generics</a>
+    <a href="#152">generics</a>
         .make_where_clause()
         .predicates
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/derivative/debug.rs.html#168">where_predicates</a>);
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#168">where_predicates</a>);
 
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derivative/debug.rs.html#152">generics</a>.split_for_impl();
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#152">generics</a>.split_for_impl();
 
-    <span class="kw">let </span>ty = <a href="../../src/derivative/debug.rs.html#147">f</a>.ty;
+    <span class="kw">let </span>ty = <a href="#147">f</a>.ty;
 
     <span class="comment">// Leave off the type parameter bounds, defaults, and attributes
-    </span><span class="kw">let </span>phantom = <a href="../../src/derivative/debug.rs.html#152">generics</a>.type_params().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|tp| <span class="kw-2">&amp;</span><a href="../../src/derivative/debug.rs.html#198">tp</a>.ident);
+    </span><span class="kw">let </span>phantom = <a href="#152">generics</a>.type_params().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|tp| <span class="kw-2">&amp;</span><a href="#198">tp</a>.ident);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>ctor_generics = <a href="../../src/derivative/debug.rs.html#152">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw-2">*</span><a href="../../src/derivative/debug.rs.html#200">ctor_generics</a>
+    <span class="kw">let </span><span class="kw-2">mut </span>ctor_generics = <a href="#152">generics</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw-2">*</span><a href="#200">ctor_generics</a>
         .lifetimes_mut()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>()
         .expect(<span class="string">&quot;There must be a &#39;_derivative lifetime&quot;</span>) = syn::LifetimeDef::new(<a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="lifetime">&#39;_</span>));
-    <span class="kw">let </span>(<span class="kw">_</span>, ctor_ty_generics, <span class="kw">_</span>) = <a href="../../src/derivative/debug.rs.html#200">ctor_generics</a>.split_for_impl();
-    <span class="kw">let </span>ctor_ty_generics = <a href="../../src/derivative/debug.rs.html#205">ctor_ty_generics</a>.as_turbofish();
+    <span class="kw">let </span>(<span class="kw">_</span>, ctor_ty_generics, <span class="kw">_</span>) = <a href="#200">ctor_generics</a>.split_for_impl();
+    <span class="kw">let </span>ctor_ty_generics = <a href="#205">ctor_ty_generics</a>.as_turbofish();
 
     <span class="comment">// don&#39;t attach a span to prevent issue #58
     </span><span class="kw">let </span>match_self = <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>);
@@ -449,4 +449,4 @@
     )
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

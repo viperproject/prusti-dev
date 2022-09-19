@@ -331,31 +331,31 @@
 </pre><pre class="rust"><code><span class="doccomment">//! The futures-rs `select! macro implementation.
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use </span><a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span>quote::{<a href="../../quote/macro.format_ident.html">format_ident</a>, <a href="../../quote/macro.quote.html">quote</a>};
-<span class="kw">use </span>syn::parse::{<a href="../../syn/parse/trait.Parse.html">Parse</a>, <a href="../../syn/parse/type.ParseStream.html">ParseStream</a>};
-<span class="kw">use </span>syn::{<a href="../../syn/macro.parse_quote.html">parse_quote</a>, <a href="../../syn/expr/enum.Expr.html">Expr</a>, Ident, <a href="../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../syn/macro.Token.html">Token</a>};
+<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span>quote::{<a href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident</a>, <a href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote</a>};
+<span class="kw">use </span>syn::parse::{<a href="https://docs.rs/syn/1.0.100/syn/parse/trait.Parse.html">Parse</a>, <a href="https://docs.rs/syn/1.0.100/syn/parse/type.ParseStream.html">ParseStream</a>};
+<span class="kw">use </span>syn::{<a href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>, Ident, <a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/macro.Token.html">Token</a>};
 
 <span class="kw">mod </span>kw {
-    <a class="macro" href="../../syn/syn/macro.custom_keyword.html">syn::custom_keyword!</a>(complete);
+    <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.custom_keyword.html">syn::custom_keyword!</a>(complete);
 }
 
 <span class="kw">struct </span>Select {
     <span class="comment">// span of `complete`, then expression after `=&gt; ...`
-    </span>complete: <span class="prelude-ty">Option</span>&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;,
-    default: <span class="prelude-ty">Option</span>&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;,
-    normal_fut_exprs: Vec&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;,
-    normal_fut_handlers: Vec&lt;(<a href="../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../syn/expr/enum.Expr.html">Expr</a>)&gt;,
+    </span>complete: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    default: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    normal_fut_exprs: Vec&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    normal_fut_handlers: Vec&lt;(<a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>)&gt;,
 }
 
 <span class="attribute">#[allow(clippy::large_enum_variant)]
 </span><span class="kw">enum </span>CaseKind {
     Complete,
     Default,
-    Normal(<a href="../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../syn/expr/enum.Expr.html">Expr</a>),
+    Normal(<a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>),
 }
 
-<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="../../src/futures_macro/select.rs.html#13">Select</a> {
+<span class="kw">impl </span><a href="https://docs.rs/syn/1.0.100/syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#13">Select</a> {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>select = <span class="self">Self </span>{
             complete: <span class="prelude-val">None</span>,
@@ -413,7 +413,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/futures_macro/select.rs.html#30">select</a>)
+        <span class="prelude-val">Ok</span>(<a href="#30">select</a>)
     }
 }
 
@@ -422,21 +422,21 @@
 //
 // `enum __PrivResult&lt;_1, _2, ...&gt; { _1(_1), _2(_2), ..., Complete }`
 </span><span class="kw">fn </span>declare_result_enum(
-    result_ident: <a href="../../proc_macro2/struct.Ident.html">Ident</a>,
+    result_ident: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>,
     variants: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     complete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    span: <a href="../../proc_macro2/struct.Span.html">Span</a>,
-) -&gt; (Vec&lt;<a href="../../proc_macro2/struct.Ident.html">Ident</a>&gt;, <a href="../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>) {
+    span: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>,
+) -&gt; (Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>&gt;, <a href="https://docs.rs/syn/1.0.100/syn/item/struct.ItemEnum.html">syn::ItemEnum</a>) {
     <span class="comment">// &quot;_0&quot;, &quot;_1&quot;, &quot;_2&quot;
-    </span><span class="kw">let </span>variant_names: Vec&lt;<a href="../../proc_macro2/struct.Ident.html">Ident</a>&gt; =
-        (<span class="number">0</span>..<a href="../../src/futures_macro/select.rs.html#96">variants</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|num| <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_{}&quot;</span>, num, span = span)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    </span><span class="kw">let </span>variant_names: Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>&gt; =
+        (<span class="number">0</span>..<a href="#96">variants</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|num| <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_{}&quot;</span>, num, span = span)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <span class="kw">let </span>type_parameters = <span class="kw-2">&amp;</span><a href="../../src/futures_macro/select.rs.html#101">variant_names</a>;
-    <span class="kw">let </span>variants = <span class="kw-2">&amp;</span><a href="../../src/futures_macro/select.rs.html#101">variant_names</a>;
+    <span class="kw">let </span>type_parameters = <span class="kw-2">&amp;</span><a href="#101">variant_names</a>;
+    <span class="kw">let </span>variants = <span class="kw-2">&amp;</span><a href="#101">variant_names</a>;
 
-    <span class="kw">let </span>complete_variant = <span class="kw">if </span>complete { <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a>(Complete)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+    <span class="kw">let </span>complete_variant = <span class="kw">if </span>complete { <span class="prelude-val">Some</span>(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(Complete)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
 
-    <span class="kw">let </span>enum_item = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">let </span>enum_item = <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote! </a>{
         <span class="kw">enum </span>#result_ident&lt;#(#type_parameters,)<span class="kw-2">*</span>&gt; {
             #(
                 #variants(#type_parameters),
@@ -445,42 +445,42 @@
         }
     };
 
-    (<a href="../../src/futures_macro/select.rs.html#101">variant_names</a>, <a href="../../src/futures_macro/select.rs.html#109">enum_item</a>)
+    (<a href="#101">variant_names</a>, <a href="#109">enum_item</a>)
 }
 
 <span class="doccomment">/// The `select!` macro.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <a href="../../src/futures_macro/select.rs.html#131">select_inner</a>(<a href="../../src/futures_macro/select.rs.html#122">input</a>, <span class="bool-val">true</span>)
+    <a href="#131">select_inner</a>(<a href="#122">input</a>, <span class="bool-val">true</span>)
 }
 
 <span class="doccomment">/// The `select_biased!` macro.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_biased(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <a href="../../src/futures_macro/select.rs.html#131">select_inner</a>(<a href="../../src/futures_macro/select.rs.html#127">input</a>, <span class="bool-val">false</span>)
+    <a href="#131">select_inner</a>(<a href="#127">input</a>, <span class="bool-val">false</span>)
 }
 
 <span class="kw">fn </span>select_inner(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, random: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>parsed = <a class="macro" href="../../syn/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Select);
+    <span class="kw">let </span>parsed = <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Select);
 
     <span class="comment">// should be def_site, but that&#39;s unstable
     </span><span class="kw">let </span>span = Span::call_site();
 
-    <span class="kw">let </span>enum_ident = Ident::new(<span class="string">&quot;__PrivResult&quot;</span>, <a href="../../src/futures_macro/select.rs.html#135">span</a>);
+    <span class="kw">let </span>enum_ident = Ident::new(<span class="string">&quot;__PrivResult&quot;</span>, <a href="#135">span</a>);
 
-    <span class="kw">let </span>(variant_names, enum_item) = <a href="../../src/futures_macro/select.rs.html#94-99">declare_result_enum</a>(
-        <a href="../../src/futures_macro/select.rs.html#137">enum_ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-        <a href="../../src/futures_macro/select.rs.html#132">parsed</a>.normal_fut_exprs.len(),
-        <a href="../../src/futures_macro/select.rs.html#132">parsed</a>.complete.is_some(),
-        <a href="../../src/futures_macro/select.rs.html#135">span</a>,
+    <span class="kw">let </span>(variant_names, enum_item) = <a href="#94-99">declare_result_enum</a>(
+        <a href="#137">enum_ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#132">parsed</a>.normal_fut_exprs.len(),
+        <a href="#132">parsed</a>.complete.is_some(),
+        <a href="#135">span</a>,
     );
 
     <span class="comment">// bind non-`Ident` future exprs w/ `let`
-    </span><span class="kw">let </span><span class="kw-2">mut </span>future_let_bindings = Vec::with_capacity(<a href="../../src/futures_macro/select.rs.html#132">parsed</a>.normal_fut_exprs.len());
-    <span class="kw">let </span>bound_future_names: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/futures_macro/select.rs.html#132">parsed</a>
+    </span><span class="kw">let </span><span class="kw-2">mut </span>future_let_bindings = Vec::with_capacity(<a href="#132">parsed</a>.normal_fut_exprs.len());
+    <span class="kw">let </span>bound_future_names: Vec&lt;<span class="kw">_</span>&gt; = <a href="#132">parsed</a>
         .normal_fut_exprs
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="../../src/futures_macro/select.rs.html#139">variant_names</a>.iter())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#139">variant_names</a>.iter())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(expr, variant_name)| {
-            <span class="kw">match </span><a href="../../src/futures_macro/select.rs.html#152">expr</a> {
+            <span class="kw">match </span><a href="#152">expr</a> {
                 syn::Expr::Path(path) =&gt; {
                     <span class="comment">// Don&#39;t bind futures that are already a path.
                     // This prevents creating redundant stack space
@@ -488,11 +488,11 @@
                     // Passing Futures by path requires those Futures to implement Unpin.
                     // We check for this condition here in order to be able to
                     // safely use Pin::new_unchecked(&amp;mut #path) later on.
-                    </span><a href="../../src/futures_macro/select.rs.html#147">future_let_bindings</a>.push(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+                    </span><a href="#147">future_let_bindings</a>.push(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                         __futures_crate::async_await::assert_fused_future(<span class="kw-2">&amp;</span>#path);
                         __futures_crate::async_await::assert_unpin(<span class="kw-2">&amp;</span>#path);
                     });
-                    <a href="../../src/futures_macro/select.rs.html#154">path</a>
+                    <a href="#154">path</a>
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="comment">// Bind and pin the resulting Future on the stack. This is
@@ -506,10 +506,10 @@
                     // is totally constraint to the lifetime of the select!
                     // expression, and the Future can&#39;t get moved inside it
                     // (it is shadowed).
-                    </span><a href="../../src/futures_macro/select.rs.html#147">future_let_bindings</a>.push(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+                    </span><a href="#147">future_let_bindings</a>.push(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                         <span class="kw">let </span><span class="kw-2">mut </span>#variant_name = #expr;
                     });
-                    <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{ #variant_name }
+                    <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote! </a>{ #variant_name }
                 }
             }
         })
@@ -517,7 +517,7 @@
 
     <span class="comment">// For each future, make an `&amp;mut dyn FnMut(&amp;mut Context&lt;&#39;_&gt;) -&gt; Option&lt;Poll&lt;__PrivResult&lt;...&gt;&gt;`
     // to use for polling that individual future. These will then be put in an array.
-    </span><span class="kw">let </span>poll_functions = <a href="../../src/futures_macro/select.rs.html#148">bound_future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="../../src/futures_macro/select.rs.html#139">variant_names</a>.iter()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+    </span><span class="kw">let </span>poll_functions = <a href="#148">bound_future_names</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#139">variant_names</a>.iter()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
         |(bound_future_name, variant_name)| {
             <span class="comment">// Below we lazily create the Pin on the Future below.
             // This is done in order to avoid allocating memory in the generator
@@ -527,7 +527,7 @@
             //    it implements Unpin.
             // 2. The Future is created in scope of the select! function and will
             //    not be moved for the duration of it. It is thereby stack-pinned
-            </span><a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+            </span><a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                 <span class="kw">let </span><span class="kw-2">mut </span>#variant_name = |__cx: <span class="kw-2">&amp;mut </span>__futures_crate::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
                     <span class="kw">let </span><span class="kw-2">mut </span>#bound_future_name = <span class="kw">unsafe </span>{
                         __futures_crate::Pin::new_unchecked(<span class="kw-2">&amp;mut </span>#bound_future_name)
@@ -549,52 +549,52 @@
     );
 
     <span class="kw">let </span>none_polled = <span class="kw">if </span>parsed.complete.is_some() {
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             __futures_crate::task::Poll::Ready(#enum_ident::Complete)
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             <span class="macro">panic!</span>(<span class="string">&quot;all futures in select! were completed,\
                     but no `complete =&gt;` handler was provided&quot;</span>)
         }
     };
 
-    <span class="kw">let </span>branches = <a href="../../src/futures_macro/select.rs.html#132">parsed</a>.normal_fut_handlers.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="../../src/futures_macro/select.rs.html#139">variant_names</a>.iter()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+    <span class="kw">let </span>branches = <a href="#132">parsed</a>.normal_fut_handlers.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#139">variant_names</a>.iter()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
         |((pat, expr), variant_name)| {
-            <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+            <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                 #enum_ident::#variant_name(#pat) =&gt; { #expr },
             }
         },
     );
-    <span class="kw">let </span>branches = <a class="macro" href="../../quote/macro.quote.html">quote! </a>{ #( #branches )* };
+    <span class="kw">let </span>branches = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{ #( #branches )* };
 
-    <span class="kw">let </span>complete_branch = <a href="../../src/futures_macro/select.rs.html#132">parsed</a>.complete.map(|complete_expr| {
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>complete_branch = <a href="#132">parsed</a>.complete.map(|complete_expr| {
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             #enum_ident::Complete =&gt; { #complete_expr },
         }
     });
 
-    <span class="kw">let </span>branches = <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>branches = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
         #branches
         #complete_branch
     };
 
     <span class="kw">let </span>await_select_fut = <span class="kw">if </span>parsed.default.is_some() {
         <span class="comment">// For select! with default this returns the Poll result
-        </span><a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        </span><a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             __poll_fn(<span class="kw-2">&amp;mut </span>__futures_crate::task::Context::from_waker(
                 __futures_crate::task::noop_waker_ref()
             ))
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             __futures_crate::future::poll_fn(__poll_fn).<span class="kw">await
         </span>}
     };
 
-    <span class="kw">let </span>execute_result_expr = <span class="kw">if let </span><span class="prelude-val">Some</span>(default_expr) = <span class="kw-2">&amp;</span><a href="../../src/futures_macro/select.rs.html#132">parsed</a>.default {
+    <span class="kw">let </span>execute_result_expr = <span class="kw">if let </span><span class="prelude-val">Some</span>(default_expr) = <span class="kw-2">&amp;</span><a href="#132">parsed</a>.default {
         <span class="comment">// For select! with default __select_result is a Poll, otherwise not
-        </span><a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        </span><a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             <span class="kw">match </span>__select_result {
                 __futures_crate::task::Poll::Ready(result) =&gt; <span class="kw">match </span>result {
                     #branches
@@ -603,7 +603,7 @@
             }
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             <span class="kw">match </span>__select_result {
                 #branches
             }
@@ -611,14 +611,14 @@
     };
 
     <span class="kw">let </span>shuffle = <span class="kw">if </span>random {
-        <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             __futures_crate::async_await::shuffle(<span class="kw-2">&amp;mut </span>__select_arr);
         }
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.quote.html">quote!</a>()
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>()
     };
 
-    TokenStream::from(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{ {
+    TokenStream::from(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{ {
         #enum_item
 
         <span class="kw">let </span>__select_result = {
@@ -659,4 +659,4 @@
     } })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

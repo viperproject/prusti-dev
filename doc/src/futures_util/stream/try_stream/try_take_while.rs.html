@@ -162,11 +162,11 @@
     Fut: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#35">f</a>.debug_struct(<span class="string">&quot;TryTakeWhile&quot;</span>)
-            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#35">self</a>.stream)
-            .field(<span class="string">&quot;pending_fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#35">self</a>.pending_fut)
-            .field(<span class="string">&quot;pending_item&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#35">self</a>.pending_item)
-            .field(<span class="string">&quot;done_taking&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#35">self</a>.done_taking)
+        <a href="#35">f</a>.debug_struct(<span class="string">&quot;TryTakeWhile&quot;</span>)
+            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.stream)
+            .field(<span class="string">&quot;pending_fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.pending_fut)
+            .field(<span class="string">&quot;pending_item&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.pending_item)
+            .field(<span class="string">&quot;done_taking&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.done_taking)
             .finish()
     }
 }
@@ -178,10 +178,10 @@
     Fut: TryFuture&lt;<span class="prelude-val">Ok </span>= <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, Error = St::Error&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, f: F) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#51">stream</a>, <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#51">f</a>, pending_fut: <span class="prelude-val">None</span>, pending_item: <span class="prelude-val">None</span>, done_taking: <span class="bool-val">false </span>}
+        <span class="self">Self </span>{ <a href="#51">stream</a>, <a href="#51">f</a>, pending_fut: <span class="prelude-val">None</span>, pending_item: <span class="prelude-val">None</span>, done_taking: <span class="bool-val">false </span>}
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
+    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
 }
 
 <span class="kw">impl</span>&lt;St, Fut, F&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>TryTakeWhile&lt;St, Fut, F&gt;
@@ -193,27 +193,27 @@
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;St::Ok, St::Error&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#66">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#11-27">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#66">self</a>.<a href="#11-27">project</a>();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.done_taking {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
         }
 
         Poll::Ready(<span class="kw">loop </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(fut) = <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.pending_fut.as_mut().as_pin_mut() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(fut) = <a href="#67">this</a>.pending_fut.as_mut().as_pin_mut() {
                 <span class="kw">let </span>res = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(fut.try_poll(cx));
-                <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.pending_fut.set(<span class="prelude-val">None</span>);
+                <a href="#67">this</a>.pending_fut.set(<span class="prelude-val">None</span>);
                 <span class="kw">let </span>take = res<span class="question-mark">?</span>;
-                <span class="kw">let </span>item = <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.pending_item.take();
+                <span class="kw">let </span>item = <a href="#67">this</a>.pending_item.take();
                 <span class="kw">if </span>take {
-                    <span class="kw">break </span><a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#78">item</a>.map(<span class="prelude-val">Ok</span>);
+                    <span class="kw">break </span><a href="#78">item</a>.map(<span class="prelude-val">Ok</span>);
                 } <span class="kw">else </span>{
-                    <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.done_taking = <span class="bool-val">true</span>;
+                    <span class="kw-2">*</span><a href="#67">this</a>.done_taking = <span class="bool-val">true</span>;
                     <span class="kw">break </span><span class="prelude-val">None</span>;
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(item) = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().try_poll_next(cx)<span class="question-mark">?</span>) {
-                <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.pending_fut.set(<span class="prelude-val">Some</span>((<a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.f)(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#85">item</a>)));
-                <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#67">this</a>.pending_item = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#85">item</a>);
+                <a href="#67">this</a>.pending_fut.set(<span class="prelude-val">Some</span>((<a href="#67">this</a>.f)(<span class="kw-2">&amp;</span><a href="#85">item</a>)));
+                <span class="kw-2">*</span><a href="#67">this</a>.pending_item = <span class="prelude-val">Some</span>(<a href="#85">item</a>);
             } <span class="kw">else </span>{
                 <span class="kw">break </span><span class="prelude-val">None</span>;
             }
@@ -226,12 +226,12 @@
         }
 
         <span class="kw">let </span>pending_len = <span class="kw">if </span><span class="self">self</span>.pending_item.is_some() { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
-        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#94">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>upper = <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#100">upper</a> {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#102">x</a>.checked_add(<a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#99">pending_len</a>),
+        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="#94">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#100">upper</a> {
+            <span class="prelude-val">Some</span>(x) =&gt; <a href="#102">x</a>.checked_add(<a href="#99">pending_len</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        (<span class="number">0</span>, <a href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#101">upper</a>) <span class="comment">// can&#39;t know a lower bound, due to the predicate
+        (<span class="number">0</span>, <a href="#101">upper</a>) <span class="comment">// can&#39;t know a lower bound, due to the predicate
     </span>}
 }
 
@@ -242,7 +242,7 @@
     Fut: TryFuture&lt;<span class="prelude-val">Ok </span>= <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, Error = St::Error&gt;,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#115">self</a>.done_taking || <a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#115">self</a>.pending_item.is_none() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/try_stream/try_take_while.rs.html#115">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+        <a class="self" href="#115">self</a>.done_taking || <a class="self" href="#115">self</a>.pending_item.is_none() &amp;&amp; <a class="self" href="#115">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
@@ -254,7 +254,7 @@
 {
     <span class="kw">type </span>Error = E;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
+    <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

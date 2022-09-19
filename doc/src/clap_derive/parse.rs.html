@@ -299,12 +299,12 @@
     <a href="../../syn/attr/struct.Attribute.html">Attribute</a>, <a href="../../syn/expr/enum.Expr.html">Expr</a>, <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a>, Ident, Lit, LitBool, LitStr, <a href="../../syn/macro.Token.html">Token</a>,
 };
 
-<span class="kw">pub fn </span>parse_clap_attributes(all_attrs: <span class="kw-2">&amp;</span>[<a href="../../syn/attr/struct.Attribute.html">Attribute</a>]) -&gt; Vec&lt;<a href="../../src/clap_derive/parse.rs.html#25">ClapAttr</a>&gt; {
-    <a href="../../src/clap_derive/parse.rs.html#12">all_attrs</a>
+<span class="kw">pub fn </span>parse_clap_attributes(all_attrs: <span class="kw-2">&amp;</span>[<a href="../../syn/attr/struct.Attribute.html">Attribute</a>]) -&gt; Vec&lt;<a href="#25">ClapAttr</a>&gt; {
+    <a href="#12">all_attrs</a>
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|attr| <a href="../../src/clap_derive/parse.rs.html#15">attr</a>.path.is_ident(<span class="string">&quot;clap&quot;</span>) || <a href="../../src/clap_derive/parse.rs.html#15">attr</a>.path.is_ident(<span class="string">&quot;structopt&quot;</span>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|attr| <a href="#15">attr</a>.path.is_ident(<span class="string">&quot;clap&quot;</span>) || <a href="#15">attr</a>.path.is_ident(<span class="string">&quot;structopt&quot;</span>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|attr| {
-            <a href="../../src/clap_derive/parse.rs.html#16">attr</a>.parse_args_with(Punctuated::&lt;<a href="../../src/clap_derive/parse.rs.html#25">ClapAttr</a>, <a class="macro" href="../../syn/macro.Token.html">Token!</a>[,]&gt;::parse_terminated)
+            <a href="#16">attr</a>.parse_args_with(Punctuated::&lt;<a href="#25">ClapAttr</a>, <a class="macro" href="../../syn/macro.Token.html">Token!</a>[,]&gt;::parse_terminated)
                 .<a href="../../proc_macro_error/trait.ResultExt.html">unwrap_or_abort</a>()
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
@@ -335,7 +335,7 @@
     NameLitStr(<a href="../../proc_macro2/struct.Ident.html">Ident</a>, <a href="../../syn/lit/struct.LitStr.html">LitStr</a>),
 
     <span class="comment">// parse(parser_kind [= parser_func])
-    </span>Parse(<a href="../../proc_macro2/struct.Ident.html">Ident</a>, <a href="../../src/clap_derive/parse.rs.html#223">ParserSpec</a>),
+    </span>Parse(<a href="../../proc_macro2/struct.Ident.html">Ident</a>, <a href="#223">ParserSpec</a>),
 
     <span class="comment">// ident [= arbitrary_expr]
     </span>Skip(<a href="../../proc_macro2/struct.Ident.html">Ident</a>, <span class="prelude-ty">Option</span>&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;),
@@ -354,12 +354,12 @@
     </span>MethodCall(<a href="../../proc_macro2/struct.Ident.html">Ident</a>, Vec&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="../../src/clap_derive/parse.rs.html#25">ClapAttr</a> {
+<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#25">ClapAttr</a> {
     <span class="kw">fn </span>parse(input: <a href="../../syn/parse/type.ParseStream.html">ParseStream</a>) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">use </span><a href="../../src/clap_derive/parse.rs.html#25"><span class="self">self</span>::ClapAttr</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="#25"><span class="self">self</span>::ClapAttr</a>::<span class="kw-2">*</span>;
 
         <span class="kw">let </span>name: <a href="../../proc_macro2/struct.Ident.html">Ident</a> = input.parse()<span class="question-mark">?</span>;
-        <span class="kw">let </span>name_str = <a href="../../src/clap_derive/parse.rs.html#71">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>name_str = <a href="#71">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
         <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[=]) {
             <span class="comment">// `name = value` attributes.
@@ -368,59 +368,59 @@
             </span><span class="kw">if </span>input.peek(LitStr) {
                 <span class="kw">let </span>lit: <a href="../../syn/lit/struct.LitStr.html">LitStr</a> = input.parse()<span class="question-mark">?</span>;
 
-                <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="../../src/clap_derive/parse.rs.html#72">name_str</a> {
-                    <span class="string">&quot;rename_all&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#44">RenameAll</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#79">lit</a>)),
-                    <span class="string">&quot;rename_all_env&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#43">RenameAllEnv</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#79">lit</a>)),
+                <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#72">name_str</a> {
+                    <span class="string">&quot;rename_all&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#44">RenameAll</a>(<a href="#71">name</a>, <a href="#79">lit</a>)),
+                    <span class="string">&quot;rename_all_env&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#43">RenameAllEnv</a>(<a href="#71">name</a>, <a href="#79">lit</a>)),
 
                     <span class="string">&quot;skip&quot; </span>=&gt; {
                         <span class="kw">let </span>expr = <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a> {
                             attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                            lit: Lit::Str(<a href="../../src/clap_derive/parse.rs.html#79">lit</a>),
+                            lit: Lit::Str(<a href="#79">lit</a>),
                         };
-                        <span class="kw">let </span>expr = Expr::Lit(<a href="../../src/clap_derive/parse.rs.html#86">expr</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#51">Skip</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">Some</span>(<a href="../../src/clap_derive/parse.rs.html#90">expr</a>)))
+                        <span class="kw">let </span>expr = Expr::Lit(<a href="#86">expr</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#51">Skip</a>(<a href="#71">name</a>, <span class="prelude-val">Some</span>(<a href="#90">expr</a>)))
                     }
 
                     <span class="string">&quot;next_display_order&quot; </span>=&gt; {
                         <span class="kw">let </span>expr = <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a> {
                             attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                            lit: Lit::Str(<a href="../../src/clap_derive/parse.rs.html#79">lit</a>),
+                            lit: Lit::Str(<a href="#79">lit</a>),
                         };
-                        <span class="kw">let </span>expr = Expr::Lit(<a href="../../src/clap_derive/parse.rs.html#95">expr</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#59">NextDisplayOrder</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#99">expr</a>))
+                        <span class="kw">let </span>expr = Expr::Lit(<a href="#95">expr</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#59">NextDisplayOrder</a>(<a href="#71">name</a>, <a href="#99">expr</a>))
                     }
 
                     <span class="string">&quot;next_help_heading&quot; </span>=&gt; {
                         <span class="kw">let </span>expr = <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a> {
                             attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                            lit: Lit::Str(<a href="../../src/clap_derive/parse.rs.html#79">lit</a>),
+                            lit: Lit::Str(<a href="#79">lit</a>),
                         };
-                        <span class="kw">let </span>expr = Expr::Lit(<a href="../../src/clap_derive/parse.rs.html#104">expr</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#60">NextHelpHeading</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#108">expr</a>))
+                        <span class="kw">let </span>expr = Expr::Lit(<a href="#104">expr</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#60">NextHelpHeading</a>(<a href="#71">name</a>, <a href="#108">expr</a>))
                     }
                     <span class="string">&quot;help_heading&quot; </span>=&gt; {
                         <span class="kw">let </span>expr = <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a> {
                             attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                            lit: Lit::Str(<a href="../../src/clap_derive/parse.rs.html#79">lit</a>),
+                            lit: Lit::Str(<a href="#79">lit</a>),
                         };
-                        <span class="kw">let </span>expr = Expr::Lit(<a href="../../src/clap_derive/parse.rs.html#112">expr</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#61">HelpHeading</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#116">expr</a>))
+                        <span class="kw">let </span>expr = Expr::Lit(<a href="#112">expr</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#61">HelpHeading</a>(<a href="#71">name</a>, <a href="#116">expr</a>))
                     }
 
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#45">NameLitStr</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#79">lit</a>)),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#45">NameLitStr</a>(<a href="#71">name</a>, <a href="#79">lit</a>)),
                 }
             } <span class="kw">else </span>{
-                <span class="kw">match </span><a href="../../src/clap_derive/parse.rs.html#68">input</a>.parse::&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;() {
-                    <span class="prelude-val">Ok</span>(expr) =&gt; <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="../../src/clap_derive/parse.rs.html#72">name_str</a> {
-                        <span class="string">&quot;skip&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#51">Skip</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">Some</span>(<a href="../../src/clap_derive/parse.rs.html#124">expr</a>))),
-                        <span class="string">&quot;default_value_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#55">DefaultValueT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">Some</span>(<a href="../../src/clap_derive/parse.rs.html#124">expr</a>))),
-                        <span class="string">&quot;default_values_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#56">DefaultValuesT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
-                        <span class="string">&quot;default_value_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#57">DefaultValueOsT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">Some</span>(<a href="../../src/clap_derive/parse.rs.html#124">expr</a>))),
-                        <span class="string">&quot;default_values_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#58">DefaultValuesOsT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
-                        <span class="string">&quot;next_display_order&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#59">NextDisplayOrder</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
-                        <span class="string">&quot;next_help_heading&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#60">NextHelpHeading</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
-                        <span class="string">&quot;help_heading&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#61">HelpHeading</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
-                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#54">NameExpr</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#124">expr</a>)),
+                <span class="kw">match </span><a href="#68">input</a>.parse::&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;() {
+                    <span class="prelude-val">Ok</span>(expr) =&gt; <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#72">name_str</a> {
+                        <span class="string">&quot;skip&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#51">Skip</a>(<a href="#71">name</a>, <span class="prelude-val">Some</span>(<a href="#124">expr</a>))),
+                        <span class="string">&quot;default_value_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#55">DefaultValueT</a>(<a href="#71">name</a>, <span class="prelude-val">Some</span>(<a href="#124">expr</a>))),
+                        <span class="string">&quot;default_values_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#56">DefaultValuesT</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
+                        <span class="string">&quot;default_value_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#57">DefaultValueOsT</a>(<a href="#71">name</a>, <span class="prelude-val">Some</span>(<a href="#124">expr</a>))),
+                        <span class="string">&quot;default_values_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#58">DefaultValuesOsT</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
+                        <span class="string">&quot;next_display_order&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#59">NextDisplayOrder</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
+                        <span class="string">&quot;next_help_heading&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#60">NextHelpHeading</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
+                        <span class="string">&quot;help_heading&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#61">HelpHeading</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
+                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#54">NameExpr</a>(<a href="#71">name</a>, <a href="#124">expr</a>)),
                     },
 
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="../../proc_macro_error/macro.abort.html">abort! </a>{
@@ -434,26 +434,26 @@
             </span><span class="kw">let </span>nested;
             <a class="macro" href="../../syn/macro.parenthesized.html">parenthesized!</a>(nested <span class="kw">in </span>input);
 
-            <span class="kw">match </span><a href="../../src/clap_derive/parse.rs.html#72">name_str</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+            <span class="kw">match </span><a href="#72">name_str</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                 <span class="string">&quot;parse&quot; </span>=&gt; {
-                    <span class="kw">let </span>parser_specs: Punctuated&lt;<a href="../../src/clap_derive/parse.rs.html#223">ParserSpec</a>, <a class="macro" href="../../syn/macro.Token.html">Token!</a>[,]&gt; =
+                    <span class="kw">let </span>parser_specs: Punctuated&lt;<a href="#223">ParserSpec</a>, <a class="macro" href="../../syn/macro.Token.html">Token!</a>[,]&gt; =
                         nested.parse_terminated(ParserSpec::parse)<span class="question-mark">?</span>;
 
                     <span class="kw">if </span>parser_specs.len() == <span class="number">1 </span>{
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#48">Parse</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a href="../../src/clap_derive/parse.rs.html#149">parser_specs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+                        <span class="prelude-val">Ok</span>(<a href="#48">Parse</a>(<a href="#71">name</a>, <a href="#149">parser_specs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
                     } <span class="kw">else </span>{
                         <a class="macro" href="../../proc_macro_error/macro.abort.html">abort!</a>(name, <span class="string">&quot;parse must have exactly one argument&quot;</span>)
                     }
                 }
 
-                <span class="string">&quot;raw&quot; </span>=&gt; <span class="kw">match </span><a href="../../src/clap_derive/parse.rs.html#144">nested</a>.parse::&lt;<a href="../../syn/lit/struct.LitBool.html">LitBool</a>&gt;() {
+                <span class="string">&quot;raw&quot; </span>=&gt; <span class="kw">match </span><a href="#144">nested</a>.parse::&lt;<a href="../../syn/lit/struct.LitBool.html">LitBool</a>&gt;() {
                     <span class="prelude-val">Ok</span>(bool_token) =&gt; {
                         <span class="kw">let </span>expr = <a href="../../syn/expr/struct.ExprLit.html">ExprLit</a> {
                             attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                            lit: Lit::Bool(<a href="../../src/clap_derive/parse.rs.html#160">bool_token</a>),
+                            lit: Lit::Bool(<a href="#160">bool_token</a>),
                         };
-                        <span class="kw">let </span>expr = Expr::Lit(<a href="../../src/clap_derive/parse.rs.html#161">expr</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#64">MethodCall</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr]))
+                        <span class="kw">let </span>expr = Expr::Lit(<a href="#161">expr</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#64">MethodCall</a>(<a href="#71">name</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr]))
                     }
 
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
@@ -470,24 +470,24 @@
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">let </span>method_args: Punctuated&lt;<span class="kw">_</span>, <a class="macro" href="../../syn/macro.Token.html">Token!</a>[,]&gt; =
                         nested.parse_terminated(Expr::parse)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#64">MethodCall</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, Vec::from_iter(<a href="../../src/clap_derive/parse.rs.html#181">method_args</a>)))
+                    <span class="prelude-val">Ok</span>(<a href="#64">MethodCall</a>(<a href="#71">name</a>, Vec::from_iter(<a href="#181">method_args</a>)))
                 }
             }
         } <span class="kw">else </span>{
             <span class="comment">// Attributes represented with a sole identifier.
-            </span><span class="kw">match </span><a href="../../src/clap_derive/parse.rs.html#72">name_str</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
-                <span class="string">&quot;long&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#28">Long</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;short&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#27">Short</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;value_parser&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#29">ValueParser</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;action&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#30">Action</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;env&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#31">Env</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;flatten&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#32">Flatten</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;arg_enum&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#33">ValueEnum</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;value_enum&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#33">ValueEnum</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;from_global&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#34">FromGlobal</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;subcommand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#35">Subcommand</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;external_subcommand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#37">ExternalSubcommand</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
-                <span class="string">&quot;verbatim_doc_comment&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#36">VerbatimDocComment</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
+            </span><span class="kw">match </span><a href="#72">name_str</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+                <span class="string">&quot;long&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#28">Long</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;short&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#27">Short</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;value_parser&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#29">ValueParser</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;action&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#30">Action</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;env&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#31">Env</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;flatten&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#32">Flatten</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;arg_enum&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#33">ValueEnum</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;value_enum&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#33">ValueEnum</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;from_global&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#34">FromGlobal</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;subcommand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#35">Subcommand</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;external_subcommand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#37">ExternalSubcommand</a>(<a href="#71">name</a>)),
+                <span class="string">&quot;verbatim_doc_comment&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#36">VerbatimDocComment</a>(<a href="#71">name</a>)),
 
                 <span class="string">&quot;default_value&quot; </span>=&gt; {
                     <a class="macro" href="../../proc_macro_error/macro.abort.html">abort!</a>(name,
@@ -495,13 +495,13 @@
                         help = <span class="string">&quot;Change the attribute to `#[clap(default_value_t)]`&quot;</span>;
                     )
                 }
-                <span class="string">&quot;default_value_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#55">DefaultValueT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">None</span>)),
-                <span class="string">&quot;default_value_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#57">DefaultValueOsT</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">None</span>)),
-                <span class="string">&quot;about&quot; </span>=&gt; (<span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#38">About</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>))),
-                <span class="string">&quot;author&quot; </span>=&gt; (<span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#39">Author</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>))),
-                <span class="string">&quot;version&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#40">Version</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>)),
+                <span class="string">&quot;default_value_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#55">DefaultValueT</a>(<a href="#71">name</a>, <span class="prelude-val">None</span>)),
+                <span class="string">&quot;default_value_os_t&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#57">DefaultValueOsT</a>(<a href="#71">name</a>, <span class="prelude-val">None</span>)),
+                <span class="string">&quot;about&quot; </span>=&gt; (<span class="prelude-val">Ok</span>(<a href="#38">About</a>(<a href="#71">name</a>))),
+                <span class="string">&quot;author&quot; </span>=&gt; (<span class="prelude-val">Ok</span>(<a href="#39">Author</a>(<a href="#71">name</a>))),
+                <span class="string">&quot;version&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#40">Version</a>(<a href="#71">name</a>)),
 
-                <span class="string">&quot;skip&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#51">Skip</a>(<a href="../../src/clap_derive/parse.rs.html#71">name</a>, <span class="prelude-val">None</span>)),
+                <span class="string">&quot;skip&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#51">Skip</a>(<a href="#71">name</a>, <span class="prelude-val">None</span>)),
 
                 <span class="kw">_ </span>=&gt; <a class="macro" href="../../proc_macro_error/macro.abort.html">abort!</a>(name, <span class="string">&quot;unexpected attribute: {}&quot;</span>, name_str),
             }
@@ -516,20 +516,20 @@
     <span class="kw">pub </span>parse_func: <span class="prelude-ty">Option</span>&lt;<a href="../../syn/expr/enum.Expr.html">Expr</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="../../src/clap_derive/parse.rs.html#223">ParserSpec</a> {
+<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#223">ParserSpec</a> {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>kind = input
             .parse()
             .map_err(|<span class="kw">_</span>| input.error(<span class="string">&quot;parser specification must start with identifier&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>eq_token = input.parse()<span class="question-mark">?</span>;
-        <span class="kw">let </span>parse_func = <span class="kw">match </span><a href="../../src/clap_derive/parse.rs.html#234">eq_token</a> {
+        <span class="kw">let </span>parse_func = <span class="kw">match </span><a href="#234">eq_token</a> {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../src/clap_derive/parse.rs.html#223">ParserSpec</a> {
-            <a href="../../src/clap_derive/parse.rs.html#231">kind</a>,
-            <a href="../../src/clap_derive/parse.rs.html#234">eq_token</a>,
-            <a href="../../src/clap_derive/parse.rs.html#235">parse_func</a>,
+        <span class="prelude-val">Ok</span>(<a href="#223">ParserSpec</a> {
+            <a href="#231">kind</a>,
+            <a href="#234">eq_token</a>,
+            <a href="#235">parse_func</a>,
         })
     }
 }
@@ -540,24 +540,24 @@
         <span class="kw">let </span>_eq: <a class="macro" href="../../syn/macro.Token.html">Token!</a>[=] = ts.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span>val: <a href="../../syn/lit/struct.LitStr.html">LitStr</a> = ts.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span>exprs = val.parse_with(Punctuated::&lt;Expr, <span class="macro">Token!</span>[,]&gt;::parse_terminated)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a href="../../src/clap_derive/parse.rs.html#249">name</a>, <a href="../../src/clap_derive/parse.rs.html#252">exprs</a>))
+        <span class="prelude-val">Ok</span>((<a href="#249">name</a>, <a href="#252">exprs</a>))
     };
 
     <span class="kw">fn </span>to_string&lt;T: <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt;(val: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a href="../../src/clap_derive/parse.rs.html#256">val</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>()
+        <a href="#256">val</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>()
             .<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
             .replace(<span class="string">&#39; &#39;</span>, <span class="string">&quot;&quot;</span>)
             .replace(<span class="string">&#39;,&#39;</span>, <span class="string">&quot;, &quot;</span>)
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>((name, exprs)) = <a href="../../src/clap_derive/parse.rs.html#248">do_parse</a>() {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>((name, exprs)) = <a href="#248">do_parse</a>() {
         <span class="kw">let </span>suggestion = <span class="kw">if </span>exprs.len() == <span class="number">1 </span>{
-            <span class="kw">let </span>val = <a href="../../src/clap_derive/parse.rs.html#256">to_string</a>(<span class="kw-2">&amp;</span><a href="../../src/clap_derive/parse.rs.html#263">exprs</a>[<span class="number">0</span>]);
+            <span class="kw">let </span>val = <a href="#256">to_string</a>(<span class="kw-2">&amp;</span><a href="#263">exprs</a>[<span class="number">0</span>]);
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot; = {}&quot;</span>, val)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>val = <a href="../../src/clap_derive/parse.rs.html#263">exprs</a>
+            <span class="kw">let </span>val = <a href="#263">exprs</a>
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|expr| <a href="../../src/clap_derive/parse.rs.html#256">to_string</a>(<span class="kw-2">&amp;</span><a href="../../src/clap_derive/parse.rs.html#270">expr</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|expr| <a href="#256">to_string</a>(<span class="kw-2">&amp;</span><a href="#270">expr</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
                 .join(<span class="string">&quot;, &quot;</span>);
 
@@ -577,4 +577,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

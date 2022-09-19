@@ -197,8 +197,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/lib.rs.html#703">signature</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/signature.rs.html#21">Signature</a>};
+<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="lib.rs.html#703">signature</a>, <a href="error.rs.html#12">Error</a>, <a href="oid.rs.html#15">Oid</a>, <a href="signature.rs.html#21">Signature</a>};
 
 <span class="doccomment">/// A reference log of a git repository.
 </span><span class="kw">pub struct </span>Reflog {
@@ -208,26 +208,26 @@
 <span class="doccomment">/// An entry inside the reflog of a repository
 </span><span class="kw">pub struct </span>ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt; {
     raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_reflog_entry.html">raw::git_reflog_entry</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;reflog </span><a href="../../src/git2/reflog.rs.html#10">Reflog</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;reflog </span><a href="#10">Reflog</a>&gt;,
 }
 
 <span class="doccomment">/// An iterator over the entries inside of a reflog.
 </span><span class="kw">pub struct </span>ReflogIter&lt;<span class="lifetime">&#39;reflog</span>&gt; {
     range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    reflog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;reflog </span><a href="../../src/git2/reflog.rs.html#10">Reflog</a>,
+    reflog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;reflog </span><a href="#10">Reflog</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/git2/reflog.rs.html#10">Reflog</a> {
+<span class="kw">impl </span><a href="#10">Reflog</a> {
     <span class="doccomment">/// Add a new entry to the in-memory reflog.
     </span><span class="kw">pub fn </span>append(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        new_oid: <a href="../../src/git2/oid.rs.html#15">Oid</a>,
+        new_oid: <a href="oid.rs.html#15">Oid</a>,
         committer: <span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;,
         msg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>msg = <span class="kw">crate</span>::opt_cstr(msg)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_reflog_append(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_reflog_append(
                 <span class="self">self</span>.raw,
                 new_oid.raw(),
                 committer.raw(),
@@ -243,9 +243,9 @@
     /// param value to `true`. When deleting entry n, member old_oid of entry
     /// n-1 (if any) will be updated with the value of member new_oid of entry
     /// n+1.
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, rewrite_previous_entry: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, rewrite_previous_entry: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_reflog_drop(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_reflog_drop(
                 <span class="self">self</span>.raw,
                 i <span class="kw">as </span>size_t,
                 rewrite_previous_entry
@@ -260,53 +260,53 @@
     /// most recently created entry.
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;ReflogEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_reflog_entry_byindex(<a class="self" href="../../src/git2/reflog.rs.html#67">self</a>.raw, <a href="../../src/git2/reflog.rs.html#67">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/reflog.rs.html#69">ptr</a>)
+            <span class="kw">let </span>ptr = raw::git_reflog_entry_byindex(<a class="self" href="#67">self</a>.raw, <a href="#67">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="#69">ptr</a>)
         }
     }
 
     <span class="doccomment">/// Get the number of log entries in a reflog
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_reflog_entrycount(<a class="self" href="../../src/git2/reflog.rs.html#75">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ raw::git_reflog_entrycount(<a class="self" href="#75">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Return `true ` is there is no log entry in a reflog
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/git2/reflog.rs.html#80">self</a>.<a href="../../src/git2/reflog.rs.html#75">len</a>() == <span class="number">0
+        <a class="self" href="#80">self</a>.<a href="#75">len</a>() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Get an iterator to all entries inside of this reflog
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReflogIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../src/git2/reflog.rs.html#21">ReflogIter</a> {
-            range: <span class="number">0</span>..<a class="self" href="../../src/git2/reflog.rs.html#85">self</a>.<a href="../../src/git2/reflog.rs.html#75">len</a>(),
-            reflog: <a class="self" href="../../src/git2/reflog.rs.html#85">self</a>,
+        <a href="#21">ReflogIter</a> {
+            range: <span class="number">0</span>..<a class="self" href="#85">self</a>.<a href="#75">len</a>(),
+            reflog: <a class="self" href="#85">self</a>,
         }
     }
 
     <span class="doccomment">/// Write an existing in-memory reflog object back to disk using an atomic
     /// file lock.
-    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_reflog_write(<span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_reflog_write(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/reflog.rs.html#10">Reflog</a> {
+<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#10">Reflog</a> {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_reflog.html">raw::git_reflog</a>;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_reflog.html">raw::git_reflog</a>) -&gt; <a href="../../src/git2/reflog.rs.html#10">Reflog</a> {
-        <a href="../../src/git2/reflog.rs.html#10">Reflog</a> { <a href="../../src/git2/reflog.rs.html#105">raw</a> }
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_reflog.html">raw::git_reflog</a>) -&gt; <a href="#10">Reflog</a> {
+        <a href="#10">Reflog</a> { <a href="#105">raw</a> }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_reflog.html">raw::git_reflog</a> {
-        <a class="self" href="../../src/git2/reflog.rs.html#108">self</a>.raw
+        <a class="self" href="#108">self</a>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/reflog.rs.html#10">Reflog</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#10">Reflog</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_reflog_free(<a class="self" href="../../src/git2/reflog.rs.html#114">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_reflog_free(<a class="self" href="#114">self</a>.raw) }
     }
 }
 
@@ -314,58 +314,58 @@
     <span class="doccomment">/// Get the committer of this entry
     </span><span class="kw">pub fn </span>committer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_reflog_entry_committer(<a class="self" href="../../src/git2/reflog.rs.html#121">self</a>.raw);
-            <a href="../../src/git2/signature.rs.html#123">signature::from_raw_const</a>(<a class="self" href="../../src/git2/reflog.rs.html#121">self</a>, <a href="../../src/git2/reflog.rs.html#123">ptr</a>)
+            <span class="kw">let </span>ptr = raw::git_reflog_entry_committer(<a class="self" href="#121">self</a>.raw);
+            <a href="signature.rs.html#123">signature::from_raw_const</a>(<a class="self" href="#121">self</a>, <a href="#123">ptr</a>)
         }
     }
 
     <span class="doccomment">/// Get the new oid
-    </span><span class="kw">pub fn </span>id_new(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_reflog_entry_id_new(<a class="self" href="../../src/git2/reflog.rs.html#129">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>id_new(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_reflog_entry_id_new(<a class="self" href="#129">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the old oid
-    </span><span class="kw">pub fn </span>id_old(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_reflog_entry_id_old(<a class="self" href="../../src/git2/reflog.rs.html#134">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>id_old(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_reflog_entry_id_old(<a class="self" href="#134">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the log message, returning `None` on invalid UTF-8.
     </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../src/git2/reflog.rs.html#139">self</a>.<a href="../../src/git2/reflog.rs.html#144">message_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/reflog.rs.html#140">s</a>).ok())
+        <a class="self" href="#139">self</a>.<a href="#144">message_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#140">s</a>).ok())
     }
 
     <span class="doccomment">/// Get the log message as a byte array.
     </span><span class="kw">pub fn </span>message_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/reflog.rs.html#144">self</a>, raw::git_reflog_entry_message(<a class="self" href="../../src/git2/reflog.rs.html#144">self</a>.raw)) }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#144">self</a>, raw::git_reflog_entry_message(<a class="self" href="#144">self</a>.raw)) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;reflog</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;reflog</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_reflog_entry.html">raw::git_reflog_entry</a>;
 
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_reflog_entry.html">raw::git_reflog_entry</a>) -&gt; ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt; {
-        <a href="../../src/git2/reflog.rs.html#15">ReflogEntry</a> {
-            <a href="../../src/git2/reflog.rs.html#152">raw</a>,
+        <a href="#15">ReflogEntry</a> {
+            <a href="#152">raw</a>,
             _marker: marker::PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_reflog_entry.html">raw::git_reflog_entry</a> {
-        <a class="self" href="../../src/git2/reflog.rs.html#158">self</a>.raw
+        <a class="self" href="#158">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;reflog</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ReflogIter&lt;<span class="lifetime">&#39;reflog</span>&gt; {
     <span class="kw">type </span>Item = ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt;&gt; {
-        <a class="self" href="../../src/git2/reflog.rs.html#165">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="../../src/git2/reflog.rs.html#165">self</a>.reflog.<a href="../../src/git2/reflog.rs.html#67">get</a>(<a href="../../src/git2/reflog.rs.html#166">i</a>))
+        <a class="self" href="#165">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#165">self</a>.reflog.<a href="#67">get</a>(<a href="#166">i</a>))
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/reflog.rs.html#168">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#168">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;reflog</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>ReflogIter&lt;<span class="lifetime">&#39;reflog</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ReflogEntry&lt;<span class="lifetime">&#39;reflog</span>&gt;&gt; {
-        <a class="self" href="../../src/git2/reflog.rs.html#173">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="../../src/git2/reflog.rs.html#173">self</a>.reflog.<a href="../../src/git2/reflog.rs.html#67">get</a>(<a href="../../src/git2/reflog.rs.html#174">i</a>))
+        <a class="self" href="#173">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="#173">self</a>.reflog.<a href="#67">get</a>(<a href="#174">i</a>))
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;reflog</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>ReflogIter&lt;<span class="lifetime">&#39;reflog</span>&gt; {}
@@ -387,4 +387,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

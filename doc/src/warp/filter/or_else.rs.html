@@ -112,9 +112,9 @@
 <span class="kw">use </span>futures_util::{<a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
 <span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
 
-<span class="kw">use super</span>::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/generic.rs.html#51">Func</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>};
-<span class="kw">use </span><a href="../../../src/warp/reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
-<span class="kw">use </span><a href="../../../src/warp/lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+<span class="kw">use super</span>::{<a href="mod.rs.html#93">Filter</a>, <a href="mod.rs.html#39">FilterBase</a>, <a href="../generic.rs.html#51">Func</a>, <a href="mod.rs.html#70">Internal</a>};
+<span class="kw">use </span><a href="../reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
+<span class="kw">use </span><a href="../lib.rs.html#97"><span class="kw">crate</span>::route</a>;
 
 <span class="attribute">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>OrElse&lt;T, F&gt; {
@@ -122,43 +122,43 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) callback: F,
 }
 
-<span class="kw">impl</span>&lt;T, F&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>OrElse&lt;T, F&gt;
+<span class="kw">impl</span>&lt;T, F&gt; <a href="mod.rs.html#39">FilterBase</a> <span class="kw">for </span>OrElse&lt;T, F&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
     F: Func&lt;T::Error&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     F::Output: TryFuture&lt;<span class="prelude-val">Ok </span>= T::Extract&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    &lt;F::Output <span class="kw">as </span>TryFuture&gt;::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+    &lt;F::Output <span class="kw">as </span>TryFuture&gt;::Error: <a href="../reject.rs.html#613">IsReject</a>,
 {
     <span class="kw">type </span>Extract = &lt;F::Output <span class="kw">as </span>TryFuture&gt;::Ok;
     <span class="kw">type </span>Error = &lt;F::Output <span class="kw">as </span>TryFuture&gt;::Error;
     <span class="kw">type </span>Future = OrElseFuture&lt;T, F&gt;;
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
-        <span class="kw">let </span>idx = <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| <a href="../../../src/warp/filter/or_else.rs.html#30">route</a>.<a href="../../../src/warp/route.rs.html#112">matched_path_index</a>());
-        <a href="../../../src/warp/filter/or_else.rs.html#40">OrElseFuture</a> {
-            state: <a href="../../../src/warp/filter/or_else.rs.html#58">State::First</a>(<a class="self" href="../../../src/warp/filter/or_else.rs.html#29">self</a>.filter.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>), <a class="self" href="../../../src/warp/filter/or_else.rs.html#29">self</a>.callback.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            original_path_index: <a href="../../../src/warp/filter/or_else.rs.html#64">PathIndex</a>(<a href="../../../src/warp/filter/or_else.rs.html#30">idx</a>),
+    </span><span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <span class="kw">let </span>idx = <a href="../route.rs.html#23-25">route::with</a>(|route| <a href="#30">route</a>.<a href="../route.rs.html#112">matched_path_index</a>());
+        <a href="#40">OrElseFuture</a> {
+            state: <a href="#58">State::First</a>(<a class="self" href="#29">self</a>.filter.<a href="mod.rs.html#44">filter</a>(<a href="mod.rs.html#70">Internal</a>), <a class="self" href="#29">self</a>.callback.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            original_path_index: <a href="#64">PathIndex</a>(<a href="#30">idx</a>),
         }
     }
 }
 
 <span class="attribute">#[allow(missing_debug_implementations)]
 #[pin_project]
-</span><span class="kw">pub struct </span>OrElseFuture&lt;T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, F&gt;
+</span><span class="kw">pub struct </span>OrElseFuture&lt;T: <a href="mod.rs.html#93">Filter</a>, F&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
     F: Func&lt;T::Error&gt;,
     F::Output: TryFuture&lt;<span class="prelude-val">Ok </span>= T::Extract&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
     <span class="attribute">#[pin]
     </span>state: State&lt;T, F&gt;,
-    original_path_index: <a href="../../../src/warp/filter/or_else.rs.html#64">PathIndex</a>,
+    original_path_index: <a href="#64">PathIndex</a>,
 }
 
 <span class="attribute">#[pin_project(project = StateProj)]
 </span><span class="kw">enum </span>State&lt;T, F&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
     F: Func&lt;T::Error&gt;,
     F::Output: TryFuture&lt;<span class="prelude-val">Ok </span>= T::Extract&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
@@ -170,15 +170,15 @@
 <span class="attribute">#[derive(Copy, Clone)]
 </span><span class="kw">struct </span>PathIndex(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl </span><a href="../../../src/warp/filter/or_else.rs.html#64">PathIndex</a> {
+<span class="kw">impl </span><a href="#64">PathIndex</a> {
     <span class="kw">fn </span>reset_path(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| <a href="../../../src/warp/filter/or_else.rs.html#68">route</a>.<a href="../../../src/warp/route.rs.html#116">reset_matched_path_index</a>(<a class="self" href="../../../src/warp/filter/or_else.rs.html#67">self</a>.<span class="number">0</span>));
+        <a href="../route.rs.html#23-25">route::with</a>(|route| <a href="#68">route</a>.<a href="../route.rs.html#116">reset_matched_path_index</a>(<a class="self" href="#67">self</a>.<span class="number">0</span>));
     }
 }
 
 <span class="kw">impl</span>&lt;T, F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>OrElseFuture&lt;T, F&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
     F: Func&lt;T::Error&gt;,
     F::Output: TryFuture&lt;<span class="prelude-val">Ok </span>= T::Extract&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
@@ -186,31 +186,31 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>pin = <a class="self" href="../../../src/warp/filter/or_else.rs.html#80">self</a>.as_mut().<a href="../../../src/warp/filter/or_else.rs.html#40">project</a>();
-            <span class="kw">let </span>(err, second) = <span class="kw">match </span><a href="../../../src/warp/filter/or_else.rs.html#82">pin</a>.state.<a href="../../../src/warp/filter/or_else.rs.html#51">project</a>() {
-                <a href="../../../src/warp/filter/or_else.rs.html#51">StateProj::First</a>(first, second) =&gt; <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(first.try_poll(cx)) {
-                    <span class="prelude-val">Ok</span>(ex) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filter/or_else.rs.html#85">ex</a>)),
-                    <span class="prelude-val">Err</span>(err) =&gt; (<a href="../../../src/warp/filter/or_else.rs.html#86">err</a>, <a href="../../../src/warp/filter/or_else.rs.html#84">second</a>),
+            <span class="kw">let </span>pin = <a class="self" href="#80">self</a>.as_mut().<a href="#40">project</a>();
+            <span class="kw">let </span>(err, second) = <span class="kw">match </span><a href="#82">pin</a>.state.<a href="#51">project</a>() {
+                <a href="#51">StateProj::First</a>(first, second) =&gt; <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(first.try_poll(cx)) {
+                    <span class="prelude-val">Ok</span>(ex) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#85">ex</a>)),
+                    <span class="prelude-val">Err</span>(err) =&gt; (<a href="#86">err</a>, <a href="#84">second</a>),
                 },
-                <a href="../../../src/warp/filter/or_else.rs.html#51">StateProj::Second</a>(second) =&gt; {
+                <a href="#51">StateProj::Second</a>(second) =&gt; {
                     <span class="kw">let </span>ex2 = <a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(second.try_poll(cx));
-                    <a class="self" href="../../../src/warp/filter/or_else.rs.html#80">self</a>.set(<a href="../../../src/warp/filter/or_else.rs.html#40">OrElseFuture</a> {
-                        state: <a href="../../../src/warp/filter/or_else.rs.html#60">State::Done</a>,
-                        ..<span class="kw-2">*</span><span class="self"><a href="../../../src/warp/filter/or_else.rs.html#80">self</a>
+                    <a class="self" href="#80">self</a>.set(<a href="#40">OrElseFuture</a> {
+                        state: <a href="#60">State::Done</a>,
+                        ..<span class="kw-2">*</span><span class="self"><a href="#80">self</a>
                     </span>});
-                    <span class="kw">return </span>Poll::Ready(<a href="../../../src/warp/filter/or_else.rs.html#89">ex2</a>);
+                    <span class="kw">return </span>Poll::Ready(<a href="#89">ex2</a>);
                 }
-                <a href="../../../src/warp/filter/or_else.rs.html#60">StateProj::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled after complete&quot;</span>),
+                <a href="#60">StateProj::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled after complete&quot;</span>),
             };
 
-            <a href="../../../src/warp/filter/or_else.rs.html#82">pin</a>.original_path_index.<a href="../../../src/warp/filter/or_else.rs.html#67">reset_path</a>();
-            <span class="kw">let </span>fut2 = <a href="../../../src/warp/filter/or_else.rs.html#83">second</a>.<a href="../../../src/warp/generic.rs.html#54">call</a>(<a href="../../../src/warp/filter/or_else.rs.html#83">err</a>);
-            <a class="self" href="../../../src/warp/filter/or_else.rs.html#80">self</a>.set(<a href="../../../src/warp/filter/or_else.rs.html#40">OrElseFuture</a> {
-                state: <a href="../../../src/warp/filter/or_else.rs.html#59">State::Second</a>(<a href="../../../src/warp/filter/or_else.rs.html#100">fut2</a>),
-                ..<span class="kw-2">*</span><span class="self"><a href="../../../src/warp/filter/or_else.rs.html#80">self</a>
+            <a href="#82">pin</a>.original_path_index.<a href="#67">reset_path</a>();
+            <span class="kw">let </span>fut2 = <a href="#83">second</a>.<a href="../generic.rs.html#54">call</a>(<a href="#83">err</a>);
+            <a class="self" href="#80">self</a>.set(<a href="#40">OrElseFuture</a> {
+                state: <a href="#59">State::Second</a>(<a href="#100">fut2</a>),
+                ..<span class="kw-2">*</span><span class="self"><a href="#80">self</a>
             </span>});
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

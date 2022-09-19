@@ -313,7 +313,7 @@
 #[cfg(all(not(feature = <span class="string">&quot;std&quot;</span>), feature = <span class="string">&quot;compact&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::libm::{powd, powf};
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-</span><span class="kw">use </span><span class="kw">crate</span>::table::{<a href="../../src/minimal_lexical/table_small.rs.html#63">SMALL_F32_POW10</a>, <a href="../../src/minimal_lexical/table_small.rs.html#67">SMALL_F64_POW10</a>, <a href="../../src/minimal_lexical/table_small.rs.html#39">SMALL_INT_POW10</a>, <a href="../../src/minimal_lexical/table_small.rs.html#7">SMALL_INT_POW5</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::table::{<a href="table_small.rs.html#63">SMALL_F32_POW10</a>, <a href="table_small.rs.html#67">SMALL_F64_POW10</a>, <a href="table_small.rs.html#39">SMALL_INT_POW10</a>, <a href="table_small.rs.html#7">SMALL_INT_POW5</a>};
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hint/index.html">core::hint</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">core::ops</a>;
@@ -468,9 +468,9 @@
     </span><span class="kw">unsafe fn </span>int_pow_fast_path(exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="comment">// SAFETY: safe as long as the exponent is smaller than the radix table.
         </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-        </span><span class="kw">return match </span><a href="../../src/minimal_lexical/num.rs.html#160">radix</a> {
-            <span class="number">5 </span>=&gt; <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="../../src/minimal_lexical/table_small.rs.html#7">SMALL_INT_POW5</a>.get_unchecked(<a href="../../src/minimal_lexical/num.rs.html#160">exponent</a>) },
-            <span class="number">10 </span>=&gt; <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="../../src/minimal_lexical/table_small.rs.html#39">SMALL_INT_POW10</a>.get_unchecked(<a href="../../src/minimal_lexical/num.rs.html#160">exponent</a>) },
+        </span><span class="kw">return match </span><a href="#160">radix</a> {
+            <span class="number">5 </span>=&gt; <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="table_small.rs.html#7">SMALL_INT_POW5</a>.get_unchecked(<a href="#160">exponent</a>) },
+            <span class="number">10 </span>=&gt; <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="table_small.rs.html#39">SMALL_INT_POW10</a>.get_unchecked(<a href="#160">exponent</a>) },
             <span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ hint::unreachable_unchecked() },
         };
 
@@ -481,7 +481,7 @@
     <span class="doccomment">/// Returns true if the float is a denormal.
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_denormal(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/minimal_lexical/num.rs.html#175">self</a>.<a href="../../src/minimal_lexical/num.rs.html#145">to_bits</a>() &amp; <span class="self">Self</span>::EXPONENT_MASK == <span class="number">0
+        <a class="self" href="#175">self</a>.<a href="#145">to_bits</a>() &amp; <span class="self">Self</span>::EXPONENT_MASK == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Get exponent component from the float.
@@ -491,25 +491,25 @@
             <span class="kw">return </span><span class="self">Self</span>::DENORMAL_EXPONENT;
         }
 
-        <span class="kw">let </span>bits = <a class="self" href="../../src/minimal_lexical/num.rs.html#181">self</a>.<a href="../../src/minimal_lexical/num.rs.html#145">to_bits</a>();
-        <span class="kw">let </span>biased_e: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = ((<a href="../../src/minimal_lexical/num.rs.html#186">bits</a> &amp; <span class="self">Self</span>::EXPONENT_MASK) &gt;&gt; <span class="self">Self</span>::MANTISSA_SIZE) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-        <a href="../../src/minimal_lexical/num.rs.html#187">biased_e</a> - <span class="self">Self</span>::EXPONENT_BIAS
+        <span class="kw">let </span>bits = <a class="self" href="#181">self</a>.<a href="#145">to_bits</a>();
+        <span class="kw">let </span>biased_e: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = ((<a href="#186">bits</a> &amp; <span class="self">Self</span>::EXPONENT_MASK) &gt;&gt; <span class="self">Self</span>::MANTISSA_SIZE) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        <a href="#187">biased_e</a> - <span class="self">Self</span>::EXPONENT_BIAS
     }
 
     <span class="doccomment">/// Get mantissa (significand) component from float.
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>mantissa(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let </span>bits = <a class="self" href="../../src/minimal_lexical/num.rs.html#193">self</a>.<a href="../../src/minimal_lexical/num.rs.html#145">to_bits</a>();
-        <span class="kw">let </span>s = <a href="../../src/minimal_lexical/num.rs.html#194">bits</a> &amp; <span class="self">Self</span>::MANTISSA_MASK;
+        <span class="kw">let </span>bits = <a class="self" href="#193">self</a>.<a href="#145">to_bits</a>();
+        <span class="kw">let </span>s = <a href="#194">bits</a> &amp; <span class="self">Self</span>::MANTISSA_MASK;
         <span class="kw">if </span>!<span class="self">self</span>.is_denormal() {
-            <a href="../../src/minimal_lexical/num.rs.html#195">s</a> + <span class="self">Self</span>::HIDDEN_BIT_MASK
+            <a href="#195">s</a> + <span class="self">Self</span>::HIDDEN_BIT_MASK
         } <span class="kw">else </span>{
-            <a href="../../src/minimal_lexical/num.rs.html#195">s</a>
+            <a href="#195">s</a>
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
+<span class="kw">impl </span><a href="#18-35">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
     <span class="kw">const </span>MAX_DIGITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">114</span>;
     <span class="kw">const </span>SIGN_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x80000000</span>;
     <span class="kw">const </span>EXPONENT_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x7F800000</span>;
@@ -533,7 +533,7 @@
     </span><span class="kw">unsafe fn </span>pow_fast_path(exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// SAFETY: safe as long as the exponent is smaller than the radix table.
         </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-        </span><span class="kw">return unsafe </span>{ <span class="kw-2">*</span><a href="../../src/minimal_lexical/table_small.rs.html#63">SMALL_F32_POW10</a>.get_unchecked(<a href="../../src/minimal_lexical/num.rs.html#225">exponent</a>) };
+        </span><span class="kw">return unsafe </span>{ <span class="kw-2">*</span><a href="table_small.rs.html#63">SMALL_F32_POW10</a>.get_unchecked(<a href="#225">exponent</a>) };
 
         <span class="attribute">#[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
         </span><span class="kw">return </span>powf(<span class="number">10.0f32</span>, exponent <span class="kw">as </span>f32);
@@ -541,23 +541,23 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_u64(u: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
-        <a href="../../src/minimal_lexical/num.rs.html#235">u</a> <span class="kw">as _
+        <a href="#235">u</a> <span class="kw">as _
     </span>}
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_bits(u: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
         <span class="comment">// Constant is `u32::MAX` for older Rustc versions.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(u &lt;= <span class="number">0xffff_ffff</span>);
-        f32::from_bits(<a href="../../src/minimal_lexical/num.rs.html#240">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+        f32::from_bits(<a href="#240">u</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>to_bits(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        f32::to_bits(<a class="self" href="../../src/minimal_lexical/num.rs.html#247">self</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+        f32::to_bits(<a class="self" href="#247">self</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
     }
 }
 
-<span class="kw">impl </span><a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
+<span class="kw">impl </span><a href="#18-35">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
     <span class="kw">const </span>MAX_DIGITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">769</span>;
     <span class="kw">const </span>SIGN_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x8000000000000000</span>;
     <span class="kw">const </span>EXPONENT_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x7FF0000000000000</span>;
@@ -581,7 +581,7 @@
     </span><span class="kw">unsafe fn </span>pow_fast_path(exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// SAFETY: safe as long as the exponent is smaller than the radix table.
         </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-        </span><span class="kw">return unsafe </span>{ <span class="kw-2">*</span><a href="../../src/minimal_lexical/table_small.rs.html#67">SMALL_F64_POW10</a>.get_unchecked(<a href="../../src/minimal_lexical/num.rs.html#273">exponent</a>) };
+        </span><span class="kw">return unsafe </span>{ <span class="kw-2">*</span><a href="table_small.rs.html#67">SMALL_F64_POW10</a>.get_unchecked(<a href="#273">exponent</a>) };
 
         <span class="attribute">#[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
         </span><span class="kw">return </span>powd(<span class="number">10.0f64</span>, exponent <span class="kw">as </span>f64);
@@ -589,17 +589,17 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_u64(u: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        <a href="../../src/minimal_lexical/num.rs.html#283">u</a> <span class="kw">as _
+        <a href="#283">u</a> <span class="kw">as _
     </span>}
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_bits(u: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        f64::from_bits(<a href="../../src/minimal_lexical/num.rs.html#288">u</a>)
+        f64::from_bits(<a href="#288">u</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>to_bits(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        f64::to_bits(<a class="self" href="../../src/minimal_lexical/num.rs.html#293">self</a>)
+        f64::to_bits(<a class="self" href="#293">self</a>)
     }
 }
 
@@ -615,4 +615,4 @@
     x.powf(y)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

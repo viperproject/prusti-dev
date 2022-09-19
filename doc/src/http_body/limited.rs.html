@@ -297,7 +297,7 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/http_body/lib.rs.html#46">Body</a>, <a href="../../src/http_body/size_hint.rs.html#10">SizeHint</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#46">Body</a>, <a href="size_hint.rs.html#10">SizeHint</a>};
 <span class="kw">use </span><a href="../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
 <span class="kw">use </span><a href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>;
 <span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
@@ -323,15 +323,15 @@
     <span class="doccomment">/// Create a new `Limited`.
     </span><span class="kw">pub fn </span>new(inner: B, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            remaining: <a href="../../src/http_body/limited.rs.html#25">limit</a>,
-            <a href="../../src/http_body/limited.rs.html#25">inner</a>,
+            remaining: <a href="#25">limit</a>,
+            <a href="#25">inner</a>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;B&gt; <a href="../../src/http_body/lib.rs.html#46">Body</a> <span class="kw">for </span>Limited&lt;B&gt;
+<span class="kw">impl</span>&lt;B&gt; <a href="lib.rs.html#46">Body</a> <span class="kw">for </span>Limited&lt;B&gt;
 <span class="kw">where
-    </span>B: <a href="../../src/http_body/lib.rs.html#46">Body</a>,
+    </span>B: <a href="lib.rs.html#46">Body</a>,
     B::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 {
     <span class="kw">type </span>Data = B::Data;
@@ -341,58 +341,58 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/http_body/limited.rs.html#42">self</a>.<a href="../../src/http_body/limited.rs.html#10-21">project</a>();
-        <span class="kw">let </span>res = <span class="kw">match </span><a href="../../src/http_body/limited.rs.html#45">this</a>.inner.<a href="../../src/http_body/lib.rs.html#54-57">poll_data</a>(<a href="../../src/http_body/limited.rs.html#43">cx</a>) {
+        <span class="kw">let </span>this = <a class="self" href="#42">self</a>.<a href="#10-21">project</a>();
+        <span class="kw">let </span>res = <span class="kw">match </span><a href="#45">this</a>.inner.<a href="lib.rs.html#54-57">poll_data</a>(<a href="#43">cx</a>) {
             Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
             Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(data))) =&gt; {
                 <span class="kw">if </span>data.remaining() &gt; <span class="kw-2">*</span>this.remaining {
-                    <span class="kw-2">*</span><a href="../../src/http_body/limited.rs.html#45">this</a>.remaining = <span class="number">0</span>;
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../src/http_body/limited.rs.html#104">LengthLimitError</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                    <span class="kw-2">*</span><a href="#45">this</a>.remaining = <span class="number">0</span>;
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#104">LengthLimitError</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
                 } <span class="kw">else </span>{
-                    <span class="kw-2">*</span><a href="../../src/http_body/limited.rs.html#45">this</a>.remaining -= <a href="../../src/http_body/limited.rs.html#49">data</a>.<a href="../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>();
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../src/http_body/limited.rs.html#49">data</a>))
+                    <span class="kw-2">*</span><a href="#45">this</a>.remaining -= <a href="#49">data</a>.<a href="../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>();
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#49">data</a>))
                 }
             }
-            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../src/http_body/limited.rs.html#58">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#58">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
         };
 
-        Poll::Ready(<a href="../../src/http_body/limited.rs.html#46">res</a>)
+        Poll::Ready(<a href="#46">res</a>)
     }
 
     <span class="kw">fn </span>poll_trailers(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/http_body/limited.rs.html#65">self</a>.<a href="../../src/http_body/limited.rs.html#10-21">project</a>();
-        <span class="kw">let </span>res = <span class="kw">match </span><a href="../../src/http_body/limited.rs.html#68">this</a>.inner.<a href="../../src/http_body/lib.rs.html#62-65">poll_trailers</a>(<a href="../../src/http_body/limited.rs.html#66">cx</a>) {
+        <span class="kw">let </span>this = <a class="self" href="#65">self</a>.<a href="#10-21">project</a>();
+        <span class="kw">let </span>res = <span class="kw">match </span><a href="#68">this</a>.inner.<a href="lib.rs.html#62-65">poll_trailers</a>(<a href="#66">cx</a>) {
             Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
-            Poll::Ready(<span class="prelude-val">Ok</span>(data)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/http_body/limited.rs.html#71">data</a>),
-            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/http_body/limited.rs.html#72">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            Poll::Ready(<span class="prelude-val">Ok</span>(data)) =&gt; <span class="prelude-val">Ok</span>(<a href="#71">data</a>),
+            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#72">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         };
 
-        Poll::Ready(<a href="../../src/http_body/limited.rs.html#69">res</a>)
+        Poll::Ready(<a href="#69">res</a>)
     }
 
     <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/http_body/limited.rs.html#78">self</a>.inner.<a href="../../src/http_body/lib.rs.html#74">is_end_stream</a>()
+        <a class="self" href="#78">self</a>.inner.<a href="lib.rs.html#74">is_end_stream</a>()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/http_body/size_hint.rs.html#10">SizeHint</a> {
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="size_hint.rs.html#10">SizeHint</a> {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-        <span class="kw">match </span>u64::try_from(<a class="self" href="../../src/http_body/limited.rs.html#82">self</a>.remaining) {
+        <span class="kw">match </span>u64::try_from(<a class="self" href="#82">self</a>.remaining) {
             <span class="prelude-val">Ok</span>(n) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>hint = <a class="self" href="../../src/http_body/limited.rs.html#82">self</a>.inner.<a href="../../src/http_body/lib.rs.html#82">size_hint</a>();
+                <span class="kw">let </span><span class="kw-2">mut </span>hint = <a class="self" href="#82">self</a>.inner.<a href="lib.rs.html#82">size_hint</a>();
                 <span class="kw">if </span>hint.lower() &gt;= n {
-                    <a href="../../src/http_body/limited.rs.html#86">hint</a>.<a href="../../src/http_body/size_hint.rs.html#82">set_exact</a>(<a href="../../src/http_body/limited.rs.html#85">n</a>)
-                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(max) = <a href="../../src/http_body/limited.rs.html#86">hint</a>.<a href="../../src/http_body/size_hint.rs.html#53">upper</a>() {
-                    <a href="../../src/http_body/limited.rs.html#86">hint</a>.<a href="../../src/http_body/size_hint.rs.html#63">set_upper</a>(<a href="../../src/http_body/limited.rs.html#85">n</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../src/http_body/limited.rs.html#89">max</a>))
+                    <a href="#86">hint</a>.<a href="size_hint.rs.html#82">set_exact</a>(<a href="#85">n</a>)
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(max) = <a href="#86">hint</a>.<a href="size_hint.rs.html#53">upper</a>() {
+                    <a href="#86">hint</a>.<a href="size_hint.rs.html#63">set_upper</a>(<a href="#85">n</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#89">max</a>))
                 } <span class="kw">else </span>{
-                    <a href="../../src/http_body/limited.rs.html#86">hint</a>.<a href="../../src/http_body/size_hint.rs.html#63">set_upper</a>(<a href="../../src/http_body/limited.rs.html#85">n</a>)
+                    <a href="#86">hint</a>.<a href="size_hint.rs.html#63">set_upper</a>(<a href="#85">n</a>)
                 }
-                <a href="../../src/http_body/limited.rs.html#86">hint</a>
+                <a href="#86">hint</a>
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="../../src/http_body/limited.rs.html#82">self</a>.inner.<a href="../../src/http_body/lib.rs.html#82">size_hint</a>(),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="#82">self</a>.inner.<a href="lib.rs.html#82">size_hint</a>(),
         }
     }
 }
@@ -402,13 +402,13 @@
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>LengthLimitError;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/http_body/limited.rs.html#104">LengthLimitError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#104">LengthLimitError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/http_body/limited.rs.html#107">f</a>.write_str(<span class="string">&quot;length limit exceeded&quot;</span>)
+        <a href="#107">f</a>.write_str(<span class="string">&quot;length limit exceeded&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="../../src/http_body/limited.rs.html#104">LengthLimitError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#104">LengthLimitError</a> {}
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -597,4 +597,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

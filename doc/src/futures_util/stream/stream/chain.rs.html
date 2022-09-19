@@ -98,7 +98,7 @@
     St2: Stream&lt;Item = St1::Item&gt;,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream1: St1, stream2: St2) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ first: <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#25">stream1</a>), second: <a href="../../../../src/futures_util/stream/stream/chain.rs.html#25">stream2</a> }
+        <span class="self">Self </span>{ first: <span class="prelude-val">Some</span>(<a href="#25">stream1</a>), second: <a href="#25">stream2</a> }
     }
 }
 
@@ -108,7 +108,7 @@
     St2: FusedStream&lt;Item = St1::Item&gt;,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#35">self</a>.first.is_none() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#35">self</a>.second.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+        <a class="self" href="#35">self</a>.first.is_none() &amp;&amp; <a class="self" href="#35">self</a>.second.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
@@ -120,33 +120,33 @@
     <span class="kw">type </span>Item = St1::Item;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#47">self</a>.<a href="../../../../src/futures_util/stream/stream/chain.rs.html#7-17">project</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <a href="../../../../src/futures_util/stream/stream/chain.rs.html#48">this</a>.first.as_mut().as_pin_mut() {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#47">self</a>.<a href="#7-17">project</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <a href="#48">this</a>.first.as_mut().as_pin_mut() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(first.poll_next(cx)) {
-                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#50">item</a>));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="#50">item</a>));
             }
         }
-        <a href="../../../../src/futures_util/stream/stream/chain.rs.html#48">this</a>.first.set(<span class="prelude-val">None</span>);
-        <a href="../../../../src/futures_util/stream/stream/chain.rs.html#48">this</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#47">cx</a>)
+        <a href="#48">this</a>.first.set(<span class="prelude-val">None</span>);
+        <a href="#48">this</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="#47">cx</a>)
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#58">self</a>.first {
-            <span class="kw">let </span>(first_lower, first_upper) = <a href="../../../../src/futures_util/stream/stream/chain.rs.html#59">first</a>.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-            <span class="kw">let </span>(second_lower, second_upper) = <a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#58">self</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <span class="kw-2">&amp;</span><a class="self" href="#58">self</a>.first {
+            <span class="kw">let </span>(first_lower, first_upper) = <a href="#59">first</a>.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+            <span class="kw">let </span>(second_lower, second_upper) = <a class="self" href="#58">self</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
 
-            <span class="kw">let </span>lower = <a href="../../../../src/futures_util/stream/stream/chain.rs.html#60">first_lower</a>.saturating_add(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#61">second_lower</a>);
+            <span class="kw">let </span>lower = <a href="#60">first_lower</a>.saturating_add(<a href="#61">second_lower</a>);
 
-            <span class="kw">let </span>upper = <span class="kw">match </span>(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#60">first_upper</a>, <a href="../../../../src/futures_util/stream/stream/chain.rs.html#61">second_upper</a>) {
-                (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; <a href="../../../../src/futures_util/stream/stream/chain.rs.html#66">x</a>.checked_add(<a href="../../../../src/futures_util/stream/stream/chain.rs.html#66">y</a>),
+            <span class="kw">let </span>upper = <span class="kw">match </span>(<a href="#60">first_upper</a>, <a href="#61">second_upper</a>) {
+                (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; <a href="#66">x</a>.checked_add(<a href="#66">y</a>),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             };
 
-            (<a href="../../../../src/futures_util/stream/stream/chain.rs.html#63">lower</a>, <a href="../../../../src/futures_util/stream/stream/chain.rs.html#65">upper</a>)
+            (<a href="#63">lower</a>, <a href="#65">upper</a>)
         } <span class="kw">else </span>{
-            <a class="self" href="../../../../src/futures_util/stream/stream/chain.rs.html#58">self</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
+            <a class="self" href="#58">self</a>.second.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

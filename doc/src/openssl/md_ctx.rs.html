@@ -481,11 +481,11 @@
 //! let valid = memcmp::eq(&amp;hmac, &amp;target);
 //! assert!(valid);
 //! ```
-</span><span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="../../src/openssl/md.rs.html#200"><span class="kw">crate</span>::md::MdRef</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use </span><a href="../../src/openssl/pkey_ctx.rs.html#85-93"><span class="kw">crate</span>::pkey_ctx::PkeyCtxRef</a>;
-<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+</span><span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="md.rs.html#200"><span class="kw">crate</span>::md::MdRef</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#126">HasPrivate</a>, <a href="pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="pkey_ctx.rs.html#85-93"><span class="kw">crate</span>::pkey_ctx::PkeyCtxRef</a>;
+<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#203">cvt_n</a>, <a href="lib.rs.html#185">cvt_p</a>};
 <span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
@@ -500,7 +500,7 @@
     }
 }
 
-<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
     <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>;
     <span class="kw">fn </span>drop = EVP_MD_CTX_free;
 
@@ -509,25 +509,25 @@
     </span><span class="kw">pub struct </span>MdCtxRef;
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/md_ctx.rs.html#97-104">MdCtx</a> {
+<span class="kw">impl </span><a href="#97-104">MdCtx</a> {
     <span class="doccomment">/// Creates a new context.
     </span><span class="attribute">#[corresponds(EVP_MD_CTX_new)]
     #[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(EVP_MD_CTX_new())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(MdCtx::from_ptr(<a href="../../src/openssl/md_ctx.rs.html#114">ptr</a>))
+            <span class="prelude-val">Ok</span>(MdCtx::from_ptr(<a href="#114">ptr</a>))
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/md_ctx.rs.html#97-104">MdCtxRef</a> {
+<span class="kw">impl </span><a href="#97-104">MdCtxRef</a> {
     <span class="doccomment">/// Initializes the context to compute the digest of data.
     </span><span class="attribute">#[corresponds(EVP_DigestInit_ex)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, digest: <span class="kw-2">&amp;</span><a href="../../src/openssl/md.rs.html#200">MdRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, digest: <span class="kw-2">&amp;</span><a href="md.rs.html#200">MdRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestInit_ex(
                 <span class="self">self</span>.as_ptr(),
@@ -546,11 +546,11 @@
     #[inline]
     </span><span class="kw">pub fn </span>digest_sign_init&lt;<span class="lifetime">&#39;a</span>, T&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
-        digest: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/md.rs.html#200">MdRef</a>&gt;,
+        digest: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="md.rs.html#200">MdRef</a>&gt;,
         pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PkeyCtxRef&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PkeyCtxRef&lt;T&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+        </span>T: <a href="pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>p = ptr::null_mut();
@@ -561,7 +561,7 @@
                 ptr::null_mut(),
                 pkey.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(PkeyCtxRef::from_ptr_mut(<a href="../../src/openssl/md_ctx.rs.html#150">p</a>))
+            <span class="prelude-val">Ok</span>(PkeyCtxRef::from_ptr_mut(<a href="#150">p</a>))
         }
     }
 
@@ -572,11 +572,11 @@
     #[inline]
     </span><span class="kw">pub fn </span>digest_verify_init&lt;<span class="lifetime">&#39;a</span>, T&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
-        digest: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/md.rs.html#200">MdRef</a>&gt;,
+        digest: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="md.rs.html#200">MdRef</a>&gt;,
         pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PkeyCtxRef&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PkeyCtxRef&lt;T&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+        </span>T: <a href="pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>p = ptr::null_mut();
@@ -587,14 +587,14 @@
                 ptr::null_mut(),
                 pkey.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(PkeyCtxRef::from_ptr_mut(<a href="../../src/openssl/md_ctx.rs.html#176">p</a>))
+            <span class="prelude-val">Ok</span>(PkeyCtxRef::from_ptr_mut(<a href="#176">p</a>))
         }
     }
 
     <span class="doccomment">/// Updates the context with more data.
     </span><span class="attribute">#[corresponds(EVP_DigestUpdate)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestUpdate(
                 <span class="self">self</span>.as_ptr(),
@@ -609,7 +609,7 @@
     <span class="doccomment">/// Updates the context with more data.
     </span><span class="attribute">#[corresponds(EVP_DigestSignUpdate)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_sign_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_sign_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestSignUpdate(
                 <span class="self">self</span>.as_ptr(),
@@ -624,7 +624,7 @@
     <span class="doccomment">/// Updates the context with more data.
     </span><span class="attribute">#[corresponds(EVP_DigestVerifyUpdate)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_verify_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_verify_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestVerifyUpdate(
                 <span class="self">self</span>.as_ptr(),
@@ -639,8 +639,8 @@
     <span class="doccomment">/// Copies the computed digest into the buffer, returning the number of bytes written.
     </span><span class="attribute">#[corresponds(EVP_DigestFinal)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>len = u32::try_from(<a href="../../src/openssl/md_ctx.rs.html#236">out</a>.len()).unwrap_or(u32::MAX);
+    </span><span class="kw">pub fn </span>digest_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = u32::try_from(<a href="#236">out</a>.len()).unwrap_or(u32::MAX);
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestFinal(
@@ -650,7 +650,7 @@
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#237">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="prelude-val">Ok</span>(<a href="#237">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
     <span class="doccomment">/// Copies the computed digest into the buffer.
@@ -659,7 +659,7 @@
     </span><span class="attribute">#[corresponds(EVP_DigestFinalXOF)]
     #[inline]
     #[cfg(ossl111)]
-    </span><span class="kw">pub fn </span>digest_final_xof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_final_xof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestFinalXOF(
                 <span class="self">self</span>.as_ptr(),
@@ -677,8 +677,8 @@
     /// returned.
     </span><span class="attribute">#[corresponds(EVP_DigestSignFinal)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_sign_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="../../src/openssl/md_ctx.rs.html#274">out</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="../../src/openssl/md_ctx.rs.html#275">b</a>.len());
+    </span><span class="kw">pub fn </span>digest_sign_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#274">out</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#275">b</a>.len());
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestSignFinal(
@@ -688,17 +688,17 @@
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#275">len</a>)
+        <span class="prelude-val">Ok</span>(<a href="#275">len</a>)
     }
 
     <span class="doccomment">/// Like [`Self::digest_sign_final`] but appends the signature to a [`Vec`].
-    </span><span class="kw">pub fn </span>digest_sign_final_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="../../src/openssl/md_ctx.rs.html#289">out</a>.len();
+    </span><span class="kw">pub fn </span>digest_sign_final_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>base = <a href="#289">out</a>.len();
         <span class="kw">let </span>len = <span class="self">self</span>.digest_sign_final(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="../../src/openssl/md_ctx.rs.html#289">out</a>.resize(<a href="../../src/openssl/md_ctx.rs.html#290">base</a> + <a href="../../src/openssl/md_ctx.rs.html#291">len</a>, <span class="number">0</span>);
+        <a href="#289">out</a>.resize(<a href="#290">base</a> + <a href="#291">len</a>, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.digest_sign_final(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>out[base..]))<span class="question-mark">?</span>;
-        <a href="../../src/openssl/md_ctx.rs.html#289">out</a>.truncate(<a href="../../src/openssl/md_ctx.rs.html#290">base</a> + <a href="../../src/openssl/md_ctx.rs.html#293">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#293">len</a>)
+        <a href="#289">out</a>.truncate(<a href="#290">base</a> + <a href="#293">len</a>);
+        <span class="prelude-val">Ok</span>(<a href="#293">len</a>)
     }
 
     <span class="doccomment">/// Verifies the provided signature.
@@ -707,14 +707,14 @@
     /// occurred.
     </span><span class="attribute">#[corresponds(EVP_DigestVerifyFinal)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_verify_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_verify_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>r = cvt_n(ffi::EVP_DigestVerifyFinal(
                 <span class="self">self</span>.as_ptr(),
                 signature.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
                 signature.len(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#306">r</a> == <span class="number">1</span>)
+            <span class="prelude-val">Ok</span>(<a href="#306">r</a> == <span class="number">1</span>)
         }
     }
 
@@ -727,8 +727,8 @@
     </span><span class="attribute">#[corresponds(EVP_DigestSign)]
     #[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="../../src/openssl/md_ctx.rs.html#324">to</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="../../src/openssl/md_ctx.rs.html#325">b</a>.len());
+    </span><span class="kw">pub fn </span>digest_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#324">to</a>.as_ref().map_or(<span class="number">0</span>, |b| <a href="#325">b</a>.len());
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_DigestSign(
@@ -740,7 +740,7 @@
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#325">len</a>)
+        <span class="prelude-val">Ok</span>(<a href="#325">len</a>)
     }
 
     <span class="doccomment">/// Like [`Self::digest_sign`] but appends the signature to a [`Vec`].
@@ -749,13 +749,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         to: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="../../src/openssl/md_ctx.rs.html#345">to</a>.len();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>base = <a href="#345">to</a>.len();
         <span class="kw">let </span>len = <span class="self">self</span>.digest_sign(from, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a href="../../src/openssl/md_ctx.rs.html#345">to</a>.resize(<a href="../../src/openssl/md_ctx.rs.html#347">base</a> + <a href="../../src/openssl/md_ctx.rs.html#348">len</a>, <span class="number">0</span>);
+        <a href="#345">to</a>.resize(<a href="#347">base</a> + <a href="#348">len</a>, <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.digest_sign(from, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>to[base..]))<span class="question-mark">?</span>;
-        <a href="../../src/openssl/md_ctx.rs.html#345">to</a>.truncate(<a href="../../src/openssl/md_ctx.rs.html#347">base</a> + <a href="../../src/openssl/md_ctx.rs.html#350">len</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#350">len</a>)
+        <a href="#345">to</a>.truncate(<a href="#347">base</a> + <a href="#350">len</a>);
+        <span class="prelude-val">Ok</span>(<a href="#350">len</a>)
     }
 
     <span class="doccomment">/// Verifies the signature of the data in `data`.
@@ -767,7 +767,7 @@
     </span><span class="attribute">#[corresponds(EVP_DigestVerify)]
     #[cfg(ossl111)]
     #[inline]
-    </span><span class="kw">pub fn </span>digest_verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>digest_verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>r = cvt(ffi::EVP_DigestVerify(
                 <span class="self">self</span>.as_ptr(),
@@ -776,7 +776,7 @@
                 data.as_ptr(),
                 data.len(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/md_ctx.rs.html#366">r</a> == <span class="number">1</span>)
+            <span class="prelude-val">Ok</span>(<a href="#366">r</a> == <span class="number">1</span>)
         }
     }
 }
@@ -811,4 +811,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

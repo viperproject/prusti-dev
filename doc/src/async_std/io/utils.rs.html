@@ -42,16 +42,16 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a>;
 
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">as </span>StdError, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
 <span class="doccomment">/// Wrap `std::io::Error` with additional message
 ///
 /// Keeps the original error kind and stores the original I/O error as `source`.
-</span><span class="kw">impl</span>&lt;T&gt; <a href="../../../src/async_std/utils.rs.html#58">Context</a> <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, <a href="../../../async_std/io/struct.Error.html">std::io::Error</a>&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; <a href="../utils.rs.html#58">Context</a> <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, <a href="../../../async_std/io/struct.Error.html">std::io::Error</a>&gt; {
     <span class="kw">fn </span>context(<span class="self">self</span>, message: <span class="kw">impl </span>Fn() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../../src/async_std/io/utils.rs.html#9">self</a>.map_err(|e| VerboseError::wrap(<a href="../../../src/async_std/io/utils.rs.html#10">e</a>, <a href="../../../src/async_std/io/utils.rs.html#9">message</a>()))
+        <a class="self" href="#9">self</a>.map_err(|e| VerboseError::wrap(<a href="#10">e</a>, <a href="#9">message</a>()))
     }
 }
 
@@ -61,28 +61,28 @@
     message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/io/utils.rs.html#15">VerboseError</a> {
+<span class="kw">impl </span><a href="#15">VerboseError</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrap(source: <a href="../../../async_std/io/struct.Error.html">io::Error</a>, message: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <a href="../../../async_std/io/struct.Error.html">io::Error</a> {
         io::Error::new(
-            <a href="../../../src/async_std/io/utils.rs.html#21">source</a>.kind(),
-            <a href="../../../src/async_std/io/utils.rs.html#15">VerboseError</a> {
-                <a href="../../../src/async_std/io/utils.rs.html#21">source</a>,
-                message: <a href="../../../src/async_std/io/utils.rs.html#21">message</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="#21">source</a>.kind(),
+            <a href="#15">VerboseError</a> {
+                <a href="#21">source</a>,
+                message: <a href="#21">message</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             },
         )
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/async_std/io/utils.rs.html#15">VerboseError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#15">VerboseError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="../../../async_std/macro.write.html">write!</a>(<a href="../../../src/async_std/io/utils.rs.html#33">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.message)
+        <a class="macro" href="../../../async_std/macro.write.html">write!</a>(<a href="#33">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.message)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/async_std/io/utils.rs.html#15">VerboseError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#15">VerboseError</a> {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/io/utils.rs.html#39">self</a>.source)
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#39">self</a>.source)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

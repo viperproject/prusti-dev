@@ -153,26 +153,26 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
 
-<span class="kw">use </span><a href="../../../../src/config/map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
-<span class="kw">use crate</span>::{<a href="../../../../src/config/file/mod.rs.html#36">file::FileStoredFormat</a>, <a href="../../../../src/config/value.rs.html#179">value::Value</a>, <a href="../../../../src/config/format.rs.html#14">Format</a>};
+<span class="kw">use </span><a href="../../map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
+<span class="kw">use crate</span>::{<a href="../mod.rs.html#36">file::FileStoredFormat</a>, <a href="../../value.rs.html#179">value::Value</a>, <a href="../../format.rs.html#14">Format</a>};
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;toml&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/toml.rs.html#1-49">toml</a>;
+</span><span class="kw">mod </span><a href="toml.rs.html#1-49">toml</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/json.rs.html#1-58">json</a>;
+</span><span class="kw">mod </span><a href="json.rs.html#1-58">json</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/yaml.rs.html#1-108">yaml</a>;
+</span><span class="kw">mod </span><a href="yaml.rs.html#1-108">yaml</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;ini&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/ini.rs.html#1-37">ini</a>;
+</span><span class="kw">mod </span><a href="ini.rs.html#1-37">ini</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;ron&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/ron.rs.html#1-66">ron</a>;
+</span><span class="kw">mod </span><a href="ron.rs.html#1-66">ron</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;json5&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../../src/config/file/format/json5.rs.html#1-66">json5</a>;
+</span><span class="kw">mod </span><a href="json5.rs.html#1-66">json5</a>;
 
 <span class="doccomment">/// File formats provided by the library.
 ///
@@ -207,7 +207,7 @@
 <a class="macro" href="../../../../lazy_static/macro.lazy_static.html">lazy_static! </a>{
     <span class="attribute">#[doc(hidden)]
     </span><span class="comment">// #[allow(unused_mut)] ?
-    </span><span class="kw">pub static </span><span class="kw-2">ref </span>ALL_EXTENSIONS: HashMap&lt;<a href="../../../../src/config/file/format/mod.rs.html#34">FileFormat</a>, Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; = {
+    </span><span class="kw">pub static </span><span class="kw-2">ref </span>ALL_EXTENSIONS: HashMap&lt;<a href="#34">FileFormat</a>, Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; = {
         <span class="kw">let </span><span class="kw-2">mut </span>formats: HashMap&lt;FileFormat, Vec&lt;<span class="kw">_</span>&gt;&gt; = HashMap::new();
 
         <span class="attribute">#[cfg(feature = <span class="string">&quot;toml&quot;</span>)]
@@ -232,37 +232,37 @@
     };
 }
 
-<span class="kw">impl </span><a href="../../../../src/config/file/format/mod.rs.html#34">FileFormat</a> {
+<span class="kw">impl </span><a href="#34">FileFormat</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] {
         <span class="comment">// It should not be possible for this to fail
         // A FileFormat would need to be declared without being added to the
         // ALL_EXTENSIONS map.
-        </span><a href="../../../../src/config/file/format/mod.rs.html#60-86">ALL_EXTENSIONS</a>.get(<a class="self" href="../../../../src/config/file/format/mod.rs.html#89">self</a>).unwrap()
+        </span><a href="#60-86">ALL_EXTENSIONS</a>.get(<a class="self" href="#89">self</a>).unwrap()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         uri: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
         text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../src/config/value.rs.html#179">Value</a>&gt;, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../../src/config/file/format/mod.rs.html#97">self</a> </span>{
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../value.rs.html#179">Value</a>&gt;, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="#97">self</a> </span>{
             <span class="attribute">#[cfg(feature = <span class="string">&quot;toml&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#37">FileFormat::Toml</a> =&gt; <a href="../../../../src/config/file/format/toml.rs.html#6-9">toml::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#37">FileFormat::Toml</a> =&gt; <a href="toml.rs.html#6-9">toml::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#41">FileFormat::Json</a> =&gt; <a href="../../../../src/config/file/format/json.rs.html#6-9">json::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#41">FileFormat::Json</a> =&gt; <a href="json.rs.html#6-9">json::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#45">FileFormat::Yaml</a> =&gt; <a href="../../../../src/config/file/format/yaml.rs.html#10-13">yaml::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#45">FileFormat::Yaml</a> =&gt; <a href="yaml.rs.html#10-13">yaml::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;ini&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#49">FileFormat::Ini</a> =&gt; <a href="../../../../src/config/file/format/ini.rs.html#8-11">ini::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#49">FileFormat::Ini</a> =&gt; <a href="ini.rs.html#8-11">ini::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;ron&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#53">FileFormat::Ron</a> =&gt; <a href="../../../../src/config/file/format/ron.rs.html#6-9">ron::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#53">FileFormat::Ron</a> =&gt; <a href="ron.rs.html#6-9">ron::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;json5&quot;</span>)]
-            </span><a href="../../../../src/config/file/format/mod.rs.html#57">FileFormat::Json5</a> =&gt; <a href="../../../../src/config/file/format/json5.rs.html#19-22">json5::parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#98">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#99">text</a>),
+            </span><a href="#57">FileFormat::Json5</a> =&gt; <a href="json5.rs.html#19-22">json5::parse</a>(<a href="#98">uri</a>, <a href="#99">text</a>),
 
             <span class="attribute">#[cfg(all(
                 not(feature = <span class="string">&quot;toml&quot;</span>),
@@ -277,20 +277,20 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/config/format.rs.html#14">Format</a> <span class="kw">for </span><a href="../../../../src/config/file/format/mod.rs.html#34">FileFormat</a> {
+<span class="kw">impl </span><a href="../../format.rs.html#14">Format</a> <span class="kw">for </span><a href="#34">FileFormat</a> {
     <span class="kw">fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         uri: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
         text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../src/config/value.rs.html#179">Value</a>&gt;, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; {
-        <a class="self" href="../../../../src/config/file/format/mod.rs.html#135">self</a>.<a href="../../../../src/config/file/format/mod.rs.html#96-100">parse</a>(<a href="../../../../src/config/file/format/mod.rs.html#136">uri</a>, <a href="../../../../src/config/file/format/mod.rs.html#137">text</a>)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../value.rs.html#179">Value</a>&gt;, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; {
+        <a class="self" href="#135">self</a>.<a href="#96-100">parse</a>(<a href="#136">uri</a>, <a href="#137">text</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/config/file/mod.rs.html#36">FileStoredFormat</a> <span class="kw">for </span><a href="../../../../src/config/file/format/mod.rs.html#34">FileFormat</a> {
+<span class="kw">impl </span><a href="../mod.rs.html#36">FileStoredFormat</a> <span class="kw">for </span><a href="#34">FileFormat</a> {
     <span class="kw">fn </span>file_extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] {
-        <a class="self" href="../../../../src/config/file/format/mod.rs.html#144">self</a>.<a href="../../../../src/config/file/format/mod.rs.html#89">extensions</a>()
+        <a class="self" href="#144">self</a>.<a href="#89">extensions</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

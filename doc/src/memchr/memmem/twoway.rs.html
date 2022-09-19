@@ -878,15 +878,15 @@
 <span id="878">878</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="../../../src/memchr/memmem/prefilter/mod.rs.html#22">prefilter::Pre</a>, <a href="../../../src/memchr/memmem/mod.rs.html#155">util</a>};
+<span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="prefilter/mod.rs.html#22">prefilter::Pre</a>, <a href="mod.rs.html#155">util</a>};
 
 <span class="doccomment">/// Two-Way search in the forward direction.
 </span><span class="attribute">#[derive(Clone, Copy, Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Forward(<a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Forward(<a href="#49">TwoWay</a>);
 
 <span class="doccomment">/// Two-Way search in the reverse direction.
 </span><span class="attribute">#[derive(Clone, Copy, Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reverse(<a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reverse(<a href="#49">TwoWay</a>);
 
 <span class="doccomment">/// An implementation of the TwoWay substring search algorithm, with heuristics
 /// for accelerating search based on frequency analysis.
@@ -937,7 +937,7 @@
     ///
     /// N.B. This trick was inspired by something similar in std&#39;s
     /// implementation of Two-Way.
-    </span>byteset: <a href="../../../src/memchr/memmem/twoway.rs.html#648">ApproximateByteSet</a>,
+    </span>byteset: <a href="#648">ApproximateByteSet</a>,
     <span class="doccomment">/// A critical position in needle. Specifically, this position corresponds
     /// to beginning of either the minimal or maximal suffix in needle. (N.B.
     /// See SuffixType below for why &quot;minimal&quot; isn&#39;t quite the correct word
@@ -949,28 +949,28 @@
     </span>critical_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// The amount we shift by in the Two-Way search algorithm. This
     /// corresponds to the &quot;small period&quot; and &quot;large period&quot; cases.
-    </span>shift: <a href="../../../src/memchr/memmem/twoway.rs.html#424">Shift</a>,
+    </span>shift: <a href="#424">Shift</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#7">Forward</a> {
+<span class="kw">impl </span><a href="#7">Forward</a> {
     <span class="doccomment">/// Create a searcher that uses the Two-Way algorithm by searching forwards
     /// through any haystack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#7">Forward</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#7">Forward</a> {
         <span class="kw">if </span>needle.is_empty() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#7">Forward</a>(TwoWay::empty());
+            <span class="kw">return </span><a href="#7">Forward</a>(TwoWay::empty());
         }
 
-        <span class="kw">let </span>byteset = ApproximateByteSet::new(<a href="../../../src/memchr/memmem/twoway.rs.html#80">needle</a>);
-        <span class="kw">let </span>min_suffix = Suffix::forward(<a href="../../../src/memchr/memmem/twoway.rs.html#80">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#595">SuffixKind::Minimal</a>);
-        <span class="kw">let </span>max_suffix = Suffix::forward(<a href="../../../src/memchr/memmem/twoway.rs.html#80">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#601">SuffixKind::Maximal</a>);
+        <span class="kw">let </span>byteset = ApproximateByteSet::new(<a href="#80">needle</a>);
+        <span class="kw">let </span>min_suffix = Suffix::forward(<a href="#80">needle</a>, <a href="#595">SuffixKind::Minimal</a>);
+        <span class="kw">let </span>max_suffix = Suffix::forward(<a href="#80">needle</a>, <a href="#601">SuffixKind::Maximal</a>);
         <span class="kw">let </span>(period_lower_bound, critical_pos) =
             <span class="kw">if </span>min_suffix.pos &gt; max_suffix.pos {
-                (<a href="../../../src/memchr/memmem/twoway.rs.html#86">min_suffix</a>.period, <a href="../../../src/memchr/memmem/twoway.rs.html#86">min_suffix</a>.pos)
+                (<a href="#86">min_suffix</a>.period, <a href="#86">min_suffix</a>.pos)
             } <span class="kw">else </span>{
-                (<a href="../../../src/memchr/memmem/twoway.rs.html#87">max_suffix</a>.period, <a href="../../../src/memchr/memmem/twoway.rs.html#87">max_suffix</a>.pos)
+                (<a href="#87">max_suffix</a>.period, <a href="#87">max_suffix</a>.pos)
             };
-        <span class="kw">let </span>shift = Shift::forward(<a href="../../../src/memchr/memmem/twoway.rs.html#80">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#88">period_lower_bound</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#88">critical_pos</a>);
-        <a href="../../../src/memchr/memmem/twoway.rs.html#7">Forward</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a> { <a href="../../../src/memchr/memmem/twoway.rs.html#85">byteset</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#88">critical_pos</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#94">shift</a> })
+        <span class="kw">let </span>shift = Shift::forward(<a href="#80">needle</a>, <a href="#88">period_lower_bound</a>, <a href="#88">critical_pos</a>);
+        <a href="#7">Forward</a>(<a href="#49">TwoWay</a> { <a href="#85">byteset</a>, <a href="#88">critical_pos</a>, <a href="#94">shift</a> })
     }
 
     <span class="doccomment">/// Find the position of the first occurrence of this searcher&#39;s needle in
@@ -991,12 +991,12 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!needle.is_empty(), <span class="string">&quot;needle should not be empty&quot;</span>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(needle.len() &lt;= haystack.len(), <span class="string">&quot;haystack too short&quot;</span>);
 
-        <span class="kw">match </span><a class="self" href="../../../src/memchr/memmem/twoway.rs.html#108">self</a>.<span class="number">0</span>.shift {
-            <a href="../../../src/memchr/memmem/twoway.rs.html#425">Shift::Small</a> { period } =&gt; {
-                <a class="self" href="../../../src/memchr/memmem/twoway.rs.html#108">self</a>.<a href="../../../src/memchr/memmem/twoway.rs.html#152-158">find_small_imp</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#109">pre</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#110">haystack</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#111">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#117">period</a>)
+        <span class="kw">match </span><a class="self" href="#108">self</a>.<span class="number">0</span>.shift {
+            <a href="#425">Shift::Small</a> { period } =&gt; {
+                <a class="self" href="#108">self</a>.<a href="#152-158">find_small_imp</a>(<a href="#109">pre</a>, <a href="#110">haystack</a>, <a href="#111">needle</a>, <a href="#117">period</a>)
             }
-            <a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift } =&gt; {
-                <a class="self" href="../../../src/memchr/memmem/twoway.rs.html#108">self</a>.<a href="../../../src/memchr/memmem/twoway.rs.html#201-207">find_large_imp</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#109">pre</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#110">haystack</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#111">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#120">shift</a>)
+            <a href="#426">Shift::Large</a> { shift } =&gt; {
+                <a class="self" href="#108">self</a>.<a href="#201-207">find_large_imp</a>(<a href="#109">pre</a>, <a href="#110">haystack</a>, <a href="#111">needle</a>, <a href="#120">shift</a>)
             }
         }
     }
@@ -1034,7 +1034,7 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         period: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>last_byte = <a href="../../../src/memchr/memmem/twoway.rs.html#156">needle</a>.len() - <span class="number">1</span>;
+        <span class="kw">let </span>last_byte = <a href="#156">needle</a>.len() - <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>pos = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
         <span class="kw">while </span>pos + needle.len() &lt;= haystack.len() {
@@ -1083,7 +1083,7 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>last_byte = <a href="../../../src/memchr/memmem/twoway.rs.html#205">needle</a>.len() - <span class="number">1</span>;
+        <span class="kw">let </span>last_byte = <a href="#205">needle</a>.len() - <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>pos = <span class="number">0</span>;
         <span class="lifetime">&#39;outer</span>: <span class="kw">while </span>pos + needle.len() &lt;= haystack.len() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = pre.as_mut() {
@@ -1119,26 +1119,26 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#11">Reverse</a> {
+<span class="kw">impl </span><a href="#11">Reverse</a> {
     <span class="doccomment">/// Create a searcher that uses the Two-Way algorithm by searching in
     /// reverse through any haystack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#11">Reverse</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#11">Reverse</a> {
         <span class="kw">if </span>needle.is_empty() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#11">Reverse</a>(TwoWay::empty());
+            <span class="kw">return </span><a href="#11">Reverse</a>(TwoWay::empty());
         }
 
-        <span class="kw">let </span>byteset = ApproximateByteSet::new(<a href="../../../src/memchr/memmem/twoway.rs.html#247">needle</a>);
-        <span class="kw">let </span>min_suffix = Suffix::reverse(<a href="../../../src/memchr/memmem/twoway.rs.html#247">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#595">SuffixKind::Minimal</a>);
-        <span class="kw">let </span>max_suffix = Suffix::reverse(<a href="../../../src/memchr/memmem/twoway.rs.html#247">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#601">SuffixKind::Maximal</a>);
+        <span class="kw">let </span>byteset = ApproximateByteSet::new(<a href="#247">needle</a>);
+        <span class="kw">let </span>min_suffix = Suffix::reverse(<a href="#247">needle</a>, <a href="#595">SuffixKind::Minimal</a>);
+        <span class="kw">let </span>max_suffix = Suffix::reverse(<a href="#247">needle</a>, <a href="#601">SuffixKind::Maximal</a>);
         <span class="kw">let </span>(period_lower_bound, critical_pos) =
             <span class="kw">if </span>min_suffix.pos &lt; max_suffix.pos {
-                (<a href="../../../src/memchr/memmem/twoway.rs.html#253">min_suffix</a>.period, <a href="../../../src/memchr/memmem/twoway.rs.html#253">min_suffix</a>.pos)
+                (<a href="#253">min_suffix</a>.period, <a href="#253">min_suffix</a>.pos)
             } <span class="kw">else </span>{
-                (<a href="../../../src/memchr/memmem/twoway.rs.html#254">max_suffix</a>.period, <a href="../../../src/memchr/memmem/twoway.rs.html#254">max_suffix</a>.pos)
+                (<a href="#254">max_suffix</a>.period, <a href="#254">max_suffix</a>.pos)
             };
         <span class="comment">// let critical_pos = needle.len() - critical_pos;
-        </span><span class="kw">let </span>shift = Shift::reverse(<a href="../../../src/memchr/memmem/twoway.rs.html#247">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#255">period_lower_bound</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#255">critical_pos</a>);
-        <a href="../../../src/memchr/memmem/twoway.rs.html#11">Reverse</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a> { <a href="../../../src/memchr/memmem/twoway.rs.html#252">byteset</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#255">critical_pos</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#262">shift</a> })
+        </span><span class="kw">let </span>shift = Shift::reverse(<a href="#247">needle</a>, <a href="#255">period_lower_bound</a>, <a href="#255">critical_pos</a>);
+        <a href="#11">Reverse</a>(<a href="#49">TwoWay</a> { <a href="#252">byteset</a>, <a href="#255">critical_pos</a>, <a href="#262">shift</a> })
     }
 
     <span class="doccomment">/// Find the position of the last occurrence of this searcher&#39;s needle
@@ -1161,12 +1161,12 @@
         // perhaps we should, but it&#39;s a lot of additional code to do it, and
         // it&#39;s not clear that it&#39;s actually worth it. If you have a really
         // compelling use case for this, please file an issue.
-        </span><span class="kw">match </span><a class="self" href="../../../src/memchr/memmem/twoway.rs.html#276">self</a>.<span class="number">0</span>.shift {
-            <a href="../../../src/memchr/memmem/twoway.rs.html#425">Shift::Small</a> { period } =&gt; {
-                <a class="self" href="../../../src/memchr/memmem/twoway.rs.html#276">self</a>.<a href="../../../src/memchr/memmem/twoway.rs.html#311-316">rfind_small_imp</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#277">haystack</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#278">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#287">period</a>)
+        </span><span class="kw">match </span><a class="self" href="#276">self</a>.<span class="number">0</span>.shift {
+            <a href="#425">Shift::Small</a> { period } =&gt; {
+                <a class="self" href="#276">self</a>.<a href="#311-316">rfind_small_imp</a>(<a href="#277">haystack</a>, <a href="#278">needle</a>, <a href="#287">period</a>)
             }
-            <a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift } =&gt; {
-                <a class="self" href="../../../src/memchr/memmem/twoway.rs.html#276">self</a>.<a href="../../../src/memchr/memmem/twoway.rs.html#349-354">rfind_large_imp</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#277">haystack</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#278">needle</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#290">shift</a>)
+            <a href="#426">Shift::Large</a> { shift } =&gt; {
+                <a class="self" href="#276">self</a>.<a href="#349-354">rfind_large_imp</a>(<a href="#277">haystack</a>, <a href="#278">needle</a>, <a href="#290">shift</a>)
             }
         }
     }
@@ -1192,9 +1192,9 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         period: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>nlen = <a href="../../../src/memchr/memmem/twoway.rs.html#314">needle</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="../../../src/memchr/memmem/twoway.rs.html#313">haystack</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>shift = <a href="../../../src/memchr/memmem/twoway.rs.html#317">nlen</a>;
+        <span class="kw">let </span>nlen = <a href="#314">needle</a>.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="#313">haystack</a>.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>shift = <a href="#317">nlen</a>;
         <span class="kw">while </span>pos &gt;= nlen {
             <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.byteset.contains(haystack[pos - nlen]) {
                 pos -= nlen;
@@ -1230,8 +1230,8 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>nlen = <a href="../../../src/memchr/memmem/twoway.rs.html#352">needle</a>.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="../../../src/memchr/memmem/twoway.rs.html#351">haystack</a>.len();
+        <span class="kw">let </span>nlen = <a href="#352">needle</a>.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>pos = <a href="#351">haystack</a>.len();
         <span class="kw">while </span>pos &gt;= nlen {
             <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.byteset.contains(haystack[pos - nlen]) {
                 pos -= nlen;
@@ -1258,12 +1258,12 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a> {
-    <span class="kw">fn </span>empty() -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a> {
-        <a href="../../../src/memchr/memmem/twoway.rs.html#49">TwoWay</a> {
+<span class="kw">impl </span><a href="#49">TwoWay</a> {
+    <span class="kw">fn </span>empty() -&gt; <a href="#49">TwoWay</a> {
+        <a href="#49">TwoWay</a> {
             byteset: ApproximateByteSet::new(<span class="string">b&quot;&quot;</span>),
             critical_pos: <span class="number">0</span>,
-            shift: <a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift: <span class="number">0 </span>},
+            shift: <a href="#426">Shift::Large</a> { shift: <span class="number">0 </span>},
         }
     }
 }
@@ -1304,7 +1304,7 @@
     Large { shift: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> },
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#424">Shift</a> {
+<span class="kw">impl </span><a href="#424">Shift</a> {
     <span class="doccomment">/// Compute the shift for a given needle in the forward direction.
     ///
     /// This requires a lower bound on the period and a critical position.
@@ -1315,17 +1315,17 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         period_lower_bound: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         critical_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#424">Shift</a> {
-        <span class="kw">let </span>large = cmp::max(<a href="../../../src/memchr/memmem/twoway.rs.html#439">critical_pos</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#437">needle</a>.len() - <a href="../../../src/memchr/memmem/twoway.rs.html#439">critical_pos</a>);
+    ) -&gt; <a href="#424">Shift</a> {
+        <span class="kw">let </span>large = cmp::max(<a href="#439">critical_pos</a>, <a href="#437">needle</a>.len() - <a href="#439">critical_pos</a>);
         <span class="kw">if </span>critical_pos * <span class="number">2 </span>&gt;= needle.len() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift: <a href="../../../src/memchr/memmem/twoway.rs.html#441">large</a> };
+            <span class="kw">return </span><a href="#426">Shift::Large</a> { shift: <a href="#441">large</a> };
         }
 
-        <span class="kw">let </span>(u, v) = <a href="../../../src/memchr/memmem/twoway.rs.html#437">needle</a>.split_at(<a href="../../../src/memchr/memmem/twoway.rs.html#439">critical_pos</a>);
+        <span class="kw">let </span>(u, v) = <a href="#437">needle</a>.split_at(<a href="#439">critical_pos</a>);
         <span class="kw">if </span>!util::is_suffix(<span class="kw-2">&amp;</span>v[..period_lower_bound], u) {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift: <a href="../../../src/memchr/memmem/twoway.rs.html#441">large</a> };
+            <span class="kw">return </span><a href="#426">Shift::Large</a> { shift: <a href="#441">large</a> };
         }
-        <a href="../../../src/memchr/memmem/twoway.rs.html#425">Shift::Small</a> { period: <a href="../../../src/memchr/memmem/twoway.rs.html#438">period_lower_bound</a> }
+        <a href="#425">Shift::Small</a> { period: <a href="#438">period_lower_bound</a> }
     }
 
     <span class="doccomment">/// Compute the shift for a given needle in the reverse direction.
@@ -1338,17 +1338,17 @@
         needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         period_lower_bound: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         critical_pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#424">Shift</a> {
-        <span class="kw">let </span>large = cmp::max(<a href="../../../src/memchr/memmem/twoway.rs.html#462">critical_pos</a>, <a href="../../../src/memchr/memmem/twoway.rs.html#460">needle</a>.len() - <a href="../../../src/memchr/memmem/twoway.rs.html#462">critical_pos</a>);
+    ) -&gt; <a href="#424">Shift</a> {
+        <span class="kw">let </span>large = cmp::max(<a href="#462">critical_pos</a>, <a href="#460">needle</a>.len() - <a href="#462">critical_pos</a>);
         <span class="kw">if </span>(needle.len() - critical_pos) * <span class="number">2 </span>&gt;= needle.len() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift: <a href="../../../src/memchr/memmem/twoway.rs.html#464">large</a> };
+            <span class="kw">return </span><a href="#426">Shift::Large</a> { shift: <a href="#464">large</a> };
         }
 
-        <span class="kw">let </span>(v, u) = <a href="../../../src/memchr/memmem/twoway.rs.html#460">needle</a>.split_at(<a href="../../../src/memchr/memmem/twoway.rs.html#462">critical_pos</a>);
+        <span class="kw">let </span>(v, u) = <a href="#460">needle</a>.split_at(<a href="#462">critical_pos</a>);
         <span class="kw">if </span>!util::is_prefix(<span class="kw-2">&amp;</span>v[v.len() - period_lower_bound..], u) {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#426">Shift::Large</a> { shift: <a href="../../../src/memchr/memmem/twoway.rs.html#464">large</a> };
+            <span class="kw">return </span><a href="#426">Shift::Large</a> { shift: <a href="#464">large</a> };
         }
-        <a href="../../../src/memchr/memmem/twoway.rs.html#425">Shift::Small</a> { period: <a href="../../../src/memchr/memmem/twoway.rs.html#461">period_lower_bound</a> }
+        <a href="#425">Shift::Small</a> { period: <a href="#461">period_lower_bound</a> }
     }
 }
 
@@ -1370,13 +1370,13 @@
     </span>period: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#479">Suffix</a> {
-    <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], kind: <a href="../../../src/memchr/memmem/twoway.rs.html#587">SuffixKind</a>) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#479">Suffix</a> {
+<span class="kw">impl </span><a href="#479">Suffix</a> {
+    <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], kind: <a href="#587">SuffixKind</a>) -&gt; <a href="#479">Suffix</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!needle.is_empty());
 
         <span class="comment">// suffix represents our maximal (or minimal) suffix, along with
         // its period.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix = <a href="../../../src/memchr/memmem/twoway.rs.html#479">Suffix</a> { pos: <span class="number">0</span>, period: <span class="number">1 </span>};
+        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix = <a href="#479">Suffix</a> { pos: <span class="number">0</span>, period: <span class="number">1 </span>};
         <span class="comment">// The start of a suffix in `needle` that we are considering as a
         // more maximal (or minimal) suffix than what&#39;s in `suffix`.
         </span><span class="kw">let </span><span class="kw-2">mut </span>candidate_start = <span class="number">1</span>;
@@ -1418,18 +1418,18 @@
                 }
             }
         }
-        <a href="../../../src/memchr/memmem/twoway.rs.html#501">suffix</a>
+        <a href="#501">suffix</a>
     }
 
-    <span class="kw">fn </span>reverse(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], kind: <a href="../../../src/memchr/memmem/twoway.rs.html#587">SuffixKind</a>) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#479">Suffix</a> {
+    <span class="kw">fn </span>reverse(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], kind: <a href="#587">SuffixKind</a>) -&gt; <a href="#479">Suffix</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!needle.is_empty());
 
         <span class="comment">// See the comments in `forward` for how this works.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix = <a href="../../../src/memchr/memmem/twoway.rs.html#479">Suffix</a> { pos: <a href="../../../src/memchr/memmem/twoway.rs.html#546">needle</a>.len(), period: <span class="number">1 </span>};
+        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix = <a href="#479">Suffix</a> { pos: <a href="#546">needle</a>.len(), period: <span class="number">1 </span>};
         <span class="kw">if </span>needle.len() == <span class="number">1 </span>{
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/twoway.rs.html#550">suffix</a>;
+            <span class="kw">return </span><a href="#550">suffix</a>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>candidate_start = <a href="../../../src/memchr/memmem/twoway.rs.html#546">needle</a>.len() - <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>candidate_start = <a href="#546">needle</a>.len() - <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
 
         <span class="kw">while </span>offset &lt; candidate_start {
@@ -1456,7 +1456,7 @@
                 }
             }
         }
-        <a href="../../../src/memchr/memmem/twoway.rs.html#550">suffix</a>
+        <a href="#550">suffix</a>
     }
 }
 
@@ -1498,20 +1498,20 @@
     </span>Push,
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#587">SuffixKind</a> {
+<span class="kw">impl </span><a href="#587">SuffixKind</a> {
     <span class="doccomment">/// Returns true if and only if the given candidate byte indicates that
     /// it should replace the current suffix as the maximal (or minimal)
     /// suffix.
-    </span><span class="kw">fn </span>cmp(<span class="self">self</span>, current: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, candidate: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#606">SuffixOrdering</a> {
-        <span class="kw">use </span><a href="../../../src/memchr/memmem/twoway.rs.html#606"><span class="self">self</span>::SuffixOrdering</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">fn </span>cmp(<span class="self">self</span>, current: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, candidate: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="#606">SuffixOrdering</a> {
+        <span class="kw">use </span><a href="#606"><span class="self">self</span>::SuffixOrdering</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="self"><a href="../../../src/memchr/memmem/twoway.rs.html#627">self</a> </span>{
-            <a href="../../../src/memchr/memmem/twoway.rs.html#595">SuffixKind::Minimal</a> <span class="kw">if </span><a href="../../../src/memchr/memmem/twoway.rs.html#627">candidate</a> &lt; <a href="../../../src/memchr/memmem/twoway.rs.html#627">current</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#611">Accept</a>,
-            <a href="../../../src/memchr/memmem/twoway.rs.html#595">SuffixKind::Minimal</a> <span class="kw">if </span><a href="../../../src/memchr/memmem/twoway.rs.html#627">candidate</a> &gt; <a href="../../../src/memchr/memmem/twoway.rs.html#627">current</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#616">Skip</a>,
-            <a href="../../../src/memchr/memmem/twoway.rs.html#595">SuffixKind::Minimal</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#620">Push</a>,
-            <a href="../../../src/memchr/memmem/twoway.rs.html#601">SuffixKind::Maximal</a> <span class="kw">if </span><a href="../../../src/memchr/memmem/twoway.rs.html#627">candidate</a> &gt; <a href="../../../src/memchr/memmem/twoway.rs.html#627">current</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#611">Accept</a>,
-            <a href="../../../src/memchr/memmem/twoway.rs.html#601">SuffixKind::Maximal</a> <span class="kw">if </span><a href="../../../src/memchr/memmem/twoway.rs.html#627">candidate</a> &lt; <a href="../../../src/memchr/memmem/twoway.rs.html#627">current</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#616">Skip</a>,
-            <a href="../../../src/memchr/memmem/twoway.rs.html#601">SuffixKind::Maximal</a> =&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#620">Push</a>,
+        <span class="kw">match </span><span class="self"><a href="#627">self</a> </span>{
+            <a href="#595">SuffixKind::Minimal</a> <span class="kw">if </span><a href="#627">candidate</a> &lt; <a href="#627">current</a> =&gt; <a href="#611">Accept</a>,
+            <a href="#595">SuffixKind::Minimal</a> <span class="kw">if </span><a href="#627">candidate</a> &gt; <a href="#627">current</a> =&gt; <a href="#616">Skip</a>,
+            <a href="#595">SuffixKind::Minimal</a> =&gt; <a href="#620">Push</a>,
+            <a href="#601">SuffixKind::Maximal</a> <span class="kw">if </span><a href="#627">candidate</a> &gt; <a href="#627">current</a> =&gt; <a href="#611">Accept</a>,
+            <a href="#601">SuffixKind::Maximal</a> <span class="kw">if </span><a href="#627">candidate</a> &lt; <a href="#627">current</a> =&gt; <a href="#616">Skip</a>,
+            <a href="#601">SuffixKind::Maximal</a> =&gt; <a href="#620">Push</a>,
         }
     }
 }
@@ -1525,21 +1525,21 @@
 </span><span class="attribute">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">struct </span>ApproximateByteSet(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/twoway.rs.html#648">ApproximateByteSet</a> {
+<span class="kw">impl </span><a href="#648">ApproximateByteSet</a> {
     <span class="doccomment">/// Create a new set from the given needle.
-    </span><span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/twoway.rs.html#648">ApproximateByteSet</a> {
+    </span><span class="kw">fn </span>new(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#648">ApproximateByteSet</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>bits = <span class="number">0</span>;
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>needle {
             bits |= <span class="number">1 </span>&lt;&lt; (b % <span class="number">64</span>);
         }
-        <a href="../../../src/memchr/memmem/twoway.rs.html#648">ApproximateByteSet</a>(<a href="../../../src/memchr/memmem/twoway.rs.html#653">bits</a>)
+        <a href="#648">ApproximateByteSet</a>(<a href="#653">bits</a>)
     }
 
     <span class="doccomment">/// Return true if and only if the given byte might be in this set. This
     /// may return a false positive, but will never return a false negative.
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/memchr/memmem/twoway.rs.html#663">self</a>.<span class="number">0 </span>&amp; (<span class="number">1 </span>&lt;&lt; (<a href="../../../src/memchr/memmem/twoway.rs.html#663">byte</a> % <span class="number">64</span>)) != <span class="number">0
+        <a class="self" href="#663">self</a>.<span class="number">0 </span>&amp; (<span class="number">1 </span>&lt;&lt; (<a href="#663">byte</a> % <span class="number">64</span>)) != <span class="number">0
     </span>}
 }
 
@@ -1755,4 +1755,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

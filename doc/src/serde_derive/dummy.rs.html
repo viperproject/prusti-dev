@@ -46,37 +46,37 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
-</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Ident.html">Ident</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
-<span class="kw">use </span><a href="../../quote/macro.format_ident.html">quote::format_ident</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>, <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>};
+<span class="kw">use </span><a href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">quote::format_ident</a>;
 
-<span class="kw">use </span><a href="../../syn/index.html">syn</a>;
+<span class="kw">use </span><a href="https://docs.rs/syn/1.0.100/syn/index.html">syn</a>;
 <span class="kw">use try</span>;
 
 <span class="kw">pub fn </span>wrap_in_const(
-    serde_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../syn/path/struct.Path.html">syn::Path</a>&gt;,
+    serde_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/path/struct.Path.html">syn::Path</a>&gt;,
     trait_: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ty: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">Ident</a>,
-    code: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>,
+    code: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>,
+) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>try_replacement = <span class="kw">try</span>::replacement();
 
     <span class="kw">let </span>dummy_const = <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(no_underscore_consts) {
-        <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_IMPL_{}_FOR_{}&quot;</span>, trait_, unraw(ty))
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_IMPL_{}_FOR_{}&quot;</span>, trait_, unraw(ty))
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_&quot;</span>)
+        <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_&quot;</span>)
     };
 
-    <span class="kw">let </span>use_serde = <span class="kw">match </span><a href="../../src/serde_derive/dummy.rs.html#8">serde_path</a> {
-        <span class="prelude-val">Some</span>(path) =&gt; <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+    <span class="kw">let </span>use_serde = <span class="kw">match </span><a href="#8">serde_path</a> {
+        <span class="prelude-val">Some</span>(path) =&gt; <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             <span class="kw">use </span>#path <span class="kw">as </span>_serde;
         },
-        <span class="prelude-val">None </span>=&gt; <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+        <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
             <span class="attribute">#[allow(unused_extern_crates, clippy::useless_attribute)]
             </span><span class="kw">extern crate </span>serde <span class="kw">as </span>_serde;
         },
     };
 
-    <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+    <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
         <span class="attribute">#[doc(hidden)]
         #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
         </span><span class="kw">const </span>#dummy_const: () = {
@@ -88,11 +88,11 @@
 }
 
 <span class="attribute">#[allow(deprecated)]
-</span><span class="kw">fn </span>unraw(ident: <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+</span><span class="kw">fn </span>unraw(ident: <span class="kw-2">&amp;</span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="comment">// str::trim_start_matches was added in 1.30, trim_left_matches deprecated
     // in 1.33. We currently support rustc back to 1.15 so we need to continue
     // to use the deprecated one.
-    </span><a href="../../src/serde_derive/dummy.rs.html#43">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().trim_left_matches(<span class="string">&quot;r#&quot;</span>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+    </span><a href="#43">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().trim_left_matches(<span class="string">&quot;r#&quot;</span>).<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

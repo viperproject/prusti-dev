@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["getifaddrs","Get interface addresses using libc’s `getifaddrs`"]],"struct":[["InterfaceAddress","Describes a single address for an interface as returned by `getifaddrs`."],["InterfaceAddressIterator","Holds the results of `getifaddrs`."]]};

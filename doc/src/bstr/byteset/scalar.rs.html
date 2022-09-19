@@ -307,7 +307,7 @@
 </span><span class="kw">const </span>USIZE_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
 
 <span class="comment">// The number of bytes to loop at in one iteration of memchr/memrchr.
-</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="../../../src/bstr/byteset/scalar.rs.html#12">USIZE_BYTES</a>;
+</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="#12">USIZE_BYTES</a>;
 
 <span class="doccomment">/// Repeat the given byte into a word size number. That is, every 8 bits
 /// is equivalent to the given byte. For example, if `b` is `\x4E` or
@@ -315,29 +315,29 @@
 /// `01001110_01001110_01001110_01001110`.
 </span><span class="attribute">#[inline(always)]
 </span><span class="kw">fn </span>repeat_byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/bstr/byteset/scalar.rs.html#22">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) * (usize::MAX / <span class="number">255</span>)
+    (<a href="#22">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) * (usize::MAX / <span class="number">255</span>)
 }
 
 <span class="kw">pub fn </span>inv_memchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/bstr/byteset/scalar.rs.html#22">repeat_byte</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#26">n1</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/bstr/byteset/scalar.rs.html#28">byte</a> != <a href="../../../src/bstr/byteset/scalar.rs.html#26">n1</a>;
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../src/bstr/byteset/scalar.rs.html#15">LOOP_SIZE</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#26">haystack</a>.len());
-    <span class="kw">let </span>align = <a href="../../../src/bstr/byteset/scalar.rs.html#12">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#26">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#26">haystack</a>[<a href="../../../src/bstr/byteset/scalar.rs.html#26">haystack</a>.len()..].as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#31">start_ptr</a>;
+    <span class="kw">let </span>vn1 = <a href="#22">repeat_byte</a>(<a href="#26">n1</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#28">byte</a> != <a href="#26">n1</a>;
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#15">LOOP_SIZE</a>, <a href="#26">haystack</a>.len());
+    <span class="kw">let </span>align = <a href="#12">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#26">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#26">haystack</a>[<a href="#26">haystack</a>.len()..].as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#31">start_ptr</a>;
 
     <span class="kw">unsafe </span>{
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/bstr/byteset/scalar.rs.html#103-108">forward_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#31">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#32">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#28">confirm</a>);
+            <span class="kw">return </span><a href="#103-108">forward_search</a>(<a href="#31">start_ptr</a>, <a href="#32">end_ptr</a>, <a href="#33">ptr</a>, <a href="#28">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = <a href="../../../src/bstr/byteset/scalar.rs.html#140">read_unaligned_usize</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a>);
+        <span class="kw">let </span>chunk = <a href="#140">read_unaligned_usize</a>(<a href="#33">ptr</a>);
         <span class="kw">if </span>(chunk ^ vn1) != <span class="number">0 </span>{
-            <span class="kw">return </span><a href="../../../src/bstr/byteset/scalar.rs.html#103-108">forward_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#31">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#32">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#28">confirm</a>);
+            <span class="kw">return </span><a href="#103-108">forward_search</a>(<a href="#31">start_ptr</a>, <a href="#32">end_ptr</a>, <a href="#33">ptr</a>, <a href="#28">confirm</a>);
         }
 
-        <a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a> = <a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a>.add(<a href="../../../src/bstr/byteset/scalar.rs.html#12">USIZE_BYTES</a> - (<a href="../../../src/bstr/byteset/scalar.rs.html#31">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../src/bstr/byteset/scalar.rs.html#30">align</a>));
+        <a href="#33">ptr</a> = <a href="#33">ptr</a>.add(<a href="#12">USIZE_BYTES</a> - (<a href="#31">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#30">align</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(end_ptr.sub(USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
@@ -352,31 +352,31 @@
             }
             ptr = ptr.add(LOOP_SIZE);
         }
-        <a href="../../../src/bstr/byteset/scalar.rs.html#103-108">forward_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#31">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#32">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#33">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#28">confirm</a>)
+        <a href="#103-108">forward_search</a>(<a href="#31">start_ptr</a>, <a href="#32">end_ptr</a>, <a href="#33">ptr</a>, <a href="#28">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Return the last index not matching the byte `x` in `text`.
 </span><span class="kw">pub fn </span>inv_memrchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/bstr/byteset/scalar.rs.html#22">repeat_byte</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#65">n1</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/bstr/byteset/scalar.rs.html#67">byte</a> != <a href="../../../src/bstr/byteset/scalar.rs.html#65">n1</a>;
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../src/bstr/byteset/scalar.rs.html#15">LOOP_SIZE</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#65">haystack</a>.len());
-    <span class="kw">let </span>align = <a href="../../../src/bstr/byteset/scalar.rs.html#12">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#65">haystack</a>.as_ptr();
-    <span class="kw">let </span>end_ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#65">haystack</a>[<a href="../../../src/bstr/byteset/scalar.rs.html#65">haystack</a>.len()..].as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/bstr/byteset/scalar.rs.html#71">end_ptr</a>;
+    <span class="kw">let </span>vn1 = <a href="#22">repeat_byte</a>(<a href="#65">n1</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#67">byte</a> != <a href="#65">n1</a>;
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#15">LOOP_SIZE</a>, <a href="#65">haystack</a>.len());
+    <span class="kw">let </span>align = <a href="#12">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#65">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="#65">haystack</a>[<a href="#65">haystack</a>.len()..].as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#71">end_ptr</a>;
 
     <span class="kw">unsafe </span>{
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/bstr/byteset/scalar.rs.html#122-127">reverse_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#70">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#71">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#72">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#67">confirm</a>);
+            <span class="kw">return </span><a href="#122-127">reverse_search</a>(<a href="#70">start_ptr</a>, <a href="#71">end_ptr</a>, <a href="#72">ptr</a>, <a href="#67">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = <a href="../../../src/bstr/byteset/scalar.rs.html#140">read_unaligned_usize</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#72">ptr</a>.sub(<a href="../../../src/bstr/byteset/scalar.rs.html#12">USIZE_BYTES</a>));
+        <span class="kw">let </span>chunk = <a href="#140">read_unaligned_usize</a>(<a href="#72">ptr</a>.sub(<a href="#12">USIZE_BYTES</a>));
         <span class="kw">if </span>(chunk ^ vn1) != <span class="number">0 </span>{
-            <span class="kw">return </span><a href="../../../src/bstr/byteset/scalar.rs.html#122-127">reverse_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#70">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#71">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#72">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#67">confirm</a>);
+            <span class="kw">return </span><a href="#122-127">reverse_search</a>(<a href="#70">start_ptr</a>, <a href="#71">end_ptr</a>, <a href="#72">ptr</a>, <a href="#67">confirm</a>);
         }
 
-        <a href="../../../src/bstr/byteset/scalar.rs.html#72">ptr</a> = (<a href="../../../src/bstr/byteset/scalar.rs.html#71">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../src/bstr/byteset/scalar.rs.html#69">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        <a href="#72">ptr</a> = (<a href="#71">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#69">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
             <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % USIZE_BYTES);
@@ -390,7 +390,7 @@
             }
             ptr = ptr.sub(loop_size);
         }
-        <a href="../../../src/bstr/byteset/scalar.rs.html#122-127">reverse_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#70">start_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#71">end_ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#72">ptr</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#67">confirm</a>)
+        <a href="#122-127">reverse_search</a>(<a href="#70">start_ptr</a>, <a href="#71">end_ptr</a>, <a href="#72">ptr</a>, <a href="#67">confirm</a>)
     }
 }
 
@@ -433,14 +433,14 @@
 </span>}
 
 <span class="kw">unsafe fn </span>read_unaligned_usize(ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/bstr/byteset/scalar.rs.html#140">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned()
+    (<a href="#140">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned()
 }
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` should be greater than
 /// or equal to `b`.
 </span><span class="kw">fn </span>sub(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
-    (<a href="../../../src/bstr/byteset/scalar.rs.html#146">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="../../../src/bstr/byteset/scalar.rs.html#146">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    (<a href="#146">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="#146">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="doccomment">/// Safe wrapper around `forward_search`
@@ -450,9 +450,9 @@
     confirm: F,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>start = <a href="../../../src/bstr/byteset/scalar.rs.html#154">s</a>.as_ptr();
-        <span class="kw">let </span>end = <a href="../../../src/bstr/byteset/scalar.rs.html#158">start</a>.add(<a href="../../../src/bstr/byteset/scalar.rs.html#154">s</a>.len());
-        <a href="../../../src/bstr/byteset/scalar.rs.html#103-108">forward_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#158">start</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#159">end</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#158">start</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#155">confirm</a>)
+        <span class="kw">let </span>start = <a href="#154">s</a>.as_ptr();
+        <span class="kw">let </span>end = <a href="#158">start</a>.add(<a href="#154">s</a>.len());
+        <a href="#103-108">forward_search</a>(<a href="#158">start</a>, <a href="#159">end</a>, <a href="#158">start</a>, <a href="#155">confirm</a>)
     }
 }
 
@@ -463,9 +463,9 @@
     confirm: F,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>start = <a href="../../../src/bstr/byteset/scalar.rs.html#167">s</a>.as_ptr();
-        <span class="kw">let </span>end = <a href="../../../src/bstr/byteset/scalar.rs.html#171">start</a>.add(<a href="../../../src/bstr/byteset/scalar.rs.html#167">s</a>.len());
-        <a href="../../../src/bstr/byteset/scalar.rs.html#122-127">reverse_search</a>(<a href="../../../src/bstr/byteset/scalar.rs.html#171">start</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#172">end</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#172">end</a>, <a href="../../../src/bstr/byteset/scalar.rs.html#168">confirm</a>)
+        <span class="kw">let </span>start = <a href="#167">s</a>.as_ptr();
+        <span class="kw">let </span>end = <a href="#171">start</a>.add(<a href="#167">s</a>.len());
+        <a href="#122-127">reverse_search</a>(<a href="#171">start</a>, <a href="#172">end</a>, <a href="#172">end</a>, <a href="#168">confirm</a>)
     }
 }
 
@@ -589,4 +589,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bstr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bstr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

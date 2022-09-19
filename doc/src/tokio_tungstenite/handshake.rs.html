@@ -171,8 +171,8 @@
 <span id="171">171</span>
 <span id="172">172</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    compat::{<a href="../../src/tokio_tungstenite/compat.rs.html#19">AllowStd</a>, <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>},
-    <a href="../../src/tokio_tungstenite/lib.rs.html#179">WebSocketStream</a>,
+    compat::{<a href="compat.rs.html#19">AllowStd</a>, <a href="compat.rs.html#53">SetWaker</a>},
+    <a href="lib.rs.html#179">WebSocketStream</a>,
 };
 <span class="kw">use </span><a href="../../log/index.html">log</a>::<span class="kw-2">*</span>;
 <span class="kw">use </span><a href="../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
@@ -218,11 +218,11 @@
     <span class="kw">type </span>Output = WebSocket&lt;AllowStd&lt;S&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#48">self</a>.get_mut().<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
+        <span class="kw">let </span>inner = <a class="self" href="#48">self</a>.get_mut().<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting context when skipping handshake&quot;</span>);
-        <span class="kw">let </span>stream = AllowStd::new(<a href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.stream, <a href="../../src/tokio_tungstenite/handshake.rs.html#48">ctx</a>.waker());
+        <span class="kw">let </span>stream = AllowStd::new(<a href="#49">inner</a>.stream, <a href="#48">ctx</a>.waker());
 
-        Poll::Ready((<a href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.f)(<a href="../../src/tokio_tungstenite/handshake.rs.html#51">stream</a>))
+        Poll::Ready((<a href="#49">inner</a>.f)(<a href="#51">stream</a>))
     }
 }
 
@@ -243,7 +243,7 @@
 <span class="kw">async fn </span>handshake&lt;Role, F, S&gt;(stream: S, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt;
 <span class="kw">where
     </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+    Role::InternalStream: <a href="compat.rs.html#53">SetWaker</a>,
     F: FnOnce(AllowStd&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
@@ -297,7 +297,7 @@
 <span class="kw">impl</span>&lt;Role, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>StartedHandshakeFuture&lt;F, S&gt;
 <span class="kw">where
     </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>,
-    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+    Role::InternalStream: <a href="compat.rs.html#53">SetWaker</a>,
     F: FnOnce(AllowStd&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     AllowStd&lt;S&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
@@ -305,14 +305,14 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;StartedHandshake&lt;Role&gt;, Error&lt;Role&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#135">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
+        <span class="kw">let </span>inner = <a class="self" href="#135">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting ctx when starting handshake&quot;</span>);
-        <span class="kw">let </span>stream = AllowStd::new(<a href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.stream, <a href="../../src/tokio_tungstenite/handshake.rs.html#135">ctx</a>.waker());
+        <span class="kw">let </span>stream = AllowStd::new(<a href="#136">inner</a>.stream, <a href="#135">ctx</a>.waker());
 
-        <span class="kw">match </span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.f)(<a href="../../src/tokio_tungstenite/handshake.rs.html#138">stream</a>) {
-            <span class="prelude-val">Ok</span>(r) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#61">StartedHandshake::Done</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#141">r</a>))),
-            <span class="prelude-val">Err</span>(Error::Interrupted(mid)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#62">StartedHandshake::Mid</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#142">mid</a>))),
-            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="../../src/tokio_tungstenite/handshake.rs.html#143">e</a>))),
+        <span class="kw">match </span>(<a href="#136">inner</a>.f)(<a href="#138">stream</a>) {
+            <span class="prelude-val">Ok</span>(r) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#61">StartedHandshake::Done</a>(<a href="#141">r</a>))),
+            <span class="prelude-val">Err</span>(Error::Interrupted(mid)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#62">StartedHandshake::Mid</a>(<a href="#142">mid</a>))),
+            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="#143">e</a>))),
         }
     }
 }
@@ -320,27 +320,27 @@
 <span class="kw">impl</span>&lt;Role&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>MidHandshake&lt;Role&gt;
 <span class="kw">where
     </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+    Role::InternalStream: <a href="compat.rs.html#53">SetWaker</a>,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#155">self</a>.<a href="../../src/tokio_tungstenite/handshake.rs.html#57">project</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
+        <span class="kw">let </span>this = <a class="self" href="#155">self</a>.<a href="#57">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="#156">this</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
 
-        <span class="kw">let </span>machine = <a href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.get_mut();
+        <span class="kw">let </span>machine = <a href="#157">s</a>.get_mut();
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting context in handshake&quot;</span>);
-        <a href="../../src/tokio_tungstenite/handshake.rs.html#159">machine</a>.get_mut().<a href="../../src/tokio_tungstenite/compat.rs.html#54">set_waker</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#155">cx</a>.waker());
+        <a href="#159">machine</a>.get_mut().<a href="compat.rs.html#54">set_waker</a>(<a href="#155">cx</a>.waker());
 
-        <span class="kw">match </span><a href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.handshake() {
-            <span class="prelude-val">Ok</span>(stream) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#164">stream</a>)),
-            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="../../src/tokio_tungstenite/handshake.rs.html#165">e</a>))),
+        <span class="kw">match </span><a href="#157">s</a>.handshake() {
+            <span class="prelude-val">Ok</span>(stream) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#164">stream</a>)),
+            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="#165">e</a>))),
             <span class="prelude-val">Err</span>(Error::Interrupted(mid)) =&gt; {
-                <span class="kw-2">*</span><a href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#166">mid</a>);
+                <span class="kw-2">*</span><a href="#156">this</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="#166">mid</a>);
                 Poll::Pending
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

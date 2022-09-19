@@ -504,8 +504,8 @@
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
 
-<span class="kw">use </span><a href="../../../src/object/lib.rs.html#106"><span class="kw">crate</span>::archive</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../../../src/object/lib.rs.html#98">self</a>, <a href="../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../src/object/read/read_ref.rs.html#37">ReadRef</a>};
+<span class="kw">use </span><a href="../lib.rs.html#106"><span class="kw">crate</span>::archive</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../lib.rs.html#98">self</a>, <a href="mod.rs.html#64">Error</a>, <a href="mod.rs.html#79">ReadError</a>, <a href="read_ref.rs.html#37">ReadRef</a>};
 
 <span class="doccomment">/// The kind of archive format.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -533,7 +533,7 @@
     data: R,
     len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    kind: <a href="../../../src/object/read/archive.rs.html#11">ArchiveKind</a>,
+    kind: <a href="#11">ArchiveKind</a>,
     symbols: (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
     names: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 }
@@ -547,14 +547,14 @@
             .read_bytes(<span class="kw-2">&amp;mut </span>tail, archive::MAGIC.len() <span class="kw">as </span>u64)
             .read_error(<span class="string">&quot;Invalid archive size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>magic != <span class="kw-2">&amp;</span>archive::MAGIC[..] {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported archive identifier&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported archive identifier&quot;</span>));
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>file = <a href="../../../src/object/read/archive.rs.html#30">ArchiveFile</a> {
-            <a href="../../../src/object/read/archive.rs.html#41">data</a>,
-            offset: <a href="../../../src/object/read/archive.rs.html#43">tail</a>,
-            <a href="../../../src/object/read/archive.rs.html#42">len</a>,
-            kind: <a href="../../../src/object/read/archive.rs.html#13">ArchiveKind::Unknown</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>file = <a href="#30">ArchiveFile</a> {
+            <a href="#41">data</a>,
+            offset: <a href="#43">tail</a>,
+            <a href="#42">len</a>,
+            kind: <a href="#13">ArchiveKind::Unknown</a>,
             symbols: (<span class="number">0</span>, <span class="number">0</span>),
             names: <span class="kw-2">&amp;</span>[],
         };
@@ -577,72 +577,72 @@
             <span class="kw">let </span>member = ArchiveMember::parse(data, <span class="kw-2">&amp;mut </span>tail, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
             <span class="kw">if </span>member.name == <span class="string">b&quot;/&quot; </span>{
                 <span class="comment">// GNU symbol table (unless we later determine this is COFF).
-                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#15">ArchiveKind::Gnu</a>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.symbols = <a href="../../../src/object/read/archive.rs.html#75">member</a>.<a href="../../../src/object/read/archive.rs.html#285">file_range</a>();
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                </span><a href="#51">file</a>.kind = <a href="#15">ArchiveKind::Gnu</a>;
+                <a href="#51">file</a>.symbols = <a href="#75">member</a>.<a href="#285">file_range</a>();
+                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
 
                 <span class="kw">if </span>tail &lt; len {
                     <span class="kw">let </span>member = ArchiveMember::parse(data, <span class="kw-2">&amp;mut </span>tail, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
                     <span class="kw">if </span>member.name == <span class="string">b&quot;/&quot; </span>{
                         <span class="comment">// COFF linker member.
-                        </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#25">ArchiveKind::Coff</a>;
-                        <a href="../../../src/object/read/archive.rs.html#51">file</a>.symbols = <a href="../../../src/object/read/archive.rs.html#83">member</a>.<a href="../../../src/object/read/archive.rs.html#285">file_range</a>();
-                        <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                        </span><a href="#51">file</a>.kind = <a href="#25">ArchiveKind::Coff</a>;
+                        <a href="#51">file</a>.symbols = <a href="#83">member</a>.<a href="#285">file_range</a>();
+                        <a href="#51">file</a>.offset = <a href="#43">tail</a>;
 
                         <span class="kw">if </span>tail &lt; len {
                             <span class="kw">let </span>member = ArchiveMember::parse(data, <span class="kw-2">&amp;mut </span>tail, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
                             <span class="kw">if </span>member.name == <span class="string">b&quot;//&quot; </span>{
                                 <span class="comment">// COFF names table.
-                                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
-                                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                                </span><a href="#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
+                                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
                             }
                         }
                     } <span class="kw">else if </span>member.name == <span class="string">b&quot;//&quot; </span>{
                         <span class="comment">// GNU names table.
-                        </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
-                        <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                        </span><a href="#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
+                        <a href="#51">file</a>.offset = <a href="#43">tail</a>;
                     }
                 }
             } <span class="kw">else if </span>member.name == <span class="string">b&quot;/SYM64/&quot; </span>{
                 <span class="comment">// GNU 64-bit symbol table.
-                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#17">ArchiveKind::Gnu64</a>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.symbols = <a href="../../../src/object/read/archive.rs.html#75">member</a>.<a href="../../../src/object/read/archive.rs.html#285">file_range</a>();
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                </span><a href="#51">file</a>.kind = <a href="#17">ArchiveKind::Gnu64</a>;
+                <a href="#51">file</a>.symbols = <a href="#75">member</a>.<a href="#285">file_range</a>();
+                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
 
                 <span class="kw">if </span>tail &lt; len {
                     <span class="kw">let </span>member = ArchiveMember::parse(data, <span class="kw-2">&amp;mut </span>tail, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
                     <span class="kw">if </span>member.name == <span class="string">b&quot;//&quot; </span>{
                         <span class="comment">// GNU names table.
-                        </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
-                        <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                        </span><a href="#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
+                        <a href="#51">file</a>.offset = <a href="#43">tail</a>;
                     }
                 }
             } <span class="kw">else if </span>member.name == <span class="string">b&quot;//&quot; </span>{
                 <span class="comment">// GNU names table.
-                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#15">ArchiveKind::Gnu</a>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                </span><a href="#51">file</a>.kind = <a href="#15">ArchiveKind::Gnu</a>;
+                <a href="#51">file</a>.names = member.data(data)<span class="question-mark">?</span>;
+                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
             } <span class="kw">else if </span>member.name == <span class="string">b&quot;__.SYMDEF&quot; </span>|| member.name == <span class="string">b&quot;__.SYMDEF SORTED&quot; </span>{
                 <span class="comment">// BSD symbol table.
-                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#19">ArchiveKind::Bsd</a>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.symbols = <a href="../../../src/object/read/archive.rs.html#75">member</a>.<a href="../../../src/object/read/archive.rs.html#285">file_range</a>();
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                </span><a href="#51">file</a>.kind = <a href="#19">ArchiveKind::Bsd</a>;
+                <a href="#51">file</a>.symbols = <a href="#75">member</a>.<a href="#285">file_range</a>();
+                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
             } <span class="kw">else if </span>member.name == <span class="string">b&quot;__.SYMDEF_64&quot; </span>|| member.name == <span class="string">b&quot;__.SYMDEF_64 SORTED&quot; </span>{
                 <span class="comment">// BSD 64-bit symbol table.
-                </span><a href="../../../src/object/read/archive.rs.html#51">file</a>.kind = <a href="../../../src/object/read/archive.rs.html#23">ArchiveKind::Bsd64</a>;
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.symbols = <a href="../../../src/object/read/archive.rs.html#75">member</a>.<a href="../../../src/object/read/archive.rs.html#285">file_range</a>();
-                <a href="../../../src/object/read/archive.rs.html#51">file</a>.offset = <a href="../../../src/object/read/archive.rs.html#43">tail</a>;
+                </span><a href="#51">file</a>.kind = <a href="#23">ArchiveKind::Bsd64</a>;
+                <a href="#51">file</a>.symbols = <a href="#75">member</a>.<a href="#285">file_range</a>();
+                <a href="#51">file</a>.offset = <a href="#43">tail</a>;
             } <span class="kw">else </span>{
                 <span class="comment">// TODO: This could still be a BSD file. We leave this as unknown for now.
             </span>}
         }
-        <span class="prelude-val">Ok</span>(<a href="../../../src/object/read/archive.rs.html#51">file</a>)
+        <span class="prelude-val">Ok</span>(<a href="#51">file</a>)
     }
 
     <span class="doccomment">/// Return the archive format.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/object/read/archive.rs.html#11">ArchiveKind</a> {
-        <a class="self" href="../../../src/object/read/archive.rs.html#142">self</a>.kind
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#11">ArchiveKind</a> {
+        <a class="self" href="#142">self</a>.kind
     }
 
     <span class="doccomment">/// Iterate over the members of the archive.
@@ -650,11 +650,11 @@
     /// This does not return special members.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>members(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArchiveMemberIterator&lt;<span class="lifetime">&#39;data</span>, R&gt; {
-        <a href="../../../src/object/read/archive.rs.html#162">ArchiveMemberIterator</a> {
-            data: <a class="self" href="../../../src/object/read/archive.rs.html#150">self</a>.data,
-            offset: <a class="self" href="../../../src/object/read/archive.rs.html#150">self</a>.offset,
-            len: <a class="self" href="../../../src/object/read/archive.rs.html#150">self</a>.len,
-            names: <a class="self" href="../../../src/object/read/archive.rs.html#150">self</a>.names,
+        <a href="#162">ArchiveMemberIterator</a> {
+            data: <a class="self" href="#150">self</a>.data,
+            offset: <a class="self" href="#150">self</a>.offset,
+            len: <a class="self" href="#150">self</a>.len,
+            names: <a class="self" href="#150">self</a>.names,
         }
     }
 }
@@ -675,18 +675,18 @@
         <span class="kw">if </span><span class="self">self</span>.offset &gt;= <span class="self">self</span>.len {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>member = ArchiveMember::parse(<a class="self" href="../../../src/object/read/archive.rs.html#172">self</a>.data, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/object/read/archive.rs.html#172">self</a>.offset, <a class="self" href="../../../src/object/read/archive.rs.html#172">self</a>.names);
+        <span class="kw">let </span>member = ArchiveMember::parse(<a class="self" href="#172">self</a>.data, <span class="kw-2">&amp;mut </span><a class="self" href="#172">self</a>.offset, <a class="self" href="#172">self</a>.names);
         <span class="kw">if </span>member.is_err() {
-            <a class="self" href="../../../src/object/read/archive.rs.html#172">self</a>.offset = <a class="self" href="../../../src/object/read/archive.rs.html#172">self</a>.len;
+            <a class="self" href="#172">self</a>.offset = <a class="self" href="#172">self</a>.len;
         }
-        <span class="prelude-val">Some</span>(<a href="../../../src/object/read/archive.rs.html#176">member</a>)
+        <span class="prelude-val">Some</span>(<a href="#176">member</a>)
     }
 }
 
 <span class="doccomment">/// A partially parsed archive member.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ArchiveMember&lt;<span class="lifetime">&#39;data</span>&gt; {
-    header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../src/object/archive.rs.html#22">archive::Header</a>,
+    header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../archive.rs.html#22">archive::Header</a>,
     name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
@@ -705,18 +705,18 @@
             .read::&lt;archive::Header&gt;(offset)
             .read_error(<span class="string">&quot;Invalid archive member header&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>header.terminator != archive::TERMINATOR {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid archive terminator&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid archive terminator&quot;</span>));
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>file_offset = <span class="kw-2">*</span><a href="../../../src/object/read/archive.rs.html#199">offset</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>file_offset = <span class="kw-2">*</span><a href="#199">offset</a>;
         <span class="kw">let </span><span class="kw-2">mut </span>file_size =
             parse_u64_digits(<span class="kw-2">&amp;</span>header.size, <span class="number">10</span>).read_error(<span class="string">&quot;Invalid archive member size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><a href="../../../src/object/read/archive.rs.html#199">offset</a> = offset
+        <span class="kw-2">*</span><a href="#199">offset</a> = offset
             .checked_add(file_size)
             .read_error(<span class="string">&quot;Archive member size is too large&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Entries are padded to an even number of bytes.
         </span><span class="kw">if </span>(file_size &amp; <span class="number">1</span>) != <span class="number">0 </span>{
-            <span class="kw-2">*</span><a href="../../../src/object/read/archive.rs.html#199">offset</a> = <a href="../../../src/object/read/archive.rs.html#199">offset</a>.saturating_add(<span class="number">1</span>);
+            <span class="kw-2">*</span><a href="#199">offset</a> = <a href="#199">offset</a>.saturating_add(<span class="number">1</span>);
         }
 
         <span class="kw">let </span>name = <span class="kw">if </span>header.name[<span class="number">0</span>] == <span class="string">b&#39;/&#39; </span>&amp;&amp; (header.name[<span class="number">1</span>] <span class="kw">as </span>char).is_digit(<span class="number">10</span>) {
@@ -728,27 +728,27 @@
             </span>parse_bsd_extended_name(<span class="kw-2">&amp;</span>header.name[<span class="number">3</span>..], data, <span class="kw-2">&amp;mut </span>file_offset, <span class="kw-2">&amp;mut </span>file_size)
                 .read_error(<span class="string">&quot;Invalid archive extended name length&quot;</span>)<span class="question-mark">?
         </span>} <span class="kw">else if </span>header.name[<span class="number">0</span>] == <span class="string">b&#39;/&#39; </span>{
-            <span class="kw">let </span>name_len = memchr::memchr(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#202">header</a>.name).unwrap_or(<a href="../../../src/object/read/archive.rs.html#202">header</a>.name.len());
-            <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#202">header</a>.name[..<a href="../../../src/object/read/archive.rs.html#229">name_len</a>]
+            <span class="kw">let </span>name_len = memchr::memchr(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="#202">header</a>.name).unwrap_or(<a href="#202">header</a>.name.len());
+            <span class="kw-2">&amp;</span><a href="#202">header</a>.name[..<a href="#229">name_len</a>]
         } <span class="kw">else </span>{
-            <span class="kw">let </span>name_len = memchr::memchr(<span class="string">b&#39;/&#39;</span>, <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#202">header</a>.name)
-                .or_else(|| memchr::memchr(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#202">header</a>.name))
-                .unwrap_or(<a href="../../../src/object/read/archive.rs.html#202">header</a>.name.len());
-            <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#202">header</a>.name[..<a href="../../../src/object/read/archive.rs.html#232">name_len</a>]
+            <span class="kw">let </span>name_len = memchr::memchr(<span class="string">b&#39;/&#39;</span>, <span class="kw-2">&amp;</span><a href="#202">header</a>.name)
+                .or_else(|| memchr::memchr(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="#202">header</a>.name))
+                .unwrap_or(<a href="#202">header</a>.name.len());
+            <span class="kw-2">&amp;</span><a href="#202">header</a>.name[..<a href="#232">name_len</a>]
         };
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/object/read/archive.rs.html#186">ArchiveMember</a> {
-            <a href="../../../src/object/read/archive.rs.html#202">header</a>,
-            <a href="../../../src/object/read/archive.rs.html#220">name</a>,
-            offset: <a href="../../../src/object/read/archive.rs.html#209">file_offset</a>,
-            size: <a href="../../../src/object/read/archive.rs.html#210">file_size</a>,
+        <span class="prelude-val">Ok</span>(<a href="#186">ArchiveMember</a> {
+            <a href="#202">header</a>,
+            <a href="#220">name</a>,
+            offset: <a href="#209">file_offset</a>,
+            size: <a href="#210">file_size</a>,
         })
     }
 
     <span class="doccomment">/// Return the raw header.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../src/object/archive.rs.html#22">archive::Header</a> {
-        <a class="self" href="../../../src/object/read/archive.rs.html#248">self</a>.header
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../archive.rs.html#22">archive::Header</a> {
+        <a class="self" href="#248">self</a>.header
     }
 
     <span class="doccomment">/// Return the parsed file name.
@@ -756,49 +756,49 @@
     /// This may be an extended file name.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/object/read/archive.rs.html#256">self</a>.name
+        <a class="self" href="#256">self</a>.name
     }
 
     <span class="doccomment">/// Parse the file modification timestamp from the header.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="../../../src/object/read/archive.rs.html#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/object/read/archive.rs.html#262">self</a>.header.date, <span class="number">10</span>)
+        <a href="#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="#262">self</a>.header.date, <span class="number">10</span>)
     }
 
     <span class="doccomment">/// Parse the user ID from the header.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="../../../src/object/read/archive.rs.html#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/object/read/archive.rs.html#268">self</a>.header.uid, <span class="number">10</span>)
+        <a href="#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="#268">self</a>.header.uid, <span class="number">10</span>)
     }
 
     <span class="doccomment">/// Parse the group ID from the header.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="../../../src/object/read/archive.rs.html#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/object/read/archive.rs.html#274">self</a>.header.gid, <span class="number">10</span>)
+        <a href="#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="#274">self</a>.header.gid, <span class="number">10</span>)
     }
 
     <span class="doccomment">/// Parse the file mode from the header.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a href="../../../src/object/read/archive.rs.html#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/object/read/archive.rs.html#280">self</a>.header.mode, <span class="number">8</span>)
+        <a href="#298">parse_u64_digits</a>(<span class="kw-2">&amp;</span><a class="self" href="#280">self</a>.header.mode, <span class="number">8</span>)
     }
 
     <span class="doccomment">/// Return the offset and size of the file data.
     </span><span class="kw">pub fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        (<a class="self" href="../../../src/object/read/archive.rs.html#285">self</a>.offset, <a class="self" href="../../../src/object/read/archive.rs.html#285">self</a>.size)
+        (<a class="self" href="#285">self</a>.offset, <a class="self" href="#285">self</a>.size)
     }
 
     <span class="doccomment">/// Return the file data.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>data&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="../../../src/object/read/archive.rs.html#291">data</a>.<a href="../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a class="self" href="../../../src/object/read/archive.rs.html#291">self</a>.offset, <a class="self" href="../../../src/object/read/archive.rs.html#291">self</a>.size)
-            .<a href="../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Archive member size is too large&quot;</span>)
+        <a href="#291">data</a>.<a href="read_ref.rs.html#44">read_bytes_at</a>(<a class="self" href="#291">self</a>.offset, <a class="self" href="#291">self</a>.size)
+            .<a href="mod.rs.html#80">read_error</a>(<span class="string">&quot;Archive member size is too large&quot;</span>)
     }
 }
 
 <span class="comment">// Ignores bytes starting from the first space.
 </span><span class="kw">fn </span>parse_u64_digits(digits: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], radix: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <span class="kw">if let </span>[<span class="string">b&#39; &#39;</span>, ..] = <a href="../../../src/object/read/archive.rs.html#298">digits</a> {
+    <span class="kw">if let </span>[<span class="string">b&#39; &#39;</span>, ..] = <a href="#298">digits</a> {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
     <span class="kw">let </span><span class="kw-2">mut </span>result: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0</span>;
@@ -812,18 +812,18 @@
                 </span>.checked_add(u64::from(x))<span class="question-mark">?</span>;
         }
     }
-    <span class="prelude-val">Some</span>(<a href="../../../src/object/read/archive.rs.html#302">result</a>)
+    <span class="prelude-val">Some</span>(<a href="#302">result</a>)
 }
 
 <span class="kw">fn </span>parse_sysv_extended_name&lt;<span class="lifetime">&#39;data</span>&gt;(digits: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], names: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
     <span class="kw">let </span>offset = parse_u64_digits(digits, <span class="number">10</span>).ok_or(())<span class="question-mark">?</span>;
     <span class="kw">let </span>offset = offset.try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
     <span class="kw">let </span>name_data = names.get(offset..).ok_or(())<span class="question-mark">?</span>;
-    <span class="kw">let </span>name = <span class="kw">match </span>memchr::memchr2(<span class="string">b&#39;/&#39;</span>, <span class="string">b&#39;\0&#39;</span>, <a href="../../../src/object/read/archive.rs.html#319">name_data</a>) {
-        <span class="prelude-val">Some</span>(len) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#319">name_data</a>[..<a href="../../../src/object/read/archive.rs.html#321">len</a>],
-        <span class="prelude-val">None </span>=&gt; <a href="../../../src/object/read/archive.rs.html#319">name_data</a>,
+    <span class="kw">let </span>name = <span class="kw">match </span>memchr::memchr2(<span class="string">b&#39;/&#39;</span>, <span class="string">b&#39;\0&#39;</span>, <a href="#319">name_data</a>) {
+        <span class="prelude-val">Some</span>(len) =&gt; <span class="kw-2">&amp;</span><a href="#319">name_data</a>[..<a href="#321">len</a>],
+        <span class="prelude-val">None </span>=&gt; <a href="#319">name_data</a>,
     };
-    <span class="prelude-val">Ok</span>(<a href="../../../src/object/read/archive.rs.html#320">name</a>)
+    <span class="prelude-val">Ok</span>(<a href="#320">name</a>)
 }
 
 <span class="doccomment">/// Modifies `data` to start after the extended name.
@@ -834,13 +834,13 @@
     size: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
     <span class="kw">let </span>len = parse_u64_digits(digits, <span class="number">10</span>).ok_or(())<span class="question-mark">?</span>;
-    <span class="kw-2">*</span><a href="../../../src/object/read/archive.rs.html#332">size</a> = size.checked_sub(len).ok_or(())<span class="question-mark">?</span>;
+    <span class="kw-2">*</span><a href="#332">size</a> = size.checked_sub(len).ok_or(())<span class="question-mark">?</span>;
     <span class="kw">let </span>name_data = data.read_bytes(offset, len)<span class="question-mark">?</span>;
-    <span class="kw">let </span>name = <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a href="../../../src/object/read/archive.rs.html#336">name_data</a>) {
-        <span class="prelude-val">Some</span>(len) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/object/read/archive.rs.html#336">name_data</a>[..<a href="../../../src/object/read/archive.rs.html#338">len</a>],
-        <span class="prelude-val">None </span>=&gt; <a href="../../../src/object/read/archive.rs.html#336">name_data</a>,
+    <span class="kw">let </span>name = <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a href="#336">name_data</a>) {
+        <span class="prelude-val">Some</span>(len) =&gt; <span class="kw-2">&amp;</span><a href="#336">name_data</a>[..<a href="#338">len</a>],
+        <span class="prelude-val">None </span>=&gt; <a href="#336">name_data</a>,
     };
-    <span class="prelude-val">Ok</span>(<a href="../../../src/object/read/archive.rs.html#337">name</a>)
+    <span class="prelude-val">Ok</span>(<a href="#337">name</a>)
 }
 
 <span class="attribute">#[cfg(test)]
@@ -1003,4 +1003,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

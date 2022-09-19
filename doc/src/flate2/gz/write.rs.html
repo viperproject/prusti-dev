@@ -452,11 +452,11 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use </span><span class="kw">super</span>::bufread::{<a href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>, <a href="../../../src/flate2/gz/bufread.rs.html#117">read_gz_header</a>};
-<span class="kw">use super</span>::{<a href="../../../src/flate2/gz/mod.rs.html#112">GzBuilder</a>, <a href="../../../src/flate2/gz/mod.rs.html#22">GzHeader</a>};
-<span class="kw">use </span><span class="kw">crate</span>::crc::{<a href="../../../src/flate2/crc.rs.html#12">Crc</a>, <a href="../../../src/flate2/crc.rs.html#132">CrcWriter</a>};
-<span class="kw">use </span><a href="../../../src/flate2/lib.rs.html#92"><span class="kw">crate</span>::zio</a>;
-<span class="kw">use crate</span>::{<a href="../../../src/flate2/mem.rs.html#22">Compress</a>, <a href="../../../src/flate2/lib.rs.html#157">Compression</a>, <a href="../../../src/flate2/mem.rs.html#39">Decompress</a>, <a href="../../../src/flate2/mem.rs.html#168">Status</a>};
+<span class="kw">use </span><span class="kw">super</span>::bufread::{<a href="bufread.rs.html#21">corrupt</a>, <a href="bufread.rs.html#117">read_gz_header</a>};
+<span class="kw">use super</span>::{<a href="mod.rs.html#112">GzBuilder</a>, <a href="mod.rs.html#22">GzHeader</a>};
+<span class="kw">use </span><span class="kw">crate</span>::crc::{<a href="../crc.rs.html#12">Crc</a>, <a href="../crc.rs.html#132">CrcWriter</a>};
+<span class="kw">use </span><a href="../lib.rs.html#92"><span class="kw">crate</span>::zio</a>;
+<span class="kw">use crate</span>::{<a href="../mem.rs.html#22">Compress</a>, <a href="../lib.rs.html#157">Compression</a>, <a href="../mem.rs.html#39">Decompress</a>, <a href="../mem.rs.html#168">Status</a>};
 
 <span class="doccomment">/// A gzip streaming encoder
 ///
@@ -482,17 +482,17 @@
 /// ```
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>GzEncoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    inner: zio::Writer&lt;W, <a href="../../../src/flate2/mem.rs.html#22">Compress</a>&gt;,
-    crc: <a href="../../../src/flate2/crc.rs.html#12">Crc</a>,
+    inner: zio::Writer&lt;W, <a href="../mem.rs.html#22">Compress</a>&gt;,
+    crc: <a href="../crc.rs.html#12">Crc</a>,
     crc_bytes_written: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     header: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
-<span class="kw">pub fn </span>gz_encoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(header: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, w: W, lvl: <a href="../../../src/flate2/lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
-    <a href="../../../src/flate2/gz/write.rs.html#34">GzEncoder</a> {
-        inner: zio::Writer::new(<a href="../../../src/flate2/gz/write.rs.html#41">w</a>, Compress::new(<a href="../../../src/flate2/gz/write.rs.html#41">lvl</a>, <span class="bool-val">false</span>)),
+<span class="kw">pub fn </span>gz_encoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(header: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, w: W, lvl: <a href="../lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
+    <a href="#34">GzEncoder</a> {
+        inner: zio::Writer::new(<a href="#41">w</a>, Compress::new(<a href="#41">lvl</a>, <span class="bool-val">false</span>)),
         crc: Crc::new(),
-        <a href="../../../src/flate2/gz/write.rs.html#41">header</a>,
+        <a href="#41">header</a>,
         crc_bytes_written: <span class="number">0</span>,
     }
 }
@@ -505,13 +505,13 @@
     ///
     /// The data written to the returned encoder will be compressed and then
     /// written to the stream `w`.
-    </span><span class="kw">pub fn </span>new(w: W, level: <a href="../../../src/flate2/lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
-        GzBuilder::new().<a href="../../../src/flate2/gz/mod.rs.html#180">write</a>(<a href="../../../src/flate2/gz/write.rs.html#58">w</a>, <a href="../../../src/flate2/gz/write.rs.html#58">level</a>)
+    </span><span class="kw">pub fn </span>new(w: W, level: <a href="../lib.rs.html#157">Compression</a>) -&gt; GzEncoder&lt;W&gt; {
+        GzBuilder::new().<a href="mod.rs.html#180">write</a>(<a href="#58">w</a>, <a href="#58">level</a>)
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#63">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#187">get_ref</a>()
+        <a class="self" href="#63">self</a>.inner.<a href="../zio.rs.html#187">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.
@@ -519,7 +519,7 @@
     /// Note that mutation of the writer may result in surprising results if
     /// this encoder is continued to be used.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#71">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#191">get_mut</a>()
+        <a class="self" href="#71">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>()
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.
@@ -575,7 +575,7 @@
     /// errors which occur will be returned from this function.
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;W&gt; {
         <span class="self">self</span>.try_finish()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/gz/write.rs.html#126">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#199">take_inner</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="#126">self</a>.inner.<a href="../zio.rs.html#199">take_inner</a>())
     }
 
     <span class="kw">fn </span>write_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -592,27 +592,27 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
         <span class="self">self</span>.write_header()<span class="question-mark">?</span>;
         <span class="kw">let </span>n = <span class="self">self</span>.inner.write(buf)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#141">self</a>.crc.<a href="../../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="../../../src/flate2/gz/write.rs.html#141">buf</a>[..<a href="../../../src/flate2/gz/write.rs.html#144">n</a>]);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#144">n</a>)
+        <a class="self" href="#141">self</a>.crc.<a href="../crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="#141">buf</a>[..<a href="#144">n</a>]);
+        <span class="prelude-val">Ok</span>(<a href="#144">n</a>)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.crc_bytes_written, <span class="number">0</span>);
         <span class="self">self</span>.write_header()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#149">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="#149">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>GzEncoder&lt;R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#157">self</a>.<a href="../../../src/flate2/gz/write.rs.html#71">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/flate2/gz/write.rs.html#157">buf</a>)
+        <a class="self" href="#157">self</a>.<a href="#71">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#157">buf</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>GzEncoder&lt;W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.inner.is_present() {
-            <span class="kw">let _ </span>= <a class="self" href="../../../src/flate2/gz/write.rs.html#163">self</a>.<a href="../../../src/flate2/gz/write.rs.html#90">try_finish</a>();
+            <span class="kw">let _ </span>= <a class="self" href="#163">self</a>.<a href="#90">try_finish</a>();
         }
     }
 }
@@ -651,9 +651,9 @@
 /// ```
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>GzDecoder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    inner: zio::Writer&lt;CrcWriter&lt;W&gt;, <a href="../../../src/flate2/mem.rs.html#39">Decompress</a>&gt;,
+    inner: zio::Writer&lt;CrcWriter&lt;W&gt;, <a href="../mem.rs.html#39">Decompress</a>&gt;,
     crc_bytes: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    header: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/flate2/gz/mod.rs.html#22">GzHeader</a>&gt;,
+    header: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#22">GzHeader</a>&gt;,
     header_buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
@@ -665,22 +665,22 @@
     /// When this encoder is dropped or unwrapped the final pieces of data will
     /// be flushed.
     </span><span class="kw">pub fn </span>new(w: W) -&gt; GzDecoder&lt;W&gt; {
-        <a href="../../../src/flate2/gz/write.rs.html#203">GzDecoder</a> {
-            inner: zio::Writer::new(CrcWriter::new(<a href="../../../src/flate2/gz/write.rs.html#217">w</a>), Decompress::new(<span class="bool-val">false</span>)),
-            crc_bytes: Vec::with_capacity(<a href="../../../src/flate2/gz/write.rs.html#210">CRC_BYTES_LEN</a>),
+        <a href="#203">GzDecoder</a> {
+            inner: zio::Writer::new(CrcWriter::new(<a href="#217">w</a>), Decompress::new(<span class="bool-val">false</span>)),
+            crc_bytes: Vec::with_capacity(<a href="#210">CRC_BYTES_LEN</a>),
             header: <span class="prelude-val">None</span>,
             header_buf: Vec::new(),
         }
     }
 
     <span class="doccomment">/// Returns the header associated with this stream.
-    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/flate2/gz/mod.rs.html#22">GzHeader</a>&gt; {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#227">self</a>.header.as_ref()
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="mod.rs.html#22">GzHeader</a>&gt; {
+        <a class="self" href="#227">self</a>.header.as_ref()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#232">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#187">get_ref</a>().<a href="../../../src/flate2/crc.rs.html#149">get_ref</a>()
+        <a class="self" href="#232">self</a>.inner.<a href="../zio.rs.html#187">get_ref</a>().<a href="../crc.rs.html#149">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.
@@ -688,7 +688,7 @@
     /// Note that mutating the output/input state of the stream may corrupt this
     /// object, so care must be taken when using this method.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#240">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#191">get_mut</a>().<a href="../../../src/flate2/crc.rs.html#154">get_mut</a>()
+        <a class="self" href="#240">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>().<a href="../crc.rs.html#154">get_mut</a>()
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.
@@ -728,29 +728,29 @@
     /// errors which occur will be returned from this function.
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;W&gt; {
         <span class="self">self</span>.finish_and_check_crc()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/gz/write.rs.html#279">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#199">take_inner</a>().<a href="../../../src/flate2/crc.rs.html#144">into_inner</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="#279">self</a>.inner.<a href="../zio.rs.html#199">take_inner</a>().<a href="../crc.rs.html#144">into_inner</a>())
     }
 
     <span class="kw">fn </span>finish_and_check_crc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.inner.finish()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.crc_bytes.len() != <span class="number">8 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
         }
 
-        <span class="kw">let </span>crc = ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
-        <span class="kw">let </span>amt = ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">5</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">6</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
-            | ((<a class="self" href="../../../src/flate2/gz/write.rs.html#284">self</a>.crc_bytes[<span class="number">7</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
+        <span class="kw">let </span>crc = ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
+        <span class="kw">let </span>amt = ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">0</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">5</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">8</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">6</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">16</span>)
+            | ((<a class="self" href="#284">self</a>.crc_bytes[<span class="number">7</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">24</span>);
         <span class="kw">if </span>crc != <span class="self">self</span>.inner.get_ref().crc().sum() <span class="kw">as </span>u32 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
         }
         <span class="kw">if </span>amt != <span class="self">self</span>.inner.get_ref().crc().amount() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="bufread.rs.html#21">corrupt</a>());
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -764,8 +764,8 @@
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>Counter&lt;T&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">let </span>pos = <span class="self">self</span>.inner.read(buf)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#315">self</a>.pos += <a href="../../../src/flate2/gz/write.rs.html#316">pos</a>;
-        <span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#316">pos</a>)
+        <a class="self" href="#315">self</a>.pos += <a href="#316">pos</a>;
+        <span class="prelude-val">Ok</span>(<a href="#316">pos</a>)
     }
 }
 
@@ -774,52 +774,52 @@
         <span class="kw">if </span><span class="self">self</span>.header.is_none() {
             <span class="comment">// trying to avoid buffer usage
             </span><span class="kw">let </span>(res, pos) = {
-                <span class="kw">let </span><span class="kw-2">mut </span>counter = <a href="../../../src/flate2/gz/write.rs.html#309">Counter</a> {
-                    inner: <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(<a href="../../../src/flate2/gz/write.rs.html#323">buf</a>),
+                <span class="kw">let </span><span class="kw-2">mut </span>counter = <a href="#309">Counter</a> {
+                    inner: <a class="self" href="#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(<a href="#323">buf</a>),
                     pos: <span class="number">0</span>,
                 };
-                <span class="kw">let </span>res = <a href="../../../src/flate2/gz/bufread.rs.html#117">read_gz_header</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/flate2/gz/write.rs.html#327">counter</a>);
-                (<a href="../../../src/flate2/gz/write.rs.html#331">res</a>, <a href="../../../src/flate2/gz/write.rs.html#327">counter</a>.pos)
+                <span class="kw">let </span>res = <a href="bufread.rs.html#117">read_gz_header</a>(<span class="kw-2">&amp;mut </span><a href="#327">counter</a>);
+                (<a href="#331">res</a>, <a href="#327">counter</a>.pos)
             };
 
-            <span class="kw">match </span><a href="../../../src/flate2/gz/write.rs.html#326">res</a> {
+            <span class="kw">match </span><a href="#326">res</a> {
                 <span class="prelude-val">Err</span>(err) =&gt; {
                     <span class="kw">if </span>err.kind() == io::ErrorKind::UnexpectedEof {
                         <span class="comment">// not enough data for header, save to the buffer
-                        </span><a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/flate2/gz/write.rs.html#323">buf</a>);
-                        <span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#323">buf</a>.len())
+                        </span><a class="self" href="#323">self</a>.header_buf.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#323">buf</a>);
+                        <span class="prelude-val">Ok</span>(<a href="#323">buf</a>.len())
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(<a href="../../../src/flate2/gz/write.rs.html#336">err</a>)
+                        <span class="prelude-val">Err</span>(<a href="#336">err</a>)
                     }
                 }
                 <span class="prelude-val">Ok</span>(header) =&gt; {
-                    <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.header = <span class="prelude-val">Some</span>(<a href="../../../src/flate2/gz/write.rs.html#345">header</a>);
-                    <span class="kw">let </span>pos = <a href="../../../src/flate2/gz/write.rs.html#326">pos</a> - <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.header_buf.len();
-                    <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.header_buf.truncate(<span class="number">0</span>);
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#347">pos</a>)
+                    <a class="self" href="#323">self</a>.header = <span class="prelude-val">Some</span>(<a href="#345">header</a>);
+                    <span class="kw">let </span>pos = <a href="#326">pos</a> - <a class="self" href="#323">self</a>.header_buf.len();
+                    <a class="self" href="#323">self</a>.header_buf.truncate(<span class="number">0</span>);
+                    <span class="prelude-val">Ok</span>(<a href="#347">pos</a>)
                 }
             }
         } <span class="kw">else </span>{
             <span class="kw">let </span>(n, status) = <span class="self">self</span>.inner.write_with_status(buf)<span class="question-mark">?</span>;
 
             <span class="kw">if </span>status == Status::StreamEnd &amp;&amp; n &lt; buf.len() &amp;&amp; <span class="self">self</span>.crc_bytes.len() &lt; <span class="number">8 </span>{
-                <span class="kw">let </span>remaining = <a href="../../../src/flate2/gz/write.rs.html#323">buf</a>.len() - <a href="../../../src/flate2/gz/write.rs.html#353">n</a>;
-                <span class="kw">let </span>crc_bytes = cmp::min(<a href="../../../src/flate2/gz/write.rs.html#356">remaining</a>, <a href="../../../src/flate2/gz/write.rs.html#210">CRC_BYTES_LEN</a> - <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.crc_bytes.len());
-                <a class="self" href="../../../src/flate2/gz/write.rs.html#323">self</a>.crc_bytes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="../../../src/flate2/gz/write.rs.html#323">buf</a>[<a href="../../../src/flate2/gz/write.rs.html#353">n</a>..<a href="../../../src/flate2/gz/write.rs.html#353">n</a> + <a href="../../../src/flate2/gz/write.rs.html#357">crc_bytes</a>]);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#353">n</a> + <a href="../../../src/flate2/gz/write.rs.html#357">crc_bytes</a>);
+                <span class="kw">let </span>remaining = <a href="#323">buf</a>.len() - <a href="#353">n</a>;
+                <span class="kw">let </span>crc_bytes = cmp::min(<a href="#356">remaining</a>, <a href="#210">CRC_BYTES_LEN</a> - <a class="self" href="#323">self</a>.crc_bytes.len());
+                <a class="self" href="#323">self</a>.crc_bytes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="#323">buf</a>[<a href="#353">n</a>..<a href="#353">n</a> + <a href="#357">crc_bytes</a>]);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#353">n</a> + <a href="#357">crc_bytes</a>);
             }
-            <span class="prelude-val">Ok</span>(<a href="../../../src/flate2/gz/write.rs.html#353">n</a>)
+            <span class="prelude-val">Ok</span>(<a href="#353">n</a>)
         }
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#365">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="#365">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>GzDecoder&lt;W&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/flate2/gz/write.rs.html#371">self</a>.inner.<a href="../../../src/flate2/zio.rs.html#191">get_mut</a>().<a href="../../../src/flate2/crc.rs.html#154">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/flate2/gz/write.rs.html#371">buf</a>)
+        <a class="self" href="#371">self</a>.inner.<a href="../zio.rs.html#191">get_mut</a>().<a href="../crc.rs.html#154">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#371">buf</a>)
     }
 }
 
@@ -899,4 +899,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -377,11 +377,11 @@
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-<span class="kw">use </span><a href="../../src/regex/exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
-<span class="kw">use </span><span class="kw">crate</span>::input::{<a href="../../src/regex/input.rs.html#67">Input</a>, <a href="../../src/regex/input.rs.html#13">InputAt</a>};
-<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="../../src/regex/prog.rs.html#13">InstPtr</a>, <a href="../../src/regex/prog.rs.html#18">Program</a>};
-<span class="kw">use </span><a href="../../src/regex/re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
-<span class="kw">use </span><a href="../../src/regex/sparse.rs.html#16"><span class="kw">crate</span>::sparse::SparseSet</a>;
+<span class="kw">use </span><a href="exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
+<span class="kw">use </span><span class="kw">crate</span>::input::{<a href="input.rs.html#67">Input</a>, <a href="input.rs.html#13">InputAt</a>};
+<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="prog.rs.html#13">InstPtr</a>, <a href="prog.rs.html#18">Program</a>};
+<span class="kw">use </span><a href="re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
+<span class="kw">use </span><a href="sparse.rs.html#16"><span class="kw">crate</span>::sparse::SparseSet</a>;
 
 <span class="doccomment">/// An NFA simulation matching engine.
 </span><span class="attribute">#[derive(Debug)]
@@ -389,10 +389,10 @@
     <span class="doccomment">/// The sequence of opcodes (among other things) that is actually executed.
     ///
     /// The program may be byte oriented or Unicode codepoint oriented.
-    </span>prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
+    </span>prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="prog.rs.html#18">Program</a>,
     <span class="doccomment">/// An explicit stack used for following epsilon transitions. (This is
     /// borrowed from the cache.)
-    </span>stack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span>Vec&lt;<a href="../../src/regex/pikevm.rs.html#68">FollowEpsilon</a>&gt;,
+    </span>stack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span>Vec&lt;<a href="#68">FollowEpsilon</a>&gt;,
     <span class="doccomment">/// The input to search.
     </span>input: I,
 }
@@ -401,22 +401,22 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Cache {
     <span class="doccomment">/// A pair of ordered sets for tracking NFA states.
-    </span>clist: <a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
-    nlist: <a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+    </span>clist: <a href="#52">Threads</a>,
+    nlist: <a href="#52">Threads</a>,
     <span class="doccomment">/// An explicit stack used for following epsilon transitions.
-    </span>stack: Vec&lt;<a href="../../src/regex/pikevm.rs.html#68">FollowEpsilon</a>&gt;,
+    </span>stack: Vec&lt;<a href="#68">FollowEpsilon</a>&gt;,
 }
 
 <span class="doccomment">/// An ordered set of NFA states and their captures.
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>Threads {
     <span class="doccomment">/// An ordered set of opcodes (each opcode is an NFA state).
-    </span>set: <a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
+    </span>set: <a href="sparse.rs.html#16">SparseSet</a>,
     <span class="doccomment">/// Captures for every NFA state.
     ///
     /// It is stored in row-major order, where the columns are the capture
     /// slots and the rows are the states.
-    </span>caps: Vec&lt;<a href="../../src/regex/re_trait.rs.html#7">Slot</a>&gt;,
+    </span>caps: Vec&lt;<a href="re_trait.rs.html#7">Slot</a>&gt;,
     <span class="doccomment">/// The number of capture slots stored per thread. (Every capture has
     /// two slots.)
     </span>slots_per_thread: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
@@ -427,64 +427,64 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>FollowEpsilon {
     <span class="doccomment">/// Follow transitions at the given instruction pointer.
-    </span>IP(<a href="../../src/regex/prog.rs.html#13">InstPtr</a>),
+    </span>IP(<a href="prog.rs.html#13">InstPtr</a>),
     <span class="doccomment">/// Restore the capture slot with the given position in the input.
-    </span>Capture { slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, pos: <a href="../../src/regex/re_trait.rs.html#7">Slot</a> },
+    </span>Capture { slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, pos: <a href="re_trait.rs.html#7">Slot</a> },
 }
 
-<span class="kw">impl </span><a href="../../src/regex/pikevm.rs.html#42">Cache</a> {
+<span class="kw">impl </span><a href="#42">Cache</a> {
     <span class="doccomment">/// Create a new allocation used by the NFA machine to record execution
     /// and captures.
-    </span><span class="kw">pub fn </span>new(_prog: <span class="kw-2">&amp;</span><a href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/regex/pikevm.rs.html#42">Cache</a> { clist: Threads::new(), nlist: Threads::new(), stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+    </span><span class="kw">pub fn </span>new(_prog: <span class="kw-2">&amp;</span><a href="prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
+        <a href="#42">Cache</a> { clist: Threads::new(), nlist: Threads::new(), stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, I: <a href="../../src/regex/input.rs.html#67">Input</a>&gt; Fsm&lt;<span class="lifetime">&#39;r</span>, I&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, I: <a href="input.rs.html#67">Input</a>&gt; Fsm&lt;<span class="lifetime">&#39;r</span>, I&gt; {
     <span class="doccomment">/// Execute the NFA matching engine.
     ///
     /// If there&#39;s a match, `exec` returns `true` and populates the given
     /// captures accordingly.
     </span><span class="kw">pub fn </span>exec(
-        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
-        cache: <span class="kw-2">&amp;</span><a href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="prog.rs.html#18">Program</a>,
+        cache: <span class="kw-2">&amp;</span><a href="exec.rs.html#1521">ProgramCache</a>,
         matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="../../src/regex/re_trait.rs.html#7">Slot</a>],
+        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
         quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         input: I,
         start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/pikevm.rs.html#90">cache</a>.borrow_mut();
-        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#98">cache</a>.pikevm;
-        <a href="../../src/regex/pikevm.rs.html#99">cache</a>.clist.<a href="../../src/regex/pikevm.rs.html#347">resize</a>(<a href="../../src/regex/pikevm.rs.html#89">prog</a>.len(), <a href="../../src/regex/pikevm.rs.html#89">prog</a>.captures.len());
-        <a href="../../src/regex/pikevm.rs.html#99">cache</a>.nlist.<a href="../../src/regex/pikevm.rs.html#347">resize</a>(<a href="../../src/regex/pikevm.rs.html#89">prog</a>.len(), <a href="../../src/regex/pikevm.rs.html#89">prog</a>.captures.len());
-        <span class="kw">let </span>at = <a href="../../src/regex/pikevm.rs.html#94">input</a>.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/pikevm.rs.html#95">start</a>);
-        <a href="../../src/regex/pikevm.rs.html#28">Fsm</a> { <a href="../../src/regex/pikevm.rs.html#89">prog</a>, stack: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#99">cache</a>.stack, <a href="../../src/regex/pikevm.rs.html#94">input</a> }.<a href="../../src/regex/pikevm.rs.html#114-123">exec_</a>(
-            <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#99">cache</a>.clist,
-            <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#99">cache</a>.nlist,
-            <a href="../../src/regex/pikevm.rs.html#91">matches</a>,
-            <a href="../../src/regex/pikevm.rs.html#92">slots</a>,
-            <a href="../../src/regex/pikevm.rs.html#93">quit_after_match</a>,
-            <a href="../../src/regex/pikevm.rs.html#102">at</a>,
-            <a href="../../src/regex/pikevm.rs.html#96">end</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#90">cache</a>.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="#98">cache</a>.pikevm;
+        <a href="#99">cache</a>.clist.<a href="#347">resize</a>(<a href="#89">prog</a>.len(), <a href="#89">prog</a>.captures.len());
+        <a href="#99">cache</a>.nlist.<a href="#347">resize</a>(<a href="#89">prog</a>.len(), <a href="#89">prog</a>.captures.len());
+        <span class="kw">let </span>at = <a href="#94">input</a>.<a href="input.rs.html#69">at</a>(<a href="#95">start</a>);
+        <a href="#28">Fsm</a> { <a href="#89">prog</a>, stack: <span class="kw-2">&amp;mut </span><a href="#99">cache</a>.stack, <a href="#94">input</a> }.<a href="#114-123">exec_</a>(
+            <span class="kw-2">&amp;mut </span><a href="#99">cache</a>.clist,
+            <span class="kw-2">&amp;mut </span><a href="#99">cache</a>.nlist,
+            <a href="#91">matches</a>,
+            <a href="#92">slots</a>,
+            <a href="#93">quit_after_match</a>,
+            <a href="#102">at</a>,
+            <a href="#96">end</a>,
         )
     }
 
     <span class="kw">fn </span>exec_(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>clist: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
-        <span class="kw-2">mut </span>nlist: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+        <span class="kw-2">mut </span>clist: <span class="kw-2">&amp;mut </span><a href="#52">Threads</a>,
+        <span class="kw-2">mut </span>nlist: <span class="kw-2">&amp;mut </span><a href="#52">Threads</a>,
         matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="../../src/regex/re_trait.rs.html#7">Slot</a>],
+        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
         quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="kw-2">mut </span>at: <a href="../../src/regex/input.rs.html#13">InputAt</a>,
+        <span class="kw-2">mut </span>at: <a href="input.rs.html#13">InputAt</a>,
         end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>matched = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>all_matched = <span class="bool-val">false</span>;
-        <a href="../../src/regex/pikevm.rs.html#116">clist</a>.set.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
-        <a href="../../src/regex/pikevm.rs.html#117">nlist</a>.set.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
+        <a href="#116">clist</a>.set.<a href="sparse.rs.html#59">clear</a>();
+        <a href="#117">nlist</a>.set.<a href="sparse.rs.html#59">clear</a>();
         <span class="lifetime">&#39;LOOP</span>: <span class="kw">loop </span>{
             <span class="kw">if </span>clist.set.is_empty() {
                 <span class="comment">// Three ways to bail out when our current set of threads is
@@ -508,9 +508,9 @@
                 //    jump ahead quickly. If it can&#39;t be found, then we can
                 //    bail out early.
                 </span><span class="kw">if </span>!<span class="self">self</span>.prog.prefixes.is_empty() {
-                    <a href="../../src/regex/pikevm.rs.html#121">at</a> = <span class="kw">match </span><a class="self" href="../../src/regex/pikevm.rs.html#115">self</a>.input.<a href="../../src/regex/input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex/pikevm.rs.html#115">self</a>.prog.prefixes, <a href="../../src/regex/pikevm.rs.html#121">at</a>) {
+                    <a href="#121">at</a> = <span class="kw">match </span><a class="self" href="#115">self</a>.input.<a href="input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="#115">self</a>.prog.prefixes, <a href="#121">at</a>) {
                         <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
-                        <span class="prelude-val">Some</span>(at) =&gt; <a href="../../src/regex/pikevm.rs.html#153">at</a>,
+                        <span class="prelude-val">Some</span>(at) =&gt; <a href="#153">at</a>,
                     };
                 }
             }
@@ -521,13 +521,13 @@
             </span><span class="kw">if </span>clist.set.is_empty()
                 || (!<span class="self">self</span>.prog.is_anchored_start &amp;&amp; !all_matched)
             {
-                <a class="self" href="../../src/regex/pikevm.rs.html#115">self</a>.<a href="../../src/regex/pikevm.rs.html#271-277">add</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#116">clist</a>, <a href="../../src/regex/pikevm.rs.html#119">slots</a>, <span class="number">0</span>, <a href="../../src/regex/pikevm.rs.html#121">at</a>);
+                <a class="self" href="#115">self</a>.<a href="#271-277">add</a>(<span class="kw-2">&amp;mut </span><a href="#116">clist</a>, <a href="#119">slots</a>, <span class="number">0</span>, <a href="#121">at</a>);
             }
             <span class="comment">// The previous call to &quot;add&quot; actually inspects the position just
             // before the current character. For stepping through the machine,
             // we can to look at the current character, so we advance the
             // input.
-            </span><span class="kw">let </span>at_next = <a class="self" href="../../src/regex/pikevm.rs.html#115">self</a>.input.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/pikevm.rs.html#121">at</a>.<a href="../../src/regex/input.rs.html#61">next_pos</a>());
+            </span><span class="kw">let </span>at_next = <a class="self" href="#115">self</a>.input.<a href="input.rs.html#69">at</a>(<a href="#121">at</a>.<a href="input.rs.html#61">next_pos</a>());
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..clist.set.len() {
                 <span class="kw">let </span>ip = clist.set[i];
                 <span class="kw">if </span><span class="self">self</span>.step(
@@ -562,11 +562,11 @@
             <span class="kw">if </span>at.pos() &gt;= end {
                 <span class="kw">break</span>;
             }
-            <a href="../../src/regex/pikevm.rs.html#121">at</a> = <a href="../../src/regex/pikevm.rs.html#170">at_next</a>;
-            mem::swap(<a href="../../src/regex/pikevm.rs.html#116">clist</a>, <a href="../../src/regex/pikevm.rs.html#117">nlist</a>);
-            <a href="../../src/regex/pikevm.rs.html#117">nlist</a>.set.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
+            <a href="#121">at</a> = <a href="#170">at_next</a>;
+            mem::swap(<a href="#116">clist</a>, <a href="#117">nlist</a>);
+            <a href="#117">nlist</a>.set.<a href="sparse.rs.html#59">clear</a>();
         }
-        <a href="../../src/regex/pikevm.rs.html#124">matched</a>
+        <a href="#124">matched</a>
     }
 
     <span class="doccomment">/// Step through the input, one token (byte or codepoint) at a time.
@@ -583,46 +583,46 @@
     /// at_next may be EOF.
     </span><span class="kw">fn </span>step(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        nlist: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+        nlist: <span class="kw-2">&amp;mut </span><a href="#52">Threads</a>,
         matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        slots: <span class="kw-2">&amp;mut </span>[<a href="../../src/regex/re_trait.rs.html#7">Slot</a>],
+        slots: <span class="kw-2">&amp;mut </span>[<a href="re_trait.rs.html#7">Slot</a>],
         thread_caps: <span class="kw-2">&amp;mut </span>[<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;],
         ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        at: <a href="../../src/regex/input.rs.html#13">InputAt</a>,
-        at_next: <a href="../../src/regex/input.rs.html#13">InputAt</a>,
+        at: <a href="input.rs.html#13">InputAt</a>,
+        at_next: <a href="input.rs.html#13">InputAt</a>,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../src/regex/pikevm.rs.html#225">self</a>.prog[<a href="../../src/regex/pikevm.rs.html#230">ip</a>] {
-            <a href="../../src/regex/prog.rs.html#276">Match</a>(match_slot) =&gt; {
+        <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#225">self</a>.prog[<a href="#230">ip</a>] {
+            <a href="prog.rs.html#276">Match</a>(match_slot) =&gt; {
                 <span class="kw">if </span>match_slot &lt; matches.len() {
-                    <a href="../../src/regex/pikevm.rs.html#227">matches</a>[<a href="../../src/regex/pikevm.rs.html#236">match_slot</a>] = <span class="bool-val">true</span>;
+                    <a href="#227">matches</a>[<a href="#236">match_slot</a>] = <span class="bool-val">true</span>;
                 }
                 <span class="kw">for </span>(slot, val) <span class="kw">in </span>slots.iter_mut().zip(thread_caps.iter()) {
                     <span class="kw-2">*</span>slot = <span class="kw-2">*</span>val;
                 }
                 <span class="bool-val">true
             </span>}
-            <a href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw-2">ref </span>inst) =&gt; {
+            <a href="prog.rs.html#288">Char</a>(<span class="kw-2">ref </span>inst) =&gt; {
                 <span class="kw">if </span>inst.c == at.char() {
-                    <a class="self" href="../../src/regex/pikevm.rs.html#225">self</a>.<a href="../../src/regex/pikevm.rs.html#271-277">add</a>(<a href="../../src/regex/pikevm.rs.html#226">nlist</a>, <a href="../../src/regex/pikevm.rs.html#229">thread_caps</a>, <a href="../../src/regex/pikevm.rs.html#245">inst</a>.goto, <a href="../../src/regex/pikevm.rs.html#232">at_next</a>);
+                    <a class="self" href="#225">self</a>.<a href="#271-277">add</a>(<a href="#226">nlist</a>, <a href="#229">thread_caps</a>, <a href="#245">inst</a>.goto, <a href="#232">at_next</a>);
                 }
                 <span class="bool-val">false
             </span>}
-            <a href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw-2">ref </span>inst) =&gt; {
+            <a href="prog.rs.html#291">Ranges</a>(<span class="kw-2">ref </span>inst) =&gt; {
                 <span class="kw">if </span>inst.matches(at.char()) {
-                    <a class="self" href="../../src/regex/pikevm.rs.html#225">self</a>.<a href="../../src/regex/pikevm.rs.html#271-277">add</a>(<a href="../../src/regex/pikevm.rs.html#226">nlist</a>, <a href="../../src/regex/pikevm.rs.html#229">thread_caps</a>, <a href="../../src/regex/pikevm.rs.html#251">inst</a>.goto, <a href="../../src/regex/pikevm.rs.html#232">at_next</a>);
+                    <a class="self" href="#225">self</a>.<a href="#271-277">add</a>(<a href="#226">nlist</a>, <a href="#229">thread_caps</a>, <a href="#251">inst</a>.goto, <a href="#232">at_next</a>);
                 }
                 <span class="bool-val">false
             </span>}
-            <a href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <a href="../../src/regex/pikevm.rs.html#231">at</a>.<a href="../../src/regex/input.rs.html#40">byte</a>() {
+            <a href="prog.rs.html#295">Bytes</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <a href="#231">at</a>.<a href="input.rs.html#40">byte</a>() {
                     <span class="kw">if </span>inst.matches(b) {
-                        <a class="self" href="../../src/regex/pikevm.rs.html#225">self</a>.<a href="../../src/regex/pikevm.rs.html#271-277">add</a>(<a href="../../src/regex/pikevm.rs.html#226">nlist</a>, <a href="../../src/regex/pikevm.rs.html#229">thread_caps</a>, <a href="../../src/regex/pikevm.rs.html#257">inst</a>.goto, <a href="../../src/regex/pikevm.rs.html#232">at_next</a>);
+                        <a class="self" href="#225">self</a>.<a href="#271-277">add</a>(<a href="#226">nlist</a>, <a href="#229">thread_caps</a>, <a href="#257">inst</a>.goto, <a href="#232">at_next</a>);
                     }
                 }
                 <span class="bool-val">false
             </span>}
-            <a href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) | <a href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) | <a href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <a href="prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) | <a href="prog.rs.html#279">Save</a>(<span class="kw">_</span>) | <a href="prog.rs.html#282">Split</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -630,12 +630,12 @@
     /// starting at and including ip.
     </span><span class="kw">fn </span>add(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        nlist: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+        nlist: <span class="kw-2">&amp;mut </span><a href="#52">Threads</a>,
         thread_caps: <span class="kw-2">&amp;mut </span>[<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;],
         ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        at: <a href="../../src/regex/input.rs.html#13">InputAt</a>,
+        at: <a href="input.rs.html#13">InputAt</a>,
     ) {
-        <a class="self" href="../../src/regex/pikevm.rs.html#272">self</a>.stack.push(<a href="../../src/regex/pikevm.rs.html#70">FollowEpsilon::IP</a>(<a href="../../src/regex/pikevm.rs.html#275">ip</a>));
+        <a class="self" href="#272">self</a>.stack.push(<a href="#70">FollowEpsilon::IP</a>(<a href="#275">ip</a>));
         <span class="kw">while let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.stack.pop() {
             <span class="kw">match </span>frame {
                 FollowEpsilon::IP(ip) =&gt; {
@@ -651,44 +651,44 @@
     <span class="doccomment">/// A helper function for add that avoids excessive pushing to the stack.
     </span><span class="kw">fn </span>add_step(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        nlist: <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+        nlist: <span class="kw-2">&amp;mut </span><a href="#52">Threads</a>,
         thread_caps: <span class="kw-2">&amp;mut </span>[<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;],
         <span class="kw-2">mut </span>ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        at: <a href="../../src/regex/input.rs.html#13">InputAt</a>,
+        at: <a href="input.rs.html#13">InputAt</a>,
     ) {
         <span class="comment">// Instead of pushing and popping to the stack, we mutate ip as we
         // traverse the set of states. We only push to the stack when we
         // absolutely need recursion (restoring captures or following a
         // branch).
-        </span><span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        </span><span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
         <span class="kw">loop </span>{
             <span class="comment">// Don&#39;t visit states we&#39;ve already added.
             </span><span class="kw">if </span>nlist.set.contains(ip) {
                 <span class="kw">return</span>;
             }
-            <a href="../../src/regex/pikevm.rs.html#294">nlist</a>.set.<a href="../../src/regex/sparse.rs.html#47">insert</a>(<a href="../../src/regex/pikevm.rs.html#296">ip</a>);
-            <span class="kw">match </span><a class="self" href="../../src/regex/pikevm.rs.html#293">self</a>.prog[<a href="../../src/regex/pikevm.rs.html#296">ip</a>] {
-                <a href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref </span>inst) =&gt; {
+            <a href="#294">nlist</a>.set.<a href="sparse.rs.html#47">insert</a>(<a href="#296">ip</a>);
+            <span class="kw">match </span><a class="self" href="#293">self</a>.prog[<a href="#296">ip</a>] {
+                <a href="prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref </span>inst) =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.input.is_empty_match(at, inst) {
-                        <a href="../../src/regex/pikevm.rs.html#296">ip</a> = <a href="../../src/regex/pikevm.rs.html#311">inst</a>.goto;
+                        <a href="#296">ip</a> = <a href="#311">inst</a>.goto;
                     }
                 }
-                <a href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                <a href="prog.rs.html#279">Save</a>(<span class="kw-2">ref </span>inst) =&gt; {
                     <span class="kw">if </span>inst.slot &lt; thread_caps.len() {
-                        <a class="self" href="../../src/regex/pikevm.rs.html#293">self</a>.stack.push(<a href="../../src/regex/pikevm.rs.html#72">FollowEpsilon::Capture</a> {
-                            slot: <a href="../../src/regex/pikevm.rs.html#316">inst</a>.slot,
-                            pos: <a href="../../src/regex/pikevm.rs.html#295">thread_caps</a>[<a href="../../src/regex/pikevm.rs.html#316">inst</a>.slot],
+                        <a class="self" href="#293">self</a>.stack.push(<a href="#72">FollowEpsilon::Capture</a> {
+                            slot: <a href="#316">inst</a>.slot,
+                            pos: <a href="#295">thread_caps</a>[<a href="#316">inst</a>.slot],
                         });
-                        <a href="../../src/regex/pikevm.rs.html#295">thread_caps</a>[<a href="../../src/regex/pikevm.rs.html#316">inst</a>.slot] = <span class="prelude-val">Some</span>(<a href="../../src/regex/pikevm.rs.html#297">at</a>.<a href="../../src/regex/input.rs.html#56">pos</a>());
+                        <a href="#295">thread_caps</a>[<a href="#316">inst</a>.slot] = <span class="prelude-val">Some</span>(<a href="#297">at</a>.<a href="input.rs.html#56">pos</a>());
                     }
-                    <a href="../../src/regex/pikevm.rs.html#296">ip</a> = <a href="../../src/regex/pikevm.rs.html#316">inst</a>.goto;
+                    <a href="#296">ip</a> = <a href="#316">inst</a>.goto;
                 }
-                <a href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw-2">ref </span>inst) =&gt; {
-                    <a class="self" href="../../src/regex/pikevm.rs.html#293">self</a>.stack.push(<a href="../../src/regex/pikevm.rs.html#70">FollowEpsilon::IP</a>(<a href="../../src/regex/pikevm.rs.html#326">inst</a>.goto2));
-                    <a href="../../src/regex/pikevm.rs.html#296">ip</a> = <a href="../../src/regex/pikevm.rs.html#326">inst</a>.goto1;
+                <a href="prog.rs.html#282">Split</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <a class="self" href="#293">self</a>.stack.push(<a href="#70">FollowEpsilon::IP</a>(<a href="#326">inst</a>.goto2));
+                    <a href="#296">ip</a> = <a href="#326">inst</a>.goto1;
                 }
-                <a href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) | <a href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) | <a href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) | <a href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let </span>t = <span class="kw-2">&amp;mut </span><a href="../../src/regex/pikevm.rs.html#294">nlist</a>.<a href="../../src/regex/pikevm.rs.html#356">caps</a>(<a href="../../src/regex/pikevm.rs.html#296">ip</a>);
+                <a href="prog.rs.html#276">Match</a>(<span class="kw">_</span>) | <a href="prog.rs.html#288">Char</a>(<span class="kw">_</span>) | <a href="prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) | <a href="prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">let </span>t = <span class="kw-2">&amp;mut </span><a href="#294">nlist</a>.<a href="#356">caps</a>(<a href="#296">ip</a>);
                     <span class="kw">for </span>(slot, val) <span class="kw">in </span>t.iter_mut().zip(thread_caps.iter()) {
                         <span class="kw-2">*</span>slot = <span class="kw-2">*</span>val;
                     }
@@ -699,24 +699,24 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/pikevm.rs.html#52">Threads</a> {
+<span class="kw">impl </span><a href="#52">Threads</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../src/regex/pikevm.rs.html#52">Threads</a> { set: SparseSet::new(<span class="number">0</span>), caps: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], slots_per_thread: <span class="number">0 </span>}
+        <a href="#52">Threads</a> { set: SparseSet::new(<span class="number">0</span>), caps: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], slots_per_thread: <span class="number">0 </span>}
     }
 
     <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, num_insts: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, ncaps: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">if </span>num_insts == <span class="self">self</span>.set.capacity() {
             <span class="kw">return</span>;
         }
-        <a class="self" href="../../src/regex/pikevm.rs.html#347">self</a>.slots_per_thread = <a href="../../src/regex/pikevm.rs.html#347">ncaps</a> * <span class="number">2</span>;
-        <a class="self" href="../../src/regex/pikevm.rs.html#347">self</a>.set = SparseSet::new(<a href="../../src/regex/pikevm.rs.html#347">num_insts</a>);
-        <a class="self" href="../../src/regex/pikevm.rs.html#347">self</a>.caps = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; <span class="self">self</span>.slots_per_thread * num_insts];
+        <a class="self" href="#347">self</a>.slots_per_thread = <a href="#347">ncaps</a> * <span class="number">2</span>;
+        <a class="self" href="#347">self</a>.set = SparseSet::new(<a href="#347">num_insts</a>);
+        <a class="self" href="#347">self</a>.caps = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; <span class="self">self</span>.slots_per_thread * num_insts];
     }
 
     <span class="kw">fn </span>caps(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pc: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span>[<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;] {
-        <span class="kw">let </span>i = <a href="../../src/regex/pikevm.rs.html#356">pc</a> * <a class="self" href="../../src/regex/pikevm.rs.html#356">self</a>.slots_per_thread;
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/regex/pikevm.rs.html#356">self</a>.caps[<a href="../../src/regex/pikevm.rs.html#357">i</a>..<a href="../../src/regex/pikevm.rs.html#357">i</a> + <a class="self" href="../../src/regex/pikevm.rs.html#356">self</a>.slots_per_thread]
+        <span class="kw">let </span>i = <a href="#356">pc</a> * <a class="self" href="#356">self</a>.slots_per_thread;
+        <span class="kw-2">&amp;mut </span><a class="self" href="#356">self</a>.caps[<a href="#357">i</a>..<a href="#357">i</a> + <a class="self" href="#356">self</a>.slots_per_thread]
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -261,7 +261,7 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/io/mod.rs.html#35"><span class="kw">super</span>::DEFAULT_BUF_SIZE</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#35"><span class="kw">super</span>::DEFAULT_BUF_SIZE</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
 <span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -304,34 +304,34 @@
     <span class="doccomment">/// Creates a new `BufReader` with a default buffer capacity. The default is currently 8 KB,
     /// but may change in the future.
     </span><span class="kw">pub fn </span>new(inner: R) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_capacity(<a href="../../../src/futures_util/io/mod.rs.html#35">DEFAULT_BUF_SIZE</a>, <a href="../../../src/futures_util/io/buf_reader.rs.html#43">inner</a>)
+        <span class="self">Self</span>::with_capacity(<a href="mod.rs.html#35">DEFAULT_BUF_SIZE</a>, <a href="#43">inner</a>)
     }
 
     <span class="doccomment">/// Creates a new `BufReader` with the specified buffer capacity.
     </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, inner: R) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(<a href="../../../src/futures_util/io/buf_reader.rs.html#48">capacity</a>);
-            <a href="../../../src/futures_util/io/buf_reader.rs.html#50">buffer</a>.set_len(<a href="../../../src/futures_util/io/buf_reader.rs.html#48">capacity</a>);
-            <a href="../../../src/futures_util/io/mod.rs.html#41"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/buf_reader.rs.html#48">inner</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/io/buf_reader.rs.html#50">buffer</a>);
-            <span class="self">Self </span>{ <a href="../../../src/futures_util/io/buf_reader.rs.html#48">inner</a>, buffer: <a href="../../../src/futures_util/io/buf_reader.rs.html#50">buffer</a>.into_boxed_slice(), pos: <span class="number">0</span>, cap: <span class="number">0 </span>}
+            <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::with_capacity(<a href="#48">capacity</a>);
+            <a href="#50">buffer</a>.set_len(<a href="#48">capacity</a>);
+            <a href="mod.rs.html#41"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="#48">inner</a>, <span class="kw-2">&amp;mut </span><a href="#50">buffer</a>);
+            <span class="self">Self </span>{ <a href="#48">inner</a>, buffer: <a href="#50">buffer</a>.into_boxed_slice(), pos: <span class="number">0</span>, cap: <span class="number">0 </span>}
         }
     }
 
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(inner, R, ());
+    <a class="macro" href="../lib.rs.html#182-216">delegate_access_inner!</a>(inner, R, ());
 
     <span class="doccomment">/// Returns a reference to the internally buffered data.
     ///
     /// Unlike `fill_buf`, this will not attempt to fill the buffer if it is empty.
     </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#62">self</a>.buffer[<a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#62">self</a>.pos..<a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#62">self</a>.cap]
+        <span class="kw-2">&amp;</span><a class="self" href="#62">self</a>.buffer[<a class="self" href="#62">self</a>.pos..<a class="self" href="#62">self</a>.cap]
     }
 
     <span class="doccomment">/// Invalidates all data in the internal buffer.
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>discard_buffer(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#68">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#11-38">project</a>();
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#69">this</a>.pos = <span class="number">0</span>;
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#69">this</a>.cap = <span class="number">0</span>;
+        <span class="kw">let </span>this = <a class="self" href="#68">self</a>.<a href="#11-38">project</a>();
+        <span class="kw-2">*</span><a href="#69">this</a>.pos = <span class="number">0</span>;
+        <span class="kw-2">*</span><a href="#69">this</a>.cap = <span class="number">0</span>;
     }
 }
 
@@ -341,7 +341,7 @@
     /// This method does not return the location of the underlying reader, so the caller
     /// must track this information themselves if it is required.
     </span><span class="kw">pub fn </span>seek_relative(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; SeeKRelative&lt;<span class="lifetime">&#39;_</span>, R&gt; {
-        <a href="../../../src/futures_util/io/buf_reader.rs.html#238">SeeKRelative</a> { inner: <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#80">self</a>, <a href="../../../src/futures_util/io/buf_reader.rs.html#80">offset</a>, first: <span class="bool-val">true </span>}
+        <a href="#238">SeeKRelative</a> { inner: <a class="self" href="#80">self</a>, <a href="#80">offset</a>, first: <span class="bool-val">true </span>}
     }
 
     <span class="doccomment">/// Attempts to seek relative to the current position. If the new position lies within the buffer,
@@ -353,19 +353,19 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span>pos = <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#89">self</a>.pos <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        <span class="kw">let </span>pos = <a class="self" href="#89">self</a>.pos <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
         <span class="kw">if </span>offset &lt; <span class="number">0 </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(new_pos) = <a href="../../../src/futures_util/io/buf_reader.rs.html#93">pos</a>.checked_sub((-<a href="../../../src/futures_util/io/buf_reader.rs.html#91">offset</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-                <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#89">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#11-38">project</a>().pos = <a href="../../../src/futures_util/io/buf_reader.rs.html#95">new_pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(new_pos) = <a href="#93">pos</a>.checked_sub((-<a href="#91">offset</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+                <span class="kw-2">*</span><a class="self" href="#89">self</a>.<a href="#11-38">project</a>().pos = <a href="#95">new_pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(new_pos) = <a href="../../../src/futures_util/io/buf_reader.rs.html#93">pos</a>.checked_add(<a href="../../../src/futures_util/io/buf_reader.rs.html#91">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(new_pos) = <a href="#93">pos</a>.checked_add(<a href="#91">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
             <span class="kw">if </span>new_pos &lt;= <span class="self">self</span>.cap <span class="kw">as </span>u64 {
-                <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#89">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#11-38">project</a>().pos = <a href="../../../src/futures_util/io/buf_reader.rs.html#99">new_pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                <span class="kw-2">*</span><a class="self" href="#89">self</a>.<a href="#11-38">project</a>().pos = <a href="#99">new_pos</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
-        <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#89">self</a>.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="../../../src/futures_util/io/buf_reader.rs.html#90">cx</a>, SeekFrom::Current(<a href="../../../src/futures_util/io/buf_reader.rs.html#91">offset</a>)).map(|res| <a href="../../../src/futures_util/io/buf_reader.rs.html#105">res</a>.map(|<span class="kw">_</span>| ()))
+        <a class="self" href="#89">self</a>.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="#90">cx</a>, SeekFrom::Current(<a href="#91">offset</a>)).map(|res| <a href="#105">res</a>.map(|<span class="kw">_</span>| ()))
     }
 }
 
@@ -380,13 +380,13 @@
         // entirely.
         </span><span class="kw">if </span><span class="self">self</span>.pos == <span class="self">self</span>.cap &amp;&amp; buf.len() &gt;= <span class="self">self</span>.buffer.len() {
             <span class="kw">let </span>res = <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().project().inner.poll_read(cx, buf));
-            <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#111">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#68">discard_buffer</a>();
-            <span class="kw">return </span>Poll::Ready(<a href="../../../src/futures_util/io/buf_reader.rs.html#119">res</a>);
+            <a class="self" href="#111">self</a>.<a href="#68">discard_buffer</a>();
+            <span class="kw">return </span>Poll::Ready(<a href="#119">res</a>);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>rem = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
         <span class="kw">let </span>nread = rem.read(buf)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#111">self</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="../../../src/futures_util/io/buf_reader.rs.html#124">nread</a>);
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/buf_reader.rs.html#124">nread</a>))
+        <a class="self" href="#111">self</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="#124">nread</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#124">nread</a>))
     }
 
     <span class="kw">fn </span>poll_read_vectored(
@@ -394,22 +394,22 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span>total_len = <a href="../../../src/futures_util/io/buf_reader.rs.html#132">bufs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/futures_util/io/buf_reader.rs.html#134">b</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;();
+        <span class="kw">let </span>total_len = <a href="#132">bufs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#134">b</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;();
         <span class="kw">if </span><span class="self">self</span>.pos == <span class="self">self</span>.cap &amp;&amp; total_len &gt;= <span class="self">self</span>.buffer.len() {
             <span class="kw">let </span>res = <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().project().inner.poll_read_vectored(cx, bufs));
-            <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#130">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#68">discard_buffer</a>();
-            <span class="kw">return </span>Poll::Ready(<a href="../../../src/futures_util/io/buf_reader.rs.html#136">res</a>);
+            <a class="self" href="#130">self</a>.<a href="#68">discard_buffer</a>();
+            <span class="kw">return </span>Poll::Ready(<a href="#136">res</a>);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>rem = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
         <span class="kw">let </span>nread = rem.read_vectored(bufs)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#130">self</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="../../../src/futures_util/io/buf_reader.rs.html#141">nread</a>);
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/buf_reader.rs.html#141">nread</a>))
+        <a class="self" href="#130">self</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="#141">nread</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#141">nread</a>))
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>&gt; <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#148">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#11-38">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#148">self</a>.<a href="#11-38">project</a>();
 
         <span class="comment">// If we&#39;ve reached the end of our internal buffer then we need to fetch
         // some more data from the underlying reader.
@@ -417,25 +417,25 @@
         // to tell the compiler that the pos..cap slice is always valid.
         </span><span class="kw">if </span><span class="kw-2">*</span>this.pos &gt;= <span class="kw-2">*</span>this.cap {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw-2">*</span>this.pos == <span class="kw-2">*</span>this.cap);
-            <span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#149">this</a>.cap = <span class="macro">ready!</span>(this.inner.poll_read(cx, this.buffer))<span class="question-mark">?</span>;
-            <span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#149">this</a>.pos = <span class="number">0</span>;
+            <span class="kw-2">*</span><a href="#149">this</a>.cap = <span class="macro">ready!</span>(this.inner.poll_read(cx, this.buffer))<span class="question-mark">?</span>;
+            <span class="kw-2">*</span><a href="#149">this</a>.pos = <span class="number">0</span>;
         }
-        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/buf_reader.rs.html#149">this</a>.buffer[<span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#149">this</a>.pos..<span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_reader.rs.html#149">this</a>.cap]))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="#149">this</a>.buffer[<span class="kw-2">*</span><a href="#149">this</a>.pos..<span class="kw-2">*</span><a href="#149">this</a>.cap]))
     }
 
     <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#163">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#11-38">project</a>().pos = cmp::min(<a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#163">self</a>.pos + <a href="../../../src/futures_util/io/buf_reader.rs.html#163">amt</a>, <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#163">self</a>.cap);
+        <span class="kw-2">*</span><a class="self" href="#163">self</a>.<a href="#11-38">project</a>().pos = cmp::min(<a class="self" href="#163">self</a>.pos + <a href="#163">amt</a>, <a class="self" href="#163">self</a>.cap);
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>&gt; <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>BufReader&lt;R&gt; {
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#112-141">delegate_async_write!</a>(inner);
+    <a class="macro" href="../lib.rs.html#112-141">delegate_async_write!</a>(inner);
 }
 
 <span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_util/io/buf_reader.rs.html#173">f</a>.debug_struct(<span class="string">&quot;BufReader&quot;</span>)
-            .field(<span class="string">&quot;reader&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#173">self</a>.inner)
+        <a href="#173">f</a>.debug_struct(<span class="string">&quot;BufReader&quot;</span>)
+            .field(<span class="string">&quot;reader&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#173">self</a>.inner)
             .field(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}/{}&quot;</span>, <span class="self">self</span>.cap - <span class="self">self</span>.pos, <span class="self">self</span>.buffer.len()))
             .finish()
     }
@@ -470,28 +470,28 @@
         pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
         <span class="kw">let </span>result: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <span class="kw">if let </span>SeekFrom::Current(n) = <a href="../../../src/futures_util/io/buf_reader.rs.html#207">pos</a> {
-            <span class="kw">let </span>remainder = (<a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#205">self</a>.cap - <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#205">self</a>.pos) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+        <span class="kw">if let </span>SeekFrom::Current(n) = <a href="#207">pos</a> {
+            <span class="kw">let </span>remainder = (<a class="self" href="#205">self</a>.cap - <a class="self" href="#205">self</a>.pos) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
             <span class="comment">// it should be safe to assume that remainder fits within an i64 as the alternative
             // means we managed to allocate 8 exbibytes and that&#39;s absurd.
             // But it&#39;s not out of the realm of possibility for some weird underlying reader to
             // support seeking by i64::min_value() so we need to handle underflow when subtracting
             // remainder.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a href="../../../src/futures_util/io/buf_reader.rs.html#210">n</a>.checked_sub(<a href="../../../src/futures_util/io/buf_reader.rs.html#211">remainder</a>) {
-                <a href="../../../src/futures_util/io/buf_reader.rs.html#209">result</a> =
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <a href="#210">n</a>.checked_sub(<a href="#211">remainder</a>) {
+                <a href="#209">result</a> =
                     <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, SeekFrom::Current(offset)))<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
                 <span class="comment">// seek backwards by our remainder, and then by the offset
                 </span><span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, SeekFrom::Current(-remainder)))<span class="question-mark">?</span>;
-                <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#205">self</a>.as_mut().<a href="../../../src/futures_util/io/buf_reader.rs.html#68">discard_buffer</a>();
-                <a href="../../../src/futures_util/io/buf_reader.rs.html#209">result</a> = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, SeekFrom::Current(n)))<span class="question-mark">?</span>;
+                <a class="self" href="#205">self</a>.as_mut().<a href="#68">discard_buffer</a>();
+                <a href="#209">result</a> = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, SeekFrom::Current(n)))<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
             <span class="comment">// Seeking with Start/End doesn&#39;t care about our buffer length.
-            </span><a href="../../../src/futures_util/io/buf_reader.rs.html#209">result</a> = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, pos))<span class="question-mark">?</span>;
+            </span><a href="#209">result</a> = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().inner.poll_seek(cx, pos))<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#205">self</a>.<a href="../../../src/futures_util/io/buf_reader.rs.html#68">discard_buffer</a>();
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/buf_reader.rs.html#209">result</a>))
+        <a class="self" href="#205">self</a>.<a href="#68">discard_buffer</a>();
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#209">result</a>))
     }
 }
 
@@ -511,18 +511,18 @@
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>offset = <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#250">self</a>.offset;
+        <span class="kw">let </span>offset = <a class="self" href="#250">self</a>.offset;
         <span class="kw">if </span><span class="self">self</span>.first {
-            <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#250">self</a>.first = <span class="bool-val">false</span>;
-            <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#250">self</a>.inner.as_mut().<a href="../../../src/futures_util/io/buf_reader.rs.html#88-92">poll_seek_relative</a>(<a href="../../../src/futures_util/io/buf_reader.rs.html#250">cx</a>, <a href="../../../src/futures_util/io/buf_reader.rs.html#251">offset</a>)
+            <a class="self" href="#250">self</a>.first = <span class="bool-val">false</span>;
+            <a class="self" href="#250">self</a>.inner.as_mut().<a href="#88-92">poll_seek_relative</a>(<a href="#250">cx</a>, <a href="#251">offset</a>)
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/futures_util/io/buf_reader.rs.html#250">self</a>.inner
+            <a class="self" href="#250">self</a>.inner
                 .as_mut()
                 .as_mut()
-                .<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="../../../src/futures_util/io/buf_reader.rs.html#250">cx</a>, SeekFrom::Current(<a href="../../../src/futures_util/io/buf_reader.rs.html#251">offset</a>))
-                .map(|res| <a href="../../../src/futures_util/io/buf_reader.rs.html#260">res</a>.map(|<span class="kw">_</span>| ()))
+                .<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="#250">cx</a>, SeekFrom::Current(<a href="#251">offset</a>))
+                .map(|res| <a href="#260">res</a>.map(|<span class="kw">_</span>| ()))
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

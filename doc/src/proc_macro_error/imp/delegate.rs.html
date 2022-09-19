@@ -74,43 +74,43 @@
 <span class="kw">use </span>proc_macro::{<a href="https://doc.rust-lang.org/nightly/proc_macro/diagnostic/struct.Diagnostic.html">Diagnostic</a> <span class="kw">as </span>PDiag, <a href="https://doc.rust-lang.org/nightly/proc_macro/diagnostic/enum.Level.html">Level</a> <span class="kw">as </span>PLevel};
 
 <span class="kw">use crate</span>::{
-    <a href="../../../src/proc_macro_error/lib.rs.html#470">abort_now</a>, <a href="../../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>,
-    diagnostic::{<a href="../../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a>, <a href="../../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, <a href="../../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a>},
+    <a href="../lib.rs.html#470">abort_now</a>, <a href="../lib.rs.html#481">check_correctness</a>,
+    diagnostic::{<a href="../diagnostic.rs.html#22">Diagnostic</a>, <a href="../diagnostic.rs.html#13">Level</a>, <a href="../diagnostic.rs.html#276">SuggestionKind</a>},
 };
 
 <span class="kw">pub fn </span>abort_if_dirty() {
-    <a href="../../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>();
+    <a href="../lib.rs.html#481">check_correctness</a>();
     <span class="kw">if </span>IS_DIRTY.with(|c| c.get()) {
-        <a href="../../../src/proc_macro_error/lib.rs.html#470">abort_now</a>()
+        <a href="../lib.rs.html#470">abort_now</a>()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cleanup() -&gt; Vec&lt;<a href="../../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a>&gt; {
-    <a href="../../../src/proc_macro_error/imp/delegate.rs.html#67-69">IS_DIRTY</a>.with(|c| <a href="../../../src/proc_macro_error/imp/delegate.rs.html#20">c</a>.set(<span class="bool-val">false</span>));
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cleanup() -&gt; Vec&lt;<a href="../diagnostic.rs.html#22">Diagnostic</a>&gt; {
+    <a href="#67-69">IS_DIRTY</a>.with(|c| <a href="#20">c</a>.set(<span class="bool-val">false</span>));
     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_diagnostic(diag: <a href="../../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a>) {
-    <span class="kw">let </span><a href="../../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>emit_diagnostic(diag: <a href="../diagnostic.rs.html#22">Diagnostic</a>) {
+    <span class="kw">let </span><a href="../diagnostic.rs.html#22">Diagnostic</a> {
         level,
         span_range,
         msg,
         suggestions,
         children,
-    } = <a href="../../../src/proc_macro_error/imp/delegate.rs.html#24">diag</a>;
+    } = <a href="#24">diag</a>;
 
-    <span class="kw">let </span>span = <a href="../../../src/proc_macro_error/imp/delegate.rs.html#27">span_range</a>.<a href="../../../src/proc_macro_error/lib.rs.html#352">collapse</a>().unwrap();
+    <span class="kw">let </span>span = <a href="#27">span_range</a>.<a href="../lib.rs.html#352">collapse</a>().unwrap();
 
-    <span class="kw">let </span>level = <span class="kw">match </span><a href="../../../src/proc_macro_error/imp/delegate.rs.html#26">level</a> {
-        <a href="../../../src/proc_macro_error/diagnostic.rs.html#15">Level::Warning</a> =&gt; PLevel::Warning,
-        <a href="../../../src/proc_macro_error/diagnostic.rs.html#14">Level::Error</a> =&gt; {
-            <a href="../../../src/proc_macro_error/imp/delegate.rs.html#67-69">IS_DIRTY</a>.with(|c| <a href="../../../src/proc_macro_error/imp/delegate.rs.html#38">c</a>.set(<span class="bool-val">true</span>));
+    <span class="kw">let </span>level = <span class="kw">match </span><a href="#26">level</a> {
+        <a href="../diagnostic.rs.html#15">Level::Warning</a> =&gt; PLevel::Warning,
+        <a href="../diagnostic.rs.html#14">Level::Error</a> =&gt; {
+            <a href="#67-69">IS_DIRTY</a>.with(|c| <a href="#38">c</a>.set(<span class="bool-val">true</span>));
             PLevel::Error
         }
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>res = PDiag::spanned(<a href="../../../src/proc_macro_error/imp/delegate.rs.html#33">span</a>, <a href="../../../src/proc_macro_error/imp/delegate.rs.html#35">level</a>, <a href="../../../src/proc_macro_error/imp/delegate.rs.html#28">msg</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>res = PDiag::spanned(<a href="#33">span</a>, <a href="#35">level</a>, <a href="#28">msg</a>);
 
     <span class="kw">for </span>(kind, msg, span) <span class="kw">in </span>suggestions {
         res = <span class="kw">match </span>(kind, span) {
@@ -130,11 +130,11 @@
         res = res.span_error(span, msg);
     }
 
-    <a href="../../../src/proc_macro_error/imp/delegate.rs.html#44">res</a>.emit()
+    <a href="#44">res</a>.emit()
 }
 
 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
     <span class="kw">static </span>IS_DIRTY: Cell&lt;bool&gt; = Cell::new(<span class="bool-val">false</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

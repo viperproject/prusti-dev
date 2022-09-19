@@ -220,7 +220,7 @@
 </span><span class="doccomment">//! The log keeps track of actions performed by the fold-unfold algorithm so that they can be
 //! undone when restoring borrowed permissions.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{<a href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13">action::Action</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">perm::Perm</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{<a href="action.rs.html#13">action::Action</a>, <a href="perm.rs.html#14">perm::Perm</a>, <a href="mod.rs.html#43">FoldUnfoldError</a>};
 <span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
 <span class="kw">use </span><a href="../../../../prusti_common/utils/to_string/trait.ToString.html">prusti_common::utils::to_string::ToString</a>;
 <span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
@@ -236,7 +236,7 @@
     <span class="doccomment">/// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
     /// permissions.
-    </span>prejoin_actions: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>, Rc&lt;RwLock&lt;Vec&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13">Action</a>&gt;&gt;&gt;&gt;,
+    </span>prejoin_actions: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>, Rc&lt;RwLock&lt;Vec&lt;<a href="action.rs.html#13">Action</a>&gt;&gt;&gt;&gt;,
 
     <span class="doccomment">/// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
@@ -260,7 +260,7 @@
     </span>id_generator: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#22">EventLog</a> {
+<span class="kw">impl </span><a href="#22">EventLog</a> {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             prejoin_actions: FxHashMap::default(),
@@ -271,18 +271,18 @@
         }
     }
 
-    <span class="kw">pub fn </span>log_prejoin_action(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>, action: <a href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13">Action</a>) {
+    <span class="kw">pub fn </span>log_prejoin_action(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>, action: <a href="action.rs.html#13">Action</a>) {
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;[enter] log_prejoin_action(block_index={}, action={})&quot;</span>,
             block_index,
             action
         );
-        <span class="kw">let </span>entry_rc = <span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#61">self</a>
+        <span class="kw">let </span>entry_rc = <span class="self"><a href="#61">self</a>
             </span>.prejoin_actions
-            .entry(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#61">block_index</a>)
+            .entry(<a href="#61">block_index</a>)
             .or_insert_with(|| Rc::new(RwLock::new(Vec::new())));
-        <span class="kw">let </span><span class="kw-2">mut </span>entry = <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#67">entry_rc</a>.write().unwrap();
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#71">entry</a>.push(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#61">action</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>entry = <a href="#67">entry_rc</a>.write().unwrap();
+        <a href="#71">entry</a>.push(<a href="#61">action</a>);
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] log_prejoin_action {}&quot;</span>, entry.iter().to_string());
     }
 
@@ -290,9 +290,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         path: <span class="kw-2">&amp;</span>[<a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>],
         dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-    ) -&gt; Vec&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
+    ) -&gt; Vec&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!path.is_empty());
-        <span class="kw">let </span>relevant_path = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#78">path</a>[<span class="number">0</span>..<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#78">path</a>.len() - <span class="number">1</span>];
+        <span class="kw">let </span>relevant_path = <span class="kw-2">&amp;</span><a href="#78">path</a>[<span class="number">0</span>..<a href="#78">path</a>.len() - <span class="number">1</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>dropped_permissions = Vec::new();
         <span class="kw">for </span>curr_block_index <span class="kw">in </span>relevant_path {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(actions) = <span class="self">self</span>.prejoin_actions.get(curr_block_index) {
@@ -307,7 +307,7 @@
                 }
             }
         }
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#83">dropped_permissions</a>
+        <a href="#83">dropped_permissions</a>
     }
 
     <span class="doccomment">/// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
@@ -317,9 +317,9 @@
         perm: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
         original_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
     ) {
-        <span class="kw">let </span>entry = <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#102">self</a>.duplicated_reads.entry(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#103">borrow</a>).or_insert_with(Vec::new);
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#107">entry</a>.push((<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#104">perm</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#105">original_place</a>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#102">self</a>.id_generator));
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#102">self</a>.id_generator += <span class="number">1</span>;
+        <span class="kw">let </span>entry = <a class="self" href="#102">self</a>.duplicated_reads.entry(<a href="#103">borrow</a>).or_insert_with(Vec::new);
+        <a href="#107">entry</a>.push((<a href="#104">perm</a>, <a href="#105">original_place</a>, <a class="self" href="#102">self</a>.id_generator));
+        <a class="self" href="#102">self</a>.id_generator += <span class="number">1</span>;
     }
 
     <span class="kw">pub fn </span>get_duplicated_read_permissions(
@@ -327,13 +327,13 @@
         borrow: <a href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>,
     ) -&gt; Vec&lt;(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>)&gt; {
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] get_duplicated_read_permissions({:?})&quot;</span>, borrow);
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#113">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self"><a href="#113">self</a>
             </span>.duplicated_reads
-            .get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#114">borrow</a>)
+            .get(<span class="kw-2">&amp;</span><a href="#114">borrow</a>)
             .cloned()
             .unwrap_or_default();
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#117">result</a>.sort_by(
-            |(access1, <span class="kw">_</span>, id1), (access2, <span class="kw">_</span>, id2)| <span class="kw">match </span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#123">access1</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#123">access2</a>) {
+        <a href="#117">result</a>.sort_by(
+            |(access1, <span class="kw">_</span>, id1), (access2, <span class="kw">_</span>, id2)| <span class="kw">match </span>(<a href="#123">access1</a>, <a href="#123">access2</a>) {
                 (
                     vir::Expr::PredicateAccessPredicate(..),
                     vir::Expr::PredicateAccessPredicate(..),
@@ -354,9 +354,9 @@
                         ..
                     }),
                 ) =&gt; {
-                    <span class="kw">let </span>key1 = (<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#136">place1</a>.place_depth(), <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#123">id1</a>);
-                    <span class="kw">let </span>key2 = (<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#140">place2</a>.place_depth(), <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#123">id2</a>);
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#145">key2</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#144">key1</a>)
+                    <span class="kw">let </span>key1 = (<a href="#136">place1</a>.place_depth(), <a href="#123">id1</a>);
+                    <span class="kw">let </span>key2 = (<a href="#140">place2</a>.place_depth(), <a href="#123">id2</a>);
+                    <a href="#145">key2</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#144">key1</a>)
                 }
                 x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{:?}&quot;</span>, x),
             },
@@ -369,38 +369,38 @@
                 .map(|(a, p, id)| <span class="macro">format!</span>(<span class="string">&quot;({}, {}, {}), &quot;</span>, a, p, id))
                 .collect::&lt;String&gt;()
         );
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#117">result</a>
+        <a href="#117">result</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(access, original_place, <span class="kw">_</span>)| (<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#161">access</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#161">original_place</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(access, original_place, <span class="kw">_</span>)| (<a href="#161">access</a>, <a href="#161">original_place</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="doccomment">/// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     </span><span class="kw">pub fn </span>log_convertion_to_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, borrow: <a href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>, perm: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(perm.get_perm_amount() == vir::PermAmount::Remaining);
-        <span class="kw">let </span>entry = <span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#166">self</a>
+        <span class="kw">let </span>entry = <span class="self"><a href="#166">self</a>
             </span>.converted_to_read_places
-            .entry(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#166">borrow</a>)
+            .entry(<a href="#166">borrow</a>)
             .or_insert_with(Vec::new);
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#168">entry</a>.push(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#166">perm</a>);
+        <a href="#168">entry</a>.push(<a href="#166">perm</a>);
     }
 
     <span class="kw">pub fn </span>get_converted_to_read_places(<span class="kw-2">&amp;</span><span class="self">self</span>, borrow: <a href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>) -&gt; Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(accesses) = <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#175">self</a>.converted_to_read_places.get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#175">borrow</a>) {
-            <a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#176">accesses</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(accesses) = <a class="self" href="#175">self</a>.converted_to_read_places.get(<span class="kw-2">&amp;</span><a href="#175">borrow</a>) {
+            <a href="#176">accesses</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         } <span class="kw">else </span>{
             Vec::new()
         }
     }
 
     <span class="kw">pub fn </span>log_borrow_expiration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, borrow: <a href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>) {
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">self</a>.duplicated_reads.remove(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">borrow</a>);
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">self</a>.blocked_place.remove(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">borrow</a>);
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">self</a>.converted_to_read_places.remove(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">borrow</a>);
+        <a class="self" href="#183">self</a>.duplicated_reads.remove(<span class="kw-2">&amp;</span><a href="#183">borrow</a>);
+        <a class="self" href="#183">self</a>.blocked_place.remove(<span class="kw-2">&amp;</span><a href="#183">borrow</a>);
+        <a class="self" href="#183">self</a>.converted_to_read_places.remove(<span class="kw-2">&amp;</span><a href="#183">borrow</a>);
     }
 
     <span class="doccomment">/// Join `other` into `self`
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="mod.rs.html#43">FoldUnfoldError</a>&gt; {
         <span class="kw">for </span>(other_key, other_value) <span class="kw">in </span>other.prejoin_actions.drain() {
             <span class="self">self</span>.prejoin_actions.entry(other_key).or_insert(other_value);
         }
@@ -420,9 +420,9 @@
                 .entry(other_key)
                 .or_insert(other_value);
         }
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#190">self</a>.id_generator = <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#190">self</a>.id_generator.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#190">other</a>.id_generator);
+        <a class="self" href="#190">self</a>.id_generator = <a class="self" href="#190">self</a>.id_generator.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<a href="#190">other</a>.id_generator);
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

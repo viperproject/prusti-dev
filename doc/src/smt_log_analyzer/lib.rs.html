@@ -194,19 +194,19 @@
 </span><span class="doccomment">//! The Z3 log format is documented
 //! [here](https://github.com/viperproject/axiom-profiler/blob/master/LogDocumentation.pdf).
 
-</span><span class="kw">use </span><a href="../../src/smt_log_analyzer/error.rs.html#10">error::Error</a>;
-<span class="kw">use </span>parser::{<a href="../../src/smt_log_analyzer/parser.rs.html#7">EventKind</a>, <a href="../../src/smt_log_analyzer/parser.rs.html#33">Parser</a>, <a href="../../src/smt_log_analyzer/parser.rs.html#28">QuantTerm</a>};
-<span class="kw">use </span><a href="../../src/smt_log_analyzer/state.rs.html#86">state::State</a>;
+</span><span class="kw">use </span><a href="error.rs.html#10">error::Error</a>;
+<span class="kw">use </span>parser::{<a href="parser.rs.html#7">EventKind</a>, <a href="parser.rs.html#33">Parser</a>, <a href="parser.rs.html#28">QuantTerm</a>};
+<span class="kw">use </span><a href="state.rs.html#86">state::State</a>;
 <span class="kw">use </span>std::{
     <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
     io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>},
 };
-<span class="kw">use </span>types::{<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>};
+<span class="kw">use </span>types::{<a href="types.rs.html#2">QuantifierId</a>, <a href="types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>};
 
-<span class="kw">mod </span><a href="../../src/smt_log_analyzer/error.rs.html#1-19">error</a>;
-<span class="kw">mod </span><a href="../../src/smt_log_analyzer/parser.rs.html#1-243">parser</a>;
-<span class="kw">mod </span><a href="../../src/smt_log_analyzer/state.rs.html#1-791">state</a>;
-<span class="kw">mod </span><a href="../../src/smt_log_analyzer/types.rs.html#1-6">types</a>;
+<span class="kw">mod </span><a href="error.rs.html#1-19">error</a>;
+<span class="kw">mod </span><a href="parser.rs.html#1-243">parser</a>;
+<span class="kw">mod </span><a href="state.rs.html#1-791">state</a>;
+<span class="kw">mod </span><a href="types.rs.html#1-6">types</a>;
 
 <span class="kw">pub struct </span>Settings {
     <span class="kw">pub </span>write_statistics: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -219,71 +219,71 @@
     <span class="kw">pub </span>check_active_scopes_count: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
     <span class="kw">pub </span>pop_scopes_by_one: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// If Some, dumps all triggers that match the specified quantifier.
-    </span><span class="kw">pub </span>trace_quantifier_triggers: <span class="prelude-ty">Option</span>&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>&gt;,
+    </span><span class="kw">pub </span>trace_quantifier_triggers: <span class="prelude-ty">Option</span>&lt;<a href="types.rs.html#2">QuantifierId</a>&gt;,
 }
 
-<span class="kw">fn </span>process_line(settings: <span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/lib.rs.html#20">Settings</a>, state: <span class="kw-2">&amp;mut </span><a href="../../src/smt_log_analyzer/state.rs.html#86">State</a>, line: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::from_line(<a href="../../src/smt_log_analyzer/lib.rs.html#34">line</a>);
+<span class="kw">fn </span>process_line(settings: <span class="kw-2">&amp;</span><a href="#20">Settings</a>, state: <span class="kw-2">&amp;mut </span><a href="state.rs.html#86">State</a>, line: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#10">Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::from_line(<a href="#34">line</a>);
     <span class="kw">match </span>parser.parse_event_kind()<span class="question-mark">? </span>{
-        <a href="../../src/smt_log_analyzer/parser.rs.html#8">EventKind::Pop</a> =&gt; {
+        <a href="parser.rs.html#8">EventKind::Pop</a> =&gt; {
             <span class="kw">let </span>scopes_to_pop = parser.parse_number()<span class="question-mark">?</span>;
             <span class="kw">let </span>active_scopes_count = parser.parse_number()<span class="question-mark">?</span>;
             parser.check_eof()<span class="question-mark">?</span>;
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(state.active_scopes_count(), active_scopes_count);
             <span class="kw">if </span>settings.pop_scopes_by_one {
-                <span class="kw">let </span><span class="kw-2">mut </span>scopes_to_pop = <a href="../../src/smt_log_analyzer/lib.rs.html#38">scopes_to_pop</a>;
+                <span class="kw">let </span><span class="kw-2">mut </span>scopes_to_pop = <a href="#38">scopes_to_pop</a>;
                 <span class="kw">while </span>scopes_to_pop &gt; <span class="number">0 </span>{
                     state.pop_scopes(<span class="number">1</span>);
                     scopes_to_pop -= <span class="number">1</span>;
                 }
             } <span class="kw">else </span>{
-                <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#311">pop_scopes</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#38">scopes_to_pop</a>);
+                <a href="#34">state</a>.<a href="state.rs.html#311">pop_scopes</a>(<a href="#38">scopes_to_pop</a>);
             }
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#9">EventKind::Push</a> =&gt; {
+        <a href="parser.rs.html#9">EventKind::Push</a> =&gt; {
             <span class="kw">let </span>active_scopes_count = parser.parse_number()<span class="question-mark">?</span>;
             parser.check_eof()<span class="question-mark">?</span>;
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(state.active_scopes_count(), active_scopes_count);
-            <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#307">push_scope</a>();
+            <a href="#34">state</a>.<a href="state.rs.html#307">push_scope</a>();
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#11">EventKind::MkApp</a> =&gt; {
+        <a href="parser.rs.html#11">EventKind::MkApp</a> =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(term_id) = parser.try_parse_id()<span class="question-mark">? </span>{
                 <span class="kw">let </span>ident = parser.parse_name()<span class="question-mark">?</span>;
                 <span class="kw">if </span>ident.starts_with(<span class="string">&quot;basic_block_marker&quot;</span>) {
-                    <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#124">register_label</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#60">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                    <a href="#34">state</a>.<a href="state.rs.html#124">register_label</a>(<a href="#60">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>name = <a href="../../src/smt_log_analyzer/lib.rs.html#60">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+                    <span class="kw">let </span>name = <a href="#60">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
                     <span class="kw">let </span><span class="kw-2">mut </span>args = Vec::new();
                     <span class="kw">while let </span><span class="prelude-val">Some</span>(arg) = parser.try_parse_id()<span class="question-mark">? </span>{
                         args.push(arg);
                     }
-                    <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#279-284">register_term_function_application</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#59">term_id</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#64">name</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#65">args</a>);
+                    <a href="#34">state</a>.<a href="state.rs.html#279-284">register_term_function_application</a>(<a href="#59">term_id</a>, <a href="#64">name</a>, <a href="#65">args</a>);
                 }
             }
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#17">EventKind::MkVar</a> =&gt; {
+        <a href="parser.rs.html#17">EventKind::MkVar</a> =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(term_id) = parser.try_parse_id()<span class="question-mark">? </span>{
                 <span class="kw">let </span>index = parser.parse_number()<span class="question-mark">?</span>;
-                <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#289">register_term_bound_variable</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#74">term_id</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#75">index</a>);
+                <a href="#34">state</a>.<a href="state.rs.html#289">register_term_bound_variable</a>(<a href="#74">term_id</a>, <a href="#75">index</a>);
             }
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#16">EventKind::AttachMeaning</a> =&gt; {
+        <a href="parser.rs.html#16">EventKind::AttachMeaning</a> =&gt; {
             <span class="kw">let </span>term_id = parser.parse_id()<span class="question-mark">?</span>;
             <span class="kw">let </span>ident = parser.parse_name()<span class="question-mark">?</span>;
-            <span class="kw">let </span>ident = <a href="../../src/smt_log_analyzer/lib.rs.html#81">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-            <a href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
-            <span class="kw">let </span>remaining = <a href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a href="../../src/smt_log_analyzer/parser.rs.html#96">remaining</a>();
-            <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#293-298">register_term_attach_meaning</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#80">term_id</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#82">ident</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#84">remaining</a>);
+            <span class="kw">let </span>ident = <a href="#81">ident</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+            <a href="#35">parser</a>.<a href="parser.rs.html#117">skip_whitespace</a>();
+            <span class="kw">let </span>remaining = <a href="#35">parser</a>.<a href="parser.rs.html#96">remaining</a>();
+            <a href="#34">state</a>.<a href="state.rs.html#293-298">register_term_attach_meaning</a>(<a href="#80">term_id</a>, <a href="#82">ident</a>, <a href="#84">remaining</a>);
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#10">EventKind::MkQuant</a> =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(id) = <a href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>() {
+        <a href="parser.rs.html#10">EventKind::MkQuant</a> =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(id) = <a href="#35">parser</a>.<a href="parser.rs.html#180">parse_id</a>() {
                 <span class="comment">// We are ignoring the builtin quantifiers that have non-numeric
                 // ids such as datatype#6
                 </span><span class="kw">let </span>name = parser.parse_name()<span class="question-mark">?</span>;
-                <a href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#131">register_quantifier</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#88">id</a>, <a href="../../src/smt_log_analyzer/lib.rs.html#91">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <a href="#34">state</a>.<a href="state.rs.html#131">register_quantifier</a>(<a href="#88">id</a>, <a href="#91">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#12">EventKind::NewMatch</a> =&gt; {
+        <a href="parser.rs.html#12">EventKind::NewMatch</a> =&gt; {
             <span class="kw">let </span>fingerprint = parser.parse_hex_number()<span class="question-mark">?</span>;
             <span class="kw">if </span>fingerprint != <span class="number">0 </span>{
                 <span class="comment">// Built-in quantifiers have fingerprint 0; ignore them.
@@ -308,7 +308,7 @@
                 state.register_matched_quantifier(BUILTIN_QUANTIFIER_ID)<span class="question-mark">?</span>;
             }
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#13">EventKind::InstDiscovered</a> =&gt; {
+        <a href="parser.rs.html#13">EventKind::InstDiscovered</a> =&gt; {
             <span class="kw">let </span>name = parser.parse_name()<span class="question-mark">?</span>;
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(name, <span class="string">&quot;theory-solving&quot;</span>);
             <span class="kw">let </span>fingerprint = parser.parse_hex_number()<span class="question-mark">?</span>;
@@ -316,36 +316,36 @@
             <span class="kw">let </span>theory = parser.parse_theory()<span class="question-mark">?</span>;
             state.register_inst_discovered(theory)<span class="question-mark">?</span>;
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#14">EventKind::Instance</a> =&gt; {
+        <a href="parser.rs.html#14">EventKind::Instance</a> =&gt; {
             state.register_instance()<span class="question-mark">?</span>;
         }
-        <a href="../../src/smt_log_analyzer/parser.rs.html#15">EventKind::Unrecognized</a> =&gt; {}
+        <a href="parser.rs.html#15">EventKind::Unrecognized</a> =&gt; {}
     }
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">pub fn </span>analyze(
     z3_trace_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>,
-    settings: <a href="../../src/smt_log_analyzer/lib.rs.html#20">Settings</a>,
+    settings: <a href="#20">Settings</a>,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
     <span class="comment">// TODO: Collect the quantifier definitions from the smt file.
 
-    </span><span class="kw">let </span>file = File::open(<span class="kw-2">&amp;</span>z3_trace_path)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<a href="../../src/smt_log_analyzer/lib.rs.html#142">file</a>);
+    </span><span class="kw">let </span>file = File::open(z3_trace_path)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<a href="#142">file</a>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
 
     <span class="comment">// Builtin quantifiers have fingerprint 0.
-    </span><a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#131">register_quantifier</a>(<a href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>, <span class="string">&quot;builtin quantifier&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    </span><a href="#145">state</a>.<a href="state.rs.html#131">register_quantifier</a>(<a href="types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>, <span class="string">&quot;builtin quantifier&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
     <span class="comment">// Theories.
-    </span><a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a href="../../src/smt_log_analyzer/parser.rs.html#22">parser::TheoryKind::Arith</a>);
-    <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a href="../../src/smt_log_analyzer/parser.rs.html#23">parser::TheoryKind::Basic</a>);
-    <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a href="../../src/smt_log_analyzer/parser.rs.html#24">parser::TheoryKind::Datatype</a>);
-    <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a href="../../src/smt_log_analyzer/parser.rs.html#25">parser::TheoryKind::UserSort</a>);
+    </span><a href="#145">state</a>.<a href="state.rs.html#171">register_theory</a>(<a href="parser.rs.html#22">parser::TheoryKind::Arith</a>);
+    <a href="#145">state</a>.<a href="state.rs.html#171">register_theory</a>(<a href="parser.rs.html#23">parser::TheoryKind::Basic</a>);
+    <a href="#145">state</a>.<a href="state.rs.html#171">register_theory</a>(<a href="parser.rs.html#24">parser::TheoryKind::Datatype</a>);
+    <a href="#145">state</a>.<a href="state.rs.html#171">register_theory</a>(<a href="parser.rs.html#25">parser::TheoryKind::UserSort</a>);
 
     <span class="comment">// Tracing triggers.
-    </span><a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#254">mark_quantifier_for_tracing</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.trace_quantifier_triggers);
+    </span><a href="#145">state</a>.<a href="state.rs.html#254">mark_quantifier_for_tracing</a>(<a href="#138">settings</a>.trace_quantifier_triggers);
 
     <span class="kw">let </span><span class="kw-2">mut </span>line = String::new();
     <span class="kw">let </span><span class="kw-2">mut </span>prev_line = String::new();
@@ -360,25 +360,25 @@
             .unwrap_or_else(|error| <span class="macro">panic!</span>(<span class="string">&quot;Error {} on line {}&quot;</span>, error, line_number));
         line.clear();
     }
-    <span class="kw">let </span>scopes_left = <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#303">active_scopes_count</a>();
-    <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#410">pop_all_scopes</a>();
-    <span class="kw">let </span>input_file = <a href="../../src/smt_log_analyzer/lib.rs.html#137">z3_trace_path</a>.to_str().unwrap();
+    <span class="kw">let </span>scopes_left = <a href="#145">state</a>.<a href="state.rs.html#303">active_scopes_count</a>();
+    <a href="#145">state</a>.<a href="state.rs.html#410">pop_all_scopes</a>();
+    <span class="kw">let </span>input_file = <a href="#137">z3_trace_path</a>.to_str().unwrap();
     <span class="kw">if </span>settings.write_statistics {
-        <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#454">write_statistics</a>(<a href="../../src/smt_log_analyzer/lib.rs.html#174">input_file</a>);
+        <a href="#145">state</a>.<a href="state.rs.html#454">write_statistics</a>(<a href="#174">input_file</a>);
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_scopes_count) = <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.check_active_scopes_count {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_scopes_count) = <a href="#138">settings</a>.check_active_scopes_count {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(scopes_left, expected_scopes_count);
     }
-    <a href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a href="../../src/smt_log_analyzer/state.rs.html#691-700">check_bounds</a>(
-        <a href="../../src/smt_log_analyzer/lib.rs.html#174">input_file</a>,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.quantifier_instantiations_ignore_builtin,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.quantifier_instantiations_bound_global_kind,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.quantifier_instantiations_bound_trace,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.quantifier_instantiations_bound_trace_kind,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.unique_triggers_bound,
-        <a href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.unique_triggers_bound_total,
+    <a href="#145">state</a>.<a href="state.rs.html#691-700">check_bounds</a>(
+        <a href="#174">input_file</a>,
+        <a href="#138">settings</a>.quantifier_instantiations_ignore_builtin,
+        <a href="#138">settings</a>.quantifier_instantiations_bound_global_kind,
+        <a href="#138">settings</a>.quantifier_instantiations_bound_trace,
+        <a href="#138">settings</a>.quantifier_instantiations_bound_trace_kind,
+        <a href="#138">settings</a>.unique_triggers_bound,
+        <a href="#138">settings</a>.unique_triggers_bound_total,
     );
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="smt_log_analyzer" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="smt_log_analyzer" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

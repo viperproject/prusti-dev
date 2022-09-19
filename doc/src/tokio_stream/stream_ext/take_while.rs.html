@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/take_while.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take_while.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.10/src/stream_ext/take_while.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take_while.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -100,9 +100,9 @@
     </span>St: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#23">f</a>.debug_struct(<span class="string">&quot;TakeWhile&quot;</span>)
-            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_stream/stream_ext/take_while.rs.html#23">self</a>.stream)
-            .field(<span class="string">&quot;done&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_stream/stream_ext/take_while.rs.html#23">self</a>.done)
+        <a href="#23">f</a>.debug_struct(<span class="string">&quot;TakeWhile&quot;</span>)
+            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#23">self</a>.stream)
+            .field(<span class="string">&quot;done&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#23">self</a>.done)
             .finish()
     }
 }
@@ -110,8 +110,8 @@
 <span class="kw">impl</span>&lt;St, F&gt; TakeWhile&lt;St, F&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, predicate: F) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#32">stream</a>,
-            <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#32">predicate</a>,
+            <a href="#32">stream</a>,
+            <a href="#32">predicate</a>,
             done: <span class="bool-val">false</span>,
         }
     }
@@ -126,20 +126,20 @@
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">if </span>!<span class="kw-2">*</span><span class="self">self</span>.as_mut().project().done {
-            <a class="self" href="../../../src/tokio_stream/stream_ext/take_while.rs.html#48">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#8-17">project</a>().stream.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#48">cx</a>).map(|ready| {
-                <span class="kw">let </span>ready = <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#50">ready</a>.and_then(|item| {
+            <a class="self" href="#48">self</a>.as_mut().<a href="#8-17">project</a>().stream.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="#48">cx</a>).map(|ready| {
+                <span class="kw">let </span>ready = <a href="#50">ready</a>.and_then(|item| {
                     <span class="kw">if </span>!(<span class="self">self</span>.as_mut().project().predicate)(<span class="kw-2">&amp;</span>item) {
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="prelude-val">Some</span>(<a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#51">item</a>)
+                        <span class="prelude-val">Some</span>(<a href="#51">item</a>)
                     }
                 });
 
                 <span class="kw">if </span>ready.is_none() {
-                    <span class="kw-2">*</span><a class="self" href="../../../src/tokio_stream/stream_ext/take_while.rs.html#48">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#8-17">project</a>().done = <span class="bool-val">true</span>;
+                    <span class="kw-2">*</span><a class="self" href="#48">self</a>.as_mut().<a href="#8-17">project</a>().done = <span class="bool-val">true</span>;
                 }
 
-                <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#51">ready</a>
+                <a href="#51">ready</a>
             })
         } <span class="kw">else </span>{
             Poll::Ready(<span class="prelude-val">None</span>)
@@ -151,10 +151,10 @@
             <span class="kw">return </span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="../../../src/tokio_stream/stream_ext/take_while.rs.html#70">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>(<span class="kw">_</span>, upper) = <a class="self" href="#70">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
 
-        (<span class="number">0</span>, <a href="../../../src/tokio_stream/stream_ext/take_while.rs.html#75">upper</a>)
+        (<span class="number">0</span>, <a href="#75">upper</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

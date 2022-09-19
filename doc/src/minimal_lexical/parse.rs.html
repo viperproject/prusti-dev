@@ -205,12 +205,12 @@
 
 #[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::bellerophon::bellerophon;
-<span class="kw">use </span><span class="kw">crate</span>::extended_float::{<a href="../../src/minimal_lexical/extended_float.rs.html#20">extended_to_float</a>, <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a>};
+<span class="kw">use </span><span class="kw">crate</span>::extended_float::{<a href="extended_float.rs.html#20">extended_to_float</a>, <a href="extended_float.rs.html#11">ExtendedFloat</a>};
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-</span><span class="kw">use </span><a href="../../src/minimal_lexical/lemire.rs.html#16"><span class="kw">crate</span>::lemire::lemire</a>;
-<span class="kw">use </span><a href="../../src/minimal_lexical/num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
-<span class="kw">use </span><a href="../../src/minimal_lexical/number.rs.html#18"><span class="kw">crate</span>::number::Number</a>;
-<span class="kw">use </span><a href="../../src/minimal_lexical/slow.rs.html#36-45"><span class="kw">crate</span>::slow::slow</a>;
+</span><span class="kw">use </span><a href="lemire.rs.html#16"><span class="kw">crate</span>::lemire::lemire</a>;
+<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
+<span class="kw">use </span><a href="number.rs.html#18"><span class="kw">crate</span>::number::Number</a>;
+<span class="kw">use </span><a href="slow.rs.html#36-45"><span class="kw">crate</span>::slow::slow</a>;
 
 <span class="doccomment">/// Try to parse the significant digits quickly.
 ///
@@ -223,7 +223,7 @@
     integer: Iter1,
     fraction: Iter2,
     exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/minimal_lexical/number.rs.html#18">Number</a>&gt;
+) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="number.rs.html#18">Number</a>&gt;
 <span class="kw">where
     </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
     Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
@@ -244,8 +244,8 @@
 
     <span class="kw">if </span>integer_count + fraction_count &lt;= <span class="number">19 </span>{
         <span class="comment">// Can&#39;t overflow, since must be &lt;= 19.
-        </span><a href="../../src/minimal_lexical/parse.rs.html#30">num</a>.exponent = <a href="../../src/minimal_lexical/parse.rs.html#24">exponent</a>.saturating_sub(<a href="../../src/minimal_lexical/parse.rs.html#32">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-        <span class="prelude-val">Some</span>(<a href="../../src/minimal_lexical/parse.rs.html#30">num</a>)
+        </span><a href="#30">num</a>.exponent = <a href="#24">exponent</a>.saturating_sub(<a href="#32">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+        <span class="prelude-val">Some</span>(<a href="#30">num</a>)
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
@@ -256,14 +256,14 @@
 /// * `integer`     - Slice containing the integer digits.
 /// * `fraction`    - Slice containing the fraction digits.
 </span><span class="attribute">#[inline]
-</span><span class="kw">fn </span>parse_number&lt;<span class="lifetime">&#39;a</span>, Iter1, Iter2&gt;(<span class="kw-2">mut </span>integer: Iter1, <span class="kw-2">mut </span>fraction: Iter2, exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="../../src/minimal_lexical/number.rs.html#18">Number</a>
+</span><span class="kw">fn </span>parse_number&lt;<span class="lifetime">&#39;a</span>, Iter1, Iter2&gt;(<span class="kw-2">mut </span>integer: Iter1, <span class="kw-2">mut </span>fraction: Iter2, exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="number.rs.html#18">Number</a>
 <span class="kw">where
     </span>Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
     <span class="comment">// NOTE: for performance, we do this in 2 passes:
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="../../src/minimal_lexical/parse.rs.html#21-28">parse_number_fast</a>(<a href="../../src/minimal_lexical/parse.rs.html#58">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../src/minimal_lexical/parse.rs.html#58">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../src/minimal_lexical/parse.rs.html#58">exponent</a>) {
-        <span class="kw">return </span><a href="../../src/minimal_lexical/parse.rs.html#64">num</a>;
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#21-28">parse_number_fast</a>(<a href="#58">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#58">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#58">exponent</a>) {
+        <span class="kw">return </span><a href="#64">num</a>;
     }
 
     <span class="comment">// Can only add 19 digits.
@@ -315,8 +315,8 @@
 
     <span class="comment">// No truncated digits: easy.
     // Cannot overflow: &lt;= 20 digits.
-    </span><a href="../../src/minimal_lexical/parse.rs.html#69">num</a>.exponent = <a href="../../src/minimal_lexical/parse.rs.html#58">exponent</a>.saturating_sub(<a href="../../src/minimal_lexical/parse.rs.html#86">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-    <a href="../../src/minimal_lexical/parse.rs.html#69">num</a>
+    </span><a href="#69">num</a>.exponent = <a href="#58">exponent</a>.saturating_sub(<a href="#86">fraction_count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+    <a href="#69">num</a>
 }
 
 <span class="doccomment">/// Parse float from extracted float components.
@@ -346,37 +346,37 @@
 /// forward iterator.
 </span><span class="kw">pub fn </span>parse_float&lt;<span class="lifetime">&#39;a</span>, F, Iter1, Iter2&gt;(integer: Iter1, fraction: Iter2, exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; F
 <span class="kw">where
-    </span>F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>,
+    </span>F: <a href="num.rs.html#18-35">Float</a>,
     Iter1: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     Iter2: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
     <span class="comment">// Parse the mantissa and attempt the fast and moderate-path algorithms.
-    </span><span class="kw">let </span>num = <a href="../../src/minimal_lexical/parse.rs.html#58-61">parse_number</a>(<a href="../../src/minimal_lexical/parse.rs.html#146">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../src/minimal_lexical/parse.rs.html#146">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../src/minimal_lexical/parse.rs.html#146">exponent</a>);
+    </span><span class="kw">let </span>num = <a href="#58-61">parse_number</a>(<a href="#146">integer</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#146">fraction</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#146">exponent</a>);
     <span class="comment">// Try the fast-path algorithm.
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="../../src/minimal_lexical/parse.rs.html#153">num</a>.<a href="../../src/minimal_lexical/number.rs.html#46">try_fast_path</a>() {
-        <span class="kw">return </span><a href="../../src/minimal_lexical/parse.rs.html#155">value</a>;
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#153">num</a>.<a href="number.rs.html#46">try_fast_path</a>() {
+        <span class="kw">return </span><a href="#155">value</a>;
     }
 
     <span class="comment">// Now try the moderate path algorithm.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = moderate_path::&lt;F&gt;(<span class="kw-2">&amp;</span><a href="../../src/minimal_lexical/parse.rs.html#153">num</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = moderate_path::&lt;F&gt;(<span class="kw-2">&amp;</span><a href="#153">num</a>);
     <span class="kw">if </span>fp.exp &lt; <span class="number">0 </span>{
         <span class="comment">// Undo the invalid extended float biasing.
-        </span><a href="../../src/minimal_lexical/parse.rs.html#160">fp</a>.exp -= F::INVALID_FP;
-        <a href="../../src/minimal_lexical/parse.rs.html#160">fp</a> = slow::&lt;F, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<a href="../../src/minimal_lexical/parse.rs.html#153">num</a>, <a href="../../src/minimal_lexical/parse.rs.html#160">fp</a>, <a href="../../src/minimal_lexical/parse.rs.html#146">integer</a>, <a href="../../src/minimal_lexical/parse.rs.html#146">fraction</a>);
+        </span><a href="#160">fp</a>.exp -= F::INVALID_FP;
+        <a href="#160">fp</a> = slow::&lt;F, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<a href="#153">num</a>, <a href="#160">fp</a>, <a href="#146">integer</a>, <a href="#146">fraction</a>);
     }
 
     <span class="comment">// Unable to correctly round the float using the fast or moderate algorithms.
     // Fallback to a slower, but always correct algorithm. If we have
     // lossy, we can&#39;t be here.
-    </span>extended_to_float::&lt;F&gt;(<a href="../../src/minimal_lexical/parse.rs.html#160">fp</a>)
+    </span>extended_to_float::&lt;F&gt;(<a href="#160">fp</a>)
 }
 
 <span class="doccomment">/// Wrapper for different moderate-path algorithms.
 /// A return exponent of `-1` indicates an invalid value.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>moderate_path&lt;F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>&gt;(num: <span class="kw-2">&amp;</span><a href="../../src/minimal_lexical/number.rs.html#18">Number</a>) -&gt; <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+</span><span class="kw">pub fn </span>moderate_path&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(num: <span class="kw-2">&amp;</span><a href="number.rs.html#18">Number</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
     <span class="attribute">#[cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
-    </span><span class="kw">return </span>lemire::&lt;F&gt;(<a href="../../src/minimal_lexical/parse.rs.html#176">num</a>);
+    </span><span class="kw">return </span>lemire::&lt;F&gt;(<a href="#176">num</a>);
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;compact&quot;</span>)]
     </span><span class="kw">return </span>bellerophon::&lt;F&gt;(num);
@@ -391,14 +391,14 @@
     <span class="kw">if </span>value &gt; i32::max_value() <span class="kw">as </span>usize {
         i32::max_value()
     } <span class="kw">else </span>{
-        <a href="../../src/minimal_lexical/parse.rs.html#189">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>
+        <a href="#189">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>
     }
 }
 
 <span class="comment">// Add digit to mantissa.
 </span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>add_digit(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, digit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    value.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(<a href="../../src/minimal_lexical/parse.rs.html#199">digit</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    value.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(<a href="#199">digit</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

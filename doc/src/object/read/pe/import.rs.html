@@ -219,10 +219,10 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#112">pe</a>, <a href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../../../src/object/pod.rs.html#21">Pod</a>, <a href="../../../../src/object/endian.rs.html#590">U16Bytes</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../pod.rs.html#21">Pod</a>, <a href="../../endian.rs.html#590">U16Bytes</a>};
 
-<span class="kw">use </span><a href="../../../../src/object/read/pe/file.rs.html#534"><span class="kw">super</span>::ImageNtHeaders</a>;
+<span class="kw">use </span><a href="file.rs.html#534"><span class="kw">super</span>::ImageNtHeaders</a>;
 
 <span class="doccomment">/// Information for parsing a PE import table.
 </span><span class="attribute">#[derive(Debug, Clone)]
@@ -243,29 +243,29 @@
     /// `section_address` should be the address of that section. Pointers within the
     /// descriptors and thunks may point to anywhere within the section data.
     </span><span class="kw">pub fn </span>new(section_data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], section_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, import_address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/pe/import.rs.html#11">ImportTable</a> {
-            section_data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/pe/import.rs.html#27">section_data</a>),
-            <a href="../../../../src/object/read/pe/import.rs.html#27">section_address</a>,
-            <a href="../../../../src/object/read/pe/import.rs.html#27">import_address</a>,
+        <a href="#11">ImportTable</a> {
+            section_data: <a href="../util.rs.html#16">Bytes</a>(<a href="#27">section_data</a>),
+            <a href="#27">section_address</a>,
+            <a href="#27">import_address</a>,
         }
     }
 
     <span class="doccomment">/// Return an iterator for the import descriptors.
     </span><span class="kw">pub fn </span>descriptors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ImportDescriptorIterator&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <span class="kw">let </span>offset = <a class="self" href="../../../../src/object/read/pe/import.rs.html#36">self</a>.import_address.wrapping_sub(<a class="self" href="../../../../src/object/read/pe/import.rs.html#36">self</a>.section_address);
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/pe/import.rs.html#36">self</a>.section_data;
+        <span class="kw">let </span>offset = <a class="self" href="#36">self</a>.import_address.wrapping_sub(<a class="self" href="#36">self</a>.section_address);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="#36">self</a>.section_data;
         data.skip(offset <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE import descriptor address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/pe/import.rs.html#98">ImportDescriptorIterator</a> { <a href="../../../../src/object/read/pe/import.rs.html#38">data</a> })
+        <span class="prelude-val">Ok</span>(<a href="#98">ImportDescriptorIterator</a> { <a href="#38">data</a> })
     }
 
     <span class="doccomment">/// Return a library name given its address.
     ///
     /// This address may be from [`pe::ImageImportDescriptor::name`].
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#47">self</a>.section_data
-            .<a href="../../../../src/object/read/util.rs.html#164">read_string_at</a>(<a href="../../../../src/object/read/pe/import.rs.html#47">address</a>.wrapping_sub(<a class="self" href="../../../../src/object/read/pe/import.rs.html#47">self</a>.section_address) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE import descriptor name&quot;</span>)
+        <a class="self" href="#47">self</a>.section_data
+            .<a href="../util.rs.html#164">read_string_at</a>(<a href="#47">address</a>.wrapping_sub(<a class="self" href="#47">self</a>.section_address) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE import descriptor name&quot;</span>)
     }
 
     <span class="doccomment">/// Return a list of thunks given its address.
@@ -273,20 +273,20 @@
     /// This address may be from [`pe::ImageImportDescriptor::original_first_thunk`]
     /// or [`pe::ImageImportDescriptor::first_thunk`].
     </span><span class="kw">pub fn </span>thunks(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ImportThunkList&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
-        <span class="kw">let </span>offset = <a href="../../../../src/object/read/pe/import.rs.html#57">address</a>.wrapping_sub(<a class="self" href="../../../../src/object/read/pe/import.rs.html#57">self</a>.section_address);
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/pe/import.rs.html#57">self</a>.section_data;
+        <span class="kw">let </span>offset = <a href="#57">address</a>.wrapping_sub(<a class="self" href="#57">self</a>.section_address);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="#57">self</a>.section_data;
         data.skip(offset <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE import thunk table address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/pe/import.rs.html#123">ImportThunkList</a> { <a href="../../../../src/object/read/pe/import.rs.html#59">data</a> })
+        <span class="prelude-val">Ok</span>(<a href="#123">ImportThunkList</a> { <a href="#59">data</a> })
     }
 
     <span class="doccomment">/// Parse a thunk.
-    </span><span class="kw">pub fn </span>import&lt;Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, thunk: Pe::ImageThunkData) -&gt; <span class="prelude-ty">Result</span>&lt;Import&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>import&lt;Pe: <a href="file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, thunk: Pe::ImageThunkData) -&gt; <span class="prelude-ty">Result</span>&lt;Import&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
         <span class="kw">if </span>thunk.is_ordinal() {
-            <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/pe/import.rs.html#157">Import::Ordinal</a>(<a href="../../../../src/object/read/pe/import.rs.html#66">thunk</a>.<a href="../../../../src/object/read/pe/import.rs.html#176">ordinal</a>()))
+            <span class="prelude-val">Ok</span>(<a href="#157">Import::Ordinal</a>(<a href="#66">thunk</a>.<a href="#176">ordinal</a>()))
         } <span class="kw">else </span>{
             <span class="kw">let </span>(hint, name) = <span class="self">self</span>.hint_name(thunk.address())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/pe/import.rs.html#161">Import::Name</a>(<a href="../../../../src/object/read/pe/import.rs.html#70">hint</a>, <a href="../../../../src/object/read/pe/import.rs.html#70">name</a>))
+            <span class="prelude-val">Ok</span>(<a href="#161">Import::Name</a>(<a href="#70">hint</a>, <a href="#70">name</a>))
         }
     }
 
@@ -296,18 +296,18 @@
     ///
     /// The hint is an index into the export name pointer table in the target library.
     </span><span class="kw">pub fn </span>hint_name(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt; {
-        <span class="kw">let </span>offset = <a href="../../../../src/object/read/pe/import.rs.html#80">address</a>.wrapping_sub(<a class="self" href="../../../../src/object/read/pe/import.rs.html#80">self</a>.section_address);
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/pe/import.rs.html#80">self</a>.section_data;
+        <span class="kw">let </span>offset = <a href="#80">address</a>.wrapping_sub(<a class="self" href="#80">self</a>.section_address);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="#80">self</a>.section_data;
         data.skip(offset <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE import thunk address&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>hint = data
             .read::&lt;U16Bytes&lt;LE&gt;&gt;()
             .read_error(<span class="string">&quot;Missing PE import thunk hint&quot;</span>)<span class="question-mark">?
-            </span>.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+            </span>.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>);
         <span class="kw">let </span>name = data
             .read_string()
             .read_error(<span class="string">&quot;Missing PE import thunk name&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a href="../../../../src/object/read/pe/import.rs.html#85">hint</a>, <a href="../../../../src/object/read/pe/import.rs.html#89">name</a>))
+        <span class="prelude-val">Ok</span>((<a href="#85">hint</a>, <a href="#89">name</a>))
     }
 }
 
@@ -321,7 +321,7 @@
     <span class="doccomment">/// Return the next descriptor.
     ///
     /// Returns `Ok(None)` when a null descriptor is found.
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#1910">pe::ImageImportDescriptor</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1910">pe::ImageImportDescriptor</a>&gt;&gt; {
         <span class="kw">let </span>import_desc = <span class="self">self
             </span>.data
             .read::&lt;pe::ImageImportDescriptor&gt;()
@@ -329,7 +329,7 @@
         <span class="kw">if </span>import_desc.is_null() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/import.rs.html#107">import_desc</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#107">import_desc</a>))
         }
     }
 }
@@ -344,18 +344,18 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ImportThunkList&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Get the thunk at the given index.
-    </span><span class="kw">pub fn </span>get&lt;Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Pe::ImageThunkData&gt; {
+    </span><span class="kw">pub fn </span>get&lt;Pe: <a href="file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Pe::ImageThunkData&gt; {
         <span class="kw">let </span>thunk = <span class="self">self
             </span>.data
             .read_at(index * mem::size_of::&lt;Pe::ImageThunkData&gt;())
             .read_error(<span class="string">&quot;Invalid PE import thunk index&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a href="../../../../src/object/read/pe/import.rs.html#130">thunk</a>)
+        <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a href="#130">thunk</a>)
     }
 
     <span class="doccomment">/// Return the first thunk in the list, and update `self` to point after it.
     ///
     /// Returns `Ok(None)` when a null thunk is found.
-    </span><span class="kw">pub fn </span>next&lt;Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Pe::ImageThunkData&gt;&gt; {
+    </span><span class="kw">pub fn </span>next&lt;Pe: <a href="file.rs.html#534">ImageNtHeaders</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Pe::ImageThunkData&gt;&gt; {
         <span class="kw">let </span>thunk = <span class="self">self
             </span>.data
             .read::&lt;Pe::ImageThunkData&gt;()
@@ -363,7 +363,7 @@
         <span class="kw">if </span>thunk.address() == <span class="number">0 </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="../../../../src/object/read/pe/import.rs.html#141">thunk</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="#141">thunk</a>))
         }
     }
 }
@@ -381,7 +381,7 @@
 
 <span class="doccomment">/// A trait for generic access to [`pe::ImageThunkData32`] and [`pe::ImageThunkData64`].
 </span><span class="attribute">#[allow(missing_docs)]
-</span><span class="kw">pub trait </span>ImageThunkData: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> {
+</span><span class="kw">pub trait </span>ImageThunkData: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../pod.rs.html#21">Pod</a> {
     <span class="doccomment">/// Return the raw thunk value.
     </span><span class="kw">fn </span>raw(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
@@ -399,40 +399,40 @@
     </span><span class="kw">fn </span>address(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 }
 
-<span class="kw">impl </span><a href="../../../../src/object/read/pe/import.rs.html#166">ImageThunkData</a> <span class="kw">for </span><a href="../../../../src/object/pe.rs.html#1838">pe::ImageThunkData64</a> {
+<span class="kw">impl </span><a href="#166">ImageThunkData</a> <span class="kw">for </span><a href="../../pe.rs.html#1838">pe::ImageThunkData64</a> {
     <span class="kw">fn </span>raw(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#185">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)
+        <a class="self" href="#185">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#643">get</a>(<a href="../../endian.rs.html#317">LE</a>)
     }
 
     <span class="kw">fn </span>is_ordinal(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#189">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <a href="../../../../src/object/pe.rs.html#1867">pe::IMAGE_ORDINAL_FLAG64</a> != <span class="number">0
+        <a class="self" href="#189">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#643">get</a>(<a href="../../endian.rs.html#317">LE</a>) &amp; <a href="../../pe.rs.html#1867">pe::IMAGE_ORDINAL_FLAG64</a> != <span class="number">0
     </span>}
 
     <span class="kw">fn </span>ordinal(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#193">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
+        <a class="self" href="#193">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#643">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
     }
 
     <span class="kw">fn </span>address(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#197">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> &amp; <span class="number">0x7fff_ffff
+        <a class="self" href="#197">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#643">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> &amp; <span class="number">0x7fff_ffff
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../../src/object/read/pe/import.rs.html#166">ImageThunkData</a> <span class="kw">for </span><a href="../../../../src/object/pe.rs.html#1853">pe::ImageThunkData32</a> {
+<span class="kw">impl </span><a href="#166">ImageThunkData</a> <span class="kw">for </span><a href="../../pe.rs.html#1853">pe::ImageThunkData32</a> {
     <span class="kw">fn </span>raw(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#203">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a class="self" href="#203">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
     <span class="kw">fn </span>is_ordinal(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#207">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <a href="../../../../src/object/pe.rs.html#1868">pe::IMAGE_ORDINAL_FLAG32</a> != <span class="number">0
+        <a class="self" href="#207">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) &amp; <a href="../../pe.rs.html#1868">pe::IMAGE_ORDINAL_FLAG32</a> != <span class="number">0
     </span>}
 
     <span class="kw">fn </span>ordinal(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#211">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
+        <a class="self" href="#211">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
     }
 
     <span class="kw">fn </span>address(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/pe/import.rs.html#215">self</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <span class="number">0x7fff_ffff
+        <a class="self" href="#215">self</a>.<span class="number">0</span>.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) &amp; <span class="number">0x7fff_ffff
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

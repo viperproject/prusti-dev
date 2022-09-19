@@ -113,7 +113,7 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/lock/bilock.rs.html#38"><span class="kw">crate</span>::lock::BiLock</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../lock/bilock.rs.html#38"><span class="kw">crate</span>::lock::BiLock</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
 <span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -138,12 +138,12 @@
     </span>F: FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;U, E&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>l = <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(lock.poll_lock(cx));
-    <a href="../../../src/futures_util/io/split.rs.html#21">f</a>(<a href="../../../src/futures_util/io/split.rs.html#25">l</a>.<a href="../../../src/futures_util/lock/bilock.rs.html#245">as_pin_mut</a>(), <a href="../../../src/futures_util/io/split.rs.html#21">cx</a>)
+    <a href="#21">f</a>(<a href="#25">l</a>.<a href="../lock/bilock.rs.html#245">as_pin_mut</a>(), <a href="#21">cx</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>split&lt;T: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>&gt;(t: T) -&gt; (ReadHalf&lt;T&gt;, WriteHalf&lt;T&gt;) {
-    <span class="kw">let </span>(a, b) = BiLock::new(<a href="../../../src/futures_util/io/split.rs.html#29">t</a>);
-    (<a href="../../../src/futures_util/io/split.rs.html#11">ReadHalf</a> { handle: <a href="../../../src/futures_util/io/split.rs.html#30">a</a> }, <a href="../../../src/futures_util/io/split.rs.html#17">WriteHalf</a> { handle: <a href="../../../src/futures_util/io/split.rs.html#30">b</a> })
+    <span class="kw">let </span>(a, b) = BiLock::new(<a href="#29">t</a>);
+    (<a href="#11">ReadHalf</a> { handle: <a href="#30">a</a> }, <a href="#17">WriteHalf</a> { handle: <a href="#30">b</a> })
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; ReadHalf&lt;T&gt; {
@@ -151,9 +151,9 @@
     /// together. Succeeds only if the `ReadHalf&lt;T&gt;` and `WriteHalf&lt;T&gt;` are
     /// a matching pair originating from the same call to `AsyncReadExt::split`.
     </span><span class="kw">pub fn </span>reunite(<span class="self">self</span>, other: WriteHalf&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T, ReuniteError&lt;T&gt;&gt; {
-        <a class="self" href="../../../src/futures_util/io/split.rs.html#38">self</a>.handle
-            .<a href="../../../src/futures_util/lock/bilock.rs.html#151-153">reunite</a>(<a href="../../../src/futures_util/io/split.rs.html#38">other</a>.handle)
-            .map_err(|err| <a href="../../../src/futures_util/io/split.rs.html#100">ReuniteError</a>(<a href="../../../src/futures_util/io/split.rs.html#11">ReadHalf</a> { handle: <a href="../../../src/futures_util/io/split.rs.html#41">err</a>.<span class="number">0 </span>}, <a href="../../../src/futures_util/io/split.rs.html#17">WriteHalf</a> { handle: <a href="../../../src/futures_util/io/split.rs.html#41">err</a>.<span class="number">1 </span>}))
+        <a class="self" href="#38">self</a>.handle
+            .<a href="../lock/bilock.rs.html#151-153">reunite</a>(<a href="#38">other</a>.handle)
+            .map_err(|err| <a href="#100">ReuniteError</a>(<a href="#11">ReadHalf</a> { handle: <a href="#41">err</a>.<span class="number">0 </span>}, <a href="#17">WriteHalf</a> { handle: <a href="#41">err</a>.<span class="number">1 </span>}))
     }
 }
 
@@ -162,7 +162,7 @@
     /// together. Succeeds only if the `ReadHalf&lt;T&gt;` and `WriteHalf&lt;T&gt;` are
     /// a matching pair originating from the same call to `AsyncReadExt::split`.
     </span><span class="kw">pub fn </span>reunite(<span class="self">self</span>, other: ReadHalf&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T, ReuniteError&lt;T&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#49">other</a>.<a href="../../../src/futures_util/io/split.rs.html#38">reunite</a>(<a class="self" href="../../../src/futures_util/io/split.rs.html#49">self</a>)
+        <a href="#49">other</a>.<a href="#38">reunite</a>(<a class="self" href="#49">self</a>)
     }
 }
 
@@ -172,7 +172,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#56">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#57">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#60">l</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a href="../../../src/futures_util/io/split.rs.html#60">cx</a>, <a href="../../../src/futures_util/io/split.rs.html#58">buf</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#56">self</a>.handle, <a href="#57">cx</a>, |l, cx| <a href="#60">l</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a href="#60">cx</a>, <a href="#58">buf</a>))
     }
 
     <span class="kw">fn </span>poll_read_vectored(
@@ -180,7 +180,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#64">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#65">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#68">l</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a href="../../../src/futures_util/io/split.rs.html#68">cx</a>, <a href="../../../src/futures_util/io/split.rs.html#66">bufs</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#64">self</a>.handle, <a href="#65">cx</a>, |l, cx| <a href="#68">l</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a href="#68">cx</a>, <a href="#66">bufs</a>))
     }
 }
 
@@ -190,7 +190,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#74">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#75">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#78">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/io/split.rs.html#78">cx</a>, <a href="../../../src/futures_util/io/split.rs.html#76">buf</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#74">self</a>.handle, <a href="#75">cx</a>, |l, cx| <a href="#78">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="#78">cx</a>, <a href="#76">buf</a>))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -198,15 +198,15 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#82">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#83">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#86">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/io/split.rs.html#86">cx</a>, <a href="../../../src/futures_util/io/split.rs.html#84">bufs</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#82">self</a>.handle, <a href="#83">cx</a>, |l, cx| <a href="#86">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="#86">cx</a>, <a href="#84">bufs</a>))
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#89">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#89">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#90">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../src/futures_util/io/split.rs.html#90">cx</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#89">self</a>.handle, <a href="#89">cx</a>, |l, cx| <a href="#90">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="#90">cx</a>))
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a href="../../../src/futures_util/io/split.rs.html#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/split.rs.html#93">self</a>.handle, <a href="../../../src/futures_util/io/split.rs.html#93">cx</a>, |l, cx| <a href="../../../src/futures_util/io/split.rs.html#94">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../src/futures_util/io/split.rs.html#94">cx</a>))
+        <a href="#21-23">lock_and_then</a>(<span class="kw-2">&amp;</span><a class="self" href="#93">self</a>.handle, <a href="#93">cx</a>, |l, cx| <a href="#94">l</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="#94">cx</a>))
     }
 }
 
@@ -216,17 +216,17 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReuniteError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_util/io/split.rs.html#103">f</a>.debug_tuple(<span class="string">&quot;ReuniteError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).finish()
+        <a href="#103">f</a>.debug_tuple(<span class="string">&quot;ReuniteError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>ReuniteError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_util/io/split.rs.html#109">f</a>, <span class="string">&quot;tried to reunite a ReadHalf and WriteHalf that don&#39;t form a pair&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#109">f</a>, <span class="string">&quot;tried to reunite a ReadHalf and WriteHalf that don&#39;t form a pair&quot;</span>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">core::any::Any</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span>ReuniteError&lt;T&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -280,8 +280,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    mir_utils::{<a href="../../../../src/analysis/mir_utils.rs.html#103">is_prefix</a>, <a href="../../../../src/analysis/mir_utils.rs.html#25">Place</a>},
-    <a href="../../../../src/analysis/pointwise_state.rs.html#12">PointwiseState</a>,
+    mir_utils::{<a href="../../mir_utils.rs.html#103">is_prefix</a>, <a href="../../mir_utils.rs.html#25">Place</a>},
+    <a href="../../pointwise_state.rs.html#12">PointwiseState</a>,
 };
 <span class="kw">use </span><a href="../../../../log/macro.info.html">log::info</a>;
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -304,11 +304,11 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_definitely_accessible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#31">self</a>.definitely_accessible
+        <span class="kw-2">&amp;</span><a class="self" href="#31">self</a>.definitely_accessible
     }
 
     <span class="kw">pub fn </span>get_definitely_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#35">self</a>.definitely_owned
+        <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.definitely_owned
     }
 
     <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
@@ -328,38 +328,38 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#54">self</a>.definitely_accessible.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#56">definitely_accessible_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#54">self</a>.definitely_accessible.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#56">definitely_accessible_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_accessible_set {
             definitely_accessible_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;accessible&quot;</span>, <span class="kw-2">&amp;</span>definitely_accessible_strings)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#54">self</a>.definitely_owned.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#63">definitely_owned_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#54">self</a>.definitely_owned.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#63">definitely_owned_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_owned_set {
             definitely_owned_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;owned&quot;</span>, <span class="kw-2">&amp;</span>definitely_owned_strings)<span class="question-mark">?</span>;
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#55">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
+        <a href="#55">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DefinitelyAccessibleState&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#75">f</a>, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#75">f</a>, <span class="string">&quot;{}&quot;</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap())
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
     <span class="doccomment">/// Make a best-effort at injecting statements to check the analysis state.
     </span><span class="kw">pub fn </span>generate_test_program(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, source_map: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>mir_span = <a class="self" href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#82">self</a>.mir.span;
-        <span class="kw">let </span>source_file = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#82">source_map</a>.lookup_source_file(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#83">mir_span</a>.data().lo);
-        <span class="kw">let </span>source_lines_num = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#84">source_file</a>.count_lines();
-        <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = (<span class="number">0</span>..<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#85">source_lines_num</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|line_index| <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#84">source_file</a>.get_line(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#87">line_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        <span class="kw">let </span>mir_span = <a class="self" href="#82">self</a>.mir.span;
+        <span class="kw">let </span>source_file = <a href="#82">source_map</a>.lookup_source_file(<a href="#83">mir_span</a>.data().lo);
+        <span class="kw">let </span>source_lines_num = <a href="#84">source_file</a>.count_lines();
+        <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = (<span class="number">0</span>..<a href="#85">source_lines_num</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|line_index| <a href="#84">source_file</a>.get_line(<a href="#87">line_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>first_location_on_line: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>&gt; = FxHashMap::default();
         <span class="kw">for </span>(block, block_data) <span class="kw">in </span><span class="self">self</span>.mir.basic_blocks.iter_enumerated() {
@@ -409,8 +409,8 @@
                 }
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>line_locations: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#89">first_location_on_line</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#137">line_locations</a>.sort_by(|left, right| <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#138">right</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#138">left</a>.<span class="number">0</span>)); <span class="comment">// From last to first
+        <span class="kw">let </span><span class="kw-2">mut </span>line_locations: Vec&lt;<span class="kw">_</span>&gt; = <a href="#89">first_location_on_line</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#137">line_locations</a>.sort_by(|left, right| <a href="#138">right</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#138">left</a>.<span class="number">0</span>)); <span class="comment">// From last to first
         </span><span class="kw">for </span>(<span class="kw-2">&amp;</span>line_num, <span class="kw-2">&amp;</span>location) <span class="kw">in </span>line_locations {
             <span class="macro">info!</span>(
                 <span class="string">&quot;The first single-line statement on line {} is {:?}&quot;</span>,
@@ -438,7 +438,7 @@
             <span class="comment">// Inject the checks
             </span>result.insert(line_num - <span class="number">1</span>, check_stmts.join(<span class="string">&quot;\n&quot;</span>));
         }
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#86">result</a>.join(<span class="string">&quot;\n&quot;</span>)
+        <a href="#86">result</a>.join(<span class="string">&quot;\n&quot;</span>)
     }
 }
 
@@ -464,26 +464,26 @@
     }
 
     <span class="comment">// Find name of the local
-    </span><span class="kw">let </span>local_name = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#172">body</a>
+    </span><span class="kw">let </span>local_name = <a href="#172">body</a>
         .var_debug_info
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|var_debug_info| {
-            <span class="kw">if let </span>mir::VarDebugInfoContents::Place(debug_place) = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#195">var_debug_info</a>.value {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_local) = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#196">debug_place</a>.as_local() {
-                    <span class="kw">return </span><a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#197">debug_local</a> == <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#173">place</a>.local;
+            <span class="kw">if let </span>mir::VarDebugInfoContents::Place(debug_place) = <a href="#195">var_debug_info</a>.value {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_local) = <a href="#196">debug_place</a>.as_local() {
+                    <span class="kw">return </span><a href="#197">debug_local</a> == <a href="#173">place</a>.local;
                 }
             };
             <span class="bool-val">false
         </span>})
-        .map(|var_debug_info| <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#203">var_debug_info</a>.name);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#192">local_name</a> {
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#175">pieces</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}&quot;</span>, name));
+        .map(|var_debug_info| <a href="#203">var_debug_info</a>.name);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <a href="#192">local_name</a> {
+        <a href="#175">pieces</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}&quot;</span>, name));
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
     <span class="comment">// Close parenthesis
-    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_ty = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#172">body</a>.local_decls[<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#173">place</a>.local].ty;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>prev_ty = <a href="#172">body</a>.local_decls[<a href="#173">place</a>.local].ty;
     <span class="kw">let </span><span class="kw-2">mut </span>variant = <span class="prelude-val">None</span>;
     <span class="kw">for </span>(proj_base, elem) <span class="kw">in </span>place.iter_projections() {
         <span class="kw">match </span>elem {
@@ -509,7 +509,7 @@
         }
     }
 
-    <span class="prelude-val">Some</span>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#175">pieces</a>.join(<span class="string">&quot;&quot;</span>))
+    <span class="prelude-val">Some</span>(<a href="#175">pieces</a>.join(<span class="string">&quot;&quot;</span>))
 }
 
 <span class="doccomment">/// End-user visible description of the `field_index`nth field of `ty`
@@ -521,24 +521,24 @@
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
     <span class="kw">if </span>ty.is_box() {
         <span class="comment">// If the type is a box, the field is described from the boxed type
-        </span><a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#241-246">describe_field_from_ty</a>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#242">tcx</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#243">ty</a>.boxed_ty(), <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#244">field</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#245">variant_index</a>)
+        </span><a href="#241-246">describe_field_from_ty</a>(<a href="#242">tcx</a>, <a href="#243">ty</a>.boxed_ty(), <a href="#244">field</a>, <a href="#245">variant_index</a>)
     } <span class="kw">else </span>{
-        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#243">ty</a>.kind() {
+        <span class="kw">match </span><span class="kw-2">*</span><a href="#243">ty</a>.kind() {
             ty::TyKind::Adt(def, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>variant = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#245">variant_index</a> {
+                <span class="kw">let </span>variant = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <a href="#245">variant_index</a> {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(def.is_enum());
-                    <span class="kw-2">&amp;</span><a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#252">def</a>.variants()[<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#253">idx</a>]
+                    <span class="kw-2">&amp;</span><a href="#252">def</a>.variants()[<a href="#253">idx</a>]
                 } <span class="kw">else </span>{
-                    <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#252">def</a>.non_enum_variant()
+                    <a href="#252">def</a>.non_enum_variant()
                 };
-                <span class="prelude-val">Some</span>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#253">variant</a>.fields[<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#244">field</a>.index()].ident(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#242">tcx</a>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <span class="prelude-val">Some</span>(<a href="#253">variant</a>.fields[<a href="#244">field</a>.index()].ident(<a href="#242">tcx</a>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             }
-            ty::TyKind::Tuple(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#244">field</a>.index().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            ty::TyKind::Tuple(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a href="#244">field</a>.index().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) | ty::TyKind::RawPtr(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.TypeAndMut.html">ty::TypeAndMut</a> { ty, .. }) =&gt; {
-                <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#241-246">describe_field_from_ty</a>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#242">tcx</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#262">ty</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#244">field</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#245">variant_index</a>)
+                <a href="#241-246">describe_field_from_ty</a>(<a href="#242">tcx</a>, <a href="#262">ty</a>, <a href="#244">field</a>, <a href="#245">variant_index</a>)
             }
             ty::TyKind::Array(ty, <span class="kw">_</span>) | ty::TyKind::Slice(ty) =&gt; {
-                <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#241-246">describe_field_from_ty</a>(<a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#242">tcx</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#265">ty</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#244">field</a>, <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#245">variant_index</a>)
+                <a href="#241-246">describe_field_from_ty</a>(<a href="#242">tcx</a>, <a href="#265">ty</a>, <a href="#244">field</a>, <a href="#245">variant_index</a>)
             }
             ty::TyKind::Closure(..) | ty::TyKind::Generator(..) =&gt; {
                 <span class="comment">// Supporting these cases is complex
@@ -549,4 +549,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

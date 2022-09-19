@@ -179,7 +179,7 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/httparse/iter.rs.html#5"><span class="kw">crate</span>::iter::Bytes</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../iter.rs.html#5"><span class="kw">crate</span>::iter::Bytes</a>;
 
 <span class="kw">pub enum </span>Scan {
     <span class="doccomment">/// Returned when an implementation finds a noteworthy token.
@@ -189,7 +189,7 @@
 }
 
 
-<span class="kw">pub unsafe fn </span>parse_uri_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../../../src/httparse/iter.rs.html#5">Bytes</a>) -&gt; <a href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
+<span class="kw">pub unsafe fn </span>parse_uri_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../iter.rs.html#5">Bytes</a>) -&gt; <a href="#3">Scan</a> {
     <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
         <span class="kw">let </span>advance = match_url_char_32_avx(bytes.as_ref());
         bytes.advance(advance);
@@ -198,7 +198,7 @@
             <span class="kw">return </span>Scan::Found;
         }
     }
-    <a href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
+    <a href="#7">Scan::TooShort</a>
 }
 
 <span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
@@ -215,7 +215,7 @@
     */
     </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
-    <span class="kw">let </span>ptr = <a href="../../../src/httparse/simd/avx2.rs.html#27">buf</a>.as_ptr();
+    <span class="kw">let </span>ptr = <a href="#27">buf</a>.as_ptr();
 
     <span class="kw">let </span>LSH: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x0f</span>);
 
@@ -234,15 +234,15 @@
         <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
     );
 
-    <span class="kw">let </span>data = _mm256_lddqu_si256(<a href="../../../src/httparse/simd/avx2.rs.html#37">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
-    <span class="kw">let </span>rbms = _mm256_shuffle_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#43">URI</a>, <a href="../../../src/httparse/simd/avx2.rs.html#56">data</a>);
-    <span class="kw">let </span>cols = _mm256_and_si256(<a href="../../../src/httparse/simd/avx2.rs.html#39">LSH</a>, _mm256_srli_epi16(<a href="../../../src/httparse/simd/avx2.rs.html#56">data</a>, <span class="number">4</span>));
-    <span class="kw">let </span>bits = _mm256_and_si256(_mm256_shuffle_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#49">ARF</a>, <a href="../../../src/httparse/simd/avx2.rs.html#58">cols</a>), <a href="../../../src/httparse/simd/avx2.rs.html#57">rbms</a>);
+    <span class="kw">let </span>data = _mm256_lddqu_si256(<a href="#37">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+    <span class="kw">let </span>rbms = _mm256_shuffle_epi8(<a href="#43">URI</a>, <a href="#56">data</a>);
+    <span class="kw">let </span>cols = _mm256_and_si256(<a href="#39">LSH</a>, _mm256_srli_epi16(<a href="#56">data</a>, <span class="number">4</span>));
+    <span class="kw">let </span>bits = _mm256_and_si256(_mm256_shuffle_epi8(<a href="#49">ARF</a>, <a href="#58">cols</a>), <a href="#57">rbms</a>);
 
-    <span class="kw">let </span>v = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#59">bits</a>, _mm256_setzero_si256());
-    <span class="kw">let </span>r = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#61">v</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">let </span>v = _mm256_cmpeq_epi8(<a href="#59">bits</a>, _mm256_setzero_si256());
+    <span class="kw">let </span>r = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="#61">v</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
-    _tzcnt_u64(<a href="../../../src/httparse/simd/avx2.rs.html#62">r</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    _tzcnt_u64(<a href="#62">r</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
 <span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
@@ -250,7 +250,7 @@
     <span class="macro">unreachable!</span>(<span class="string">&quot;AVX2 detection should be disabled for x86&quot;</span>);
 }
 
-<span class="kw">pub unsafe fn </span>match_header_value_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../../../src/httparse/iter.rs.html#5">Bytes</a>) -&gt; <a href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
+<span class="kw">pub unsafe fn </span>match_header_value_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../iter.rs.html#5">Bytes</a>) -&gt; <a href="#3">Scan</a> {
     <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
         <span class="kw">let </span>advance = match_header_value_char_32_avx(bytes.as_ref());
         bytes.advance(advance);
@@ -259,7 +259,7 @@
             <span class="kw">return </span>Scan::Found;
         }
     }
-    <a href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
+    <a href="#7">Scan::TooShort</a>
 }
 
 <span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
@@ -276,23 +276,23 @@
     */
     </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
-    <span class="kw">let </span>ptr = <a href="../../../src/httparse/simd/avx2.rs.html#88">buf</a>.as_ptr();
+    <span class="kw">let </span>ptr = <a href="#88">buf</a>.as_ptr();
 
     <span class="comment">// %x09 %x20-%x7e %x80-%xff
     </span><span class="kw">let </span>TAB: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x09</span>);
     <span class="kw">let </span>DEL: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x7f</span>);
     <span class="kw">let </span>LOW: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x20</span>);
 
-    <span class="kw">let </span>dat = _mm256_lddqu_si256(<a href="../../../src/httparse/simd/avx2.rs.html#98">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+    <span class="kw">let </span>dat = _mm256_lddqu_si256(<a href="#98">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
     <span class="comment">// unsigned comparison dat &gt;= LOW
-    </span><span class="kw">let </span>low = _mm256_cmpeq_epi8(_mm256_max_epu8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#103">LOW</a>), <a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>);
-    <span class="kw">let </span>tab = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#101">TAB</a>);
-    <span class="kw">let </span>del = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#102">DEL</a>);
-    <span class="kw">let </span>bit = _mm256_andnot_si256(<a href="../../../src/httparse/simd/avx2.rs.html#109">del</a>, _mm256_or_si256(<a href="../../../src/httparse/simd/avx2.rs.html#107">low</a>, <a href="../../../src/httparse/simd/avx2.rs.html#108">tab</a>));
-    <span class="kw">let </span>rev = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#110">bit</a>, _mm256_setzero_si256());
-    <span class="kw">let </span>res = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#111">rev</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    </span><span class="kw">let </span>low = _mm256_cmpeq_epi8(_mm256_max_epu8(<a href="#105">dat</a>, <a href="#103">LOW</a>), <a href="#105">dat</a>);
+    <span class="kw">let </span>tab = _mm256_cmpeq_epi8(<a href="#105">dat</a>, <a href="#101">TAB</a>);
+    <span class="kw">let </span>del = _mm256_cmpeq_epi8(<a href="#105">dat</a>, <a href="#102">DEL</a>);
+    <span class="kw">let </span>bit = _mm256_andnot_si256(<a href="#109">del</a>, _mm256_or_si256(<a href="#107">low</a>, <a href="#108">tab</a>));
+    <span class="kw">let </span>rev = _mm256_cmpeq_epi8(<a href="#110">bit</a>, _mm256_setzero_si256());
+    <span class="kw">let </span>res = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="#111">rev</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
-    _tzcnt_u64(<a href="../../../src/httparse/simd/avx2.rs.html#112">res</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    _tzcnt_u64(<a href="#112">res</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
 <span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
@@ -361,4 +361,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="httparse" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="httparse" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -66,21 +66,21 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#3">Format</a>};
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#37">Encoding</a>, <a href="../common.rs.html#3">Format</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
 
 <span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ListsHeader {
-    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+    encoding: <a href="../common.rs.html#37">Encoding</a>,
     <span class="attribute">#[allow(dead_code)]
     </span>offset_entry_count: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/gimli/read/lists.rs.html#5">ListsHeader</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#5">ListsHeader</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/gimli/read/lists.rs.html#5">ListsHeader</a> {
-            encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-                format: <a href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a>,
+        <a href="#5">ListsHeader</a> {
+            encoding: <a href="../common.rs.html#37">Encoding</a> {
+                format: <a href="../common.rs.html#7">Format::Dwarf32</a>,
                 version: <span class="number">5</span>,
                 address_size: <span class="number">0</span>,
             },
@@ -89,50 +89,50 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/lists.rs.html#5">ListsHeader</a> {
+<span class="kw">impl </span><a href="#5">ListsHeader</a> {
     <span class="doccomment">/// Return the serialized size of the table header.
     </span><span class="attribute">#[allow(dead_code)]
     #[inline]
     </span><span class="kw">fn </span>size(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
         <span class="comment">// initial_length + version + address_size + segment_selector_size + offset_entry_count
-        </span>ListsHeader::size_for_encoding(<a class="self" href="../../../src/gimli/read/lists.rs.html#28">self</a>.encoding)
+        </span>ListsHeader::size_for_encoding(<a class="self" href="#28">self</a>.encoding)
     }
 
     <span class="doccomment">/// Return the serialized size of the table header.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>size_for_encoding(encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>size_for_encoding(encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
         <span class="comment">// initial_length + version + address_size + segment_selector_size + offset_entry_count
-        </span><a href="../../../src/gimli/read/lists.rs.html#35">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#13">initial_length_size</a>() + <span class="number">2 </span>+ <span class="number">1 </span>+ <span class="number">1 </span>+ <span class="number">4
+        </span><a href="#35">encoding</a>.format.<a href="../common.rs.html#13">initial_length_size</a>() + <span class="number">2 </span>+ <span class="number">1 </span>+ <span class="number">1 </span>+ <span class="number">4
     </span>}
 }
 
 <span class="comment">// TODO: add an iterator over headers in the appropriate sections section
 </span><span class="attribute">#[allow(dead_code)]
-</span><span class="kw">fn </span>parse_header&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/lists.rs.html#5">ListsHeader</a>&gt; {
+</span><span class="kw">fn </span>parse_header&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5">ListsHeader</a>&gt; {
     <span class="kw">let </span>(length, format) = input.read_initial_length()<span class="question-mark">?</span>;
     input.truncate(length)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>version = input.read_u16()<span class="question-mark">?</span>;
     <span class="kw">if </span>version != <span class="number">5 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="../../../src/gimli/read/lists.rs.html#47">version</a>)));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="#47">version</a>)));
     }
 
     <span class="kw">let </span>address_size = input.read_u8()<span class="question-mark">?</span>;
     <span class="kw">let </span>segment_selector_size = input.read_u8()<span class="question-mark">?</span>;
     <span class="kw">if </span>segment_selector_size != <span class="number">0 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#415">Error::UnsupportedSegmentSize</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#415">Error::UnsupportedSegmentSize</a>);
     }
     <span class="kw">let </span>offset_entry_count = input.read_u32()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>encoding = <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-        <a href="../../../src/gimli/read/lists.rs.html#44">format</a>,
-        <a href="../../../src/gimli/read/lists.rs.html#47">version</a>,
-        <a href="../../../src/gimli/read/lists.rs.html#52">address_size</a>,
+    <span class="kw">let </span>encoding = <a href="../common.rs.html#37">Encoding</a> {
+        <a href="#44">format</a>,
+        <a href="#47">version</a>,
+        <a href="#52">address_size</a>,
     };
-    <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/lists.rs.html#5">ListsHeader</a> {
-        <a href="../../../src/gimli/read/lists.rs.html#59">encoding</a>,
-        <a href="../../../src/gimli/read/lists.rs.html#57">offset_entry_count</a>,
+    <span class="prelude-val">Ok</span>(<a href="#5">ListsHeader</a> {
+        <a href="#59">encoding</a>,
+        <a href="#57">offset_entry_count</a>,
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

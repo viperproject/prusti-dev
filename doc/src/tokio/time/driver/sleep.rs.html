@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/driver/sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/time/driver/sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -441,9 +441,9 @@
 <span id="441">441</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::time::driver::ClockTime;
-<span class="kw">use </span><span class="kw">crate</span>::time::driver::{<a href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>, <a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>};
-<span class="kw">use </span><span class="kw">crate</span>::time::{<a href="../../../../src/tokio/time/error.rs.html#27">error::Error</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>};
-<span class="kw">use </span><a href="../../../../src/tokio/util/mod.rs.html#70"><span class="kw">crate</span>::util::trace</a>;
+<span class="kw">use </span><span class="kw">crate</span>::time::driver::{<a href="handle.rs.html#7">Handle</a>, <a href="entry.rs.html#286">TimerEntry</a>};
+<span class="kw">use </span><span class="kw">crate</span>::time::{<a href="../error.rs.html#27">error::Error</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../instant.rs.html#34">Instant</a>};
+<span class="kw">use </span><a href="../../util/mod.rs.html#68"><span class="kw">crate</span>::util::trace</a>;
 
 <span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -502,8 +502,8 @@
 </span><span class="comment">// Alias for old name in 0.x
 </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;delay_until&quot;</span>))]
 #[track_caller]
-</span><span class="kw">pub fn </span>sleep_until(deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="kw">return </span>Sleep::new_timeout(<a href="../../../../src/tokio/time/driver/sleep.rs.html#64">deadline</a>, <a href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>());
+</span><span class="kw">pub fn </span>sleep_until(deadline: <a href="../instant.rs.html#34">Instant</a>) -&gt; <a href="#136-235">Sleep</a> {
+    <span class="kw">return </span>Sleep::new_timeout(<a href="#64">deadline</a>, <a href="../../util/trace.rs.html#84">trace::caller_location</a>());
 }
 
 <span class="doccomment">/// Waits until `duration` has elapsed.
@@ -565,12 +565,12 @@
 </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;delay_for&quot;</span>))]
 #[cfg_attr(docsrs, doc(alias = <span class="string">&quot;wait&quot;</span>))]
 #[track_caller]
-</span><span class="kw">pub fn </span>sleep(duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="kw">let </span>location = <a href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
+</span><span class="kw">pub fn </span>sleep(duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="#136-235">Sleep</a> {
+    <span class="kw">let </span>location = <a href="../../util/trace.rs.html#84">trace::caller_location</a>();
 
-    <span class="kw">match </span>Instant::now().<a href="../../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#127">duration</a>) {
-        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="../../../../src/tokio/time/driver/sleep.rs.html#131">deadline</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
-        <span class="prelude-val">None </span>=&gt; Sleep::new_timeout(Instant::far_future(), <a href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
+    <span class="kw">match </span>Instant::now().<a href="../instant.rs.html#141">checked_add</a>(<a href="#127">duration</a>) {
+        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="#131">deadline</a>, <a href="#128">location</a>),
+        <span class="prelude-val">None </span>=&gt; Sleep::new_timeout(Instant::far_future(), <a href="#128">location</a>),
     }
 }
 
@@ -667,11 +667,11 @@
     #[derive(Debug)]
     #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
     </span><span class="kw">pub struct </span>Sleep {
-        inner: <a href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a>,
+        inner: <a href="#248">Inner</a>,
 
         <span class="comment">// The link between the `Sleep` instance and the timer that drives it.
         </span><span class="attribute">#[pin]
-        </span>entry: <a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>,
+        </span>entry: <a href="entry.rs.html#286">TimerEntry</a>,
     }
 }
 
@@ -687,19 +687,19 @@
 <span class="macro">cfg_not_trace! </span>{
     <span class="attribute">#[derive(Debug)]
     </span><span class="kw">struct </span>Inner {
-        deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
+        deadline: <a href="../instant.rs.html#34">Instant</a>,
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+<span class="kw">impl </span><a href="#136-235">Sleep</a> {
     <span class="attribute">#[cfg_attr(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)), allow(unused_variables))]
     #[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_timeout(
-        deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
+        deadline: <a href="../instant.rs.html#34">Instant</a>,
         location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
-    ) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+    ) -&gt; <a href="#136-235">Sleep</a> {
         <span class="kw">let </span>handle = Handle::current();
-        <span class="kw">let </span>entry = TimerEntry::new(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/time/driver/sleep.rs.html#260">handle</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a>);
+        <span class="kw">let </span>entry = TimerEntry::new(<span class="kw-2">&amp;</span><a href="#260">handle</a>, <a href="#257">deadline</a>);
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>inner = {
@@ -745,25 +745,25 @@
         };
 
         <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">let </span>inner = <a href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a> { <a href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a> };
+        </span><span class="kw">let </span>inner = <a href="#248">Inner</a> { <a href="#257">deadline</a> };
 
-        <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> { <a href="../../../../src/tokio/time/driver/sleep.rs.html#307">inner</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#261">entry</a> }
+        <a href="#136-235">Sleep</a> { <a href="#307">inner</a>, <a href="#261">entry</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>far_future(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-        <span class="self">Self</span>::new_timeout(Instant::far_future(), <a href="../../../../src/tokio/time/driver/sleep.rs.html#312">location</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>far_future(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;) -&gt; <a href="#136-235">Sleep</a> {
+        <span class="self">Self</span>::new_timeout(Instant::far_future(), <a href="#312">location</a>)
     }
 
     <span class="doccomment">/// Returns the instant at which the future will complete.
-    </span><span class="kw">pub fn </span>deadline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#317">self</a>.inner.deadline
+    </span><span class="kw">pub fn </span>deadline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../instant.rs.html#34">Instant</a> {
+        <a class="self" href="#317">self</a>.inner.deadline
     }
 
     <span class="doccomment">/// Returns `true` if `Sleep` has elapsed.
     ///
     /// A `Sleep` instance is elapsed when the requested duration has elapsed.
     </span><span class="kw">pub fn </span>is_elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#324">self</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#501">is_elapsed</a>()
+        <a class="self" href="#324">self</a>.entry.<a href="entry.rs.html#508">is_elapsed</a>()
     }
 
     <span class="doccomment">/// Resets the `Sleep` instance to a new deadline.
@@ -795,14 +795,14 @@
     /// See also the top-level examples.
     ///
     /// [`Pin::as_mut`]: fn@std::pin::Pin::as_mut
-    </span><span class="kw">pub fn </span>reset(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#357">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#361">reset_inner</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#357">deadline</a>)
+    </span><span class="kw">pub fn </span>reset(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../instant.rs.html#34">Instant</a>) {
+        <a class="self" href="#357">self</a>.<a href="#361">reset_inner</a>(<a href="#357">deadline</a>)
     }
 
-    <span class="kw">fn </span>reset_inner(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
-        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#361">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
-        <a href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#532">reset</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>);
-        (<span class="kw-2">*</span><a href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.inner).deadline = <a href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>;
+    <span class="kw">fn </span>reset_inner(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../instant.rs.html#34">Instant</a>) {
+        <span class="kw">let </span>me = <a class="self" href="#361">self</a>.<a href="#136-235">project</a>();
+        <a href="#362">me</a>.entry.<a href="entry.rs.html#539">reset</a>(<a href="#361">deadline</a>);
+        (<span class="kw-2">*</span><a href="#362">me</a>.inner).deadline = <a href="#361">deadline</a>;
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span>{
@@ -829,8 +829,8 @@
         }
     }
 
-    <span class="kw">fn </span>poll_elapsed(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/tokio/time/error.rs.html#27">Error</a>&gt;&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#391">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
+    <span class="kw">fn </span>poll_elapsed(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#27">Error</a>&gt;&gt; {
+        <span class="kw">let </span>me = <a class="self" href="#391">self</a>.<a href="#136-235">project</a>();
 
         <span class="comment">// Keep track of task budget
         </span><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -840,22 +840,22 @@
         ));
 
         <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
 
-        <span class="kw">let </span>result = <a href="../../../../src/tokio/time/driver/sleep.rs.html#392">me</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#546-549">poll_elapsed</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#391">cx</a>).map(<span class="kw">move </span>|r| {
-            <a href="../../../../src/tokio/time/driver/sleep.rs.html#402">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-            <a href="../../../../src/tokio/time/driver/sleep.rs.html#404">r</a>
+        <span class="kw">let </span>result = <a href="#392">me</a>.entry.<a href="entry.rs.html#553-556">poll_elapsed</a>(<a href="#391">cx</a>).map(<span class="kw">move </span>|r| {
+            <a href="#402">coop</a>.<a href="../../coop.rs.html#138">made_progress</a>();
+            <a href="#404">r</a>
         });
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">return </span><span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_elapsed&quot;</span>, result);
 
         <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">return </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#404">result</a>;
+        </span><span class="kw">return </span><a href="#404">result</a>;
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#136-235">Sleep</a> {
     <span class="kw">type </span>Output = ();
 
     <span class="comment">// `poll_elapsed` can return an error in two cases:
@@ -874,11 +874,11 @@
         </span><span class="kw">let </span>_ao_span = <span class="self">self</span>.inner.ctx.async_op_span.clone().entered();
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>_ao_poll_span = <span class="self">self</span>.inner.ctx.async_op_poll_span.clone().entered();
-        <span class="kw">match </span><a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.as_mut().poll_elapsed(cx)) {
+        <span class="kw">match </span><a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.as_mut().poll_elapsed(cx)) {
             <span class="prelude-val">Ok</span>(()) =&gt; Poll::Ready(()),
             <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;timer error: {}&quot;</span>, e),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

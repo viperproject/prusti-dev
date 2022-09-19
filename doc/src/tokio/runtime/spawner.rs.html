@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/spawner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/runtime/spawner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -90,49 +90,51 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
+<span id="93">93</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use </span><a href="../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">crate</span>::runtime::task::Id</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::{<a href="../../../src/tokio/runtime/mod.rs.html#202">basic_scheduler</a>, <a href="../../../src/tokio/runtime/handle.rs.html#23">HandleInner</a>};
-<span class="kw">use </span><a href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::task::JoinHandle</a>;
+<span class="kw">use </span><a href="scheduler/mod.rs.html#1"><span class="kw">crate</span>::runtime::scheduler::current_thread</a>;
+<span class="kw">use </span><a href="task/mod.rs.html#206"><span class="kw">crate</span>::runtime::task::Id</a>;
+<span class="kw">use </span><a href="handle.rs.html#23"><span class="kw">crate</span>::runtime::HandleInner</a>;
+<span class="kw">use </span><a href="task/join.rs.html#154"><span class="kw">crate</span>::task::JoinHandle</a>;
 
 <span class="macro">cfg_rt_multi_thread! </span>{
-    <span class="kw">use </span><a href="../../../src/tokio/runtime/mod.rs.html#239"><span class="kw">crate</span>::runtime::thread_pool</a>;
+    <span class="kw">use </span><a href="scheduler/mod.rs.html#5"><span class="kw">crate</span>::runtime::scheduler::multi_thread</a>;
 }
 
 <span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Spawner {
-    Basic(<a href="../../../src/tokio/runtime/basic_scheduler.rs.html#67">basic_scheduler::Spawner</a>),
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-    </span>ThreadPool(<a href="../../../src/tokio/runtime/thread_pool/mod.rs.html#41">thread_pool::Spawner</a>),
+    CurrentThread(<a href="scheduler/current_thread.rs.html#67">current_thread::Spawner</a>),
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+    </span>MultiThread(<a href="scheduler/multi_thread/mod.rs.html#41">multi_thread::Spawner</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/runtime/spawner.rs.html#11">Spawner</a> {
+<span class="kw">impl </span><a href="#12">Spawner</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
+        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
         </span>{
-            <span class="kw">if let </span><a href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(spawner) = <span class="self"><a href="../../../src/tokio/runtime/spawner.rs.html#18">self</a> </span>{
-                <a href="../../../src/tokio/runtime/spawner.rs.html#21">spawner</a>.<a href="../../../src/tokio/runtime/thread_pool/mod.rs.html#118">shutdown</a>();
+            <span class="kw">if let </span><a href="#15">Spawner::MultiThread</a>(spawner) = <span class="self"><a href="#19">self</a> </span>{
+                <a href="#22">spawner</a>.<a href="scheduler/multi_thread/mod.rs.html#107">shutdown</a>();
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F, id: <a href="../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; JoinHandle&lt;F::Output&gt;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F, id: <a href="task/mod.rs.html#206">Id</a>) -&gt; JoinHandle&lt;F::Output&gt;
     <span class="kw">where
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
         F::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/runtime/spawner.rs.html#27">self</a> </span>{
-            <a href="../../../src/tokio/runtime/spawner.rs.html#12">Spawner::Basic</a>(spawner) =&gt; <a href="../../../src/tokio/runtime/spawner.rs.html#33">spawner</a>.<a href="../../../src/tokio/runtime/basic_scheduler.rs.html#379-382">spawn</a>(<a href="../../../src/tokio/runtime/spawner.rs.html#27">future</a>, <a href="../../../src/tokio/runtime/spawner.rs.html#27">id</a>),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-            </span><a href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(spawner) =&gt; <a href="../../../src/tokio/runtime/spawner.rs.html#35">spawner</a>.<a href="../../../src/tokio/runtime/thread_pool/mod.rs.html#110-113">spawn</a>(<a href="../../../src/tokio/runtime/spawner.rs.html#27">future</a>, <a href="../../../src/tokio/runtime/spawner.rs.html#27">id</a>),
+        <span class="kw">match </span><span class="self"><a href="#28">self</a> </span>{
+            <a href="#13">Spawner::CurrentThread</a>(spawner) =&gt; <a href="#34">spawner</a>.<a href="scheduler/current_thread.rs.html#361-364">spawn</a>(<a href="#28">future</a>, <a href="#28">id</a>),
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+            </span><a href="#15">Spawner::MultiThread</a>(spawner) =&gt; <a href="#36">spawner</a>.<a href="scheduler/multi_thread/mod.rs.html#99-102">spawn</a>(<a href="#28">future</a>, <a href="#28">id</a>),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_handle_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/tokio/runtime/handle.rs.html#23">HandleInner</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/runtime/spawner.rs.html#39">self</a> </span>{
-            <a href="../../../src/tokio/runtime/spawner.rs.html#12">Spawner::Basic</a>(spawner) =&gt; <a href="../../../src/tokio/runtime/spawner.rs.html#41">spawner</a>.<a href="../../../src/tokio/runtime/basic_scheduler.rs.html#412">as_handle_inner</a>(),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-            </span><a href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(spawner) =&gt; <a href="../../../src/tokio/runtime/spawner.rs.html#43">spawner</a>.<a href="../../../src/tokio/runtime/thread_pool/mod.rs.html#122">as_handle_inner</a>(),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_handle_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="handle.rs.html#23">HandleInner</a> {
+        <span class="kw">match </span><span class="self"><a href="#40">self</a> </span>{
+            <a href="#13">Spawner::CurrentThread</a>(spawner) =&gt; <a href="#42">spawner</a>.<a href="scheduler/current_thread.rs.html#394">as_handle_inner</a>(),
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+            </span><a href="#15">Spawner::MultiThread</a>(spawner) =&gt; <a href="#44">spawner</a>.<a href="scheduler/multi_thread/mod.rs.html#111">as_handle_inner</a>(),
         }
     }
 }
@@ -143,44 +145,44 @@
     <span class="kw">impl </span>Spawner {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_workers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
             <span class="kw">match </span><span class="self">self </span>{
-                Spawner::Basic(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-                </span>Spawner::ThreadPool(spawner) =&gt; spawner.num_workers(),
+                Spawner::CurrentThread(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+                <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+                </span>Spawner::MultiThread(spawner) =&gt; spawner.num_workers(),
             }
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>scheduler_metrics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SchedulerMetrics {
             <span class="kw">match </span><span class="self">self </span>{
-                Spawner::Basic(spawner) =&gt; spawner.scheduler_metrics(),
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-                </span>Spawner::ThreadPool(spawner) =&gt; spawner.scheduler_metrics(),
+                Spawner::CurrentThread(spawner) =&gt; spawner.scheduler_metrics(),
+                <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+                </span>Spawner::MultiThread(spawner) =&gt; spawner.scheduler_metrics(),
             }
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>worker_metrics(<span class="kw-2">&amp;</span><span class="self">self</span>, worker: usize) -&gt; <span class="kw-2">&amp;</span>WorkerMetrics {
             <span class="kw">match </span><span class="self">self </span>{
-                Spawner::Basic(spawner) =&gt; spawner.worker_metrics(worker),
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-                </span>Spawner::ThreadPool(spawner) =&gt; spawner.worker_metrics(worker),
+                Spawner::CurrentThread(spawner) =&gt; spawner.worker_metrics(worker),
+                <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+                </span>Spawner::MultiThread(spawner) =&gt; spawner.worker_metrics(worker),
             }
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>injection_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
             <span class="kw">match </span><span class="self">self </span>{
-                Spawner::Basic(spawner) =&gt; spawner.injection_queue_depth(),
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-                </span>Spawner::ThreadPool(spawner) =&gt; spawner.injection_queue_depth(),
+                Spawner::CurrentThread(spawner) =&gt; spawner.injection_queue_depth(),
+                <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+                </span>Spawner::MultiThread(spawner) =&gt; spawner.injection_queue_depth(),
             }
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>worker_local_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, worker: usize) -&gt; usize {
             <span class="kw">match </span><span class="self">self </span>{
-                Spawner::Basic(spawner) =&gt; spawner.worker_metrics(worker).queue_depth(),
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;rt-multi-thread&quot;</span>)]
-                </span>Spawner::ThreadPool(spawner) =&gt; spawner.worker_local_queue_depth(worker),
+                Spawner::CurrentThread(spawner) =&gt; spawner.worker_metrics(worker).queue_depth(),
+                <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rt-multi-thread&quot;</span>, not(tokio_wasi)))]
+                </span>Spawner::MultiThread(spawner) =&gt; spawner.worker_local_queue_depth(worker),
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -136,11 +136,11 @@
 <span id="136">136</span>
 </pre><pre class="rust"><code><span class="doccomment">//! WebSocket handshake control.
 
-</span><span class="kw">pub mod </span><a href="../../../src/tungstenite/handshake/client.rs.html#1-322">client</a>;
-<span class="kw">pub mod </span><a href="../../../src/tungstenite/handshake/headers.rs.html#1-81">headers</a>;
-<span class="kw">pub mod </span><a href="../../../src/tungstenite/handshake/server.rs.html#1-321">server</a>;
+</span><span class="kw">pub mod </span><a href="client.rs.html#1-322">client</a>;
+<span class="kw">pub mod </span><a href="headers.rs.html#1-81">headers</a>;
+<span class="kw">pub mod </span><a href="server.rs.html#1-321">server</a>;
 
-<span class="kw">mod </span><a href="../../../src/tungstenite/handshake/machine.rs.html#1-122">machine</a>;
+<span class="kw">mod </span><a href="machine.rs.html#1-122">machine</a>;
 
 <span class="kw">use </span>std::{
     <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">as </span>ErrorTrait,
@@ -150,39 +150,39 @@
 
 <span class="kw">use </span>sha1::{<a href="../../../digest/digest/trait.Digest.html">Digest</a>, <a href="../../../sha1/struct.Sha1.html">Sha1</a>};
 
-<span class="kw">use </span><span class="self">self</span>::machine::{<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#91">RoundResult</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#102">StageResult</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>};
-<span class="kw">use </span><a href="../../../src/tungstenite/error.rs.html#14"><span class="kw">crate</span>::error::Error</a>;
+<span class="kw">use </span><span class="self">self</span>::machine::{<a href="machine.rs.html#13">HandshakeMachine</a>, <a href="machine.rs.html#91">RoundResult</a>, <a href="machine.rs.html#102">StageResult</a>, <a href="machine.rs.html#110">TryParse</a>};
+<span class="kw">use </span><a href="../error.rs.html#14"><span class="kw">crate</span>::error::Error</a>;
 
 <span class="doccomment">/// A WebSocket handshake.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>MidHandshake&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; {
+</span><span class="kw">pub struct </span>MidHandshake&lt;Role: <a href="#91">HandshakeRole</a>&gt; {
     role: Role,
     machine: HandshakeMachine&lt;Role::InternalStream&gt;,
 }
 
-<span class="kw">impl</span>&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; MidHandshake&lt;Role&gt; {
+<span class="kw">impl</span>&lt;Role: <a href="#91">HandshakeRole</a>&gt; MidHandshake&lt;Role&gt; {
     <span class="doccomment">/// Allow access to machine
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HandshakeMachine&lt;Role::InternalStream&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tungstenite/handshake/mod.rs.html#29">self</a>.machine
+        <span class="kw-2">&amp;</span><a class="self" href="#29">self</a>.machine
     }
 
     <span class="doccomment">/// Allow mutable access to machine
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HandshakeMachine&lt;Role::InternalStream&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tungstenite/handshake/mod.rs.html#34">self</a>.machine
+        <span class="kw-2">&amp;mut </span><a class="self" href="#34">self</a>.machine
     }
 
     <span class="doccomment">/// Restarts the handshake process.
     </span><span class="kw">pub fn </span>handshake(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, HandshakeError&lt;Role&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>mach = <a class="self" href="../../../src/tungstenite/handshake/mod.rs.html#39">self</a>.machine;
+        <span class="kw">let </span><span class="kw-2">mut </span>mach = <a class="self" href="#39">self</a>.machine;
         <span class="kw">loop </span>{
-            <a href="../../../src/tungstenite/handshake/mod.rs.html#40">mach</a> = <span class="kw">match </span>mach.single_round()<span class="question-mark">? </span>{
-                <a href="../../../src/tungstenite/handshake/machine.rs.html#93">RoundResult::WouldBlock</a>(m) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/handshake/mod.rs.html#59">HandshakeError::Interrupted</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a> { machine: <a href="../../../src/tungstenite/handshake/mod.rs.html#43">m</a>, ..<span class="self"><a href="../../../src/tungstenite/handshake/mod.rs.html#39">self</a> </span>}))
+            <a href="#40">mach</a> = <span class="kw">match </span>mach.single_round()<span class="question-mark">? </span>{
+                <a href="machine.rs.html#93">RoundResult::WouldBlock</a>(m) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#59">HandshakeError::Interrupted</a>(<a href="#22">MidHandshake</a> { machine: <a href="#43">m</a>, ..<span class="self"><a href="#39">self</a> </span>}))
                 }
-                <a href="../../../src/tungstenite/handshake/machine.rs.html#95">RoundResult::Incomplete</a>(m) =&gt; <a href="../../../src/tungstenite/handshake/mod.rs.html#46">m</a>,
-                <a href="../../../src/tungstenite/handshake/machine.rs.html#97">RoundResult::StageFinished</a>(s) =&gt; <span class="kw">match </span><span class="self">self</span>.role.stage_finished(s)<span class="question-mark">? </span>{
-                    <a href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(m) =&gt; <a href="../../../src/tungstenite/handshake/mod.rs.html#48">m</a>,
-                    <a href="../../../src/tungstenite/handshake/mod.rs.html#110">ProcessingResult::Done</a>(result) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/mod.rs.html#49">result</a>),
+                <a href="machine.rs.html#95">RoundResult::Incomplete</a>(m) =&gt; <a href="#46">m</a>,
+                <a href="machine.rs.html#97">RoundResult::StageFinished</a>(s) =&gt; <span class="kw">match </span><span class="self">self</span>.role.stage_finished(s)<span class="question-mark">? </span>{
+                    <a href="#109">ProcessingResult::Continue</a>(m) =&gt; <a href="#48">m</a>,
+                    <a href="#110">ProcessingResult::Done</a>(result) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#49">result</a>),
                 },
             }
         }
@@ -190,43 +190,43 @@
 }
 
 <span class="doccomment">/// A handshake result.
-</span><span class="kw">pub enum </span>HandshakeError&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; {
+</span><span class="kw">pub enum </span>HandshakeError&lt;Role: <a href="#91">HandshakeRole</a>&gt; {
     <span class="doccomment">/// Handshake was interrupted (would block).
     </span>Interrupted(MidHandshake&lt;Role&gt;),
     <span class="doccomment">/// Handshake failed.
-    </span>Failure(<a href="../../../src/tungstenite/error.rs.html#14">Error</a>),
+    </span>Failure(<a href="../error.rs.html#14">Error</a>),
 }
 
-<span class="kw">impl</span>&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {
+<span class="kw">impl</span>&lt;Role: <a href="#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/tungstenite/handshake/mod.rs.html#65">self</a> </span>{
-            <a href="../../../src/tungstenite/handshake/mod.rs.html#59">HandshakeError::Interrupted</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#65">f</a>, <span class="string">&quot;HandshakeError::Interrupted(...)&quot;</span>),
-            <a href="../../../src/tungstenite/handshake/mod.rs.html#61">HandshakeError::Failure</a>(<span class="kw-2">ref </span>e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#65">f</a>, <span class="string">&quot;HandshakeError::Failure({:?})&quot;</span>, e),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#65">self</a> </span>{
+            <a href="#59">HandshakeError::Interrupted</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#65">f</a>, <span class="string">&quot;HandshakeError::Interrupted(...)&quot;</span>),
+            <a href="#61">HandshakeError::Failure</a>(<span class="kw-2">ref </span>e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#65">f</a>, <span class="string">&quot;HandshakeError::Failure({:?})&quot;</span>, e),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {
+<span class="kw">impl</span>&lt;Role: <a href="#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/tungstenite/handshake/mod.rs.html#74">self</a> </span>{
-            <a href="../../../src/tungstenite/handshake/mod.rs.html#59">HandshakeError::Interrupted</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#74">f</a>, <span class="string">&quot;Interrupted handshake (WouldBlock)&quot;</span>),
-            <a href="../../../src/tungstenite/handshake/mod.rs.html#61">HandshakeError::Failure</a>(<span class="kw-2">ref </span>e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#74">f</a>, <span class="string">&quot;{}&quot;</span>, e),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#74">self</a> </span>{
+            <a href="#59">HandshakeError::Interrupted</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#74">f</a>, <span class="string">&quot;Interrupted handshake (WouldBlock)&quot;</span>),
+            <a href="#61">HandshakeError::Failure</a>(<span class="kw-2">ref </span>e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#74">f</a>, <span class="string">&quot;{}&quot;</span>, e),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">ErrorTrait</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {}
+<span class="kw">impl</span>&lt;Role: <a href="#91">HandshakeRole</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">ErrorTrait</a> <span class="kw">for </span>HandshakeError&lt;Role&gt; {}
 
-<span class="kw">impl</span>&lt;Role: <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>&gt; From&lt;<a href="../../../src/tungstenite/error.rs.html#14">Error</a>&gt; <span class="kw">for </span>HandshakeError&lt;Role&gt; {
-    <span class="kw">fn </span>from(err: <a href="../../../src/tungstenite/error.rs.html#14">Error</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tungstenite/handshake/mod.rs.html#61">HandshakeError::Failure</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#85">err</a>)
+<span class="kw">impl</span>&lt;Role: <a href="#91">HandshakeRole</a>&gt; From&lt;<a href="../error.rs.html#14">Error</a>&gt; <span class="kw">for </span>HandshakeError&lt;Role&gt; {
+    <span class="kw">fn </span>from(err: <a href="../error.rs.html#14">Error</a>) -&gt; <span class="self">Self </span>{
+        <a href="#61">HandshakeError::Failure</a>(<a href="#85">err</a>)
     }
 }
 
 <span class="doccomment">/// Handshake role.
 </span><span class="kw">pub trait </span>HandshakeRole {
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">type </span>IncomingData: <a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>;
+    </span><span class="kw">type </span>IncomingData: <a href="machine.rs.html#110">TryParse</a>;
     <span class="attribute">#[doc(hidden)]
     </span><span class="kw">type </span>InternalStream: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>;
     <span class="attribute">#[doc(hidden)]
@@ -235,7 +235,7 @@
     </span><span class="kw">fn </span>stage_finished(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         finish: StageResult&lt;<span class="self">Self</span>::IncomingData, <span class="self">Self</span>::InternalStream&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ProcessingResult&lt;<span class="self">Self</span>::InternalStream, <span class="self">Self</span>::FinalResult&gt;, <a href="../../../src/tungstenite/error.rs.html#14">Error</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ProcessingResult&lt;<span class="self">Self</span>::InternalStream, <span class="self">Self</span>::FinalResult&gt;, <a href="../error.rs.html#14">Error</a>&gt;;
 }
 
 <span class="doccomment">/// Stage processing result.
@@ -255,9 +255,9 @@
     // ... with the string &quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot; (RFC 6455)
     </span><span class="kw">const </span>WS_GUID: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>sha1 = Sha1::default();
-    <a href="../../../src/tungstenite/handshake/mod.rs.html#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">update</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#117">request_key</a>);
-    <a href="../../../src/tungstenite/handshake/mod.rs.html#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">update</a>(<a href="../../../src/tungstenite/handshake/mod.rs.html#120">WS_GUID</a>);
-    base64::encode(<span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/mod.rs.html#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">finalize</a>())
+    <a href="#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">update</a>(<a href="#117">request_key</a>);
+    <a href="#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">update</a>(<a href="#120">WS_GUID</a>);
+    base64::encode(<span class="kw-2">&amp;</span><a href="#121">sha1</a>.<a href="../../../digest/digest/trait.Digest.html">finalize</a>())
 }
 
 <span class="attribute">#[cfg(test)]
@@ -271,4 +271,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

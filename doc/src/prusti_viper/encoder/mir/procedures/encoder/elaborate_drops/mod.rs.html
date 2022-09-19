@@ -74,8 +74,8 @@
 <span id="74">74</span>
 <span id="75">75</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a>,
+    errors::{<a href="../../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    <a href="../../../../encoder.rs.html#68">Encoder</a>,
 };
 <span class="kw">use </span><a href="../../../../../../../prusti_common/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span>prusti_interface::environment::{
@@ -91,62 +91,62 @@
 };
 <span class="kw">use </span>prusti_rustc_interface::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">hir::def_id::DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
 
-<span class="kw">mod </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#12-1087">mir_dataflow</a>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#13-688">mir_transform</a>;
+<span class="kw">mod </span><a href="mir_dataflow.rs.html#12-1087">mir_dataflow</a>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span><a href="mir_transform.rs.html#13-688">mir_transform</a>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>elaborate_drops&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
     encoder: <span class="kw-2">&amp;mut </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
     procedure: <span class="kw-2">&amp;</span>Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; SpannedEncodingResult&lt;(mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="../../../../../../../prusti_interface/environment/mir_body/borrowck/lifetimes/struct.Lifetimes.html">Lifetimes</a>)&gt; {
-    <span class="kw">let </span>(<span class="kw-2">mut </span>input_facts, <span class="kw-2">mut </span>location_table) = <span class="kw">if let </span><span class="prelude-val">Some</span>(facts) = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#23">encoder</a>
-        .<a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>()
+    <span class="kw">let </span>(<span class="kw-2">mut </span>input_facts, <span class="kw-2">mut </span>location_table) = <span class="kw">if let </span><span class="prelude-val">Some</span>(facts) = <a href="#23">encoder</a>
+        .<a href="../../../../encoder.rs.html#223">env</a>()
         .body
-        .try_get_local_mir_borrowck_facts(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#24">def_id</a>.expect_local())
+        .try_get_local_mir_borrowck_facts(<a href="#24">def_id</a>.expect_local())
     {
-        <span class="kw">let </span>input_facts = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">facts</a>.input_facts.borrow().as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>location_table = LocationTable::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">facts</a>.location_table.borrow().as_ref().unwrap());
-        (<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#32">input_facts</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#33">location_table</a>)
+        <span class="kw">let </span>input_facts = <a href="#27">facts</a>.input_facts.borrow().as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>location_table = LocationTable::new(<a href="#27">facts</a>.location_table.borrow().as_ref().unwrap());
+        (<a href="#32">input_facts</a>, <a href="#33">location_table</a>)
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(SpannedEncodingError::internal(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;failed to obtain borrow information for {:?}&quot;</span>, def_id),
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#25">procedure</a>.get_span(),
+            <a href="#25">procedure</a>.get_span(),
         ));
     };
-    <span class="kw">let </span>mir = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#25">procedure</a>.get_mir();
-    <span class="kw">let </span>tcx = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#23">encoder</a>.<a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().tcx();
+    <span class="kw">let </span>mir = <a href="#25">procedure</a>.get_mir();
+    <span class="kw">let </span>tcx = <a href="#23">encoder</a>.<a href="../../../../encoder.rs.html#223">env</a>().tcx();
 
     <span class="kw">if </span>config::dump_debug_info() {
-        <span class="kw">let </span>local_def_id = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#24">def_id</a>.expect_local();
-        <span class="kw">let </span>def_path = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#23">encoder</a>.<a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().query.hir().def_path(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#45">local_def_id</a>);
-        <span class="kw">let </span>graph = <a href="../../../../../../../prusti_interface/environment/mir_body/graphviz/fn.to_graphviz.html">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#41">mir</a>);
+        <span class="kw">let </span>local_def_id = <a href="#24">def_id</a>.expect_local();
+        <span class="kw">let </span>def_path = <a href="#23">encoder</a>.<a href="../../../../encoder.rs.html#223">env</a>().query.hir().def_path(<a href="#45">local_def_id</a>);
+        <span class="kw">let </span>graph = <a href="../../../../../../../prusti_interface/environment/mir_body/graphviz/fn.to_graphviz.html">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="#27">location_table</a>, <a href="#41">mir</a>);
         prusti_common::report::log::report_with_writer(
             <span class="string">&quot;graphviz_mir_dump_before_patch&quot;</span>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.dot&quot;</span>, def_path.to_filename_friendly_no_crate()),
-            |writer| <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#47">graph</a>.write(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#51">writer</a>).unwrap(),
+            |writer| <a href="#47">graph</a>.write(<a href="#51">writer</a>).unwrap(),
         );
     }
 
-    <a href="../../../../../../../prusti_interface/environment/mir_body/borrowck/facts/validation/fn.validate.html">validate</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#41">mir</a>);
-    <span class="kw">let </span>drop_patch = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35"><span class="self">self</span>::mir_transform::run_pass</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#42">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#41">mir</a>);
-    <span class="kw">let </span>mir = <a href="../../../../../../../prusti_interface/environment/mir_body/patch/fn.apply_patch.html">apply_patch</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#56">drop_patch</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#41">mir</a>, <span class="kw-2">&amp;mut </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <span class="kw-2">&amp;mut </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>);
+    <a href="../../../../../../../prusti_interface/environment/mir_body/borrowck/facts/validation/fn.validate.html">validate</a>(<span class="kw-2">&amp;</span><a href="#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="#27">location_table</a>, <a href="#41">mir</a>);
+    <span class="kw">let </span>drop_patch = <a href="mir_transform.rs.html#35"><span class="self">self</span>::mir_transform::run_pass</a>(<a href="#42">tcx</a>, <a href="#41">mir</a>);
+    <span class="kw">let </span>mir = <a href="../../../../../../../prusti_interface/environment/mir_body/patch/fn.apply_patch.html">apply_patch</a>(<a href="#56">drop_patch</a>, <a href="#41">mir</a>, <span class="kw-2">&amp;mut </span><a href="#27">input_facts</a>, <span class="kw-2">&amp;mut </span><a href="#27">location_table</a>);
 
     <span class="kw">if </span>config::dump_debug_info() {
-        <span class="kw">let </span>local_def_id = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#24">def_id</a>.expect_local();
-        <span class="kw">let </span>def_path = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#23">encoder</a>.<a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().query.hir().def_path(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#60">local_def_id</a>);
-        <span class="kw">let </span>graph = <a href="../../../../../../../prusti_interface/environment/mir_body/graphviz/fn.to_graphviz.html">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#57">mir</a>);
+        <span class="kw">let </span>local_def_id = <a href="#24">def_id</a>.expect_local();
+        <span class="kw">let </span>def_path = <a href="#23">encoder</a>.<a href="../../../../encoder.rs.html#223">env</a>().query.hir().def_path(<a href="#60">local_def_id</a>);
+        <span class="kw">let </span>graph = <a href="../../../../../../../prusti_interface/environment/mir_body/graphviz/fn.to_graphviz.html">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="#27">location_table</a>, <span class="kw-2">&amp;</span><a href="#57">mir</a>);
         prusti_common::report::log::report_with_writer(
             <span class="string">&quot;graphviz_mir_dump_after_patch&quot;</span>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.dot&quot;</span>, def_path.to_filename_friendly_no_crate()),
-            |writer| <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#62">graph</a>.write(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#66">writer</a>).unwrap(),
+            |writer| <a href="#62">graph</a>.write(<a href="#66">writer</a>).unwrap(),
         );
     }
 
-    <a href="../../../../../../../prusti_interface/environment/mir_body/borrowck/facts/validation/fn.validate.html">validate</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#57">mir</a>);
+    <a href="../../../../../../../prusti_interface/environment/mir_body/borrowck/facts/validation/fn.validate.html">validate</a>(<span class="kw-2">&amp;</span><a href="#27">input_facts</a>, <span class="kw-2">&amp;</span><a href="#27">location_table</a>, <span class="kw-2">&amp;</span><a href="#57">mir</a>);
 
-    <span class="kw">let </span>lifetimes = Lifetimes::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">input_facts</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#27">location_table</a>);
+    <span class="kw">let </span>lifetimes = Lifetimes::new(<a href="#27">input_facts</a>, <a href="#27">location_table</a>);
 
-    <span class="prelude-val">Ok</span>((<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#57">mir</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mod.rs.html#72">lifetimes</a>))
+    <span class="prelude-val">Ok</span>((<a href="#57">mir</a>, <a href="#72">lifetimes</a>))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -88,31 +88,31 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel(initial: <a href="../../../src/hyper/common/watch.rs.html#14">Value</a>) -&gt; (<a href="../../../src/hyper/common/watch.rs.html#37">Sender</a>, <a href="../../../src/hyper/common/watch.rs.html#41">Receiver</a>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel(initial: <a href="#14">Value</a>) -&gt; (<a href="#37">Sender</a>, <a href="#41">Receiver</a>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
         initial != CLOSED,
         <span class="string">&quot;watch::channel initial state of 0 is reserved&quot;
     </span>);
 
-    <span class="kw">let </span>shared = Arc::new(<a href="../../../src/hyper/common/watch.rs.html#45">Shared</a> {
-        value: AtomicUsize::new(<a href="../../../src/hyper/common/watch.rs.html#18">initial</a>),
+    <span class="kw">let </span>shared = Arc::new(<a href="#45">Shared</a> {
+        value: AtomicUsize::new(<a href="#18">initial</a>),
         waker: AtomicWaker::new(),
     });
 
     (
-        <a href="../../../src/hyper/common/watch.rs.html#37">Sender</a> {
-            shared: <a href="../../../src/hyper/common/watch.rs.html#24">shared</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#37">Sender</a> {
+            shared: <a href="#24">shared</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         },
-        <a href="../../../src/hyper/common/watch.rs.html#41">Receiver</a> { <a href="../../../src/hyper/common/watch.rs.html#24">shared</a> },
+        <a href="#41">Receiver</a> { <a href="#24">shared</a> },
     )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Sender {
-    shared: Arc&lt;<a href="../../../src/hyper/common/watch.rs.html#45">Shared</a>&gt;,
+    shared: Arc&lt;<a href="#45">Shared</a>&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Receiver {
-    shared: Arc&lt;<a href="../../../src/hyper/common/watch.rs.html#45">Shared</a>&gt;,
+    shared: Arc&lt;<a href="#45">Shared</a>&gt;,
 }
 
 <span class="kw">struct </span>Shared {
@@ -120,29 +120,29 @@
     waker: AtomicWaker,
 }
 
-<span class="kw">impl </span><a href="../../../src/hyper/common/watch.rs.html#37">Sender</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="../../../src/hyper/common/watch.rs.html#14">Value</a>) {
+<span class="kw">impl </span><a href="#37">Sender</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="#14">Value</a>) {
         <span class="kw">if </span><span class="self">self</span>.shared.value.swap(value, Ordering::SeqCst) != value {
-            <a class="self" href="../../../src/hyper/common/watch.rs.html#51">self</a>.shared.waker.wake();
+            <a class="self" href="#51">self</a>.shared.waker.wake();
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/hyper/common/watch.rs.html#37">Sender</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#37">Sender</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/hyper/common/watch.rs.html#59">self</a>.<a href="../../../src/hyper/common/watch.rs.html#51">send</a>(<a href="../../../src/hyper/common/watch.rs.html#16">CLOSED</a>);
+        <a class="self" href="#59">self</a>.<a href="#51">send</a>(<a href="#16">CLOSED</a>);
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/hyper/common/watch.rs.html#41">Receiver</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../src/hyper/common/watch.rs.html#14">Value</a> {
-        <a class="self" href="../../../src/hyper/common/watch.rs.html#65">self</a>.shared.waker.register(<a href="../../../src/hyper/common/watch.rs.html#65">cx</a>.waker());
-        <a class="self" href="../../../src/hyper/common/watch.rs.html#65">self</a>.shared.value.load(Ordering::SeqCst)
+<span class="kw">impl </span><a href="#41">Receiver</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="#14">Value</a> {
+        <a class="self" href="#65">self</a>.shared.waker.register(<a href="#65">cx</a>.waker());
+        <a class="self" href="#65">self</a>.shared.value.load(Ordering::SeqCst)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/hyper/common/watch.rs.html#14">Value</a> {
-        <a class="self" href="../../../src/hyper/common/watch.rs.html#70">self</a>.shared.value.load(Ordering::Relaxed)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#14">Value</a> {
+        <a class="self" href="#70">self</a>.shared.value.load(Ordering::Relaxed)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

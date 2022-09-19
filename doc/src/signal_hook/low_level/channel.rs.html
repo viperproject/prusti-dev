@@ -280,41 +280,41 @@
 <span class="kw">const </span>MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> = <span class="number">0b111</span>;
 
 <span class="kw">fn </span>get(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    (<a href="../../../src/signal_hook/low_level/channel.rs.html#47">n</a> &gt;&gt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#47">idx</a>)) &amp; <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>
+    (<a href="#47">n</a> &gt;&gt; (<a href="#44">BITS</a> * <a href="#47">idx</a>)) &amp; <a href="#45">MASK</a>
 }
 
 <span class="kw">fn </span>set(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, v: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    <span class="kw">let </span>v = <a href="../../../src/signal_hook/low_level/channel.rs.html#51">v</a> &lt;&lt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
-    <span class="kw">let </span>mask = <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a> &lt;&lt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
-    (<a href="../../../src/signal_hook/low_level/channel.rs.html#51">n</a> &amp; !<a href="../../../src/signal_hook/low_level/channel.rs.html#53">mask</a>) | <a href="../../../src/signal_hook/low_level/channel.rs.html#52">v</a>
+    <span class="kw">let </span>v = <a href="#51">v</a> &lt;&lt; (<a href="#44">BITS</a> * <a href="#51">idx</a>);
+    <span class="kw">let </span>mask = <a href="#45">MASK</a> &lt;&lt; (<a href="#44">BITS</a> * <a href="#51">idx</a>);
+    (<a href="#51">n</a> &amp; !<a href="#53">mask</a>) | <a href="#52">v</a>
 }
 
 <span class="kw">fn </span>enqueue(q: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.load(Ordering::Relaxed);
+    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="#57">q</a>.load(Ordering::Relaxed);
     <span class="kw">loop </span>{
-        <span class="kw">let </span>empty = (<span class="number">0</span>..<a href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|i| <a href="../../../src/signal_hook/low_level/channel.rs.html#47">get</a>(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <span class="kw-2">*</span><a href="../../../src/signal_hook/low_level/channel.rs.html#61">i</a>) == <span class="number">0</span>)
+        <span class="kw">let </span>empty = (<span class="number">0</span>..<a href="#43">SLOTS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|i| <a href="#47">get</a>(<a href="#58">current</a>, <span class="kw-2">*</span><a href="#61">i</a>) == <span class="number">0</span>)
             .expect(<span class="string">&quot;No empty slot available&quot;</span>);
-        <span class="kw">let </span>modified = <a href="../../../src/signal_hook/low_level/channel.rs.html#51">set</a>(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#60">empty</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#57">val</a>);
-        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.compare_exchange_weak(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#63">modified</a>, Ordering::Release, Ordering::Relaxed) {
+        <span class="kw">let </span>modified = <a href="#51">set</a>(<a href="#58">current</a>, <a href="#60">empty</a>, <a href="#57">val</a>);
+        <span class="kw">match </span><a href="#57">q</a>.compare_exchange_weak(<a href="#58">current</a>, <a href="#63">modified</a>, Ordering::Release, Ordering::Relaxed) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-            <span class="prelude-val">Err</span>(changed) =&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a> = <a href="../../../src/signal_hook/low_level/channel.rs.html#66">changed</a>, <span class="comment">// And retry with the changed value
+            <span class="prelude-val">Err</span>(changed) =&gt; <a href="#58">current</a> = <a href="#66">changed</a>, <span class="comment">// And retry with the changed value
         </span>}
     }
 }
 
 <span class="kw">fn </span>dequeue(q: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.load(Ordering::Relaxed);
+    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="#71">q</a>.load(Ordering::Relaxed);
     <span class="kw">loop </span>{
-        <span class="kw">let </span>val = <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> &amp; <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>;
+        <span class="kw">let </span>val = <a href="#72">current</a> &amp; <a href="#45">MASK</a>;
         <span class="comment">// It&#39;s completely empty
         </span><span class="kw">if </span>val == <span class="number">0 </span>{
             <span class="kw">break </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>modified = <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> &gt;&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a>;
-        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.compare_exchange_weak(<a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#79">modified</a>, Ordering::Acquire, Ordering::Relaxed) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(<a href="../../../src/signal_hook/low_level/channel.rs.html#74">val</a>),
-            <span class="prelude-val">Err</span>(changed) =&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> = <a href="../../../src/signal_hook/low_level/channel.rs.html#82">changed</a>,
+        <span class="kw">let </span>modified = <a href="#72">current</a> &gt;&gt; <a href="#44">BITS</a>;
+        <span class="kw">match </span><a href="#71">q</a>.compare_exchange_weak(<a href="#72">current</a>, <a href="#79">modified</a>, Ordering::Acquire, Ordering::Relaxed) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(<a href="#74">val</a>),
+            <span class="prelude-val">Err</span>(changed) =&gt; <a href="#72">current</a> = <a href="#82">changed</a>,
         }
     }
 }
@@ -343,7 +343,7 @@
 ///
 /// The code was *not* tuned for performance (signals are not expected to happen often).
 </span><span class="kw">pub struct </span>Channel&lt;T&gt; {
-    storage: [UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;; <a href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a>],
+    storage: [UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;; <a href="#43">SLOTS</a>],
     empty: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
     full: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
 }
@@ -353,7 +353,7 @@
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>storage = <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
         <span class="kw">let </span>me = <span class="self">Self </span>{
-            <a href="../../../src/signal_hook/low_level/channel.rs.html#119">storage</a>,
+            <a href="#119">storage</a>,
             empty: AtomicU16::new(<span class="number">0</span>),
             full: AtomicU16::new(<span class="number">0</span>),
         };
@@ -362,16 +362,16 @@
             enqueue(<span class="kw-2">&amp;</span>me.empty, i <span class="kw">as </span>u16);
         }
 
-        <a href="../../../src/signal_hook/low_level/channel.rs.html#120">me</a>
+        <a href="#120">me</a>
     }
 
     <span class="doccomment">/// Inserts a value into the channel.
     ///
     /// If the value doesn&#39;t fit, it is silently dropped. Never blocks.
     </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, val: T) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(empty_idx) = <a href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.empty) {
-            <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.storage[<a href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() = <span class="prelude-val">Some</span>(<a href="../../../src/signal_hook/low_level/channel.rs.html#136">val</a>) };
-            <a href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.full, <a href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(empty_idx) = <a href="#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="#136">self</a>.empty) {
+            <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a class="self" href="#136">self</a>.storage[<a href="#137">empty_idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() = <span class="prelude-val">Some</span>(<a href="#136">val</a>) };
+            <a href="#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="#136">self</a>.full, <a href="#137">empty_idx</a>);
         }
     }
 
@@ -379,12 +379,12 @@
     ///
     /// Or returns `None` if the channel is empty. Never blocks.
     </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.full).map(|idx| {
-            <span class="kw">let </span>result = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.storage[<a href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() }
+        <a href="#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="#146">self</a>.full).map(|idx| {
+            <span class="kw">let </span>result = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#146">self</a>.storage[<a href="#147">idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() }
                 .take()
                 .expect(<span class="string">&quot;Full slot with nothing in it&quot;</span>);
-            <a href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.empty, <a href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a>);
-            <a href="../../../src/signal_hook/low_level/channel.rs.html#148">result</a>
+            <a href="#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="#146">self</a>.empty, <a href="#147">idx</a>);
+            <a href="#148">result</a>
         })
     }
 }
@@ -469,4 +469,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

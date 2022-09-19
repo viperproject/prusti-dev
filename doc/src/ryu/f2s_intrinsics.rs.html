@@ -131,38 +131,38 @@
 // is distributed on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.
 
-</span><span class="kw">use </span><a href="../../src/ryu/lib.rs.html#107"><span class="kw">crate</span>::d2s</a>;
+</span><span class="kw">use </span><a href="lib.rs.html#107"><span class="kw">crate</span>::d2s</a>;
 
-<span class="kw">pub const </span>FLOAT_POW5_INV_BITCOUNT: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = <a href="../../src/ryu/d2s.rs.html#32">d2s::DOUBLE_POW5_INV_BITCOUNT</a> - <span class="number">64</span>;
-<span class="kw">pub const </span>FLOAT_POW5_BITCOUNT: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = <a href="../../src/ryu/d2s.rs.html#33">d2s::DOUBLE_POW5_BITCOUNT</a> - <span class="number">64</span>;
+<span class="kw">pub const </span>FLOAT_POW5_INV_BITCOUNT: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = <a href="d2s.rs.html#32">d2s::DOUBLE_POW5_INV_BITCOUNT</a> - <span class="number">64</span>;
+<span class="kw">pub const </span>FLOAT_POW5_BITCOUNT: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = <a href="d2s.rs.html#33">d2s::DOUBLE_POW5_BITCOUNT</a> - <span class="number">64</span>;
 
 <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, inline)]
 </span><span class="kw">fn </span>pow5factor_32(<span class="kw-2">mut </span>value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0u32</span>;
     <span class="kw">loop </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(value != <span class="number">0</span>);
-        <span class="kw">let </span>q = <a href="../../src/ryu/f2s_intrinsics.rs.html#27">value</a> / <span class="number">5</span>;
-        <span class="kw">let </span>r = <a href="../../src/ryu/f2s_intrinsics.rs.html#27">value</a> % <span class="number">5</span>;
+        <span class="kw">let </span>q = <a href="#27">value</a> / <span class="number">5</span>;
+        <span class="kw">let </span>r = <a href="#27">value</a> % <span class="number">5</span>;
         <span class="kw">if </span>r != <span class="number">0 </span>{
             <span class="kw">break</span>;
         }
-        <a href="../../src/ryu/f2s_intrinsics.rs.html#27">value</a> = <a href="../../src/ryu/f2s_intrinsics.rs.html#31">q</a>;
-        <a href="../../src/ryu/f2s_intrinsics.rs.html#28">count</a> += <span class="number">1</span>;
+        <a href="#27">value</a> = <a href="#31">q</a>;
+        <a href="#28">count</a> += <span class="number">1</span>;
     }
-    <a href="../../src/ryu/f2s_intrinsics.rs.html#28">count</a>
+    <a href="#28">count</a>
 }
 
 <span class="comment">// Returns true if value is divisible by 5^p.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, inline)]
 </span><span class="kw">pub fn </span>multiple_of_power_of_5_32(value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, p: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="../../src/ryu/f2s_intrinsics.rs.html#27">pow5factor_32</a>(<a href="../../src/ryu/f2s_intrinsics.rs.html#44">value</a>) &gt;= <a href="../../src/ryu/f2s_intrinsics.rs.html#44">p</a>
+    <a href="#27">pow5factor_32</a>(<a href="#44">value</a>) &gt;= <a href="#44">p</a>
 }
 
 <span class="comment">// Returns true if value is divisible by 2^p.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, inline)]
 </span><span class="kw">pub fn </span>multiple_of_power_of_2_32(value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, p: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
     <span class="comment">// __builtin_ctz doesn&#39;t appear to be faster here.
-    </span>(<a href="../../src/ryu/f2s_intrinsics.rs.html#50">value</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../../src/ryu/f2s_intrinsics.rs.html#50">p</a>) - <span class="number">1</span>)) == <span class="number">0
+    </span>(<a href="#50">value</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="#50">p</a>) - <span class="number">1</span>)) == <span class="number">0
 </span>}
 
 <span class="comment">// It seems to be slightly faster to avoid uint128_t here, although the
@@ -173,15 +173,15 @@
 
     <span class="comment">// The casts here help MSVC to avoid calls to the __allmul library
     // function.
-    </span><span class="kw">let </span>factor_lo = <a href="../../src/ryu/f2s_intrinsics.rs.html#58">factor</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
-    <span class="kw">let </span>factor_hi = (<a href="../../src/ryu/f2s_intrinsics.rs.html#58">factor</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
-    <span class="kw">let </span>bits0 = <a href="../../src/ryu/f2s_intrinsics.rs.html#58">m</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> * <a href="../../src/ryu/f2s_intrinsics.rs.html#63">factor_lo</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
-    <span class="kw">let </span>bits1 = <a href="../../src/ryu/f2s_intrinsics.rs.html#58">m</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> * <a href="../../src/ryu/f2s_intrinsics.rs.html#64">factor_hi</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
+    </span><span class="kw">let </span>factor_lo = <a href="#58">factor</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+    <span class="kw">let </span>factor_hi = (<a href="#58">factor</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+    <span class="kw">let </span>bits0 = <a href="#58">m</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> * <a href="#63">factor_lo</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
+    <span class="kw">let </span>bits1 = <a href="#58">m</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> * <a href="#64">factor_hi</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
 
-    <span class="kw">let </span>sum = (<a href="../../src/ryu/f2s_intrinsics.rs.html#65">bits0</a> &gt;&gt; <span class="number">32</span>) + <a href="../../src/ryu/f2s_intrinsics.rs.html#66">bits1</a>;
-    <span class="kw">let </span>shifted_sum = <a href="../../src/ryu/f2s_intrinsics.rs.html#68">sum</a> &gt;&gt; (<a href="../../src/ryu/f2s_intrinsics.rs.html#58">shift</a> - <span class="number">32</span>);
+    <span class="kw">let </span>sum = (<a href="#65">bits0</a> &gt;&gt; <span class="number">32</span>) + <a href="#66">bits1</a>;
+    <span class="kw">let </span>shifted_sum = <a href="#68">sum</a> &gt;&gt; (<a href="#58">shift</a> - <span class="number">32</span>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(shifted_sum &lt;= u32::max_value() <span class="kw">as </span>u64);
-    <a href="../../src/ryu/f2s_intrinsics.rs.html#69">shifted_sum</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>
+    <a href="#69">shifted_sum</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>
 }
 
 <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, inline)]
@@ -201,10 +201,10 @@
     </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(q &lt; d2s::DOUBLE_POW5_INV_SPLIT.len() <span class="kw">as </span>u32);
         <span class="kw">unsafe </span>{
-            <a href="../../src/ryu/f2s_intrinsics.rs.html#58">mul_shift_32</a>(
-                <a href="../../src/ryu/f2s_intrinsics.rs.html#75">m</a>,
-                <a href="../../src/ryu/d2s_full_table.rs.html#24">d2s::DOUBLE_POW5_INV_SPLIT</a>.get_unchecked(<a href="../../src/ryu/f2s_intrinsics.rs.html#75">q</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).<span class="number">1 </span>+ <span class="number">1</span>,
-                <a href="../../src/ryu/f2s_intrinsics.rs.html#75">j</a>,
+            <a href="#58">mul_shift_32</a>(
+                <a href="#75">m</a>,
+                <a href="d2s_full_table.rs.html#24">d2s::DOUBLE_POW5_INV_SPLIT</a>.get_unchecked(<a href="#75">q</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).<span class="number">1 </span>+ <span class="number">1</span>,
+                <a href="#75">j</a>,
             )
         }
     }
@@ -221,8 +221,8 @@
     <span class="attribute">#[cfg(not(feature = <span class="string">&quot;small&quot;</span>))]
     </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(i &lt; d2s::DOUBLE_POW5_SPLIT.len() <span class="kw">as </span>u32);
-        <span class="kw">unsafe </span>{ <a href="../../src/ryu/f2s_intrinsics.rs.html#58">mul_shift_32</a>(<a href="../../src/ryu/f2s_intrinsics.rs.html#101">m</a>, <a href="../../src/ryu/d2s_full_table.rs.html#369">d2s::DOUBLE_POW5_SPLIT</a>.get_unchecked(<a href="../../src/ryu/f2s_intrinsics.rs.html#101">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).<span class="number">1</span>, <a href="../../src/ryu/f2s_intrinsics.rs.html#101">j</a>) }
+        <span class="kw">unsafe </span>{ <a href="#58">mul_shift_32</a>(<a href="#101">m</a>, <a href="d2s_full_table.rs.html#369">d2s::DOUBLE_POW5_SPLIT</a>.get_unchecked(<a href="#101">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>).<span class="number">1</span>, <a href="#101">j</a>) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

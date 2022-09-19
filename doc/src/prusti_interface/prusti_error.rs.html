@@ -252,7 +252,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="../../src/prusti_interface/environment/diagnostic.rs.html#7"><span class="kw">crate</span>::environment::EnvDiagnostic</a>;
+</span><span class="kw">use </span><a href="environment/diagnostic.rs.html#7"><span class="kw">crate</span>::environment::EnvDiagnostic</a>;
 <span class="kw">use </span><a href="../../log/macro.warn.html">::log::warn</a>;
 <span class="kw">use </span><a href="../../prusti_common/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span>prusti_rustc_interface::{errors::MultiSpan, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>};
@@ -268,7 +268,7 @@
 /// `SpannedEncodingError` and similar types to something less confusing.)
 </span><span class="attribute">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>PrustiError {
-    kind: <a href="../../src/prusti_interface/prusti_error.rs.html#38">PrustiErrorKind</a>,
+    kind: <a href="#38">PrustiErrorKind</a>,
     <span class="doccomment">/// If `true`, it should not be reported to the user. We need this in cases
     /// when the same error could be reported twice.
     ///
@@ -277,7 +277,7 @@
     /// field should be removed.
     </span>is_disabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    span: MultiSpan,
+    span: Box&lt;MultiSpan&gt;,
     help: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     notes: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;MultiSpan&gt;)&gt;,
 }
@@ -290,28 +290,28 @@
     </span>WarningOnError,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../src/prusti_interface/prusti_error.rs.html#22">PrustiError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#22">PrustiError</a> {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>&gt; {
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#46">self</a>.span
+        <a class="self" href="#46">self</a>.span
             .primary_span()
-            .<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_interface/prusti_error.rs.html#46">other</a>.span.primary_span())
+            .<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="#46">other</a>.span.primary_span())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="../../src/prusti_interface/prusti_error.rs.html#22">PrustiError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#22">PrustiError</a> {
     <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a> {
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#54">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#54">other</a>).unwrap()
+        <a class="self" href="#54">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#54">other</a>).unwrap()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/prusti_interface/prusti_error.rs.html#22">PrustiError</a> {
+<span class="kw">impl </span><a href="#22">PrustiError</a> {
     <span class="doccomment">/// Private constructor. Use one of the following methods.
     </span><span class="kw">fn </span>new(message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#22">PrustiError</a> {
-            kind: <a href="../../src/prusti_interface/prusti_error.rs.html#39">PrustiErrorKind::Error</a>,
+        <a href="#22">PrustiError</a> {
+            kind: <a href="#39">PrustiErrorKind::Error</a>,
             is_disabled: <span class="bool-val">false</span>,
-            <a href="../../src/prusti_interface/prusti_error.rs.html#61">message</a>,
-            <a href="../../src/prusti_interface/prusti_error.rs.html#61">span</a>,
+            <a href="#61">message</a>,
+            span: Box::new(<a href="#61">span</a>),
             help: <span class="prelude-val">None</span>,
             notes: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
@@ -319,84 +319,84 @@
 
     <span class="doccomment">/// Report a verification error of the verified Rust code
     </span><span class="kw">pub fn </span>verification&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#73">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a href="#240">check_message</a>(<a href="#73">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         PrustiError::new(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: verification error] {}&quot;</span>, message.to_string()),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#73">span</a>,
+            <a href="#73">span</a>,
         )
     }
 
     <span class="kw">pub fn </span>disabled_verification&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#81">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a href="#240">check_message</a>(<a href="#81">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>error = PrustiError::new(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: verification error] {}&quot;</span>, message.to_string()),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#81">span</a>,
+            <a href="#81">span</a>,
         );
-        <a href="../../src/prusti_interface/prusti_error.rs.html#83">error</a>.is_disabled = <span class="bool-val">true</span>;
-        <a href="../../src/prusti_interface/prusti_error.rs.html#83">error</a>
+        <a href="#83">error</a>.is_disabled = <span class="bool-val">true</span>;
+        <a href="#83">error</a>
     }
 
     <span class="doccomment">/// Report an unsupported feature of the verified Rust code (e.g. dereferencing raw pointers)
     </span><span class="kw">pub fn </span>unsupported&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#92">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a href="#240">check_message</a>(<a href="#92">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>error = PrustiError::new(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: unsupported feature] {}&quot;</span>, message.to_string()),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#92">span</a>,
+            <a href="#92">span</a>,
         );
         <span class="kw">if </span>config::skip_unsupported_features() {
-            <a href="../../src/prusti_interface/prusti_error.rs.html#94">error</a>.<a href="../../src/prusti_interface/prusti_error.rs.html#150">set_warning</a>();
+            <a href="#94">error</a>.<a href="#150">set_warning</a>();
         }
-        <a href="../../src/prusti_interface/prusti_error.rs.html#94">error</a>
+        <a href="#94">error</a>
     }
 
     <span class="doccomment">/// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
     </span><span class="kw">pub fn </span>incorrect&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#105">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a href="#240">check_message</a>(<a href="#105">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         PrustiError::new(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: invalid specification] {}&quot;</span>, message.to_string()),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#105">span</a>,
+            <a href="#105">span</a>,
         )
     }
 
     <span class="doccomment">/// Report a non-fatal issue
     </span><span class="kw">pub fn </span>warning&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#114">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <span class="kw">let </span><span class="kw-2">mut </span>err = PrustiError::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: warning] {}&quot;</span>, message.to_string()), <a href="../../src/prusti_interface/prusti_error.rs.html#114">span</a>);
-        <a href="../../src/prusti_interface/prusti_error.rs.html#116">err</a>.kind = <a href="../../src/prusti_interface/prusti_error.rs.html#40">PrustiErrorKind::Warning</a>;
-        <a href="../../src/prusti_interface/prusti_error.rs.html#116">err</a>
+        <a href="#240">check_message</a>(<a href="#114">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>err = PrustiError::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: warning] {}&quot;</span>, message.to_string()), <a href="#114">span</a>);
+        <a href="#116">err</a>.kind = <a href="#40">PrustiErrorKind::Warning</a>;
+        <a href="#116">err</a>
     }
 
     <span class="doccomment">/// Report a non-fatal issue only if there are errors
     /// (e.g. cannot automatically include loop guard as an invariant)
     </span><span class="kw">pub fn </span>warning_on_error&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#123">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <span class="kw">let </span><span class="kw-2">mut </span>err = PrustiError::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: warning] {}&quot;</span>, message.to_string()), <a href="../../src/prusti_interface/prusti_error.rs.html#123">span</a>);
-        <a href="../../src/prusti_interface/prusti_error.rs.html#125">err</a>.kind = <a href="../../src/prusti_interface/prusti_error.rs.html#42">PrustiErrorKind::WarningOnError</a>;
-        <a href="../../src/prusti_interface/prusti_error.rs.html#125">err</a>
+        <a href="#240">check_message</a>(<a href="#123">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>err = PrustiError::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;[Prusti: warning] {}&quot;</span>, message.to_string()), <a href="#123">span</a>);
+        <a href="#125">err</a>.kind = <a href="#42">PrustiErrorKind::WarningOnError</a>;
+        <a href="#125">err</a>
     }
 
     <span class="doccomment">/// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     </span><span class="kw">pub fn </span>internal&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(message: S, span: MultiSpan) -&gt; <span class="self">Self </span>{
-        <a href="../../src/prusti_interface/prusti_error.rs.html#240">check_message</a>(<a href="../../src/prusti_interface/prusti_error.rs.html#131">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a href="#240">check_message</a>(<a href="#131">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>error = PrustiError::new(
             <span class="string">&quot;[Prusti internal error] Prusti encountered an unexpected internal error&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#131">span</a>
-        ).<a href="../../src/prusti_interface/prusti_error.rs.html#172">add_note</a>(
+            <a href="#131">span</a>
+        ).<a href="#172">add_note</a>(
             <span class="string">&quot;We would appreciate a bug report: https://github.com/viperproject/prusti-dev/issues/new&quot;</span>,
             <span class="prelude-val">None
-        </span>).<a href="../../src/prusti_interface/prusti_error.rs.html#172">add_note</a>(
+        </span>).<a href="#172">add_note</a>(
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Details: {}&quot;</span>, message.to_string()),
             <span class="prelude-val">None
         </span>);
         <span class="kw">if </span>config::internal_errors_as_warnings() {
-            <a href="../../src/prusti_interface/prusti_error.rs.html#133">error</a>.<a href="../../src/prusti_interface/prusti_error.rs.html#150">set_warning</a>();
+            <a href="#133">error</a>.<a href="#150">set_warning</a>();
         }
-        <a href="../../src/prusti_interface/prusti_error.rs.html#133">error</a>
+        <a href="#133">error</a>
     }
 
     <span class="doccomment">/// Set that this Prusti error should be reported as a warning to the user
     </span><span class="kw">pub fn </span>set_warning(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#150">self</a>.kind = <a href="../../src/prusti_interface/prusti_error.rs.html#40">PrustiErrorKind::Warning</a>;
+        <a class="self" href="#150">self</a>.kind = <a href="#40">PrustiErrorKind::Warning</a>;
     }
 
     <span class="kw">pub fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -407,49 +407,49 @@
     // coming from verifying functions multiple times. We should verify each
     // function only once.
     </span><span class="kw">pub fn </span>is_disabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#161">self</a>.is_disabled
+        <a class="self" href="#161">self</a>.is_disabled
     }
 
     <span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>set_help&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, message: S) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#166">self</a>.help = <span class="prelude-val">Some</span>(<a href="../../src/prusti_interface/prusti_error.rs.html#166">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <span class="self"><a href="../../src/prusti_interface/prusti_error.rs.html#166">self</a>
+        <a class="self" href="#166">self</a>.help = <span class="prelude-val">Some</span>(<a href="#166">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <span class="self"><a href="#166">self</a>
     </span>}
 
     <span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>add_note&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, message: S, opt_span: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#172">self</a>.notes
-            .push((<a href="../../src/prusti_interface/prusti_error.rs.html#172">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../src/prusti_interface/prusti_error.rs.html#172">opt_span</a>.map(MultiSpan::from)));
-        <span class="self"><a href="../../src/prusti_interface/prusti_error.rs.html#172">self</a>
+        <a class="self" href="#172">self</a>.notes
+            .push((<a href="#172">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#172">opt_span</a>.map(MultiSpan::from)));
+        <span class="self"><a href="#172">self</a>
     </span>}
 
     <span class="kw">pub fn </span>add_note_mut&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: S, opt_span: <span class="prelude-ty">Option</span>&lt;MultiSpan&gt;) {
-        <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#178">self</a>.notes.push((<a href="../../src/prusti_interface/prusti_error.rs.html#178">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../src/prusti_interface/prusti_error.rs.html#178">opt_span</a>));
+        <a class="self" href="#178">self</a>.notes.push((<a href="#178">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#178">opt_span</a>));
     }
 
     <span class="doccomment">/// Report the encoding error using the compiler&#39;s interface.
     /// Warnings are not immediately emitted, but buffered and only shown
     /// if an error is emitted (i.e. verification failure)
-    </span><span class="kw">pub fn </span>emit(<span class="self">self</span>, env_diagnostic: <span class="kw-2">&amp;</span><a href="../../src/prusti_interface/environment/diagnostic.rs.html#7">EnvDiagnostic</a>) {
+    </span><span class="kw">pub fn </span>emit(<span class="self">self</span>, env_diagnostic: <span class="kw-2">&amp;</span><a href="environment/diagnostic.rs.html#7">EnvDiagnostic</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.is_disabled);
-        <span class="kw">match </span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.kind {
-            <a href="../../src/prusti_interface/prusti_error.rs.html#39">PrustiErrorKind::Error</a> =&gt; <a href="../../src/prusti_interface/prusti_error.rs.html#185">env_diagnostic</a>.<a href="../../src/prusti_interface/environment/diagnostic.rs.html#40-46">span_err_with_help_and_notes</a>(
-                <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.span,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.message,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.help,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.notes,
+        <span class="kw">match </span><a class="self" href="#185">self</a>.kind {
+            <a href="#39">PrustiErrorKind::Error</a> =&gt; <a href="#185">env_diagnostic</a>.<a href="environment/diagnostic.rs.html#40-46">span_err_with_help_and_notes</a>(
+                <span class="kw-2">*</span><a class="self" href="#185">self</a>.span,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.message,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.help,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.notes,
             ),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#40">PrustiErrorKind::Warning</a> =&gt; <a href="../../src/prusti_interface/prusti_error.rs.html#185">env_diagnostic</a>.<a href="../../src/prusti_interface/environment/diagnostic.rs.html#56-62">span_warn_with_help_and_notes</a>(
-                <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.span,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.message,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.help,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.notes,
+            <a href="#40">PrustiErrorKind::Warning</a> =&gt; <a href="#185">env_diagnostic</a>.<a href="environment/diagnostic.rs.html#56-62">span_warn_with_help_and_notes</a>(
+                <span class="kw-2">*</span><a class="self" href="#185">self</a>.span,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.message,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.help,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.notes,
             ),
-            <a href="../../src/prusti_interface/prusti_error.rs.html#42">PrustiErrorKind::WarningOnError</a> =&gt; <a href="../../src/prusti_interface/prusti_error.rs.html#185">env_diagnostic</a>.<a href="../../src/prusti_interface/environment/diagnostic.rs.html#69-75">span_warn_on_err_with_help_and_notes</a>(
-                <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.span,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.message,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.help,
-                <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/prusti_error.rs.html#185">self</a>.notes,
+            <a href="#42">PrustiErrorKind::WarningOnError</a> =&gt; <a href="#185">env_diagnostic</a>.<a href="environment/diagnostic.rs.html#69-75">span_warn_on_err_with_help_and_notes</a>(
+                <span class="kw-2">*</span><a class="self" href="#185">self</a>.span,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.message,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.help,
+                <span class="kw-2">&amp;</span><a class="self" href="#185">self</a>.notes,
             ),
         };
     }
@@ -464,11 +464,11 @@
     /// Note: this is a noop if `opt_span` is None
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>set_failing_assertion(<span class="kw-2">mut </span><span class="self">self</span>, opt_span: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiSpan&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="../../src/prusti_interface/prusti_error.rs.html#218">opt_span</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="#218">opt_span</a> {
             <span class="kw">let </span>note = <span class="string">&quot;the failing assertion is here&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-            <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#218">self</a>.notes.push((<a href="../../src/prusti_interface/prusti_error.rs.html#220">note</a>, <span class="prelude-val">Some</span>(<a href="../../src/prusti_interface/prusti_error.rs.html#219">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
+            <a class="self" href="#218">self</a>.notes.push((<a href="#220">note</a>, <span class="prelude-val">Some</span>(<a href="#219">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
         }
-        <span class="self"><a href="../../src/prusti_interface/prusti_error.rs.html#218">self</a>
+        <span class="self"><a href="#218">self</a>
     </span>}
 
     <span class="doccomment">/// Convert the original error span to a note, and add a new error span.
@@ -476,12 +476,12 @@
     /// Note: this is a noop if `opt_span` is None
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>push_primary_span(<span class="kw-2">mut </span><span class="self">self</span>, opt_span: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiSpan&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="../../src/prusti_interface/prusti_error.rs.html#230">opt_span</a> {
-            <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#230">self</a>.notes
-                .push((<span class="string">&quot;the error originates here&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="prelude-val">Some</span>(<a class="self" href="../../src/prusti_interface/prusti_error.rs.html#230">self</a>.span)));
-            <a class="self" href="../../src/prusti_interface/prusti_error.rs.html#230">self</a>.span = <a href="../../src/prusti_interface/prusti_error.rs.html#231">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="#230">opt_span</a> {
+            <a class="self" href="#230">self</a>.notes
+                .push((<span class="string">&quot;the error originates here&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a class="self" href="#230">self</a>.span)));
+            <span class="kw-2">*</span><a class="self" href="#230">self</a>.span = <a href="#231">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
-        <span class="self"><a href="../../src/prusti_interface/prusti_error.rs.html#230">self</a>
+        <span class="self"><a href="#230">self</a>
     </span>}
 }
 
@@ -495,4 +495,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

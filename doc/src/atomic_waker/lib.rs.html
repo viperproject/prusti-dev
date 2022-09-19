@@ -611,15 +611,15 @@
 <span class="doccomment">/// The waker currently registered with the `AtomicWaker` cell is being woken.
 </span><span class="kw">const </span>WAKING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b10</span>;
 
-<span class="kw">impl </span><a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {
+<span class="kw">impl </span><a href="#91">AtomicWaker</a> {
     <span class="doccomment">/// Create an `AtomicWaker`.
     </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="comment">// Make sure that task is Sync
         </span><span class="kw">trait </span>AssertSync: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-        <span class="kw">impl </span><a href="../../src/atomic_waker/lib.rs.html#204">AssertSync</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {}
+        <span class="kw">impl </span><a href="#204">AssertSync</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {}
 
-        <a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {
-            state: AtomicUsize::new(<a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a>),
+        <a href="#91">AtomicWaker</a> {
+            state: AtomicUsize::new(<a href="#192">WAITING</a>),
             waker: UnsafeCell::new(<span class="prelude-val">None</span>),
         }
     }
@@ -675,11 +675,11 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">match </span><a class="self" href="../../src/atomic_waker/lib.rs.html#263">self</a>.state.compare_and_swap(<a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a>, <a href="../../src/atomic_waker/lib.rs.html#195">REGISTERING</a>, Acquire) {
-            <a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a> =&gt; {
+        <span class="kw">match </span><a class="self" href="#263">self</a>.state.compare_and_swap(<a href="#192">WAITING</a>, <a href="#195">REGISTERING</a>, Acquire) {
+            <a href="#192">WAITING</a> =&gt; {
                 <span class="kw">unsafe </span>{
                     <span class="comment">// Locked acquired, update the waker cell
-                    </span><span class="kw-2">*</span><a class="self" href="../../src/atomic_waker/lib.rs.html#263">self</a>.waker.get() = <span class="prelude-val">Some</span>(<a href="../../src/atomic_waker/lib.rs.html#263">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    </span><span class="kw-2">*</span><a class="self" href="#263">self</a>.waker.get() = <span class="prelude-val">Some</span>(<a href="#263">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
                     <span class="comment">// Release the lock. If the state transitioned to include
                     // the `WAKING` bit, this means that at least one wake has
@@ -691,10 +691,10 @@
                     // nothing to acquire, only release. In case of concurrent
                     // wakers, we need to acquire their releases, so success needs
                     // to do both.
-                    </span><span class="kw">let </span>res = <a class="self" href="../../src/atomic_waker/lib.rs.html#263">self</a>.state.compare_exchange(
-                        <a href="../../src/atomic_waker/lib.rs.html#195">REGISTERING</a>, <a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a>, AcqRel, Acquire);
+                    </span><span class="kw">let </span>res = <a class="self" href="#263">self</a>.state.compare_exchange(
+                        <a href="#195">REGISTERING</a>, <a href="#192">WAITING</a>, AcqRel, Acquire);
 
-                    <span class="kw">match </span><a href="../../src/atomic_waker/lib.rs.html#280">res</a> {
+                    <span class="kw">match </span><a href="#280">res</a> {
                         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                             <span class="comment">// memory ordering: acquired self.state during CAS
                             // - if previous wakes went through it syncs with
@@ -711,13 +711,13 @@
 
                             <span class="comment">// Take the waker to wake once the atomic operation has
                             // completed.
-                            </span><span class="kw">let </span>waker = (<span class="kw-2">*</span><a class="self" href="../../src/atomic_waker/lib.rs.html#263">self</a>.waker.get()).take().unwrap();
+                            </span><span class="kw">let </span>waker = (<span class="kw-2">*</span><a class="self" href="#263">self</a>.waker.get()).take().unwrap();
 
                             <span class="comment">// We need to return to WAITING state (clear our lock and
                             // concurrent WAKING flag). This needs to acquire all
                             // WAKING fetch_or releases and it needs to release our
                             // update to self.waker, so we need a `swap` operation.
-                            </span><a class="self" href="../../src/atomic_waker/lib.rs.html#263">self</a>.state.swap(<a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a>, AcqRel);
+                            </span><a class="self" href="#263">self</a>.state.swap(<a href="#192">WAITING</a>, AcqRel);
 
                             <span class="comment">// memory ordering: we acquired the state for all
                             // concurrent wakes, but future wakes might still
@@ -726,12 +726,12 @@
                             //
                             // So we simply schedule to come back later (we could
                             // also simply leave the registration in place above).
-                            </span><a href="../../src/atomic_waker/lib.rs.html#300">waker</a>.wake();
+                            </span><a href="#300">waker</a>.wake();
                         }
                     }
                 }
             }
-            <a href="../../src/atomic_waker/lib.rs.html#198">WAKING</a> =&gt; {
+            <a href="#198">WAKING</a> =&gt; {
                 <span class="comment">// Currently in the process of waking the task, i.e.,
                 // `wake` is currently being called on the old task handle.
                 //
@@ -743,7 +743,7 @@
                 // So we simply schedule to come back later (we
                 // could also spin here trying to acquire the lock
                 // to register).
-                </span><a href="../../src/atomic_waker/lib.rs.html#263">waker</a>.wake_by_ref();
+                </span><a href="#263">waker</a>.wake_by_ref();
             }
             state =&gt; {
                 <span class="comment">// In this case, a concurrent thread is holding the
@@ -767,8 +767,8 @@
     ///
     /// If `register` has not been called yet, then this does nothing.
     </span><span class="kw">pub fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../src/atomic_waker/lib.rs.html#355">self</a>.<a href="../../src/atomic_waker/lib.rs.html#369">take</a>() {
-            <a href="../../src/atomic_waker/lib.rs.html#356">waker</a>.wake();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="#355">self</a>.<a href="#369">take</a>() {
+            <a href="#356">waker</a>.wake();
         }
     }
 
@@ -784,15 +784,15 @@
         <span class="comment">// AcqRel ordering is used in order to acquire the value of the `task`
         // cell as well as to establish a `release` ordering with whatever
         // memory the `AtomicWaker` is associated with.
-        </span><span class="kw">match </span><a class="self" href="../../src/atomic_waker/lib.rs.html#369">self</a>.state.fetch_or(<a href="../../src/atomic_waker/lib.rs.html#198">WAKING</a>, AcqRel) {
-            <a href="../../src/atomic_waker/lib.rs.html#192">WAITING</a> =&gt; {
+        </span><span class="kw">match </span><a class="self" href="#369">self</a>.state.fetch_or(<a href="#198">WAKING</a>, AcqRel) {
+            <a href="#192">WAITING</a> =&gt; {
                 <span class="comment">// The waking lock has been acquired.
-                </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/atomic_waker/lib.rs.html#369">self</a>.waker.get()).take() };
+                </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#369">self</a>.waker.get()).take() };
 
                 <span class="comment">// Release the lock
-                </span><a class="self" href="../../src/atomic_waker/lib.rs.html#369">self</a>.state.fetch_and(!<a href="../../src/atomic_waker/lib.rs.html#198">WAKING</a>, Release);
+                </span><a class="self" href="#369">self</a>.state.fetch_and(!<a href="#198">WAKING</a>, Release);
 
-                <a href="../../src/atomic_waker/lib.rs.html#376">waker</a>
+                <a href="#376">waker</a>
             }
             state =&gt; {
                 <span class="comment">// There is a concurrent thread currently updating the
@@ -812,19 +812,19 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#91">AtomicWaker</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         AtomicWaker::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#91">AtomicWaker</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/atomic_waker/lib.rs.html#408">f</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#408">f</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
     }
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/atomic_waker/lib.rs.html#91">AtomicWaker</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#91">AtomicWaker</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#91">AtomicWaker</a> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="atomic_waker" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="atomic_waker" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

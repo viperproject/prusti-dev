@@ -223,10 +223,10 @@
 <span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
 
-<span class="kw">use </span><a href="../../../src/async_std/lib.rs.html#302"><span class="kw">crate</span>::future</a>;
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../../src/async_std/lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Read.html">Read</a>};
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../src/async_std/task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as _</span>;
+<span class="kw">use </span><a href="../lib.rs.html#302"><span class="kw">crate</span>::future</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Read.html">Read</a>};
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as _</span>;
 
 <span class="doccomment">/// Constructs a new handle to the standard input of the current process.
 ///
@@ -253,8 +253,8 @@
 /// #
 /// # Ok(()) }) }
 /// ```
-</span><span class="kw">pub fn </span>stdin() -&gt; <a href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a> {
-    <a href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a>(Mutex::new(<a href="../../../src/async_std/io/stdin.rs.html#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdin.rs.html#75">Inner</a> {
+</span><span class="kw">pub fn </span>stdin() -&gt; <a href="#57">Stdin</a> {
+    <a href="#57">Stdin</a>(Mutex::new(<a href="#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#75">Inner</a> {
         stdin: std::io::stdin(),
         line: String::new(),
         buf: Vec::new(),
@@ -275,7 +275,7 @@
 ///
 /// [`stdin`]: fn.stdin.html
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Stdin(Mutex&lt;<a href="../../../src/async_std/io/stdin.rs.html#63">State</a>&gt;);
+</span><span class="kw">pub struct </span>Stdin(Mutex&lt;<a href="#63">State</a>&gt;);
 
 <span class="doccomment">/// The state of the asynchronous stdin.
 ///
@@ -283,12 +283,12 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">enum </span>State {
     <span class="doccomment">/// The stdin is idle.
-    </span>Idle(<span class="prelude-ty">Option</span>&lt;<a href="../../../src/async_std/io/stdin.rs.html#75">Inner</a>&gt;),
+    </span>Idle(<span class="prelude-ty">Option</span>&lt;<a href="#75">Inner</a>&gt;),
 
     <span class="doccomment">/// The stdin is blocked on an asynchronous operation.
     ///
     /// Awaiting this operation will result in the new state of the stdin.
-    </span>Busy(JoinHandle&lt;<a href="../../../src/async_std/io/stdin.rs.html#63">State</a>&gt;),
+    </span>Busy(JoinHandle&lt;<a href="#63">State</a>&gt;),
 }
 
 <span class="doccomment">/// Inner representation of the asynchronous stdin.
@@ -304,7 +304,7 @@
     </span>buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 
     <span class="doccomment">/// The result of the last asynchronous operation on the stdin.
-    </span>last_op: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/async_std/io/stdin.rs.html#91">Operation</a>&gt;,
+    </span>last_op: <span class="prelude-ty">Option</span>&lt;<a href="#91">Operation</a>&gt;,
 }
 
 <span class="doccomment">/// Possible results of an asynchronous operation on the stdin.
@@ -314,7 +314,7 @@
     Read(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a> {
+<span class="kw">impl </span><a href="#57">Stdin</a> {
     <span class="doccomment">/// Reads a line of input into the specified buffer.
     ///
     /// # Examples
@@ -368,52 +368,52 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a> {
+<span class="kw">impl </span><a href="../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#57">Stdin</a> {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="../../../src/async_std/io/stdin.rs.html#152">self</a>.<span class="number">0</span>.lock().unwrap();
-        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="../../../src/async_std/io/stdin.rs.html#156">state_guard</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="#152">self</a>.<span class="number">0</span>.lock().unwrap();
+        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="#156">state_guard</a>;
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/async_std/io/stdin.rs.html#157">state</a> {
-                <a href="../../../src/async_std/io/stdin.rs.html#65">State::Idle</a>(opt) =&gt; {
-                    <span class="kw">let </span>inner = <a href="../../../src/async_std/io/stdin.rs.html#161">opt</a>.as_mut().unwrap();
+            <span class="kw">match </span><a href="#157">state</a> {
+                <a href="#65">State::Idle</a>(opt) =&gt; {
+                    <span class="kw">let </span>inner = <a href="#161">opt</a>.as_mut().unwrap();
 
                     <span class="comment">// Check if the operation has completed.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdin.rs.html#93">Operation::Read</a>(res)) = <a href="../../../src/async_std/io/stdin.rs.html#162">inner</a>.last_op.take() {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#93">Operation::Read</a>(res)) = <a href="#162">inner</a>.last_op.take() {
                         <span class="kw">let </span>n = res<span class="question-mark">?</span>;
 
                         <span class="comment">// If more data was read than fits into the buffer, let&#39;s retry the read
                         // operation.
                         </span><span class="kw">if </span>n &lt;= buf.len() {
                             <span class="comment">// Copy the read data into the buffer and return.
-                            </span><a href="../../../src/async_std/io/stdin.rs.html#154">buf</a>[..<a href="../../../src/async_std/io/stdin.rs.html#166">n</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/async_std/io/stdin.rs.html#162">inner</a>.buf[..<a href="../../../src/async_std/io/stdin.rs.html#166">n</a>]);
-                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/async_std/io/stdin.rs.html#166">n</a>));
+                            </span><a href="#154">buf</a>[..<a href="#166">n</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#162">inner</a>.buf[..<a href="#166">n</a>]);
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#166">n</a>));
                         }
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="../../../src/async_std/io/stdin.rs.html#161">opt</a>.take().unwrap();
+                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#161">opt</a>.take().unwrap();
 
                         <span class="comment">// Set the length of the inner buffer to the length of the provided buffer.
                         </span><span class="kw">if </span>inner.buf.len() &lt; buf.len() {
-                            <a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.buf.reserve(<a href="../../../src/async_std/io/stdin.rs.html#154">buf</a>.len() - <a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.buf.len());
+                            <a href="#176">inner</a>.buf.reserve(<a href="#154">buf</a>.len() - <a href="#176">inner</a>.buf.len());
                         }
                         <span class="kw">unsafe </span>{
-                            <a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.buf.set_len(<a href="../../../src/async_std/io/stdin.rs.html#154">buf</a>.len());
+                            <a href="#176">inner</a>.buf.set_len(<a href="#154">buf</a>.len());
                         }
 
                         <span class="comment">// Start the operation asynchronously.
-                        </span><span class="kw-2">*</span><a href="../../../src/async_std/io/stdin.rs.html#157">state</a> = <a href="../../../src/async_std/io/stdin.rs.html#70">State::Busy</a>(<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read::read</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.stdin, <span class="kw-2">&amp;mut </span><a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.buf);
-                            <a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdin.rs.html#93">Operation::Read</a>(<a href="../../../src/async_std/io/stdin.rs.html#188">res</a>));
-                            <a href="../../../src/async_std/io/stdin.rs.html#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdin.rs.html#176">inner</a>))
+                        </span><span class="kw-2">*</span><a href="#157">state</a> = <a href="#70">State::Busy</a>(<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
+                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read::read</a>(<span class="kw-2">&amp;mut </span><a href="#176">inner</a>.stdin, <span class="kw-2">&amp;mut </span><a href="#176">inner</a>.buf);
+                            <a href="#176">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="#93">Operation::Read</a>(<a href="#188">res</a>));
+                            <a href="#65">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#176">inner</a>))
                         }));
                     }
                 }
                 <span class="comment">// Poll the asynchronous operation the stdin is currently blocked on.
-                </span><a href="../../../src/async_std/io/stdin.rs.html#70">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="../../../src/async_std/io/stdin.rs.html#157">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
+                </span><a href="#70">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="#157">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
             }
         }
     }
@@ -422,7 +422,7 @@
 <span class="macro">cfg_unix! </span>{
     <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
 
-    <span class="kw">impl </span><a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a> {
+    <span class="kw">impl </span><a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#57">Stdin</a> {
         <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
             std::io::stdin().<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
         }
@@ -439,4 +439,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

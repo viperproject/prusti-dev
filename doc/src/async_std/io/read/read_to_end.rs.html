@@ -88,7 +88,7 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use </span><a href="../../../../async_std/future/trait.Future.html">std::future::Future</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../../../src/async_std/lib.rs.html#307">self</a>, <a href="../../../../async_std/io/trait.Read.html">Read</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../lib.rs.html#307">self</a>, <a href="../../../../async_std/io/trait.Read.html">Read</a>};
 <span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../../async_std/task/enum.Poll.html">Poll</a>};
 
 <span class="attribute">#[doc(hidden)]
@@ -107,8 +107,8 @@
             reader,
             buf,
             start_len,
-        } = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/async_std/io/read/read_to_end.rs.html#18">self</a>;
-        <a href="../../../../src/async_std/io/read/read_to_end.rs.html#37-42">read_to_end_internal</a>(Pin::new(<a href="../../../../src/async_std/io/read/read_to_end.rs.html#20">reader</a>), <a href="../../../../src/async_std/io/read/read_to_end.rs.html#18">cx</a>, <a href="../../../../src/async_std/io/read/read_to_end.rs.html#21">buf</a>, <span class="kw-2">*</span><a href="../../../../src/async_std/io/read/read_to_end.rs.html#22">start_len</a>)
+        } = <span class="kw-2">&amp;mut *</span><a class="self" href="#18">self</a>;
+        <a href="#37-42">read_to_end_internal</a>(Pin::new(<a href="#20">reader</a>), <a href="#18">cx</a>, <a href="#21">buf</a>, <span class="kw-2">*</span><a href="#22">start_len</a>)
     }
 }
 
@@ -135,40 +135,40 @@
     <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="kw">unsafe </span>{
-                <a class="self" href="../../../../src/async_std/io/read/read_to_end.rs.html#49">self</a>.buf.set_len(<a class="self" href="../../../../src/async_std/io/read/read_to_end.rs.html#49">self</a>.len);
+                <a class="self" href="#49">self</a>.buf.set_len(<a class="self" href="#49">self</a>.len);
             }
         }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>g = <a href="../../../../src/async_std/io/read/read_to_end.rs.html#43">Guard</a> {
-        len: <a href="../../../../src/async_std/io/read/read_to_end.rs.html#40">buf</a>.len(),
-        <a href="../../../../src/async_std/io/read/read_to_end.rs.html#40">buf</a>,
+    <span class="kw">let </span><span class="kw-2">mut </span>g = <a href="#43">Guard</a> {
+        len: <a href="#40">buf</a>.len(),
+        <a href="#40">buf</a>,
     };
     <span class="kw">let </span>ret;
     <span class="kw">loop </span>{
         <span class="kw">if </span>g.len == g.buf.len() {
             <span class="kw">unsafe </span>{
-                <a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.buf.reserve(<span class="number">32</span>);
-                <span class="kw">let </span>capacity = <a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.buf.capacity();
-                <a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.buf.set_len(<a href="../../../../src/async_std/io/read/read_to_end.rs.html#65">capacity</a>);
-                <a href="../../../../src/async_std/io/read/mod.rs.html#383"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="../../../../src/async_std/io/read/read_to_end.rs.html#38">rd</a>, <span class="kw-2">&amp;mut </span><a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.buf[<a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.len..]);
+                <a href="#56">g</a>.buf.reserve(<span class="number">32</span>);
+                <span class="kw">let </span>capacity = <a href="#56">g</a>.buf.capacity();
+                <a href="#56">g</a>.buf.set_len(<a href="#65">capacity</a>);
+                <a href="mod.rs.html#383"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="#38">rd</a>, <span class="kw-2">&amp;mut </span><a href="#56">g</a>.buf[<a href="#56">g</a>.len..]);
             }
         }
 
         <span class="kw">match </span><a class="macro" href="../../../../async_std/task/macro.ready.html">futures_core::ready!</a>(rd.as_mut().poll_read(cx, <span class="kw-2">&amp;mut </span>g.buf[g.len..])) {
             <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-                <a href="../../../../src/async_std/io/read/read_to_end.rs.html#60">ret</a> = Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.len - <a href="../../../../src/async_std/io/read/read_to_end.rs.html#41">start_len</a>));
+                <a href="#60">ret</a> = Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#56">g</a>.len - <a href="#41">start_len</a>));
                 <span class="kw">break</span>;
             }
-            <span class="prelude-val">Ok</span>(n) =&gt; <a href="../../../../src/async_std/io/read/read_to_end.rs.html#56">g</a>.len += <a href="../../../../src/async_std/io/read/read_to_end.rs.html#76">n</a>,
+            <span class="prelude-val">Ok</span>(n) =&gt; <a href="#56">g</a>.len += <a href="#76">n</a>,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a href="../../../../src/async_std/io/read/read_to_end.rs.html#60">ret</a> = Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/async_std/io/read/read_to_end.rs.html#77">e</a>));
+                <a href="#60">ret</a> = Poll::Ready(<span class="prelude-val">Err</span>(<a href="#77">e</a>));
                 <span class="kw">break</span>;
             }
         }
     }
 
-    <a href="../../../../src/async_std/io/read/read_to_end.rs.html#60">ret</a>
+    <a href="#60">ret</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

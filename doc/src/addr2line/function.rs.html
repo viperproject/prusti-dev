@@ -523,20 +523,20 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">core::iter</a>;
 
-<span class="kw">use </span><a href="../../src/addr2line/lazy.rs.html#3"><span class="kw">crate</span>::lazy::LazyCell</a>;
-<span class="kw">use </span><a href="../../src/addr2line/lib.rs.html#65"><span class="kw">crate</span>::maybe_small</a>;
-<span class="kw">use crate</span>::{<a href="../../src/addr2line/lib.rs.html#73">Error</a>, <a href="../../src/addr2line/lib.rs.html#947">RangeAttributes</a>, <a href="../../src/addr2line/lib.rs.html#367">ResDwarf</a>};
+<span class="kw">use </span><a href="lazy.rs.html#3"><span class="kw">crate</span>::lazy::LazyCell</a>;
+<span class="kw">use </span><a href="lib.rs.html#65"><span class="kw">crate</span>::maybe_small</a>;
+<span class="kw">use crate</span>::{<a href="lib.rs.html#73">Error</a>, <a href="lib.rs.html#947">RangeAttributes</a>, <a href="lib.rs.html#367">ResDwarf</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Functions&lt;R: <a href="../../gimli/read/reader/trait.Reader.html">gimli::Reader</a>&gt; {
     <span class="doccomment">/// List of all `DW_TAG_subprogram` details in the unit.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;
         [(
             gimli::UnitOffset&lt;R::Offset&gt;,
-            LazyCell&lt;<span class="prelude-ty">Result</span>&lt;Function&lt;R&gt;, <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt;&gt;,
+            LazyCell&lt;<span class="prelude-ty">Result</span>&lt;Function&lt;R&gt;, <a href="lib.rs.html#73">Error</a>&gt;&gt;,
         )],
     &gt;,
     <span class="doccomment">/// List of `DW_TAG_subprogram` address ranges in the unit.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) addresses: Box&lt;[<a href="../../src/addr2line/function.rs.html#27">FunctionAddress</a>]&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) addresses: Box&lt;[<a href="#27">FunctionAddress</a>]&gt;,
 }
 
 <span class="doccomment">/// A single address range for a function.
@@ -556,7 +556,7 @@
     <span class="doccomment">/// List of all `DW_TAG_inlined_subroutine` details in this function.
     </span>inlined_functions: Box&lt;[InlinedFunction&lt;R&gt;]&gt;,
     <span class="doccomment">/// List of `DW_TAG_inlined_subroutine` address ranges in this function.
-    </span>inlined_addresses: Box&lt;[<a href="../../src/addr2line/function.rs.html#42">InlinedFunctionAddress</a>]&gt;,
+    </span>inlined_addresses: Box&lt;[<a href="#42">InlinedFunctionAddress</a>]&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InlinedFunctionAddress {
@@ -575,7 +575,7 @@
 }
 
 <span class="kw">impl</span>&lt;R: <a href="../../gimli/read/reader/trait.Reader.html">gimli::Reader</a>&gt; Functions&lt;R&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;, dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Functions&lt;R&gt;, <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;, dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Functions&lt;R&gt;, <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>functions = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>addresses = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>entries = unit.entries_raw(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
@@ -637,16 +637,16 @@
         // It&#39;s possible for multiple functions to have the same address range if the
         // compiler can detect and remove functions with identical code.  In that case
         // we&#39;ll nondeterministically return one of them.
-        </span><a href="../../src/addr2line/function.rs.html#60">addresses</a>.sort_by_key(|x| <a href="../../src/addr2line/function.rs.html#120">x</a>.range.begin);
+        </span><a href="#60">addresses</a>.sort_by_key(|x| <a href="#120">x</a>.range.begin);
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/addr2line/function.rs.html#10">Functions</a> {
-            functions: <a href="../../src/addr2line/function.rs.html#59">functions</a>.into_boxed_slice(),
-            addresses: <a href="../../src/addr2line/function.rs.html#60">addresses</a>.into_boxed_slice(),
+        <span class="prelude-val">Ok</span>(<a href="#10">Functions</a> {
+            functions: <a href="#59">functions</a>.into_boxed_slice(),
+            addresses: <a href="#60">addresses</a>.into_boxed_slice(),
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_address(<span class="kw-2">&amp;</span><span class="self">self</span>, probe: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../src/addr2line/function.rs.html#128">self</a>.addresses
+        <a class="self" href="#128">self</a>.addresses
             .binary_search_by(|address| {
                 <span class="kw">if </span>probe &lt; address.range.begin {
                     Ordering::Greater
@@ -663,7 +663,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;,
         dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="kw">for </span>function <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.functions {
             function
                 .<span class="number">1
@@ -680,9 +680,9 @@
         dw_die_offset: gimli::UnitOffset&lt;R::Offset&gt;,
         unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;,
         dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>entries = unit.entries_raw(<span class="prelude-val">Some</span>(dw_die_offset))<span class="question-mark">?</span>;
-        <span class="kw">let </span>depth = <a href="../../src/addr2line/function.rs.html#164">entries</a>.next_depth();
+        <span class="kw">let </span>depth = <a href="#164">entries</a>.next_depth();
         <span class="kw">let </span>abbrev = entries.read_abbreviation()<span class="question-mark">?</span>.unwrap();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(abbrev.tag(), gimli::DW_TAG_subprogram);
 
@@ -735,7 +735,7 @@
         // In this example, if you want to look up address 7 at depth 0, and you
         // encounter [0..2 at depth 1], are you before or after the target range?
         // You don&#39;t know.
-        </span><a href="../../src/addr2line/function.rs.html#197">inlined_addresses</a>.sort_by(|r1, r2| {
+        </span><a href="#197">inlined_addresses</a>.sort_by(|r1, r2| {
             <span class="kw">if </span>r1.call_depth &lt; r2.call_depth {
                 Ordering::Less
             } <span class="kw">else if </span>r1.call_depth &gt; r2.call_depth {
@@ -749,11 +749,11 @@
             }
         });
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/addr2line/function.rs.html#33">Function</a> {
-            <a href="../../src/addr2line/function.rs.html#160">dw_die_offset</a>,
-            <a href="../../src/addr2line/function.rs.html#169">name</a>,
-            inlined_functions: <a href="../../src/addr2line/function.rs.html#196">inlined_functions</a>.into_boxed_slice(),
-            inlined_addresses: <a href="../../src/addr2line/function.rs.html#197">inlined_addresses</a>.into_boxed_slice(),
+        <span class="prelude-val">Ok</span>(<a href="#33">Function</a> {
+            <a href="#160">dw_die_offset</a>,
+            <a href="#169">name</a>,
+            inlined_functions: <a href="#196">inlined_functions</a>.into_boxed_slice(),
+            inlined_addresses: <a href="#197">inlined_addresses</a>.into_boxed_slice(),
         })
     }
 
@@ -763,17 +763,17 @@
         unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;,
         dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
         inlined_functions: <span class="kw-2">&amp;mut </span>Vec&lt;InlinedFunction&lt;R&gt;&gt;,
-        inlined_addresses: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../src/addr2line/function.rs.html#42">InlinedFunctionAddress</a>&gt;,
+        inlined_addresses: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="#42">InlinedFunctionAddress</a>&gt;,
         inlined_depth: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">let </span>dw_die_offset = <a href="../../src/addr2line/function.rs.html#241">entries</a>.next_offset();
-            <span class="kw">let </span>next_depth = <a href="../../src/addr2line/function.rs.html#241">entries</a>.next_depth();
+            <span class="kw">let </span>dw_die_offset = <a href="#241">entries</a>.next_offset();
+            <span class="kw">let </span>next_depth = <a href="#241">entries</a>.next_depth();
             <span class="kw">if </span>next_depth &lt;= depth {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
             <span class="kw">if let </span><span class="prelude-val">Some</span>(abbrev) = entries.read_abbreviation()<span class="question-mark">? </span>{
-                <span class="kw">match </span><a href="../../src/addr2line/function.rs.html#255">abbrev</a>.tag() {
+                <span class="kw">match </span><a href="#255">abbrev</a>.tag() {
                     gimli::DW_TAG_subprogram =&gt; {
                         Function::skip(entries, abbrev, next_depth)<span class="question-mark">?</span>;
                     }
@@ -802,7 +802,7 @@
         entries: <span class="kw-2">&amp;mut </span>gimli::EntriesRaw&lt;R&gt;,
         abbrev: <span class="kw-2">&amp;</span><a href="../../gimli/read/abbrev/struct.Abbreviation.html">gimli::Abbreviation</a>,
         depth: <a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="comment">// TODO: use DW_AT_sibling
         </span>entries.skip_attributes(abbrev.attributes())<span class="question-mark">?</span>;
         <span class="kw">while </span>entries.next_depth() &gt; depth {
@@ -820,14 +820,14 @@
     ) -&gt; iter::Rev&lt;maybe_small::IntoIter&lt;<span class="kw-2">&amp;</span>InlinedFunction&lt;R&gt;&gt;&gt; {
         <span class="comment">// `inlined_functions` is ordered from outside to inside.
         </span><span class="kw">let </span><span class="kw-2">mut </span>inlined_functions = maybe_small::Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>inlined_addresses = <span class="kw-2">&amp;</span><a class="self" href="../../src/addr2line/function.rs.html#298">self</a>.inlined_addresses[..];
+        <span class="kw">let </span><span class="kw-2">mut </span>inlined_addresses = <span class="kw-2">&amp;</span><a class="self" href="#298">self</a>.inlined_addresses[..];
         <span class="kw">loop </span>{
-            <span class="kw">let </span>current_depth = <a href="../../src/addr2line/function.rs.html#302">inlined_functions</a>.len();
+            <span class="kw">let </span>current_depth = <a href="#302">inlined_functions</a>.len();
             <span class="comment">// Look up (probe, current_depth) in inline_ranges.
             // `inlined_addresses` is sorted in &quot;breadth-first traversal order&quot;, i.e.
             // by `call_depth` first, and then by `range.begin`. See the comment at
             // the sort call for more information about why.
-            </span><span class="kw">let </span>search = <a href="../../src/addr2line/function.rs.html#303">inlined_addresses</a>.binary_search_by(|range| {
+            </span><span class="kw">let </span>search = <a href="#303">inlined_addresses</a>.binary_search_by(|range| {
                 <span class="kw">if </span>range.call_depth &gt; current_depth {
                     Ordering::Greater
                 } <span class="kw">else if </span>range.call_depth &lt; current_depth {
@@ -840,15 +840,15 @@
                     Ordering::Equal
                 }
             });
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="../../src/addr2line/function.rs.html#310">search</a> {
-                <span class="kw">let </span>function_index = <a href="../../src/addr2line/function.rs.html#303">inlined_addresses</a>[<a href="../../src/addr2line/function.rs.html#323">index</a>].function;
-                <a href="../../src/addr2line/function.rs.html#302">inlined_functions</a>.push(<span class="kw-2">&amp;</span><a class="self" href="../../src/addr2line/function.rs.html#298">self</a>.inlined_functions[<a href="../../src/addr2line/function.rs.html#324">function_index</a>]);
-                <a href="../../src/addr2line/function.rs.html#303">inlined_addresses</a> = <span class="kw-2">&amp;</span><a href="../../src/addr2line/function.rs.html#303">inlined_addresses</a>[<a href="../../src/addr2line/function.rs.html#323">index</a> + <span class="number">1</span>..];
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="#310">search</a> {
+                <span class="kw">let </span>function_index = <a href="#303">inlined_addresses</a>[<a href="#323">index</a>].function;
+                <a href="#302">inlined_functions</a>.push(<span class="kw-2">&amp;</span><a class="self" href="#298">self</a>.inlined_functions[<a href="#324">function_index</a>]);
+                <a href="#303">inlined_addresses</a> = <span class="kw-2">&amp;</span><a href="#303">inlined_addresses</a>[<a href="#323">index</a> + <span class="number">1</span>..];
             } <span class="kw">else </span>{
                 <span class="kw">break</span>;
             }
         }
-        <a href="../../src/addr2line/function.rs.html#302">inlined_functions</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>()
+        <a href="#302">inlined_functions</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>()
     }
 }
 
@@ -861,9 +861,9 @@
         unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;,
         dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
         inlined_functions: <span class="kw-2">&amp;mut </span>Vec&lt;InlinedFunction&lt;R&gt;&gt;,
-        inlined_addresses: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../src/addr2line/function.rs.html#42">InlinedFunctionAddress</a>&gt;,
+        inlined_addresses: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="#42">InlinedFunctionAddress</a>&gt;,
         inlined_depth: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="lib.rs.html#73">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ranges = RangeAttributes::default();
         <span class="kw">let </span><span class="kw-2">mut </span>name = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>call_file = <span class="number">0</span>;
@@ -918,13 +918,13 @@
             }
         }
 
-        <span class="kw">let </span>function_index = <a href="../../src/addr2line/function.rs.html#343">inlined_functions</a>.len();
-        <a href="../../src/addr2line/function.rs.html#343">inlined_functions</a>.push(<a href="../../src/addr2line/function.rs.html#49">InlinedFunction</a> {
-            <a href="../../src/addr2line/function.rs.html#337">dw_die_offset</a>,
-            <a href="../../src/addr2line/function.rs.html#348">name</a>,
-            <a href="../../src/addr2line/function.rs.html#349">call_file</a>,
-            <a href="../../src/addr2line/function.rs.html#350">call_line</a>,
-            <a href="../../src/addr2line/function.rs.html#351">call_column</a>,
+        <span class="kw">let </span>function_index = <a href="#343">inlined_functions</a>.len();
+        <a href="#343">inlined_functions</a>.push(<a href="#49">InlinedFunction</a> {
+            <a href="#337">dw_die_offset</a>,
+            <a href="#348">name</a>,
+            <a href="#349">call_file</a>,
+            <a href="#350">call_line</a>,
+            <a href="#351">call_column</a>,
         });
 
         ranges.for_each_range(<span class="kw-2">&amp;</span>dwarf.sections, unit, |range| {
@@ -936,13 +936,13 @@
         })<span class="question-mark">?</span>;
 
         Function::parse_children(
-            <a href="../../src/addr2line/function.rs.html#338">entries</a>,
-            <a href="../../src/addr2line/function.rs.html#340">depth</a>,
-            <a href="../../src/addr2line/function.rs.html#341">unit</a>,
-            <a href="../../src/addr2line/function.rs.html#342">dwarf</a>,
-            <a href="../../src/addr2line/function.rs.html#343">inlined_functions</a>,
-            <a href="../../src/addr2line/function.rs.html#344">inlined_addresses</a>,
-            <a href="../../src/addr2line/function.rs.html#345">inlined_depth</a> + <span class="number">1</span>,
+            <a href="#338">entries</a>,
+            <a href="#340">depth</a>,
+            <a href="#341">unit</a>,
+            <a href="#342">dwarf</a>,
+            <a href="#343">inlined_functions</a>,
+            <a href="#344">inlined_addresses</a>,
+            <a href="#345">inlined_depth</a> + <span class="number">1</span>,
         )
     }
 }
@@ -952,7 +952,7 @@
     unit: <span class="kw-2">&amp;</span>gimli::Unit&lt;R&gt;,
     dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
     recursion_limit: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;R&gt;, <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;R&gt;, <a href="lib.rs.html#73">Error</a>&gt;
 <span class="kw">where
     </span>R: <a href="../../gimli/read/reader/trait.Reader.html">gimli::Reader</a>,
 {
@@ -960,25 +960,25 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     }
 
-    <span class="kw">match </span><a href="../../src/addr2line/function.rs.html#431">attr</a> {
-        gimli::AttributeValue::UnitRef(offset) =&gt; <a href="../../src/addr2line/function.rs.html#471-478">name_entry</a>(<a href="../../src/addr2line/function.rs.html#432">unit</a>, <a href="../../src/addr2line/function.rs.html#444">offset</a>, <a href="../../src/addr2line/function.rs.html#433">dwarf</a>, <a href="../../src/addr2line/function.rs.html#434">recursion_limit</a>),
+    <span class="kw">match </span><a href="#431">attr</a> {
+        gimli::AttributeValue::UnitRef(offset) =&gt; <a href="#471-478">name_entry</a>(<a href="#432">unit</a>, <a href="#444">offset</a>, <a href="#433">dwarf</a>, <a href="#434">recursion_limit</a>),
         gimli::AttributeValue::DebugInfoRef(dr) =&gt; {
             <span class="kw">let </span>res_unit = dwarf.find_unit(dr)<span class="question-mark">?</span>;
-            <a href="../../src/addr2line/function.rs.html#471-478">name_entry</a>(
-                <span class="kw-2">&amp;</span><a href="../../src/addr2line/function.rs.html#446">res_unit</a>.dw_unit,
-                gimli::UnitOffset(<a href="../../src/addr2line/function.rs.html#445">dr</a>.<span class="number">0 </span>- <a href="../../src/addr2line/function.rs.html#446">res_unit</a>.offset.<span class="number">0</span>),
-                <a href="../../src/addr2line/function.rs.html#433">dwarf</a>,
-                <a href="../../src/addr2line/function.rs.html#434">recursion_limit</a>,
+            <a href="#471-478">name_entry</a>(
+                <span class="kw-2">&amp;</span><a href="#446">res_unit</a>.dw_unit,
+                gimli::UnitOffset(<a href="#445">dr</a>.<span class="number">0 </span>- <a href="#446">res_unit</a>.offset.<span class="number">0</span>),
+                <a href="#433">dwarf</a>,
+                <a href="#434">recursion_limit</a>,
             )
         }
         gimli::AttributeValue::DebugInfoRefSup(dr) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(sup_dwarf) = <a href="../../src/addr2line/function.rs.html#433">dwarf</a>.sup.as_ref() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(sup_dwarf) = <a href="#433">dwarf</a>.sup.as_ref() {
                 <span class="kw">let </span>res_unit = sup_dwarf.find_unit(dr)<span class="question-mark">?</span>;
-                <a href="../../src/addr2line/function.rs.html#471-478">name_entry</a>(
-                    <span class="kw-2">&amp;</span><a href="../../src/addr2line/function.rs.html#456">res_unit</a>.dw_unit,
-                    gimli::UnitOffset(<a href="../../src/addr2line/function.rs.html#454">dr</a>.<span class="number">0 </span>- <a href="../../src/addr2line/function.rs.html#456">res_unit</a>.offset.<span class="number">0</span>),
-                    <a href="../../src/addr2line/function.rs.html#455">sup_dwarf</a>,
-                    <a href="../../src/addr2line/function.rs.html#434">recursion_limit</a>,
+                <a href="#471-478">name_entry</a>(
+                    <span class="kw-2">&amp;</span><a href="#456">res_unit</a>.dw_unit,
+                    gimli::UnitOffset(<a href="#454">dr</a>.<span class="number">0 </span>- <a href="#456">res_unit</a>.offset.<span class="number">0</span>),
+                    <a href="#455">sup_dwarf</a>,
+                    <a href="#434">recursion_limit</a>,
                 )
             } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -993,13 +993,13 @@
     offset: gimli::UnitOffset&lt;R::Offset&gt;,
     dwarf: <span class="kw-2">&amp;</span>ResDwarf&lt;R&gt;,
     recursion_limit: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;R&gt;, <a href="../../src/addr2line/lib.rs.html#73">Error</a>&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;R&gt;, <a href="lib.rs.html#73">Error</a>&gt;
 <span class="kw">where
     </span>R: <a href="../../gimli/read/reader/trait.Reader.html">gimli::Reader</a>,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>entries = unit.entries_raw(<span class="prelude-val">Some</span>(offset))<span class="question-mark">?</span>;
     <span class="kw">let </span>abbrev = <span class="kw">if let </span><span class="prelude-val">Some</span>(abbrev) = entries.read_abbreviation()<span class="question-mark">? </span>{
-        <a href="../../src/addr2line/function.rs.html#481">abbrev</a>
+        <a href="#481">abbrev</a>
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(gimli::Error::NoEntryAtGivenOffset);
     };
@@ -1029,14 +1029,14 @@
     }
 
     <span class="kw">if </span>name.is_some() {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/addr2line/function.rs.html#487">name</a>);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#487">name</a>);
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a href="../../src/addr2line/function.rs.html#488">next</a> {
-        <span class="kw">return </span><a href="../../src/addr2line/function.rs.html#430-437">name_attr</a>(<a href="../../src/addr2line/function.rs.html#515">next</a>, <a href="../../src/addr2line/function.rs.html#472">unit</a>, <a href="../../src/addr2line/function.rs.html#474">dwarf</a>, <a href="../../src/addr2line/function.rs.html#475">recursion_limit</a> - <span class="number">1</span>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a href="#488">next</a> {
+        <span class="kw">return </span><a href="#430-437">name_attr</a>(<a href="#515">next</a>, <a href="#472">unit</a>, <a href="#474">dwarf</a>, <a href="#475">recursion_limit</a> - <span class="number">1</span>);
     }
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="addr2line" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="addr2line" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

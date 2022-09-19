@@ -460,7 +460,7 @@
 <span id="460">460</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 
 <span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
@@ -476,11 +476,11 @@
 <span class="kw">use </span><a href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
 <span class="kw">use </span><a href="../../../reqwest/struct.Url.html">url::Url</a>;
 
-<span class="kw">use </span><a href="../../../src/reqwest/async_impl/body.rs.html#17"><span class="kw">super</span>::body::Body</a>;
-<span class="kw">use </span><span class="kw">super</span>::decoder::{<a href="../../../src/reqwest/async_impl/decoder.rs.html#30">Accepts</a>, <a href="../../../src/reqwest/async_impl/decoder.rs.html#42">Decoder</a>};
+<span class="kw">use </span><a href="body.rs.html#17"><span class="kw">super</span>::body::Body</a>;
+<span class="kw">use </span><span class="kw">super</span>::decoder::{<a href="decoder.rs.html#30">Accepts</a>, <a href="decoder.rs.html#42">Decoder</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::cookie;
-<span class="kw">use </span><a href="../../../src/reqwest/response.rs.html#4"><span class="kw">crate</span>::response::ResponseUrl</a>;
+<span class="kw">use </span><a href="../response.rs.html#4"><span class="kw">crate</span>::response::ResponseUrl</a>;
 
 <span class="doccomment">/// A Response to a submitted `Request`.
 </span><span class="kw">pub struct </span>Response {
@@ -489,58 +489,58 @@
     <span class="comment">// Boxed to save space (11 words to 1 word), and it&#39;s not accessed
     // frequently internally.
     </span>url: Box&lt;<a href="../../../reqwest/struct.Url.html">Url</a>&gt;,
-    body: <a href="../../../src/reqwest/async_impl/decoder.rs.html#42">Decoder</a>,
+    body: <a href="decoder.rs.html#42">Decoder</a>,
     version: <a href="../../../reqwest/struct.Version.html">Version</a>,
     extensions: <a href="../../../http/extensions/struct.Extensions.html">http::Extensions</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
+<span class="kw">impl </span><a href="#26">Response</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
         res: hyper::Response&lt;<a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>&gt;,
         url: <a href="../../../reqwest/struct.Url.html">Url</a>,
-        accepts: <a href="../../../src/reqwest/async_impl/decoder.rs.html#30">Accepts</a>,
+        accepts: <a href="decoder.rs.html#30">Accepts</a>,
         timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;,
-    ) -&gt; <a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
-        <span class="kw">let </span>(parts, body) = <a href="../../../src/reqwest/async_impl/response.rs.html#39">res</a>.into_parts();
-        <span class="kw">let </span>status = <a href="../../../src/reqwest/async_impl/response.rs.html#44">parts</a>.status;
-        <span class="kw">let </span>version = <a href="../../../src/reqwest/async_impl/response.rs.html#44">parts</a>.version;
-        <span class="kw">let </span>extensions = <a href="../../../src/reqwest/async_impl/response.rs.html#44">parts</a>.extensions;
+    ) -&gt; <a href="#26">Response</a> {
+        <span class="kw">let </span>(parts, body) = <a href="#39">res</a>.into_parts();
+        <span class="kw">let </span>status = <a href="#44">parts</a>.status;
+        <span class="kw">let </span>version = <a href="#44">parts</a>.version;
+        <span class="kw">let </span>extensions = <a href="#44">parts</a>.extensions;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>headers = <a href="../../../src/reqwest/async_impl/response.rs.html#44">parts</a>.headers;
-        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/response.rs.html#49">headers</a>, Body::response(<a href="../../../src/reqwest/async_impl/response.rs.html#44">body</a>, <a href="../../../src/reqwest/async_impl/response.rs.html#42">timeout</a>), <a href="../../../src/reqwest/async_impl/response.rs.html#41">accepts</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>headers = <a href="#44">parts</a>.headers;
+        <span class="kw">let </span>decoder = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="#49">headers</a>, Body::response(<a href="#44">body</a>, <a href="#42">timeout</a>), <a href="#41">accepts</a>);
 
-        <a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
-            <a href="../../../src/reqwest/async_impl/response.rs.html#45">status</a>,
-            <a href="../../../src/reqwest/async_impl/response.rs.html#49">headers</a>,
-            url: Box::new(<a href="../../../src/reqwest/async_impl/response.rs.html#40">url</a>),
-            body: <a href="../../../src/reqwest/async_impl/response.rs.html#50">decoder</a>,
-            <a href="../../../src/reqwest/async_impl/response.rs.html#46">version</a>,
-            <a href="../../../src/reqwest/async_impl/response.rs.html#47">extensions</a>,
+        <a href="#26">Response</a> {
+            <a href="#45">status</a>,
+            <a href="#49">headers</a>,
+            url: Box::new(<a href="#40">url</a>),
+            body: <a href="#50">decoder</a>,
+            <a href="#46">version</a>,
+            <a href="#47">extensions</a>,
         }
     }
 
     <span class="doccomment">/// Get the `StatusCode` of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../reqwest/struct.StatusCode.html">StatusCode</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#64">self</a>.status
+        <a class="self" href="#64">self</a>.status
     }
 
     <span class="doccomment">/// Get the HTTP `Version` of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../reqwest/struct.Version.html">Version</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#70">self</a>.version
+        <a class="self" href="#70">self</a>.version
     }
 
     <span class="doccomment">/// Get the `Headers` of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#76">self</a>.headers
+        <span class="kw-2">&amp;</span><a class="self" href="#76">self</a>.headers
     }
 
     <span class="doccomment">/// Get a mutable reference to the `Headers` of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#82">self</a>.headers
+        <span class="kw-2">&amp;mut </span><a class="self" href="#82">self</a>.headers
     }
 
     <span class="doccomment">/// Get the content-length of this response, if known.
@@ -553,7 +553,7 @@
     </span><span class="kw">pub fn </span>content_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
         <span class="kw">use </span><a href="../../../http_body/trait.Body.html">hyper::body::HttpBody</a>;
 
-        <a href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#93">self</a>.body).exact()
+        <a href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<span class="kw-2">&amp;</span><a class="self" href="#93">self</a>.body).exact()
     }
 
     <span class="doccomment">/// Retrieve the cookies contained in the response.
@@ -572,24 +572,24 @@
     <span class="doccomment">/// Get the final `Url` of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/struct.Url.html">Url</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#114">self</a>.url
+        <span class="kw-2">&amp;</span><a class="self" href="#114">self</a>.url
     }
 
     <span class="doccomment">/// Get the remote address used to get this `Response`.
-    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#119">self</a>.extensions
+    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#119">self</a>.extensions
             .get::&lt;<a href="../../../hyper/client/connect/http/struct.HttpInfo.html">HttpInfo</a>&gt;()
-            .map(|info| <a href="../../../src/reqwest/async_impl/response.rs.html#122">info</a>.remote_addr())
+            .map(|info| <a href="#122">info</a>.remote_addr())
     }
 
     <span class="doccomment">/// Returns a reference to the associated extensions.
     </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#126">self</a>.extensions
+        <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.extensions
     }
 
     <span class="doccomment">/// Returns a mutable reference to the associated extensions.
     </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#131">self</a>.extensions
+        <span class="kw-2">&amp;mut </span><a class="self" href="#131">self</a>.extensions
     }
 
     <span class="comment">// body methods
@@ -811,9 +811,9 @@
     /// ```
     </span><span class="kw">pub fn </span>error_for_status(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.status.is_client_error() || <span class="self">self</span>.status.is_server_error() {
-            <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/error.rs.html#263"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#352">self</a>.url, <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#352">self</a>.status))
+            <span class="prelude-val">Err</span>(<a href="../error.rs.html#263"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="#352">self</a>.url, <a class="self" href="#352">self</a>.status))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/reqwest/async_impl/response.rs.html#352">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#352">self</a>)
         }
     }
 
@@ -840,9 +840,9 @@
     /// ```
     </span><span class="kw">pub fn </span>error_for_status_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.status.is_client_error() || <span class="self">self</span>.status.is_server_error() {
-            <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/error.rs.html#263"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#381">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#381">self</a>.status))
+            <span class="prelude-val">Err</span>(<a href="../error.rs.html#263"><span class="kw">crate</span>::error::status_code</a>(<span class="kw-2">*</span><a class="self" href="#381">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="#381">self</a>.status))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/reqwest/async_impl/response.rs.html#381">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#381">self</a>)
         }
     }
 
@@ -859,41 +859,41 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#26">Response</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/reqwest/async_impl/response.rs.html#403">f</a>.debug_struct(<span class="string">&quot;Response&quot;</span>)
-            .field(<span class="string">&quot;url&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#403">self</a>.<a href="../../../src/reqwest/async_impl/response.rs.html#114">url</a>())
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/response.rs.html#403">self</a>.<a href="../../../src/reqwest/async_impl/response.rs.html#64">status</a>())
-            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/response.rs.html#403">self</a>.<a href="../../../src/reqwest/async_impl/response.rs.html#76">headers</a>())
+        <a href="#403">f</a>.debug_struct(<span class="string">&quot;Response&quot;</span>)
+            .field(<span class="string">&quot;url&quot;</span>, <a class="self" href="#403">self</a>.<a href="#114">url</a>())
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#403">self</a>.<a href="#64">status</a>())
+            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="#403">self</a>.<a href="#76">headers</a>())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T: Into&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt;&gt; From&lt;http::Response&lt;T&gt;&gt; <span class="kw">for </span><a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
-    <span class="kw">fn </span>from(r: http::Response&lt;T&gt;) -&gt; <a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = <a href="../../../src/reqwest/async_impl/response.rs.html#413">r</a>.into_parts();
-        <span class="kw">let </span>body = <a href="../../../src/reqwest/async_impl/response.rs.html#414">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>body = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>.headers, <a href="../../../src/reqwest/async_impl/response.rs.html#415">body</a>, Accepts::none());
-        <span class="kw">let </span>url = <a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>
+<span class="kw">impl</span>&lt;T: Into&lt;<a href="body.rs.html#17">Body</a>&gt;&gt; From&lt;http::Response&lt;T&gt;&gt; <span class="kw">for </span><a href="#26">Response</a> {
+    <span class="kw">fn </span>from(r: http::Response&lt;T&gt;) -&gt; <a href="#26">Response</a> {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>parts, body) = <a href="#413">r</a>.into_parts();
+        <span class="kw">let </span>body = <a href="#414">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>body = Decoder::detect(<span class="kw-2">&amp;mut </span><a href="#414">parts</a>.headers, <a href="#415">body</a>, Accepts::none());
+        <span class="kw">let </span>url = <a href="#414">parts</a>
             .extensions
-            .remove::&lt;<a href="../../../src/reqwest/response.rs.html#4">ResponseUrl</a>&gt;()
-            .unwrap_or_else(|| <a href="../../../src/reqwest/response.rs.html#4">ResponseUrl</a>(Url::parse(<span class="string">&quot;http://no.url.provided.local&quot;</span>).unwrap()));
-        <span class="kw">let </span>url = <a href="../../../src/reqwest/async_impl/response.rs.html#417">url</a>.<span class="number">0</span>;
-        <a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a> {
-            status: <a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>.status,
-            headers: <a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>.headers,
-            url: Box::new(<a href="../../../src/reqwest/async_impl/response.rs.html#421">url</a>),
-            <a href="../../../src/reqwest/async_impl/response.rs.html#416">body</a>,
-            version: <a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>.version,
-            extensions: <a href="../../../src/reqwest/async_impl/response.rs.html#414">parts</a>.extensions,
+            .remove::&lt;<a href="../response.rs.html#4">ResponseUrl</a>&gt;()
+            .unwrap_or_else(|| <a href="../response.rs.html#4">ResponseUrl</a>(Url::parse(<span class="string">&quot;http://no.url.provided.local&quot;</span>).unwrap()));
+        <span class="kw">let </span>url = <a href="#417">url</a>.<span class="number">0</span>;
+        <a href="#26">Response</a> {
+            status: <a href="#414">parts</a>.status,
+            headers: <a href="#414">parts</a>.headers,
+            url: Box::new(<a href="#421">url</a>),
+            <a href="#416">body</a>,
+            version: <a href="#414">parts</a>.version,
+            extensions: <a href="#414">parts</a>.extensions,
         }
     }
 }
 
 <span class="doccomment">/// A `Response` can be piped as the `Body` of another request.
-</span><span class="kw">impl </span>From&lt;<a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a>&gt; <span class="kw">for </span><a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a> {
-    <span class="kw">fn </span>from(r: <a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a>) -&gt; <a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a> {
-        Body::stream(<a href="../../../src/reqwest/async_impl/response.rs.html#435">r</a>.body)
+</span><span class="kw">impl </span>From&lt;<a href="#26">Response</a>&gt; <span class="kw">for </span><a href="body.rs.html#17">Body</a> {
+    <span class="kw">fn </span>from(r: <a href="#26">Response</a>) -&gt; <a href="body.rs.html#17">Body</a> {
+        Body::stream(<a href="#435">r</a>.body)
     }
 }
 
@@ -919,4 +919,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

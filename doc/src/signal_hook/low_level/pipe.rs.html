@@ -349,18 +349,18 @@
 
 <span class="kw">struct </span>WakeFd {
     fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>,
+    method: <a href="#85">WakeMethod</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+<span class="kw">impl </span><a href="#90">WakeFd</a> {
     <span class="doccomment">/// Sets close on exec and nonblock on the inner file descriptor.
     </span><span class="kw">fn </span>set_flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>flags = libc::fcntl(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#97">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), libc::F_GETFL, <span class="number">0</span>);
+            <span class="kw">let </span>flags = libc::fcntl(<a class="self" href="#97">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), libc::F_GETFL, <span class="number">0</span>);
             <span class="kw">if </span>flags == -<span class="number">1 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
             }
-            <span class="kw">let </span>flags = <a href="../../../src/signal_hook/low_level/pipe.rs.html#99">flags</a> | <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.O_NONBLOCK.html">libc::O_NONBLOCK</a> | libc::O_CLOEXEC;
+            <span class="kw">let </span>flags = <a href="#99">flags</a> | <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.O_NONBLOCK.html">libc::O_NONBLOCK</a> | libc::O_CLOEXEC;
             <span class="kw">if </span>libc::fcntl(<span class="self">self</span>.as_raw_fd(), libc::F_SETFL, flags) == -<span class="number">1 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
             }
@@ -368,25 +368,25 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a href="../../../src/signal_hook/low_level/pipe.rs.html#129">wake</a>(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.fd, <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.method);
+        <a href="#129">wake</a>(<a class="self" href="#110">self</a>.fd, <a class="self" href="#110">self</a>.method);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#90">WakeFd</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#116">self</a>.fd
+        <a class="self" href="#116">self</a>.fd
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#90">WakeFd</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            libc::close(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#122">self</a>.fd);
+            libc::close(<a class="self" href="#122">self</a>.fd);
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wake(pipe: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wake(pipe: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, method: <a href="#85">WakeMethod</a>) {
     <span class="kw">unsafe </span>{
         <span class="comment">// This writes some data into the pipe.
         //
@@ -399,9 +399,9 @@
         //   many signals, but the reader didn&#39;t have time to read the data yet. It&#39;ll still get
         //   woken up, so not fitting another letter in it is fine.
         </span><span class="kw">let </span>data = <span class="string">b&quot;X&quot; </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><span class="kw">_</span>;
-        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#129">method</a> {
-            <a href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a> =&gt; <a href="../../../libc/unix/fn.write.html">libc::write</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>),
-            <a href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a> =&gt; <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>),
+        <span class="kw">match </span><a href="#129">method</a> {
+            <a href="#87">WakeMethod::Write</a> =&gt; <a href="../../../libc/unix/fn.write.html">libc::write</a>(<a href="#129">pipe</a>, <a href="#141">data</a>, <span class="number">1</span>),
+            <a href="#86">WakeMethod::Send</a> =&gt; <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="#129">pipe</a>, <a href="#141">data</a>, <span class="number">1</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>),
         };
     }
 }
@@ -430,23 +430,23 @@
 /// * If it is not possible, the [`O_NONBLOCK`][libc::O_NONBLOCK] will be set on the file
 ///   descriptor and [`write`][libc::write] will be used instead.
 </span><span class="kw">pub fn </span>register_raw(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>, pipe: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>, <span class="kw-2">&amp;</span>[] <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <span class="number">0</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>) };
-    <span class="kw">let </span>fd = <span class="kw">match </span>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#173">res</a>, Error::last_os_error().kind()) {
-        (<span class="number">0</span>, <span class="kw">_</span>) | (-<span class="number">1</span>, ErrorKind::WouldBlock) =&gt; <a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-            fd: <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
-            method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a>,
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="#172">pipe</a>, <span class="kw-2">&amp;</span>[] <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <span class="number">0</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>) };
+    <span class="kw">let </span>fd = <span class="kw">match </span>(<a href="#173">res</a>, Error::last_os_error().kind()) {
+        (<span class="number">0</span>, <span class="kw">_</span>) | (-<span class="number">1</span>, ErrorKind::WouldBlock) =&gt; <a href="#90">WakeFd</a> {
+            fd: <a href="#172">pipe</a>,
+            method: <a href="#86">WakeMethod::Send</a>,
         },
         <span class="kw">_ </span>=&gt; {
-            <span class="kw">let </span>fd = <a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-                fd: <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
-                method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a>,
+            <span class="kw">let </span>fd = <a href="#90">WakeFd</a> {
+                fd: <a href="#172">pipe</a>,
+                method: <a href="#87">WakeMethod::Write</a>,
             };
             fd.set_flags()<span class="question-mark">?</span>;
-            <a href="../../../src/signal_hook/low_level/pipe.rs.html#180">fd</a>
+            <a href="#180">fd</a>
         }
     };
-    <span class="kw">let </span>action = <span class="kw">move </span>|| <a href="../../../src/signal_hook/low_level/pipe.rs.html#174">fd</a>.<a href="../../../src/signal_hook/low_level/pipe.rs.html#110">wake</a>();
-    <span class="kw">unsafe </span>{ <a href="../../../signal_hook/low_level/fn.register.html"><span class="kw">super</span>::register</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#172">signal</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#188">action</a>) }
+    <span class="kw">let </span>action = <span class="kw">move </span>|| <a href="#174">fd</a>.<a href="#110">wake</a>();
+    <span class="kw">unsafe </span>{ <a href="../../../signal_hook/low_level/fn.register.html"><span class="kw">super</span>::register</a>(<a href="#172">signal</a>, <a href="#188">action</a>) }
 }
 
 <span class="doccomment">/// Registers a write to a self-pipe whenever there&#39;s the signal.
@@ -461,7 +461,7 @@
 <span class="kw">where
     </span>P: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">register_raw</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#200">signal</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#200">pipe</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
+    <a href="#172">register_raw</a>(<a href="#200">signal</a>, <a href="#200">pipe</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
 }
 
 <span class="attribute">#[cfg(test)]
@@ -519,4 +519,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

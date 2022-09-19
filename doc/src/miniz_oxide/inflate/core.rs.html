@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.3/src/inflate/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.4/src/inflate/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1932,36 +1932,36 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Streaming decompression functionality.
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::shared::{<a href="../../../src/miniz_oxide/shared.rs.html#13">update_adler32</a>, <a href="../../../src/miniz_oxide/shared.rs.html#7">HUFFMAN_LENGTH_ORDER</a>};
+<span class="kw">use </span><span class="kw">crate</span>::shared::{<a href="../shared.rs.html#13">update_adler32</a>, <a href="../shared.rs.html#7">HUFFMAN_LENGTH_ORDER</a>};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">::core::convert::TryInto</a>;
 <span class="kw">use </span>::core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
 
-<span class="kw">use </span><a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#6"><span class="self">self</span>::output_buffer::OutputBuffer</a>;
+<span class="kw">use </span><a href="output_buffer.rs.html#6"><span class="self">self</span>::output_buffer::OutputBuffer</a>;
 
 <span class="kw">pub const </span>TINFL_LZ_DICT_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">32_768</span>;
 
 <span class="doccomment">/// A struct containing huffman code lengths and the huffman code tree used by the decompressor.
 </span><span class="kw">struct </span>HuffmanTable {
     <span class="doccomment">/// Length of the code at each index.
-    </span><span class="kw">pub </span>code_size: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#91">MAX_HUFF_SYMBOLS_0</a>],
+    </span><span class="kw">pub </span>code_size: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="#91">MAX_HUFF_SYMBOLS_0</a>],
     <span class="doccomment">/// Fast lookup table for shorter huffman codes.
     ///
     /// See `HuffmanTable::fast_lookup`.
-    </span><span class="kw">pub </span>look_up: [<a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#99">FAST_LOOKUP_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
+    </span><span class="kw">pub </span>look_up: [<a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>; <a href="#99">FAST_LOOKUP_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
     <span class="doccomment">/// Full huffman tree.
     ///
     /// Positive values are edge nodes/symbols, negative values are
     /// parent nodes/references to other nodes.
-    </span><span class="kw">pub </span>tree: [<a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#100">MAX_HUFF_TREE_SIZE</a>],
+    </span><span class="kw">pub </span>tree: [<a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>; <a href="#100">MAX_HUFF_TREE_SIZE</a>],
 }
 
-<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#14">HuffmanTable</a> {
-    <span class="kw">const fn </span>new() -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#14">HuffmanTable</a> {
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#14">HuffmanTable</a> {
-            code_size: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#91">MAX_HUFF_SYMBOLS_0</a>],
-            look_up: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#99">FAST_LOOKUP_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
-            tree: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#100">MAX_HUFF_TREE_SIZE</a>],
+<span class="kw">impl </span><a href="#14">HuffmanTable</a> {
+    <span class="kw">const fn </span>new() -&gt; <a href="#14">HuffmanTable</a> {
+        <a href="#14">HuffmanTable</a> {
+            code_size: [<span class="number">0</span>; <a href="#91">MAX_HUFF_SYMBOLS_0</a>],
+            look_up: [<span class="number">0</span>; <a href="#99">FAST_LOOKUP_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
+            tree: [<span class="number">0</span>; <a href="#100">MAX_HUFF_TREE_SIZE</a>],
         }
     }
 
@@ -1970,26 +1970,26 @@
     /// If the returned value is negative, the code wasn&#39;t found in the
     /// fast lookup table and the full tree has to be traversed to find the code.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>fast_lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a> {
-        <a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#42">self</a>.look_up[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#42">bit_buf</a> &amp; BitBuffer::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#99">FAST_LOOKUP_SIZE</a> - <span class="number">1</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]
+    </span><span class="kw">fn </span>fast_lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, bit_buf: <a href="#156">BitBuffer</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a> {
+        <a class="self" href="#42">self</a>.look_up[(<a href="#42">bit_buf</a> &amp; BitBuffer::from(<a href="#99">FAST_LOOKUP_SIZE</a> - <span class="number">1</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]
     }
 
     <span class="doccomment">/// Get the symbol and the code length from the huffman tree.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>tree_lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, fast_symbol: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>, <span class="kw-2">mut </span>code_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>symbol = <a href="../../../src/miniz_oxide/inflate/core.rs.html#48">fast_symbol</a>;
+    </span><span class="kw">fn </span>tree_lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, fast_symbol: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, bit_buf: <a href="#156">BitBuffer</a>, <span class="kw-2">mut </span>code_len: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>symbol = <a href="#48">fast_symbol</a>;
         <span class="comment">// We step through the tree until we encounter a positive value, which indicates a
         // symbol.
         </span><span class="kw">loop </span>{
             <span class="comment">// symbol here indicates the position of the left (0) node, if the next bit is 1
             // we add 1 to the lookup position to get the right node.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#49">symbol</a> = i32::from(<a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#48">self</a>.tree[(!<a href="../../../src/miniz_oxide/inflate/core.rs.html#49">symbol</a> + ((<a href="../../../src/miniz_oxide/inflate/core.rs.html#48">bit_buf</a> &gt;&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#48">code_len</a>) &amp; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#48">code_len</a> += <span class="number">1</span>;
+            </span><a href="#49">symbol</a> = i32::from(<a class="self" href="#48">self</a>.tree[(!<a href="#49">symbol</a> + ((<a href="#48">bit_buf</a> &gt;&gt; <a href="#48">code_len</a>) &amp; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
+            <a href="#48">code_len</a> += <span class="number">1</span>;
             <span class="kw">if </span>symbol &gt;= <span class="number">0 </span>{
                 <span class="kw">break</span>;
             }
         }
-        (<a href="../../../src/miniz_oxide/inflate/core.rs.html#49">symbol</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#48">code_len</a>)
+        (<a href="#49">symbol</a>, <a href="#48">code_len</a>)
     }
 
     <span class="attribute">#[inline]
@@ -2000,18 +2000,18 @@
     ///
     /// It&#39;s possible we could avoid checking for 0 if we can guarantee a sane table.
     /// TODO: Check if a smaller type for code_len helps performance.
-    </span><span class="kw">fn </span>lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>)&gt; {
-        <span class="kw">let </span>symbol = <a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#72">self</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#42">fast_lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#72">bit_buf</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    </span><span class="kw">fn </span>lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, bit_buf: <a href="#156">BitBuffer</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>)&gt; {
+        <span class="kw">let </span>symbol = <a class="self" href="#72">self</a>.<a href="#42">fast_lookup</a>(<a href="#72">bit_buf</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">if </span>symbol &gt;= <span class="number">0 </span>{
             <span class="kw">if </span>(symbol &gt;&gt; <span class="number">9</span>) <span class="kw">as </span>u32 != <span class="number">0 </span>{
-                <span class="prelude-val">Some</span>((<a href="../../../src/miniz_oxide/inflate/core.rs.html#73">symbol</a>, (<a href="../../../src/miniz_oxide/inflate/core.rs.html#73">symbol</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>))
+                <span class="prelude-val">Some</span>((<a href="#73">symbol</a>, (<a href="#73">symbol</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>))
             } <span class="kw">else </span>{
                 <span class="comment">// Zero-length code.
                 </span><span class="prelude-val">None
             </span>}
         } <span class="kw">else </span>{
             <span class="comment">// We didn&#39;t get a symbol from the fast lookup table, so check the tree instead.
-            </span><span class="prelude-val">Some</span>(<a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#72">self</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#48">tree_lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#73">symbol</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#72">bit_buf</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#97">FAST_LOOKUP_BITS</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+            </span><span class="prelude-val">Some</span>(<a class="self" href="#72">self</a>.<a href="#48">tree_lookup</a>(<a href="#73">symbol</a>, <a href="#72">bit_buf</a>, <a href="#97">FAST_LOOKUP_BITS</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
         }
     }
 }
@@ -2027,8 +2027,8 @@
 <span class="doccomment">/// The maximum length of a code that can be looked up in the fast lookup table.
 </span><span class="kw">const </span>FAST_LOOKUP_BITS: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> = <span class="number">10</span>;
 <span class="doccomment">/// The size of the fast lookup table.
-</span><span class="kw">const </span>FAST_LOOKUP_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">1 </span>&lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#97">FAST_LOOKUP_BITS</a>;
-<span class="kw">const </span>MAX_HUFF_TREE_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#91">MAX_HUFF_SYMBOLS_0</a> * <span class="number">2</span>;
+</span><span class="kw">const </span>FAST_LOOKUP_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">1 </span>&lt;&lt; <a href="#97">FAST_LOOKUP_BITS</a>;
+<span class="kw">const </span>MAX_HUFF_TREE_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <a href="#91">MAX_HUFF_SYMBOLS_0</a> * <span class="number">2</span>;
 <span class="kw">const </span>LITLEN_TABLE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">0</span>;
 <span class="kw">const </span>DIST_TABLE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">1</span>;
 <span class="kw">const </span>HUFFLEN_TABLE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">2</span>;
@@ -2079,7 +2079,7 @@
     </span><span class="kw">pub const </span>TINFL_FLAG_IGNORE_ADLER32: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">64</span>;
 }
 
-<span class="kw">use </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#108"><span class="self">self</span>::inflate_flags</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#108"><span class="self">self</span>::inflate_flags</a>::<span class="kw-2">*</span>;
 
 <span class="kw">const </span>MIN_TABLE_SIZES: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <span class="number">3</span>] = [<span class="number">257</span>, <span class="number">1</span>, <span class="number">4</span>];
 
@@ -2093,7 +2093,7 @@
 ///
 </span><span class="kw">pub struct </span>DecompressorOxide {
     <span class="doccomment">/// Current state of the decompressor.
-    </span>state: <a href="../../../src/miniz_oxide/inflate/core.rs.html#264">core::State</a>,
+    </span>state: <a href="#264">core::State</a>,
     <span class="doccomment">/// Number of bits in the bit buffer.
     </span>num_bits: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="doccomment">/// Zlib CMF
@@ -2115,20 +2115,20 @@
     <span class="doccomment">/// Number of extra bits for the last length or distance code.
     </span>num_extra: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="doccomment">/// Number of entries in each huffman table.
-    </span>table_sizes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#89">MAX_HUFF_TABLES</a>],
+    </span>table_sizes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>; <a href="#89">MAX_HUFF_TABLES</a>],
     <span class="doccomment">/// Buffer of input data.
-    </span>bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>,
+    </span>bit_buf: <a href="#156">BitBuffer</a>,
     <span class="doccomment">/// Huffman tables.
-    </span>tables: [<a href="../../../src/miniz_oxide/inflate/core.rs.html#14">HuffmanTable</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#89">MAX_HUFF_TABLES</a>],
+    </span>tables: [<a href="#14">HuffmanTable</a>; <a href="#89">MAX_HUFF_TABLES</a>],
     <span class="doccomment">/// Raw block header.
     </span>raw_header: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>],
     <span class="doccomment">/// Huffman length codes.
-    </span>len_codes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#91">MAX_HUFF_SYMBOLS_0</a> + <a href="../../../src/miniz_oxide/inflate/core.rs.html#93">MAX_HUFF_SYMBOLS_1</a> + <span class="number">137</span>],
+    </span>len_codes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="#91">MAX_HUFF_SYMBOLS_0</a> + <a href="#93">MAX_HUFF_SYMBOLS_1</a> + <span class="number">137</span>],
 }
 
-<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
+<span class="kw">impl </span><a href="#163">DecompressorOxide</a> {
     <span class="doccomment">/// Create a new tinfl_decompressor with all fields set to 0.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#163">DecompressorOxide</a> {
         DecompressorOxide::default()
     }
 
@@ -2136,7 +2136,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// The rest of the data is reset or overwritten when used.
-        </span><a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#206">self</a>.state = <a href="../../../src/miniz_oxide/inflate/core.rs.html#265">core::State::Start</a>;
+        </span><a class="self" href="#206">self</a>.state = <a href="#265">core::State::Start</a>;
     }
 
     <span class="doccomment">/// Returns the adler32 checksum of the currently decompressed data.
@@ -2144,7 +2144,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>adler32(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.state != State::Start &amp;&amp; !<span class="self">self</span>.state.is_failure() &amp;&amp; <span class="self">self</span>.z_header0 != <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#214">self</a>.check_adler32)
+            <span class="prelude-val">Some</span>(<a class="self" href="#214">self</a>.check_adler32)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2154,19 +2154,19 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>adler32_header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.state != State::Start &amp;&amp; <span class="self">self</span>.state != State::BadZlibHeader &amp;&amp; <span class="self">self</span>.z_header0 != <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/miniz_oxide/inflate/core.rs.html#224">self</a>.z_adler32)
+            <span class="prelude-val">Some</span>(<a class="self" href="#224">self</a>.z_adler32)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#163">DecompressorOxide</a> {
     <span class="doccomment">/// Create a new tinfl_decompressor with all fields set to 0.
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
-            state: <a href="../../../src/miniz_oxide/inflate/core.rs.html#265">core::State::Start</a>,
+        <a href="#163">DecompressorOxide</a> {
+            state: <a href="#265">core::State::Start</a>,
             num_bits: <span class="number">0</span>,
             z_header0: <span class="number">0</span>,
             z_header1: <span class="number">0</span>,
@@ -2177,7 +2177,7 @@
             dist: <span class="number">0</span>,
             counter: <span class="number">0</span>,
             num_extra: <span class="number">0</span>,
-            table_sizes: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#89">MAX_HUFF_TABLES</a>],
+            table_sizes: [<span class="number">0</span>; <a href="#89">MAX_HUFF_TABLES</a>],
             bit_buf: <span class="number">0</span>,
             <span class="comment">// TODO:(oyvindln) Check that copies here are optimized out in release mode.
             </span>tables: [
@@ -2186,7 +2186,7 @@
                 HuffmanTable::new(),
             ],
             raw_header: [<span class="number">0</span>; <span class="number">4</span>],
-            len_codes: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#91">MAX_HUFF_SYMBOLS_0</a> + <a href="../../../src/miniz_oxide/inflate/core.rs.html#93">MAX_HUFF_SYMBOLS_1</a> + <span class="number">137</span>],
+            len_codes: [<span class="number">0</span>; <a href="#91">MAX_HUFF_SYMBOLS_0</a> + <a href="#93">MAX_HUFF_SYMBOLS_1</a> + <span class="number">137</span>],
         }
     }
 }
@@ -2233,29 +2233,29 @@
     InvalidCodeLen,
 }
 
-<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#264">State</a> {
+<span class="kw">impl </span><a href="#264">State</a> {
     <span class="kw">fn </span>is_failure(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/miniz_oxide/inflate/core.rs.html#306">self</a> </span>{
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#293">BlockTypeUnexpected</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#294">BadCodeSizeSum</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#295">BadTotalSymbols</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#296">BadZlibHeader</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#297">DistanceOutOfBounds</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#298">BadRawLength</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#299">BadCodeSizeDistPrevLookup</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#300">InvalidLitlen</a> =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#301">InvalidDist</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="self"><a href="#306">self</a> </span>{
+            <a href="#293">BlockTypeUnexpected</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#294">BadCodeSizeSum</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#295">BadTotalSymbols</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#296">BadZlibHeader</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#297">DistanceOutOfBounds</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#298">BadRawLength</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#299">BadCodeSizeDistPrevLookup</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#300">InvalidLitlen</a> =&gt; <span class="bool-val">true</span>,
+            <a href="#301">InvalidDist</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>begin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_state: <a href="../../../src/miniz_oxide/inflate/core.rs.html#264">State</a>) {
-        <span class="kw-2">*</span><span class="self"><a href="../../../src/miniz_oxide/inflate/core.rs.html#322">self</a> </span>= <a href="../../../src/miniz_oxide/inflate/core.rs.html#322">new_state</a>;
+    </span><span class="kw">fn </span>begin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_state: <a href="#264">State</a>) {
+        <span class="kw-2">*</span><span class="self"><a href="#322">self</a> </span>= <a href="#322">new_state</a>;
     }
 }
 
-<span class="kw">use </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#264"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#264"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
 
 <span class="comment">// Not sure why miniz uses 32-bit values for these, maybe alignment/cache again?
 // # Optimization
@@ -2313,11 +2313,11 @@
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>read_u16_le(iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> {
     <span class="kw">let </span>ret = {
-        <span class="kw">let </span>two_bytes = <a href="../../../src/miniz_oxide/inflate/core.rs.html#383">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[..<span class="number">2</span>].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap();
-        u16::from_le_bytes(<a href="../../../src/miniz_oxide/inflate/core.rs.html#385">two_bytes</a>)
+        <span class="kw">let </span>two_bytes = <a href="#383">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[..<span class="number">2</span>].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap();
+        u16::from_le_bytes(<a href="#385">two_bytes</a>)
     };
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#383">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">nth</a>(<span class="number">1</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#384">ret</a>
+    <a href="#383">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">nth</a>(<span class="number">1</span>);
+    <a href="#384">ret</a>
 }
 
 <span class="doccomment">/// Read an le u32 value from the slice iterator.
@@ -2328,11 +2328,11 @@
 #[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
 </span><span class="kw">fn </span>read_u32_le(iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
     <span class="kw">let </span>ret = {
-        <span class="kw">let </span>four_bytes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#398">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[..<span class="number">4</span>].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap();
-        u32::from_le_bytes(<a href="../../../src/miniz_oxide/inflate/core.rs.html#400">four_bytes</a>)
+        <span class="kw">let </span>four_bytes: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] = <a href="#398">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[..<span class="number">4</span>].<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().unwrap();
+        u32::from_le_bytes(<a href="#400">four_bytes</a>)
     };
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#398">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">nth</a>(<span class="number">3</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#399">ret</a>
+    <a href="#398">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">nth</a>(<span class="number">3</span>);
+    <a href="#399">ret</a>
 }
 
 <span class="doccomment">/// Ensure that there is data in the bit buffer.
@@ -2342,11 +2342,11 @@
 /// This function assumes that there is at least 4 bytes left in the input buffer.
 </span><span class="attribute">#[inline(always)]
 #[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
-</span><span class="kw">fn </span>fill_bit_buffer(l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>, in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;) {
+</span><span class="kw">fn </span>fill_bit_buffer(l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>, in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;) {
     <span class="comment">// Read four bytes into the buffer at once.
     </span><span class="kw">if </span>l.num_bits &lt; <span class="number">30 </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">l</a>.bit_buf |= BitBuffer::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#398">read_u32_le</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#414">in_iter</a>)) &lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">l</a>.num_bits;
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">l</a>.num_bits += <span class="number">32</span>;
+        <a href="#414">l</a>.bit_buf |= BitBuffer::from(<a href="#398">read_u32_le</a>(<a href="#414">in_iter</a>)) &lt;&lt; <a href="#414">l</a>.num_bits;
+        <a href="#414">l</a>.num_bits += <span class="number">32</span>;
     }
 }
 
@@ -2367,36 +2367,36 @@
 ///
 /// See https://tools.ietf.org/html/rfc1950
 </span><span class="attribute">#[inline]
-</span><span class="kw">fn </span>validate_zlib_header(cmf: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, flg: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a> {
+</span><span class="kw">fn </span>validate_zlib_header(cmf: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, flg: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a href="#465">Action</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>failed =
     <span class="comment">// cmf + flg should be divisible by 31.
-        </span>(((<a href="../../../src/miniz_oxide/inflate/core.rs.html#439">cmf</a> * <span class="number">256</span>) + <a href="../../../src/miniz_oxide/inflate/core.rs.html#439">flg</a>) % <span class="number">31 </span>!= <span class="number">0</span>) ||
+        </span>(((<a href="#439">cmf</a> * <span class="number">256</span>) + <a href="#439">flg</a>) % <span class="number">31 </span>!= <span class="number">0</span>) ||
     <span class="comment">// If this flag is set, a dictionary was used for this zlib compressed data.
     // This is currently not supported by miniz or miniz-oxide
-        </span>((<a href="../../../src/miniz_oxide/inflate/core.rs.html#439">flg</a> &amp; <span class="number">0b0010_0000</span>) != <span class="number">0</span>) ||
+        </span>((<a href="#439">flg</a> &amp; <span class="number">0b0010_0000</span>) != <span class="number">0</span>) ||
     <span class="comment">// Compression method. Only 8(DEFLATE) is defined by the standard.
-        </span>((<a href="../../../src/miniz_oxide/inflate/core.rs.html#439">cmf</a> &amp; <span class="number">15</span>) != <span class="number">8</span>);
+        </span>((<a href="#439">cmf</a> &amp; <span class="number">15</span>) != <span class="number">8</span>);
 
-    <span class="kw">let </span>window_size = <span class="number">1 </span>&lt;&lt; ((<a href="../../../src/miniz_oxide/inflate/core.rs.html#439">cmf</a> &gt;&gt; <span class="number">4</span>) + <span class="number">8</span>);
+    <span class="kw">let </span>window_size = <span class="number">1 </span>&lt;&lt; ((<a href="#439">cmf</a> &gt;&gt; <span class="number">4</span>) + <span class="number">8</span>);
     <span class="kw">if </span>(flags &amp; TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF) == <span class="number">0 </span>{
         <span class="comment">// Bail if the buffer is wrapping and the window size is larger than the buffer.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#440">failed</a> |= (<a href="../../../src/miniz_oxide/inflate/core.rs.html#439">mask</a> + <span class="number">1</span>) &lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#449">window_size</a>;
+        </span><a href="#440">failed</a> |= (<a href="#439">mask</a> + <span class="number">1</span>) &lt; <a href="#449">window_size</a>;
     }
 
     <span class="comment">// Zlib doesn&#39;t allow window sizes above 32 * 1024.
-    </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#440">failed</a> |= <a href="../../../src/miniz_oxide/inflate/core.rs.html#449">window_size</a> &gt; <span class="number">32_768</span>;
+    </span><a href="#440">failed</a> |= <a href="#449">window_size</a> &gt; <span class="number">32_768</span>;
 
     <span class="kw">if </span>failed {
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#296">BadZlibHeader</a>)
+        <a href="#467">Action::Jump</a>(<a href="#296">BadZlibHeader</a>)
     } <span class="kw">else </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#268">ReadBlockHeader</a>)
+        <a href="#467">Action::Jump</a>(<a href="#268">ReadBlockHeader</a>)
     }
 }
 
 <span class="kw">enum </span>Action {
     <span class="prelude-val">None</span>,
-    Jump(<a href="../../../src/miniz_oxide/inflate/core.rs.html#264">State</a>),
-    End(<a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a>),
+    Jump(<a href="#264">State</a>),
+    End(<a href="mod.rs.html#25">TINFLStatus</a>),
 }
 
 <span class="doccomment">/// Try to decode the next huffman code, and puts it in the counter field of the decompressor
@@ -2406,15 +2406,15 @@
 /// The specified action returned from `f` on success,
 /// `Action::End` if there are not enough data left to decode a symbol.
 </span><span class="kw">fn </span>decode_huffman_code&lt;F&gt;(
-    r: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>,
-    l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>,
+    r: <span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>,
+    l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>,
     table: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
     flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;,
     f: F,
-) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>
+) -&gt; <a href="#465">Action</a>
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>, <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) -&gt; <a href="#465">Action</a>,
 {
     <span class="comment">// As the huffman codes can be up to 15 bits long we need at least 15 bits
     // ready in the bit buffer to start decoding the next huffman code.
@@ -2434,21 +2434,21 @@
             //  * until the */
             // /* bit buffer contains &gt;=15 bits (deflate&#39;s max. Huffman code size). */
             </span><span class="kw">loop </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>temp = i32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#478">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#480">table</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#42">fast_lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf));
+                <span class="kw">let </span><span class="kw-2">mut </span>temp = i32::from(<a href="#478">r</a>.tables[<a href="#480">table</a>].<a href="#42">fast_lookup</a>(<a href="#479">l</a>.bit_buf));
 
                 <span class="kw">if </span>temp &gt;= <span class="number">0 </span>{
-                    <span class="kw">let </span>code_len = (<a href="../../../src/miniz_oxide/inflate/core.rs.html#506">temp</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+                    <span class="kw">let </span>code_len = (<a href="#506">temp</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
                     <span class="kw">if </span>(code_len != <span class="number">0</span>) &amp;&amp; (l.num_bits &gt;= code_len) {
                         <span class="kw">break</span>;
                     }
                 } <span class="kw">else if </span>l.num_bits &gt; FAST_LOOKUP_BITS.into() {
-                    <span class="kw">let </span><span class="kw-2">mut </span>code_len = u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#97">FAST_LOOKUP_BITS</a>);
+                    <span class="kw">let </span><span class="kw-2">mut </span>code_len = u32::from(<a href="#97">FAST_LOOKUP_BITS</a>);
                     <span class="kw">loop </span>{
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#506">temp</a> = i32::from(
-                            <a href="../../../src/miniz_oxide/inflate/core.rs.html#478">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#480">table</a>].tree
-                                [(!<a href="../../../src/miniz_oxide/inflate/core.rs.html#506">temp</a> + ((<a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf &gt;&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#514">code_len</a>) &amp; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
+                        <a href="#506">temp</a> = i32::from(
+                            <a href="#478">r</a>.tables[<a href="#480">table</a>].tree
+                                [(!<a href="#506">temp</a> + ((<a href="#479">l</a>.bit_buf &gt;&gt; <a href="#514">code_len</a>) &amp; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
                         );
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#514">code_len</a> += <span class="number">1</span>;
+                        <a href="#514">code_len</a> += <span class="number">1</span>;
                         <span class="kw">if </span>temp &gt;= <span class="number">0 </span>|| l.num_bits &lt; code_len + <span class="number">1 </span>{
                             <span class="kw">break</span>;
                         }
@@ -2463,16 +2463,16 @@
                 // Doing that lets miniz avoid re-doing the lookup that that was done in the
                 // previous call.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>byte = <span class="number">0</span>;
-                <span class="kw">if let </span>a @ <a href="../../../src/miniz_oxide/inflate/core.rs.html#468">Action::End</a>(<span class="kw">_</span>) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#590-592">read_byte</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#482">in_iter</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#481">flags</a>, |b| {
-                    <a href="../../../src/miniz_oxide/inflate/core.rs.html#534">byte</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#535">b</a>;
-                    <a href="../../../src/miniz_oxide/inflate/core.rs.html#466">Action::None</a>
+                <span class="kw">if let </span>a @ <a href="#468">Action::End</a>(<span class="kw">_</span>) = <a href="#590-592">read_byte</a>(<a href="#482">in_iter</a>, <a href="#481">flags</a>, |b| {
+                    <a href="#534">byte</a> = <a href="#535">b</a>;
+                    <a href="#466">Action::None</a>
                 }) {
-                    <span class="kw">return </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#535">a</a>;
+                    <span class="kw">return </span><a href="#535">a</a>;
                 };
 
                 <span class="comment">// Do this outside closure for now to avoid borrowing r.
-                </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf |= BitBuffer::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#534">byte</a>) &lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.num_bits;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.num_bits += <span class="number">8</span>;
+                </span><a href="#479">l</a>.bit_buf |= BitBuffer::from(<a href="#534">byte</a>) &lt;&lt; <a href="#479">l</a>.num_bits;
+                <a href="#479">l</a>.num_bits += <span class="number">8</span>;
 
                 <span class="kw">if </span>l.num_bits &gt;= <span class="number">15 </span>{
                     <span class="kw">break</span>;
@@ -2483,48 +2483,48 @@
             // and add them to the bit buffer.
             // Unwrapping here is fine since we just checked that there are at least two
             // bytes left.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf |= BitBuffer::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#383">read_u16_le</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#482">in_iter</a>)) &lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.num_bits;
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.num_bits += <span class="number">16</span>;
+            </span><a href="#479">l</a>.bit_buf |= BitBuffer::from(<a href="#383">read_u16_le</a>(<a href="#482">in_iter</a>)) &lt;&lt; <a href="#479">l</a>.num_bits;
+            <a href="#479">l</a>.num_bits += <span class="number">16</span>;
         }
     }
 
     <span class="comment">// We now have at least 15 bits in the input buffer.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>symbol = i32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#478">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#480">table</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#42">fast_lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf));
+    </span><span class="kw">let </span><span class="kw-2">mut </span>symbol = i32::from(<a href="#478">r</a>.tables[<a href="#480">table</a>].<a href="#42">fast_lookup</a>(<a href="#479">l</a>.bit_buf));
     <span class="kw">let </span>code_len;
     <span class="comment">// If the symbol was found in the fast lookup table.
     </span><span class="kw">if </span>symbol &gt;= <span class="number">0 </span>{
         <span class="comment">// Get the length value from the top bits.
         // As we shift down the sign bit, converting to an unsigned value
         // shouldn&#39;t overflow.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#562">code_len</a> = (<a href="../../../src/miniz_oxide/inflate/core.rs.html#561">symbol</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+        </span><a href="#562">code_len</a> = (<a href="#561">symbol</a> &gt;&gt; <span class="number">9</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
         <span class="comment">// Mask out the length value.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#561">symbol</a> &amp;= <span class="number">511</span>;
+        </span><a href="#561">symbol</a> &amp;= <span class="number">511</span>;
     } <span class="kw">else </span>{
-        <span class="kw">let </span>res = <a href="../../../src/miniz_oxide/inflate/core.rs.html#478">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#480">table</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#48">tree_lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#561">symbol</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf, u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#97">FAST_LOOKUP_BITS</a>));
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#561">symbol</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#572">res</a>.<span class="number">0</span>;
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#562">code_len</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#572">res</a>.<span class="number">1 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+        <span class="kw">let </span>res = <a href="#478">r</a>.tables[<a href="#480">table</a>].<a href="#48">tree_lookup</a>(<a href="#561">symbol</a>, <a href="#479">l</a>.bit_buf, u32::from(<a href="#97">FAST_LOOKUP_BITS</a>));
+        <a href="#561">symbol</a> = <a href="#572">res</a>.<span class="number">0</span>;
+        <a href="#562">code_len</a> = <a href="#572">res</a>.<span class="number">1 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
     };
 
     <span class="kw">if </span>code_len == <span class="number">0 </span>{
-        <span class="kw">return </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#302">InvalidCodeLen</a>);
+        <span class="kw">return </span><a href="#467">Action::Jump</a>(<a href="#302">InvalidCodeLen</a>);
     }
 
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#562">code_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#562">code_len</a>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#483">f</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#478">r</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#479">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#561">symbol</a>)
+    <a href="#479">l</a>.bit_buf &gt;&gt;= <a href="#562">code_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+    <a href="#479">l</a>.num_bits -= <a href="#562">code_len</a>;
+    <a href="#483">f</a>(<a href="#478">r</a>, <a href="#479">l</a>, <a href="#561">symbol</a>)
 }
 
 <span class="doccomment">/// Try to read one byte from `in_iter` and call `f` with the read byte as an argument,
 /// returning the result.
 /// If reading fails, `Action::End is returned`
 </span><span class="attribute">#[inline]
-</span><span class="kw">fn </span>read_byte&lt;F&gt;(in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, f: F) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>
+</span><span class="kw">fn </span>read_byte&lt;F&gt;(in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, f: F) -&gt; <a href="#465">Action</a>
 <span class="kw">where
-    </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>,
+    </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="#465">Action</a>,
 {
-    <span class="kw">match </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#590">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">None </span>=&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#647">end_of_input</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#590">flags</a>),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>byte) =&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#590">f</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#596">byte</a>),
+    <span class="kw">match </span><a href="#590">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="prelude-val">None </span>=&gt; <a href="#647">end_of_input</a>(<a href="#590">flags</a>),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>byte) =&gt; <a href="#590">f</a>(<a href="#596">byte</a>),
     }
 }
 
@@ -2535,14 +2535,14 @@
 </span><span class="attribute">#[inline]
 #[allow(clippy::while_immutable_condition)]
 </span><span class="kw">fn </span>read_bits&lt;F&gt;(
-    l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>,
+    l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>,
     amount: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;,
     flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     f: F,
-) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>
+) -&gt; <a href="#465">Action</a>
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>, <a href="#156">BitBuffer</a>) -&gt; <a href="#465">Action</a>,
 {
     <span class="comment">// Clippy gives a false positive warning here due to the closure.
     // Read enough bytes from the input iterator to cover the number of bits we want.
@@ -2559,55 +2559,55 @@
         }
     }
 
-    <span class="kw">let </span>bits = <a href="../../../src/miniz_oxide/inflate/core.rs.html#607">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#608">amount</a>) - <span class="number">1</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#607">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#608">amount</a>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#607">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#608">amount</a>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#611">f</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#607">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#631">bits</a>)
+    <span class="kw">let </span>bits = <a href="#607">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="#608">amount</a>) - <span class="number">1</span>);
+    <a href="#607">l</a>.bit_buf &gt;&gt;= <a href="#608">amount</a>;
+    <a href="#607">l</a>.num_bits -= <a href="#608">amount</a>;
+    <a href="#611">f</a>(<a href="#607">l</a>, <a href="#631">bits</a>)
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>pad_to_bytes&lt;F&gt;(l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>, in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, f: F) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>
+</span><span class="kw">fn </span>pad_to_bytes&lt;F&gt;(l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>, in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;, flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>, f: F) -&gt; <a href="#465">Action</a>
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>) -&gt; <a href="#465">Action</a>,
 {
-    <span class="kw">let </span>num_bits = <a href="../../../src/miniz_oxide/inflate/core.rs.html#638">l</a>.num_bits &amp; <span class="number">7</span>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#606-614">read_bits</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#638">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#642">num_bits</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#638">in_iter</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#638">flags</a>, |l, <span class="kw">_</span>| <a href="../../../src/miniz_oxide/inflate/core.rs.html#638">f</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#643">l</a>))
+    <span class="kw">let </span>num_bits = <a href="#638">l</a>.num_bits &amp; <span class="number">7</span>;
+    <a href="#606-614">read_bits</a>(<a href="#638">l</a>, <a href="#642">num_bits</a>, <a href="#638">in_iter</a>, <a href="#638">flags</a>, |l, <span class="kw">_</span>| <a href="#638">f</a>(<a href="#643">l</a>))
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>end_of_input(flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a> {
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#468">Action::End</a>(<span class="kw">if </span>flags &amp; TINFL_FLAG_HAS_MORE_INPUT != <span class="number">0 </span>{
-        <a href="../../../src/miniz_oxide/inflate/mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>
+</span><span class="kw">fn </span>end_of_input(flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="#465">Action</a> {
+    <a href="#468">Action::End</a>(<span class="kw">if </span>flags &amp; TINFL_FLAG_HAS_MORE_INPUT != <span class="number">0 </span>{
+        <a href="mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>
     } <span class="kw">else </span>{
-        <a href="../../../src/miniz_oxide/inflate/mod.rs.html#34">TINFLStatus::FailedCannotMakeProgress</a>
+        <a href="mod.rs.html#34">TINFLStatus::FailedCannotMakeProgress</a>
     })
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>undo_bytes(l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>, max: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
-    <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">cmp::min</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#656">l</a>.num_bits &gt;&gt; <span class="number">3</span>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#656">max</a>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#656">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#657">res</a> &lt;&lt; <span class="number">3</span>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#657">res</a>
+</span><span class="kw">fn </span>undo_bytes(l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>, max: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
+    <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">cmp::min</a>(<a href="#656">l</a>.num_bits &gt;&gt; <span class="number">3</span>, <a href="#656">max</a>);
+    <a href="#656">l</a>.num_bits -= <a href="#657">res</a> &lt;&lt; <span class="number">3</span>;
+    <a href="#657">res</a>
 }
 
-<span class="kw">fn </span>start_static_table(r: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>) {
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.table_sizes[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>] = <span class="number">288</span>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.table_sizes[<a href="../../../src/miniz_oxide/inflate/core.rs.html#102">DIST_TABLE</a>] = <span class="number">32</span>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].code_size[<span class="number">0</span>..<span class="number">144</span>], <span class="number">8</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].code_size[<span class="number">144</span>..<span class="number">256</span>], <span class="number">9</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].code_size[<span class="number">256</span>..<span class="number">280</span>], <span class="number">7</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].code_size[<span class="number">280</span>..<span class="number">288</span>], <span class="number">8</span>);
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#662">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#102">DIST_TABLE</a>].code_size[<span class="number">0</span>..<span class="number">32</span>], <span class="number">5</span>);
+<span class="kw">fn </span>start_static_table(r: <span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>) {
+    <a href="#662">r</a>.table_sizes[<a href="#101">LITLEN_TABLE</a>] = <span class="number">288</span>;
+    <a href="#662">r</a>.table_sizes[<a href="#102">DIST_TABLE</a>] = <span class="number">32</span>;
+    <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#662">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].code_size[<span class="number">0</span>..<span class="number">144</span>], <span class="number">8</span>);
+    <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#662">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].code_size[<span class="number">144</span>..<span class="number">256</span>], <span class="number">9</span>);
+    <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#662">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].code_size[<span class="number">256</span>..<span class="number">280</span>], <span class="number">7</span>);
+    <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#662">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].code_size[<span class="number">280</span>..<span class="number">288</span>], <span class="number">8</span>);
+    <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#662">r</a>.tables[<a href="#102">DIST_TABLE</a>].code_size[<span class="number">0</span>..<span class="number">32</span>], <span class="number">5</span>);
 }
 
-<span class="kw">fn </span>init_tree(r: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>, l: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#465">Action</a> {
+<span class="kw">fn </span>init_tree(r: <span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>, l: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>) -&gt; <a href="#465">Action</a> {
     <span class="kw">loop </span>{
-        <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#672">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#672">r</a>.block_type <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>];
-        <span class="kw">let </span>table_size = <a href="../../../src/miniz_oxide/inflate/core.rs.html#672">r</a>.table_sizes[<a href="../../../src/miniz_oxide/inflate/core.rs.html#672">r</a>.block_type <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span><a href="#672">r</a>.tables[<a href="#672">r</a>.block_type <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>];
+        <span class="kw">let </span>table_size = <a href="#672">r</a>.table_sizes[<a href="#672">r</a>.block_type <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
         <span class="kw">let </span><span class="kw-2">mut </span>total_symbols = [<span class="number">0u32</span>; <span class="number">16</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>next_code = [<span class="number">0u32</span>; <span class="number">17</span>];
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#674">table</a>.look_up[..], <span class="number">0</span>);
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#674">table</a>.tree[..], <span class="number">0</span>);
+        <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#674">table</a>.look_up[..], <span class="number">0</span>);
+        <a href="#372">memset</a>(<span class="kw-2">&amp;mut </span><a href="#674">table</a>.tree[..], <span class="number">0</span>);
 
         <span class="kw">for </span><span class="kw-2">&amp;</span>code_size <span class="kw">in </span><span class="kw-2">&amp;</span>table.code_size[..table_size] {
             total_symbols[code_size <span class="kw">as </span>usize] += <span class="number">1</span>;
@@ -2623,7 +2623,7 @@
         }
 
         <span class="kw">if </span>total != <span class="number">65_536 </span>&amp;&amp; used_symbols &gt; <span class="number">1 </span>{
-            <span class="kw">return </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#295">BadTotalSymbols</a>);
+            <span class="kw">return </span><a href="#467">Action::Jump</a>(<a href="#295">BadTotalSymbols</a>);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>tree_next = -<span class="number">1</span>;
@@ -2677,18 +2677,18 @@
         }
 
         <span class="kw">if </span>r.block_type == <span class="number">2 </span>{
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#672">l</a>.counter = <span class="number">0</span>;
-            <span class="kw">return </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#275">ReadLitlenDistTablesCodeSize</a>);
+            <a href="#672">l</a>.counter = <span class="number">0</span>;
+            <span class="kw">return </span><a href="#467">Action::Jump</a>(<a href="#275">ReadLitlenDistTablesCodeSize</a>);
         }
 
         <span class="kw">if </span>r.block_type == <span class="number">0 </span>{
             <span class="kw">break</span>;
         }
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#672">r</a>.block_type -= <span class="number">1</span>;
+        <a href="#672">r</a>.block_type -= <span class="number">1</span>;
     }
 
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#672">l</a>.counter = <span class="number">0</span>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#467">Action::Jump</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#277">DecodeLitlen</a>)
+    <a href="#672">l</a>.counter = <span class="number">0</span>;
+    <a href="#467">Action::Jump</a>(<a href="#277">DecodeLitlen</a>)
 }
 
 <span class="comment">// A helper macro for generating the state machine.
@@ -2712,7 +2712,7 @@
 
 <span class="attribute">#[derive(Copy, Clone)]
 </span><span class="kw">struct </span>LocalVars {
-    <span class="kw">pub </span>bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>,
+    <span class="kw">pub </span>bit_buf: <a href="#156">BitBuffer</a>,
     <span class="kw">pub </span>num_bits: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="kw">pub </span>dist: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="kw">pub </span>counter: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
@@ -2736,17 +2736,17 @@
         out_pos += <span class="number">4</span>;
     }
 
-    <span class="kw">match </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#796">match_len</a> &amp; <span class="number">3 </span>{
+    <span class="kw">match </span><a href="#796">match_len</a> &amp; <span class="number">3 </span>{
         <span class="number">0 </span>=&gt; (),
-        <span class="number">1 </span>=&gt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>],
+        <span class="number">1 </span>=&gt; <a href="#793">out_slice</a>[<a href="#795">out_pos</a>] = <a href="#793">out_slice</a>[<a href="#794">source_pos</a> &amp; <a href="#797">out_buf_size_mask</a>],
         <span class="number">2 </span>=&gt; {
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>];
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a> + <span class="number">1</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> + <span class="number">1</span>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>];
+            <a href="#793">out_slice</a>[<a href="#795">out_pos</a>] = <a href="#793">out_slice</a>[<a href="#794">source_pos</a> &amp; <a href="#797">out_buf_size_mask</a>];
+            <a href="#793">out_slice</a>[<a href="#795">out_pos</a> + <span class="number">1</span>] = <a href="#793">out_slice</a>[(<a href="#794">source_pos</a> + <span class="number">1</span>) &amp; <a href="#797">out_buf_size_mask</a>];
         }
         <span class="number">3 </span>=&gt; {
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>];
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a> + <span class="number">1</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> + <span class="number">1</span>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>];
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#795">out_pos</a> + <span class="number">2</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#793">out_slice</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#794">source_pos</a> + <span class="number">2</span>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#797">out_buf_size_mask</a>];
+            <a href="#793">out_slice</a>[<a href="#795">out_pos</a>] = <a href="#793">out_slice</a>[<a href="#794">source_pos</a> &amp; <a href="#797">out_buf_size_mask</a>];
+            <a href="#793">out_slice</a>[<a href="#795">out_pos</a> + <span class="number">1</span>] = <a href="#793">out_slice</a>[(<a href="#794">source_pos</a> + <span class="number">1</span>) &amp; <a href="#797">out_buf_size_mask</a>];
+            <a href="#793">out_slice</a>[<a href="#795">out_pos</a> + <span class="number">2</span>] = <a href="#793">out_slice</a>[(<a href="#794">source_pos</a> + <span class="number">2</span>) &amp; <a href="#797">out_buf_size_mask</a>];
         }
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     }
@@ -2763,35 +2763,35 @@
 ) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(out_pos + match_len &lt;= out_slice.len());
 
-    <span class="kw">let </span>source_pos = <a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>.wrapping_sub(<a href="../../../src/miniz_oxide/inflate/core.rs.html#829">dist</a>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>;
+    <span class="kw">let </span>source_pos = <a href="#828">out_pos</a>.wrapping_sub(<a href="#829">dist</a>) &amp; <a href="#831">out_buf_size_mask</a>;
 
     <span class="kw">if </span>match_len == <span class="number">3 </span>{
         <span class="comment">// Fast path for match len 3.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>];
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a> + <span class="number">1</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a> + <span class="number">1</span>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>];
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a> + <span class="number">2</span>] = <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a> + <span class="number">2</span>) &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>];
+        </span><a href="#827">out_slice</a>[<a href="#828">out_pos</a>] = <a href="#827">out_slice</a>[<a href="#835">source_pos</a>];
+        <a href="#827">out_slice</a>[<a href="#828">out_pos</a> + <span class="number">1</span>] = <a href="#827">out_slice</a>[(<a href="#835">source_pos</a> + <span class="number">1</span>) &amp; <a href="#831">out_buf_size_mask</a>];
+        <a href="#827">out_slice</a>[<a href="#828">out_pos</a> + <span class="number">2</span>] = <a href="#827">out_slice</a>[(<a href="#835">source_pos</a> + <span class="number">2</span>) &amp; <a href="#831">out_buf_size_mask</a>];
         <span class="kw">return</span>;
     }
 
     <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(not(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>))) {
         <span class="comment">// We are not on x86 so copy manually.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#792-798">transfer</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>);
+        </span><a href="#792-798">transfer</a>(<a href="#827">out_slice</a>, <a href="#835">source_pos</a>, <a href="#828">out_pos</a>, <a href="#830">match_len</a>, <a href="#831">out_buf_size_mask</a>);
         <span class="kw">return</span>;
     }
 
     <span class="kw">if </span>source_pos &gt;= out_pos &amp;&amp; (source_pos - out_pos) &lt; match_len {
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#792-798">transfer</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>);
+        <a href="#792-798">transfer</a>(<a href="#827">out_slice</a>, <a href="#835">source_pos</a>, <a href="#828">out_pos</a>, <a href="#830">match_len</a>, <a href="#831">out_buf_size_mask</a>);
     } <span class="kw">else if </span>match_len &lt;= dist &amp;&amp; source_pos + match_len &lt; out_slice.len() {
         <span class="comment">// Destination and source segments does not intersect and source does not wrap.
         </span><span class="kw">if </span>source_pos &lt; out_pos {
-            <span class="kw">let </span>(from_slice, to_slice) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>.split_at_mut(<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>);
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#856">to_slice</a>[..<a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/miniz_oxide/inflate/core.rs.html#856">from_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>..<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a> + <a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>]);
+            <span class="kw">let </span>(from_slice, to_slice) = <a href="#827">out_slice</a>.split_at_mut(<a href="#828">out_pos</a>);
+            <a href="#856">to_slice</a>[..<a href="#830">match_len</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#856">from_slice</a>[<a href="#835">source_pos</a>..<a href="#835">source_pos</a> + <a href="#830">match_len</a>]);
         } <span class="kw">else </span>{
-            <span class="kw">let </span>(to_slice, from_slice) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>.split_at_mut(<a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>);
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#859">to_slice</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>..<a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a> + <a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/miniz_oxide/inflate/core.rs.html#859">from_slice</a>[..<a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>]);
+            <span class="kw">let </span>(to_slice, from_slice) = <a href="#827">out_slice</a>.split_at_mut(<a href="#835">source_pos</a>);
+            <a href="#859">to_slice</a>[<a href="#828">out_pos</a>..<a href="#828">out_pos</a> + <a href="#830">match_len</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="#859">from_slice</a>[..<a href="#830">match_len</a>]);
         }
     } <span class="kw">else </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#792-798">transfer</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#827">out_slice</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#835">source_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#828">out_pos</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#830">match_len</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#831">out_buf_size_mask</a>);
+        <a href="#792-798">transfer</a>(<a href="#827">out_slice</a>, <a href="#835">source_pos</a>, <a href="#828">out_pos</a>, <a href="#830">match_len</a>, <a href="#831">out_buf_size_mask</a>);
     }
 }
 
@@ -2805,20 +2805,20 @@
 /// big match loop on each state change(as rust does not have fallthrough or gotos at the moment),
 /// and already improves decompression speed a fair bit.
 </span><span class="kw">fn </span>decompress_fast(
-    r: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>,
+    r: <span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>,
     in_iter: <span class="kw-2">&amp;mut </span>slice::Iter&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;,
-    out_buf: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#6">OutputBuffer</a>,
+    out_buf: <span class="kw-2">&amp;mut </span><a href="output_buffer.rs.html#6">OutputBuffer</a>,
     flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
-    local_vars: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a>,
+    local_vars: <span class="kw-2">&amp;mut </span><a href="#783">LocalVars</a>,
     out_buf_size_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-) -&gt; (<a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#264">State</a>) {
+) -&gt; (<a href="mod.rs.html#25">TINFLStatus</a>, <a href="#264">State</a>) {
     <span class="comment">// Make a local copy of the most used variables, to avoid having to update and read from values
     // in a random memory location and to encourage more register use.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>l = <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/core.rs.html#881">local_vars</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>l = <span class="kw-2">*</span><a href="#881">local_vars</a>;
     <span class="kw">let </span><span class="kw-2">mut </span>state;
 
-    <span class="kw">let </span>status: <a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a> = <span class="lifetime">&#39;o</span>: <span class="kw">loop </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#277">State::DecodeLitlen</a>;
+    <span class="kw">let </span>status: <a href="mod.rs.html#25">TINFLStatus</a> = <span class="lifetime">&#39;o</span>: <span class="kw">loop </span>{
+        <a href="#887">state</a> = <a href="#277">State::DecodeLitlen</a>;
         <span class="kw">loop </span>{
             <span class="comment">// This function assumes that there is at least 259 bytes left in the output buffer,
             // and that there is at least 14 bytes left in the input buffer. 14 input bytes:
@@ -2827,16 +2827,16 @@
             // We need the one extra byte as we may write one length and one full match
             // before checking again.
             </span><span class="kw">if </span>out_buf.bytes_left() &lt; <span class="number">259 </span>|| in_iter.len() &lt; <span class="number">14 </span>{
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#277">State::DecodeLitlen</a>;
-                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#49">TINFLStatus::Done</a>;
+                <a href="#887">state</a> = <a href="#277">State::DecodeLitlen</a>;
+                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#49">TINFLStatus::Done</a>;
             }
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#878">in_iter</a>);
+            <a href="#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="#886">l</a>, <a href="#878">in_iter</a>);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((symbol, code_len)) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#877">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#72">lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf) {
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter = <a href="../../../src/miniz_oxide/inflate/core.rs.html#905">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#905">code_len</a>;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#905">code_len</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((symbol, code_len)) = <a href="#877">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].<a href="#72">lookup</a>(<a href="#886">l</a>.bit_buf) {
+                <a href="#886">l</a>.counter = <a href="#905">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+                <a href="#886">l</a>.bit_buf &gt;&gt;= <a href="#905">code_len</a>;
+                <a href="#886">l</a>.num_bits -= <a href="#905">code_len</a>;
 
                 <span class="kw">if </span>(l.counter &amp; <span class="number">256</span>) != <span class="number">0 </span>{
                     <span class="comment">// The symbol is not a literal.
@@ -2845,118 +2845,118 @@
                     <span class="comment">// If we have a 32-bit buffer we need to read another two bytes now
                     // to have enough bits to keep going.
                     </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(not(target_pointer_width = <span class="string">&quot;64&quot;</span>)) {
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#878">in_iter</a>);
+                        <a href="#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="#886">l</a>, <a href="#878">in_iter</a>);
                     }
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((symbol, code_len)) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#877">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#101">LITLEN_TABLE</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#72">lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf) {
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#920">code_len</a>;
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#920">code_len</a>;
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((symbol, code_len)) = <a href="#877">r</a>.tables[<a href="#101">LITLEN_TABLE</a>].<a href="#72">lookup</a>(<a href="#886">l</a>.bit_buf) {
+                        <a href="#886">l</a>.bit_buf &gt;&gt;= <a href="#920">code_len</a>;
+                        <a href="#886">l</a>.num_bits -= <a href="#920">code_len</a>;
                         <span class="comment">// The previous symbol was a literal, so write it directly and check
                         // the next one.
-                        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#879">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#31">write_byte</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
+                        </span><a href="#879">out_buf</a>.<a href="output_buffer.rs.html#31">write_byte</a>(<a href="#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
                         <span class="kw">if </span>(symbol &amp; <span class="number">256</span>) != <span class="number">0 </span>{
-                            <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter = <a href="../../../src/miniz_oxide/inflate/core.rs.html#920">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+                            <a href="#886">l</a>.counter = <a href="#920">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
                             <span class="comment">// The symbol is a length value.
                             </span><span class="kw">break</span>;
                         } <span class="kw">else </span>{
                             <span class="comment">// The symbol is a literal, so write it directly and continue.
-                            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#879">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#31">write_byte</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#920">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
+                            </span><a href="#879">out_buf</a>.<a href="output_buffer.rs.html#31">write_byte</a>(<a href="#920">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
                         }
                     } <span class="kw">else </span>{
-                        <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#302">InvalidCodeLen</a>);
-                        <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                        <a href="#887">state</a>.<a href="#322">begin</a>(<a href="#302">InvalidCodeLen</a>);
+                        <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
                     }
                 }
             } <span class="kw">else </span>{
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#302">InvalidCodeLen</a>);
-                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                <a href="#887">state</a>.<a href="#322">begin</a>(<a href="#302">InvalidCodeLen</a>);
+                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
             }
         }
 
         <span class="comment">// Mask the top bits since they may contain length info.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter &amp;= <span class="number">511</span>;
+        </span><a href="#886">l</a>.counter &amp;= <span class="number">511</span>;
         <span class="kw">if </span>l.counter == <span class="number">256 </span>{
             <span class="comment">// We hit the end of block symbol.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#285">BlockDone</a>);
-            <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#49">TINFLStatus::Done</a>;
+            </span><a href="#887">state</a>.<a href="#322">begin</a>(<a href="#285">BlockDone</a>);
+            <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#49">TINFLStatus::Done</a>;
         } <span class="kw">else if </span>l.counter &gt; <span class="number">285 </span>{
             <span class="comment">// Invalid code.
             // We already verified earlier that the code is &gt; 256.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#300">InvalidLitlen</a>);
-            <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+            </span><a href="#887">state</a>.<a href="#322">begin</a>(<a href="#300">InvalidLitlen</a>);
+            <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
         } <span class="kw">else </span>{
             <span class="comment">// The symbol was a length code.
             // # Optimization
             // Mask the value to avoid bounds checks
             // We could use get_unchecked later if can statically verify that
             // this will never go out of bounds.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra = u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#347">LENGTH_EXTRA</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter - <span class="number">257</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#368">BASE_EXTRA_MASK</a>]);
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter = u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#340">LENGTH_BASE</a>[(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter - <span class="number">257</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> &amp; <a href="../../../src/miniz_oxide/inflate/core.rs.html#368">BASE_EXTRA_MASK</a>]);
+            </span><a href="#886">l</a>.num_extra = u32::from(<a href="#347">LENGTH_EXTRA</a>[(<a href="#886">l</a>.counter - <span class="number">257</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> &amp; <a href="#368">BASE_EXTRA_MASK</a>]);
+            <a href="#886">l</a>.counter = u32::from(<a href="#340">LENGTH_BASE</a>[(<a href="#886">l</a>.counter - <span class="number">257</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> &amp; <a href="#368">BASE_EXTRA_MASK</a>]);
             <span class="comment">// Length and distance codes have a number of extra bits depending on
             // the base, which together with the base gives us the exact value.
 
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#878">in_iter</a>);
+            </span><a href="#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="#886">l</a>, <a href="#878">in_iter</a>);
             <span class="kw">if </span>l.num_extra != <span class="number">0 </span>{
-                <span class="kw">let </span>extra_bits = <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra) - <span class="number">1</span>);
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter += <a href="../../../src/miniz_oxide/inflate/core.rs.html#969">extra_bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+                <span class="kw">let </span>extra_bits = <a href="#886">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="#886">l</a>.num_extra) - <span class="number">1</span>);
+                <a href="#886">l</a>.bit_buf &gt;&gt;= <a href="#886">l</a>.num_extra;
+                <a href="#886">l</a>.num_bits -= <a href="#886">l</a>.num_extra;
+                <a href="#886">l</a>.counter += <a href="#969">extra_bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
             }
 
             <span class="comment">// We found a length code, so a distance code should follow.
 
             </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(not(target_pointer_width = <span class="string">&quot;64&quot;</span>)) {
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#878">in_iter</a>);
+                <a href="#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="#886">l</a>, <a href="#878">in_iter</a>);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>symbol, code_len)) = <a href="../../../src/miniz_oxide/inflate/core.rs.html#877">r</a>.tables[<a href="../../../src/miniz_oxide/inflate/core.rs.html#102">DIST_TABLE</a>].<a href="../../../src/miniz_oxide/inflate/core.rs.html#72">lookup</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf) {
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#981">symbol</a> &amp;= <span class="number">511</span>;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#981">code_len</a>;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#981">code_len</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">mut </span>symbol, code_len)) = <a href="#877">r</a>.tables[<a href="#102">DIST_TABLE</a>].<a href="#72">lookup</a>(<a href="#886">l</a>.bit_buf) {
+                <a href="#981">symbol</a> &amp;= <span class="number">511</span>;
+                <a href="#886">l</a>.bit_buf &gt;&gt;= <a href="#981">code_len</a>;
+                <a href="#886">l</a>.num_bits -= <a href="#981">code_len</a>;
                 <span class="kw">if </span>symbol &gt; <span class="number">29 </span>{
-                    <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#301">InvalidDist</a>);
-                    <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                    <a href="#887">state</a>.<a href="#322">begin</a>(<a href="#301">InvalidDist</a>);
+                    <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
                 }
 
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra = u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#362">DIST_EXTRA</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#981">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.dist = u32::from(<a href="../../../src/miniz_oxide/inflate/core.rs.html#354">DIST_BASE</a>[<a href="../../../src/miniz_oxide/inflate/core.rs.html#981">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
+                <a href="#886">l</a>.num_extra = u32::from(<a href="#362">DIST_EXTRA</a>[<a href="#981">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
+                <a href="#886">l</a>.dist = u32::from(<a href="#354">DIST_BASE</a>[<a href="#981">symbol</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>]);
             } <span class="kw">else </span>{
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#302">InvalidCodeLen</a>);
-                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                <a href="#887">state</a>.<a href="#322">begin</a>(<a href="#302">InvalidCodeLen</a>);
+                <span class="kw">break </span><span class="lifetime">&#39;o </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
             }
 
             <span class="kw">if </span>l.num_extra != <span class="number">0 </span>{
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#878">in_iter</a>);
-                <span class="kw">let </span>extra_bits = <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra) - <span class="number">1</span>);
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.bit_buf &gt;&gt;= <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_bits -= <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.num_extra;
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.dist += <a href="../../../src/miniz_oxide/inflate/core.rs.html#999">extra_bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+                <a href="#414">fill_bit_buffer</a>(<span class="kw-2">&amp;mut </span><a href="#886">l</a>, <a href="#878">in_iter</a>);
+                <span class="kw">let </span>extra_bits = <a href="#886">l</a>.bit_buf &amp; ((<span class="number">1 </span>&lt;&lt; <a href="#886">l</a>.num_extra) - <span class="number">1</span>);
+                <a href="#886">l</a>.bit_buf &gt;&gt;= <a href="#886">l</a>.num_extra;
+                <a href="#886">l</a>.num_bits -= <a href="#886">l</a>.num_extra;
+                <a href="#886">l</a>.dist += <a href="#999">extra_bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
             }
 
-            <span class="kw">let </span>position = <a href="../../../src/miniz_oxide/inflate/core.rs.html#879">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#18">position</a>();
+            <span class="kw">let </span>position = <a href="#879">out_buf</a>.<a href="output_buffer.rs.html#18">position</a>();
             <span class="kw">if </span>l.dist <span class="kw">as </span>usize &gt; out_buf.position()
                 &amp;&amp; (flags &amp; TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF != <span class="number">0</span>)
             {
                 <span class="comment">// We encountered a distance that refers a position before
                 // the start of the decoded data, so we can&#39;t continue.
-                </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>.<a href="../../../src/miniz_oxide/inflate/core.rs.html#322">begin</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#297">DistanceOutOfBounds</a>);
-                <span class="kw">break </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                </span><a href="#887">state</a>.<a href="#322">begin</a>(<a href="#297">DistanceOutOfBounds</a>);
+                <span class="kw">break </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>;
             }
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#826-832">apply_match</a>(
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#879">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#57">get_mut</a>(),
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#1005">position</a>,
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.dist <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#882">out_buf_size_mask</a>,
+            <a href="#826-832">apply_match</a>(
+                <a href="#879">out_buf</a>.<a href="output_buffer.rs.html#57">get_mut</a>(),
+                <a href="#1005">position</a>,
+                <a href="#886">l</a>.dist <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+                <a href="#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+                <a href="#882">out_buf_size_mask</a>,
             );
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#879">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#23">set_position</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#1005">position</a> + <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
+            <a href="#879">out_buf</a>.<a href="output_buffer.rs.html#23">set_position</a>(<a href="#1005">position</a> + <a href="#886">l</a>.counter <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
         }
     };
 
-    <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/core.rs.html#881">local_vars</a> = <a href="../../../src/miniz_oxide/inflate/core.rs.html#886">l</a>;
-    (<a href="../../../src/miniz_oxide/inflate/core.rs.html#889">status</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#887">state</a>)
+    <span class="kw-2">*</span><a href="#881">local_vars</a> = <a href="#886">l</a>;
+    (<a href="#889">status</a>, <a href="#887">state</a>)
 }
 
 <span class="doccomment">/// Main decompression function. Keeps decompressing data from `in_buf` until the `in_buf` is
@@ -2996,19 +2996,19 @@
 ///
 /// This function shouldn&#39;t panic pending any bugs.
 </span><span class="kw">pub fn </span>decompress(
-    r: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>,
+    r: <span class="kw-2">&amp;mut </span><a href="#163">DecompressorOxide</a>,
     in_buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
     out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
     out_pos: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
     flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
-) -&gt; (<a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+) -&gt; (<a href="mod.rs.html#25">TINFLStatus</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
     <span class="kw">let </span>out_buf_size_mask = <span class="kw">if </span>flags &amp; TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF != <span class="number">0 </span>{
         usize::max_value()
     } <span class="kw">else </span>{
         <span class="comment">// In the case of zero len, any attempt to write would produce HasMoreOutput,
         // so to gracefully process the case of there really being no output,
         // set the mask to all zeros.
-        </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#1070">out</a>.len().saturating_sub(<span class="number">1</span>)
+        </span><a href="#1070">out</a>.len().saturating_sub(<span class="number">1</span>)
     };
 
     <span class="comment">// Ensure the output buffer&#39;s size is a power of 2, unless the output buffer
@@ -3016,27 +3016,27 @@
     // matter).
     // Also make sure that the output buffer position is not past the end of the output buffer.
     </span><span class="kw">if </span>(out_buf_size_mask.wrapping_add(<span class="number">1</span>) &amp; out_buf_size_mask) != <span class="number">0 </span>|| out_pos &gt; out.len() {
-        <span class="kw">return </span>(<a href="../../../src/miniz_oxide/inflate/mod.rs.html#37">TINFLStatus::BadParam</a>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">return </span>(<a href="mod.rs.html#37">TINFLStatus::BadParam</a>, <span class="number">0</span>, <span class="number">0</span>);
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>in_iter = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1069">in_buf</a>.iter();
+    <span class="kw">let </span><span class="kw-2">mut </span>in_iter = <a href="#1069">in_buf</a>.iter();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.state;
+    <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#1068">r</a>.state;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>out_buf = OutputBuffer::from_slice_and_pos(<a href="../../../src/miniz_oxide/inflate/core.rs.html#1070">out</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#1071">out_pos</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>out_buf = OutputBuffer::from_slice_and_pos(<a href="#1070">out</a>, <a href="#1071">out_pos</a>);
 
     <span class="comment">// Make a local copy of the important variables here so we can work with them on the stack.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>l = <a href="../../../src/miniz_oxide/inflate/core.rs.html#783">LocalVars</a> {
-        bit_buf: <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.bit_buf,
-        num_bits: <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.num_bits,
-        dist: <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.dist,
-        counter: <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.counter,
-        num_extra: <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.num_extra,
+    </span><span class="kw">let </span><span class="kw-2">mut </span>l = <a href="#783">LocalVars</a> {
+        bit_buf: <a href="#1068">r</a>.bit_buf,
+        num_bits: <a href="#1068">r</a>.num_bits,
+        dist: <a href="#1068">r</a>.dist,
+        counter: <a href="#1068">r</a>.counter,
+        num_extra: <a href="#1068">r</a>.num_extra,
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="lifetime">&#39;state_machine</span>: <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#1093">state</a> {
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#265">Start</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+        <span class="kw">match </span><a href="#1093">state</a> {
+            <a href="#265">Start</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 l.bit_buf = <span class="number">0</span>;
                 l.num_bits = <span class="number">0</span>;
                 l.dist = <span class="number">0</span>;
@@ -3053,14 +3053,14 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#266">ReadZlibCmf</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#266">ReadZlibCmf</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 read_byte(<span class="kw-2">&amp;mut </span>in_iter, flags, |cmf| {
                     r.z_header0 = u32::from(cmf);
                     Action::Jump(State::ReadZlibFlg)
                 })
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#267">ReadZlibFlg</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#267">ReadZlibFlg</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 read_byte(<span class="kw-2">&amp;mut </span>in_iter, flags, |flg| {
                     r.z_header1 = u32::from(flg);
                     validate_zlib_header(r.z_header0, r.z_header1, flags, out_buf_size_mask)
@@ -3068,7 +3068,7 @@
             }),
 
             <span class="comment">// Read the block header and jump to the relevant section depending on the block type.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#268">ReadBlockHeader</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#268">ReadBlockHeader</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 read_bits(<span class="kw-2">&amp;mut </span>l, <span class="number">3</span>, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, bits| {
                     r.finish = (bits &amp; <span class="number">1</span>) <span class="kw">as </span>u32;
                     r.block_type = (bits &gt;&gt; <span class="number">1</span>) <span class="kw">as </span>u32 &amp; <span class="number">3</span>;
@@ -3089,7 +3089,7 @@
             }),
 
             <span class="comment">// Raw/Stored/uncompressed block.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#269">BlockTypeNoCompression</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#269">BlockTypeNoCompression</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 pad_to_bytes(<span class="kw-2">&amp;mut </span>l, <span class="kw-2">&amp;mut </span>in_iter, flags, |l| {
                     l.counter = <span class="number">0</span>;
                     Action::Jump(RawHeader)
@@ -3097,7 +3097,7 @@
             }),
 
             <span class="comment">// Check that the raw block header is correct.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#270">RawHeader</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#270">RawHeader</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &lt; <span class="number">4 </span>{
                     <span class="comment">// Read block length and block length check.
                     </span><span class="kw">if </span>l.num_bits != <span class="number">0 </span>{
@@ -3139,7 +3139,7 @@
             }),
 
             <span class="comment">// Read the byte from the bit buffer.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#282">RawReadFirstByte</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#282">RawReadFirstByte</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 read_bits(<span class="kw-2">&amp;mut </span>l, <span class="number">8</span>, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, bits| {
                     l.dist = bits <span class="kw">as </span>u32;
                     Action::Jump(RawStoreFirstByte)
@@ -3147,7 +3147,7 @@
             }),
 
             <span class="comment">// Write the byte we just read to the output buffer.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#283">RawStoreFirstByte</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#283">RawStoreFirstByte</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>out_buf.bytes_left() == <span class="number">0 </span>{
                     Action::End(TINFLStatus::HasMoreOutput)
                 } <span class="kw">else </span>{
@@ -3165,7 +3165,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#271">RawMemcpy1</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#271">RawMemcpy1</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter == <span class="number">0 </span>{
                     Action::Jump(BlockDone)
                 } <span class="kw">else if </span>out_buf.bytes_left() == <span class="number">0 </span>{
@@ -3175,7 +3175,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#272">RawMemcpy2</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#272">RawMemcpy2</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>in_iter.len() &gt; <span class="number">0 </span>{
                     <span class="comment">// Copy as many raw bytes as possible from the input to the output using memcpy.
                     // Raw block lengths are limited to 64 * 1024, so casting through usize and u32
@@ -3198,7 +3198,7 @@
             }),
 
             <span class="comment">// Read how many huffman codes/symbols are used for each table.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#273">ReadTableSizes</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#273">ReadTableSizes</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &lt; <span class="number">3 </span>{
                     <span class="kw">let </span>num_bits = [<span class="number">5</span>, <span class="number">5</span>, <span class="number">4</span>][l.counter <span class="kw">as </span>usize];
                     read_bits(<span class="kw-2">&amp;mut </span>l, num_bits, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, bits| {
@@ -3216,7 +3216,7 @@
 
             <span class="comment">// Read the 3-bit lengths of the huffman codes describing the huffman code lengths used
             // to decode the lengths of the main tables.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#274">ReadHufflenTableCodeSize</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            </span><a href="#274">ReadHufflenTableCodeSize</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &lt; r.table_sizes[HUFFLEN_TABLE] {
                     read_bits(<span class="kw-2">&amp;mut </span>l, <span class="number">3</span>, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, bits| {
                         <span class="comment">// These lengths are not stored in a normal ascending order, but rather one
@@ -3234,7 +3234,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#275">ReadLitlenDistTablesCodeSize</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#275">ReadLitlenDistTablesCodeSize</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &lt; r.table_sizes[LITLEN_TABLE] + r.table_sizes[DIST_TABLE] {
                     decode_huffman_code(
                         r, <span class="kw-2">&amp;mut </span>l, HUFFLEN_TABLE,
@@ -3269,7 +3269,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#276">ReadExtraBitsCodeSize</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#276">ReadExtraBitsCodeSize</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">let </span>num_extra = l.num_extra;
                 read_bits(<span class="kw-2">&amp;mut </span>l, num_extra, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, <span class="kw-2">mut </span>extra_bits| {
                     <span class="comment">// Mask to avoid a bounds check.
@@ -3291,7 +3291,7 @@
                 })
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#277">DecodeLitlen</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#277">DecodeLitlen</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>in_iter.len() &lt; <span class="number">4 </span>|| out_buf.bytes_left() &lt; <span class="number">2 </span>{
                     <span class="comment">// See if we can decode a literal with the data we have left.
                     // Jumps to next state (WriteSymbol) if successful.
@@ -3372,7 +3372,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#278">WriteSymbol</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#278">WriteSymbol</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &gt;= <span class="number">256 </span>{
                     Action::Jump(HuffDecodeOuterLoop1)
                 } <span class="kw">else if </span>out_buf.bytes_left() &gt; <span class="number">0 </span>{
@@ -3383,7 +3383,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#286">HuffDecodeOuterLoop1</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#286">HuffDecodeOuterLoop1</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="comment">// Mask the top bits since they may contain length info.
                 </span>l.counter &amp;= <span class="number">511</span>;
 
@@ -3412,7 +3412,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#279">ReadExtraBitsLitlen</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#279">ReadExtraBitsLitlen</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">let </span>num_extra = l.num_extra;
                 read_bits(<span class="kw-2">&amp;mut </span>l, num_extra, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, extra_bits| {
                     l.counter += extra_bits <span class="kw">as </span>u32;
@@ -3420,7 +3420,7 @@
                 })
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#280">DecodeDistance</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#280">DecodeDistance</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="comment">// Try to read a huffman code from the input buffer and look up what
                 // length code the decoded symbol refers to.
                 </span>decode_huffman_code(r, <span class="kw-2">&amp;mut </span>l, DIST_TABLE, flags, <span class="kw-2">&amp;mut </span>in_iter, |_r, l, symbol| {
@@ -3443,7 +3443,7 @@
                 })
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#281">ReadExtraBitsDistance</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#281">ReadExtraBitsDistance</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">let </span>num_extra = l.num_extra;
                 read_bits(<span class="kw-2">&amp;mut </span>l, num_extra, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, extra_bits| {
                     l.dist += extra_bits <span class="kw">as </span>u32;
@@ -3451,7 +3451,7 @@
                 })
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#287">HuffDecodeOuterLoop2</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#287">HuffDecodeOuterLoop2</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.dist <span class="kw">as </span>usize &gt; out_buf.position() &amp;&amp;
                     (flags &amp; TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF != <span class="number">0</span>)
                 {
@@ -3492,7 +3492,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#284">WriteLenBytesToEnd</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#284">WriteLenBytesToEnd</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>out_buf.bytes_left() &gt; <span class="number">0 </span>{
                     <span class="kw">let </span>out_pos = out_buf.position();
                     <span class="kw">let </span>source_pos = out_buf.position()
@@ -3515,7 +3515,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#285">BlockDone</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#285">BlockDone</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="comment">// End once we&#39;ve read the last block.
                 </span><span class="kw">if </span>r.finish != <span class="number">0 </span>{
                     pad_to_bytes(<span class="kw-2">&amp;mut </span>l, <span class="kw-2">&amp;mut </span>in_iter, flags, |<span class="kw">_</span>| Action::None);
@@ -3538,7 +3538,7 @@
                 }
             }),
 
-            <a href="../../../src/miniz_oxide/inflate/core.rs.html#288">ReadAdler32</a> =&gt; <a class="macro" href="../../../src/miniz_oxide/inflate/core.rs.html#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
+            <a href="#288">ReadAdler32</a> =&gt; <a class="macro" href="#767-780">generate_state!</a>(state, <span class="lifetime">&#39;state_machine</span>, {
                 <span class="kw">if </span>l.counter &lt; <span class="number">4 </span>{
                     <span class="kw">if </span>l.num_bits != <span class="number">0 </span>{
                         read_bits(<span class="kw-2">&amp;mut </span>l, <span class="number">8</span>, <span class="kw-2">&amp;mut </span>in_iter, flags, |l, bits| {
@@ -3561,20 +3561,20 @@
             }),
 
             <span class="comment">// We are done.
-            </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#290">DoneForever</a> =&gt; <span class="kw">break </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#49">TINFLStatus::Done</a>,
+            </span><a href="#290">DoneForever</a> =&gt; <span class="kw">break </span><a href="mod.rs.html#49">TINFLStatus::Done</a>,
 
             <span class="comment">// Anything else indicates failure.
             // BadZlibHeader | BadRawLength | BlockTypeUnexpected | DistanceOutOfBounds |
             // BadTotalSymbols | BadCodeSizeDistPrevLookup | BadCodeSizeSum | InvalidLitlen |
             // InvalidDist | InvalidCodeLen
-            </span><span class="kw">_ </span>=&gt; <span class="kw">break </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>,
+            </span><span class="kw">_ </span>=&gt; <span class="kw">break </span><a href="mod.rs.html#44">TINFLStatus::Failed</a>,
         };
     };
 
     <span class="kw">let </span>in_undo = <span class="kw">if </span>status != TINFLStatus::NeedsMoreInput
         &amp;&amp; status != TINFLStatus::FailedCannotMakeProgress
     {
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#656">undo_bytes</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>, (<a href="../../../src/miniz_oxide/inflate/core.rs.html#1069">in_buf</a>.len() - <a href="../../../src/miniz_oxide/inflate/core.rs.html#1091">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+        <a href="#656">undo_bytes</a>(<span class="kw-2">&amp;mut </span><a href="#1098">l</a>, (<a href="#1069">in_buf</a>.len() - <a href="#1091">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     } <span class="kw">else </span>{
         <span class="number">0
     </span>};
@@ -3586,29 +3586,29 @@
         &amp;&amp; out_buf.bytes_left() == <span class="number">0
         </span>&amp;&amp; state != State::ReadAdler32
     {
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1106">status</a> = <a href="../../../src/miniz_oxide/inflate/mod.rs.html#62">TINFLStatus::HasMoreOutput</a>
+        <a href="#1106">status</a> = <a href="mod.rs.html#62">TINFLStatus::HasMoreOutput</a>
     }
 
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.state = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1093">state</a>;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.bit_buf = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>.bit_buf;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.num_bits = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>.num_bits;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.dist = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>.dist;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.counter = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>.counter;
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.num_extra = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1098">l</a>.num_extra;
+    <a href="#1068">r</a>.state = <a href="#1093">state</a>;
+    <a href="#1068">r</a>.bit_buf = <a href="#1098">l</a>.bit_buf;
+    <a href="#1068">r</a>.num_bits = <a href="#1098">l</a>.num_bits;
+    <a href="#1068">r</a>.dist = <a href="#1098">l</a>.dist;
+    <a href="#1068">r</a>.counter = <a href="#1098">l</a>.counter;
+    <a href="#1068">r</a>.num_extra = <a href="#1098">l</a>.num_extra;
 
-    <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.bit_buf &amp;= ((<span class="number">1 </span><span class="kw">as </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#156">BitBuffer</a>) &lt;&lt; <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.num_bits) - <span class="number">1</span>;
+    <a href="#1068">r</a>.bit_buf &amp;= ((<span class="number">1 </span><span class="kw">as </span><a href="#156">BitBuffer</a>) &lt;&lt; <a href="#1068">r</a>.num_bits) - <span class="number">1</span>;
 
     <span class="comment">// If this is a zlib stream, and update the adler32 checksum with the decompressed bytes if
     // requested.
     </span><span class="kw">let </span>need_adler = <span class="kw">if </span>(flags &amp; TINFL_FLAG_IGNORE_ADLER32) == <span class="number">0 </span>{
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1072">flags</a> &amp; (<a href="../../../src/miniz_oxide/inflate/core.rs.html#113">TINFL_FLAG_PARSE_ZLIB_HEADER</a> | <a href="../../../src/miniz_oxide/inflate/core.rs.html#136">TINFL_FLAG_COMPUTE_ADLER32</a>) != <span class="number">0
+        <a href="#1072">flags</a> &amp; (<a href="#113">TINFL_FLAG_PARSE_ZLIB_HEADER</a> | <a href="#136">TINFL_FLAG_COMPUTE_ADLER32</a>) != <span class="number">0
     </span>} <span class="kw">else </span>{
         <span class="comment">// If TINFL_FLAG_IGNORE_ADLER32 is enabled, ignore the checksum.
         </span><span class="bool-val">false
     </span>};
     <span class="kw">if </span>need_adler &amp;&amp; status <span class="kw">as </span>i32 &gt;= <span class="number">0 </span>{
-        <span class="kw">let </span>out_buf_pos = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1095">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#18">position</a>();
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.check_adler32 = <a href="../../../src/miniz_oxide/shared.rs.html#13">update_adler32</a>(<a href="../../../src/miniz_oxide/inflate/core.rs.html#1068">r</a>.check_adler32, <span class="kw-2">&amp;</span><a href="../../../src/miniz_oxide/inflate/core.rs.html#1095">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#52">get_ref</a>()[<a href="../../../src/miniz_oxide/inflate/core.rs.html#1071">out_pos</a>..<a href="../../../src/miniz_oxide/inflate/core.rs.html#1679">out_buf_pos</a>]);
+        <span class="kw">let </span>out_buf_pos = <a href="#1095">out_buf</a>.<a href="output_buffer.rs.html#18">position</a>();
+        <a href="#1068">r</a>.check_adler32 = <a href="../shared.rs.html#13">update_adler32</a>(<a href="#1068">r</a>.check_adler32, <span class="kw-2">&amp;</span><a href="#1095">out_buf</a>.<a href="output_buffer.rs.html#52">get_ref</a>()[<a href="#1071">out_pos</a>..<a href="#1679">out_buf_pos</a>]);
 
         <span class="comment">// disabled so that random input from fuzzer would not be rejected early,
         // before it has a chance to reach interesting parts of code
@@ -3618,15 +3618,15 @@
                 &amp;&amp; flags &amp; TINFL_FLAG_PARSE_ZLIB_HEADER != <span class="number">0
                 </span>&amp;&amp; r.check_adler32 != r.z_adler32
             {
-                <a href="../../../src/miniz_oxide/inflate/core.rs.html#1106">status</a> = <a href="../../../src/miniz_oxide/inflate/mod.rs.html#41">TINFLStatus::Adler32Mismatch</a>;
+                <a href="#1106">status</a> = <a href="mod.rs.html#41">TINFLStatus::Adler32Mismatch</a>;
             }
         }
     }
 
     (
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1106">status</a>,
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1069">in_buf</a>.len() - <a href="../../../src/miniz_oxide/inflate/core.rs.html#1091">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>() - <a href="../../../src/miniz_oxide/inflate/core.rs.html#1643">in_undo</a>,
-        <a href="../../../src/miniz_oxide/inflate/core.rs.html#1095">out_buf</a>.<a href="../../../src/miniz_oxide/inflate/output_buffer.rs.html#18">position</a>() - <a href="../../../src/miniz_oxide/inflate/core.rs.html#1071">out_pos</a>,
+        <a href="#1106">status</a>,
+        <a href="#1069">in_buf</a>.len() - <a href="#1091">in_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>() - <a href="#1643">in_undo</a>,
+        <a href="#1095">out_buf</a>.<a href="output_buffer.rs.html#18">position</a>() - <a href="#1071">out_pos</a>,
     )
 }
 
@@ -3861,4 +3861,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

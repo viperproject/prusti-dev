@@ -123,10 +123,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>,
-    <a href="../../src/jni_gen/errors.rs.html#11-57">errors::Result</a> <span class="kw">as </span>LocalResult,
-    generators::{<a href="../../src/jni_gen/generators/class.rs.html#16">class::ClassGenerator</a>, <a href="../../src/jni_gen/generators/mod.rs.html#10">module</a>::<span class="kw-2">*</span>},
-    <a href="../../src/jni_gen/lib.rs.html#14">wrapper_spec</a>::<span class="kw-2">*</span>,
+    <a href="lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>,
+    <a href="errors.rs.html#11-57">errors::Result</a> <span class="kw">as </span>LocalResult,
+    generators::{<a href="generators/class.rs.html#16">class::ClassGenerator</a>, <a href="generators/mod.rs.html#10">module</a>::<span class="kw-2">*</span>},
+    <a href="lib.rs.html#14">wrapper_spec</a>::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>jni::{<a href="../../jni/wrapper/java_vm/init_args/struct.InitArgsBuilder.html">InitArgsBuilder</a>, <a href="../../jni/wrapper/version/enum.JNIVersion.html">JNIVersion</a>, <a href="../../jni/wrapper/java_vm/vm/struct.JavaVM.html">JavaVM</a>};
 <span class="kw">use </span><a href="../../log/macro.debug.html">log::debug</a>;
@@ -139,32 +139,32 @@
 <span class="attribute">#[derive(Default)]
 </span><span class="kw">pub struct </span>WrapperGenerator {
     jars: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    classes: Vec&lt;<a href="../../src/jni_gen/wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;,
+    classes: Vec&lt;<a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/jni_gen/wrapper_generator.rs.html#22">WrapperGenerator</a> {
+<span class="kw">impl </span><a href="#22">WrapperGenerator</a> {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
     }
 
     <span class="kw">pub fn </span>use_jar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jar_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/jni_gen/wrapper_generator.rs.html#32">self</a>.jars.push(<a href="../../src/jni_gen/wrapper_generator.rs.html#32">jar_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="../../src/jni_gen/wrapper_generator.rs.html#32">self</a>
+        <a class="self" href="#32">self</a>.jars.push(<a href="#32">jar_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="#32">self</a>
     </span>}
 
     <span class="kw">pub fn </span>use_jars(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jar_paths: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/jni_gen/wrapper_generator.rs.html#37">self</a>.jars.append(<a href="../../src/jni_gen/wrapper_generator.rs.html#37">jar_paths</a>);
-        <span class="self"><a href="../../src/jni_gen/wrapper_generator.rs.html#37">self</a>
+        <a class="self" href="#37">self</a>.jars.append(<a href="#37">jar_paths</a>);
+        <span class="self"><a href="#37">self</a>
     </span>}
 
-    <span class="kw">pub fn </span>wrap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <a href="../../src/jni_gen/wrapper_spec.rs.html#10">ClassWrapperSpec</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/jni_gen/wrapper_generator.rs.html#42">self</a>.classes.push(<a href="../../src/jni_gen/wrapper_generator.rs.html#42">class</a>);
-        <span class="self"><a href="../../src/jni_gen/wrapper_generator.rs.html#42">self</a>
+    <span class="kw">pub fn </span>wrap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="#42">self</a>.classes.push(<a href="#42">class</a>);
+        <span class="self"><a href="#42">self</a>
     </span>}
 
-    <span class="kw">pub fn </span>wrap_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, classes: Vec&lt;<a href="../../src/jni_gen/wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/jni_gen/wrapper_generator.rs.html#47">self</a>.classes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/jni_gen/wrapper_generator.rs.html#47">classes</a>);
-        <span class="self"><a href="../../src/jni_gen/wrapper_generator.rs.html#47">self</a>
+    <span class="kw">pub fn </span>wrap_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, classes: Vec&lt;<a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="#47">self</a>.classes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#47">classes</a>);
+        <span class="self"><a href="#47">self</a>
     </span>}
 
     <span class="kw">pub fn </span>generate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out_dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; LocalResult&lt;()&gt; {
@@ -219,9 +219,9 @@
         }
 
         {
-            <span class="kw">let </span>class_names: Vec&lt;<span class="kw-2">&amp;</span><a href="../../src/jni_gen/class_name.rs.html#8">ClassName</a>&gt; = <a class="self" href="../../src/jni_gen/wrapper_generator.rs.html#52">self</a>.classes.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="../../src/jni_gen/wrapper_generator.rs.html#104">x</a>.<a href="../../src/jni_gen/wrapper_spec.rs.html#23">get_name</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="kw">let </span>mod_code = <a href="../../src/jni_gen/generators/module.rs.html#10">generate_module</a>(<a href="../../src/jni_gen/wrapper_generator.rs.html#104">class_names</a>);
-            <span class="kw">let </span>mod_path = <a href="../../src/jni_gen/wrapper_generator.rs.html#52">out_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
+            <span class="kw">let </span>class_names: Vec&lt;<span class="kw-2">&amp;</span><a href="class_name.rs.html#8">ClassName</a>&gt; = <a class="self" href="#52">self</a>.classes.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#104">x</a>.<a href="wrapper_spec.rs.html#23">get_name</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw">let </span>mod_code = <a href="generators/module.rs.html#10">generate_module</a>(<a href="#104">class_names</a>);
+            <span class="kw">let </span>mod_path = <a href="#52">out_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>mod_file = OpenOptions::new()
                 .read(<span class="bool-val">true</span>)
                 .write(<span class="bool-val">true</span>)
@@ -235,4 +235,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="jni_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="jni_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

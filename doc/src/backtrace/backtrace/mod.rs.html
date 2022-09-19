@@ -210,9 +210,9 @@
 /// }
 /// ```
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub fn </span>trace&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../src/backtrace/backtrace/mod.rs.html#76">Frame</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(cb: F) {
-    <span class="kw">let </span>_guard = <a href="../../../src/backtrace/lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
-    <span class="kw">unsafe </span>{ <a href="../../../src/backtrace/backtrace/mod.rs.html#65">trace_unsynchronized</a>(<a href="../../../src/backtrace/backtrace/mod.rs.html#51">cb</a>) }
+</span><span class="kw">pub fn </span>trace&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="#76">Frame</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(cb: F) {
+    <span class="kw">let </span>_guard = <a href="../lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
+    <span class="kw">unsafe </span>{ <a href="#65">trace_unsynchronized</a>(<a href="#51">cb</a>) }
 }
 
 <span class="doccomment">/// Same as `trace`, only unsafe as it&#39;s unsynchronized.
@@ -224,8 +224,8 @@
 /// # Panics
 ///
 /// See information on `trace` for caveats on `cb` panicking.
-</span><span class="kw">pub unsafe fn </span>trace_unsynchronized&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../src/backtrace/backtrace/mod.rs.html#76">Frame</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">mut </span>cb: F) {
-    <a href="../../../src/backtrace/backtrace/libunwind.rs.html#92">trace_imp</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/backtrace/backtrace/mod.rs.html#65">cb</a>)
+</span><span class="kw">pub unsafe fn </span>trace_unsynchronized&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="#76">Frame</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">mut </span>cb: F) {
+    <a href="libunwind.rs.html#92">trace_imp</a>(<span class="kw-2">&amp;mut </span><a href="#65">cb</a>)
 }
 
 <span class="doccomment">/// A trait representing one frame of a backtrace, yielded to the `trace`
@@ -236,10 +236,10 @@
 /// until runtime.
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Frame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: <a href="../../../src/backtrace/backtrace/libunwind.rs.html#21">FrameImp</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: <a href="libunwind.rs.html#21">FrameImp</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/backtrace/backtrace/mod.rs.html#76">Frame</a> {
+<span class="kw">impl </span><a href="#76">Frame</a> {
     <span class="doccomment">/// Returns the current instruction pointer of this frame.
     ///
     /// This is normally the next instruction to execute in the frame, but not
@@ -249,7 +249,7 @@
     /// It is recommended to pass this value to `backtrace::resolve` to turn it
     /// into a symbol name.
     </span><span class="kw">pub fn </span>ip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#89">self</a>.inner.<a href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>()
+        <a class="self" href="#89">self</a>.inner.<a href="libunwind.rs.html#38">ip</a>()
     }
 
     <span class="doccomment">/// Returns the current stack pointer of this frame.
@@ -257,7 +257,7 @@
     /// In the case that a backend cannot recover the stack pointer for this
     /// frame, a null pointer is returned.
     </span><span class="kw">pub fn </span>sp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#97">self</a>.inner.<a href="../../../src/backtrace/backtrace/libunwind.rs.html#46">sp</a>()
+        <a class="self" href="#97">self</a>.inner.<a href="libunwind.rs.html#46">sp</a>()
     }
 
     <span class="doccomment">/// Returns the starting symbol address of the frame of this function.
@@ -269,20 +269,20 @@
     /// The returned value can sometimes be used if `backtrace::resolve` failed
     /// on the `ip` given above.
     </span><span class="kw">pub fn </span>symbol_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#109">self</a>.inner.<a href="../../../src/backtrace/backtrace/libunwind.rs.html#53">symbol_address</a>()
+        <a class="self" href="#109">self</a>.inner.<a href="libunwind.rs.html#53">symbol_address</a>()
     }
 
     <span class="doccomment">/// Returns the base address of the module to which the frame belongs.
     </span><span class="kw">pub fn </span>module_base_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#114">self</a>.inner.<a href="../../../src/backtrace/backtrace/libunwind.rs.html#76">module_base_address</a>()
+        <a class="self" href="#114">self</a>.inner.<a href="libunwind.rs.html#76">module_base_address</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/backtrace/backtrace/mod.rs.html#76">Frame</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#76">Frame</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/backtrace/backtrace/mod.rs.html#120">f</a>.debug_struct(<span class="string">&quot;Frame&quot;</span>)
-            .field(<span class="string">&quot;ip&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#120">self</a>.<a href="../../../src/backtrace/backtrace/mod.rs.html#89">ip</a>())
-            .field(<span class="string">&quot;symbol_address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/backtrace/backtrace/mod.rs.html#120">self</a>.<a href="../../../src/backtrace/backtrace/mod.rs.html#109">symbol_address</a>())
+        <a href="#120">f</a>.debug_struct(<span class="string">&quot;Frame&quot;</span>)
+            .field(<span class="string">&quot;ip&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#120">self</a>.<a href="#89">ip</a>())
+            .field(<span class="string">&quot;symbol_address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#120">self</a>.<a href="#109">symbol_address</a>())
             .finish()
     }
 }
@@ -307,9 +307,9 @@
             ),
         )
     )] </span>{
-        <span class="kw">mod </span><a href="../../../src/backtrace/backtrace/libunwind.rs.html#1-267">libunwind</a>;
-        <span class="kw">use </span><a href="../../../src/backtrace/backtrace/libunwind.rs.html#92"><span class="self">self</span>::libunwind::trace</a> <span class="kw">as </span>trace_imp;
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/backtrace/backtrace/libunwind.rs.html#21"><span class="self">self</span>::libunwind::Frame</a> <span class="kw">as </span>FrameImp;
+        <span class="kw">mod </span><a href="libunwind.rs.html#1-267">libunwind</a>;
+        <span class="kw">use </span><a href="libunwind.rs.html#92"><span class="self">self</span>::libunwind::trace</a> <span class="kw">as </span>trace_imp;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="libunwind.rs.html#21"><span class="self">self</span>::libunwind::Frame</a> <span class="kw">as </span>FrameImp;
     } <span class="kw">else if </span><span class="attribute">#[cfg(all(windows, not(target_vendor = <span class="string">&quot;uwp&quot;</span>)))] </span>{
         <span class="kw">mod </span>dbghelp;
         <span class="kw">use </span><span class="self">self</span>::dbghelp::trace <span class="kw">as </span>trace_imp;
@@ -323,4 +323,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

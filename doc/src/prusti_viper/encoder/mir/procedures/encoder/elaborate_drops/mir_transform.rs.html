@@ -698,7 +698,7 @@
 // 2. Pull `run_pass` out of `MirPass` (main reason for copying).
 // 3. Use our version of MirPatch.
 
-</span><span class="kw">use </span><span class="kw">super</span>::mir_dataflow::{<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#143-153">elaborate_drop</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#64">DropElaborator</a>};
+</span><span class="kw">use </span><span class="kw">super</span>::mir_dataflow::{<a href="mir_dataflow.rs.html#143-153">elaborate_drop</a>, <a href="mir_dataflow.rs.html#64">DropElaborator</a>};
 <span class="kw">use </span><a href="../../../../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use </span><a href="../../../../../../../prusti_interface/environment/mir_body/patch/compiler/struct.MirPatch.html">prusti_interface::environment::mir_body::patch::MirPatch</a>;
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -723,51 +723,51 @@
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>run_pass&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;elaborate_drops({:?} @ {:?})&quot;</span>, body.source, body.span);
 
-    <span class="kw">let </span>def_id = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>.source.def_id();
-    <span class="kw">let </span>param_env = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>.param_env_reveal_all_normalized(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#38">def_id</a>);
-    <span class="kw">let </span>move_data = <span class="kw">match </span>MoveData::gather_moves(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#39">param_env</a>) {
-        <span class="prelude-val">Ok</span>((<span class="kw">_</span>, move_data)) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#41">move_data</a>,
+    <span class="kw">let </span>def_id = <a href="#35">body</a>.source.def_id();
+    <span class="kw">let </span>param_env = <a href="#35">tcx</a>.param_env_reveal_all_normalized(<a href="#38">def_id</a>);
+    <span class="kw">let </span>move_data = <span class="kw">match </span>MoveData::gather_moves(<a href="#35">body</a>, <a href="#35">tcx</a>, <a href="#39">param_env</a>) {
+        <span class="prelude-val">Ok</span>((<span class="kw">_</span>, move_data)) =&gt; <a href="#41">move_data</a>,
         <span class="prelude-val">Err</span>((move_data, <span class="kw">_</span>)) =&gt; {
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>.sess.delay_span_bug(
-                <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>.span,
+            <a href="#35">tcx</a>.sess.delay_span_bug(
+                <a href="#35">body</a>.span,
                 <span class="string">&quot;No `move_errors` should be allowed in MIR borrowck&quot;</span>,
             );
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#42">move_data</a>
+            <a href="#42">move_data</a>
         }
     };
     <span class="kw">let </span>elaborate_patch = {
         <span class="kw">let </span>env = MoveDataParamEnv {
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#40">move_data</a>,
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#39">param_env</a>,
+            <a href="#40">move_data</a>,
+            <a href="#39">param_env</a>,
         };
-        <span class="kw">let </span>dead_unwinds = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#88-92">find_dead_unwinds</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#51">env</a>);
+        <span class="kw">let </span>dead_unwinds = <a href="#88-92">find_dead_unwinds</a>(<a href="#35">tcx</a>, <a href="#35">body</a>, <span class="kw-2">&amp;</span><a href="#51">env</a>);
 
-        <span class="kw">let </span>inits = MaybeInitializedPlaces::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#51">env</a>)
-            .into_engine(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>)
-            .dead_unwinds(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#55">dead_unwinds</a>)
+        <span class="kw">let </span>inits = MaybeInitializedPlaces::new(<a href="#35">tcx</a>, <a href="#35">body</a>, <span class="kw-2">&amp;</span><a href="#51">env</a>)
+            .into_engine(<a href="#35">tcx</a>, <a href="#35">body</a>)
+            .dead_unwinds(<span class="kw-2">&amp;</span><a href="#55">dead_unwinds</a>)
             .pass_name(<span class="string">&quot;elaborate_drops&quot;</span>)
             .iterate_to_fixpoint()
-            .into_results_cursor(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>);
+            .into_results_cursor(<a href="#35">body</a>);
 
-        <span class="kw">let </span>uninits = MaybeUninitializedPlaces::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#51">env</a>)
+        <span class="kw">let </span>uninits = MaybeUninitializedPlaces::new(<a href="#35">tcx</a>, <a href="#35">body</a>, <span class="kw-2">&amp;</span><a href="#51">env</a>)
             .mark_inactive_variants_as_uninit()
-            .into_engine(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>)
-            .dead_unwinds(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#55">dead_unwinds</a>)
+            .into_engine(<a href="#35">tcx</a>, <a href="#35">body</a>)
+            .dead_unwinds(<span class="kw-2">&amp;</span><a href="#55">dead_unwinds</a>)
             .pass_name(<span class="string">&quot;elaborate_drops&quot;</span>)
             .iterate_to_fixpoint()
-            .into_results_cursor(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>);
+            .into_results_cursor(<a href="#35">body</a>);
 
-        <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#294">ElaborateDropsCtxt</a> {
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">tcx</a>,
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>,
-            env: <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#51">env</a>,
-            init_data: <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#150">InitializationData</a> { <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#57">inits</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#64">uninits</a> },
+        <a href="#294">ElaborateDropsCtxt</a> {
+            <a href="#35">tcx</a>,
+            <a href="#35">body</a>,
+            env: <span class="kw-2">&amp;</span><a href="#51">env</a>,
+            init_data: <a href="#150">InitializationData</a> { <a href="#57">inits</a>, <a href="#64">uninits</a> },
             drop_flags: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            patch: MirPatch::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#35">body</a>),
+            patch: MirPatch::new(<a href="#35">body</a>),
         }
-        .<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">elaborate</a>()
+        .<a href="#327">elaborate</a>()
     };
-    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#50">elaborate_patch</a>
+    <a href="#50">elaborate_patch</a>
 }
 
 <span class="doccomment">/// Returns the set of basic blocks whose unwind edges are known
@@ -781,12 +781,12 @@
     <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;find_dead_unwinds({:?})&quot;</span>, body.span);
     <span class="comment">// We only need to do this pass once, because unwind edges can only
     // reach cleanup blocks, which can&#39;t have unwind edges themselves.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>dead_unwinds = BitSet::new_empty(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#90">body</a>.basic_blocks.len());
-    <span class="kw">let </span><span class="kw-2">mut </span>flow_inits = MaybeInitializedPlaces::new(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#89">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#90">body</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#91">env</a>)
-        .into_engine(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#89">tcx</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#90">body</a>)
+    </span><span class="kw">let </span><span class="kw-2">mut </span>dead_unwinds = BitSet::new_empty(<a href="#90">body</a>.basic_blocks.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>flow_inits = MaybeInitializedPlaces::new(<a href="#89">tcx</a>, <a href="#90">body</a>, <a href="#91">env</a>)
+        .into_engine(<a href="#89">tcx</a>, <a href="#90">body</a>)
         .pass_name(<span class="string">&quot;find_dead_unwinds&quot;</span>)
         .iterate_to_fixpoint()
-        .into_results_cursor(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#90">body</a>);
+        .into_results_cursor(<a href="#90">body</a>);
     <span class="kw">for </span>(bb, bb_data) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
         <span class="kw">let </span>place = <span class="kw">match </span>bb_data.terminator().kind {
             TerminatorKind::Drop {
@@ -832,7 +832,7 @@
         }
     }
 
-    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#96">dead_unwinds</a>
+    <a href="#96">dead_unwinds</a>
 }
 
 <span class="kw">struct </span>InitializationData&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
@@ -842,12 +842,12 @@
 
 <span class="kw">impl </span>InitializationData&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>seek_before(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>) {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#156">self</a>.inits.seek_before_primary_effect(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#156">loc</a>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#156">self</a>.uninits.seek_before_primary_effect(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#156">loc</a>);
+        <a class="self" href="#156">self</a>.inits.seek_before_primary_effect(<a href="#156">loc</a>);
+        <a class="self" href="#156">self</a>.uninits.seek_before_primary_effect(<a href="#156">loc</a>);
     }
 
     <span class="kw">fn </span>maybe_live_dead(<span class="kw-2">&amp;</span><span class="self">self</span>, path: MovePathIndex) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        (<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">self</a>.inits.contains(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">path</a>), <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">self</a>.uninits.contains(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">path</a>))
+        (<a class="self" href="#161">self</a>.inits.contains(<a href="#161">path</a>), <a class="self" href="#161">self</a>.uninits.contains(<a href="#161">path</a>))
     }
 }
 
@@ -865,39 +865,39 @@
     <span class="kw">type </span>Path = MovePathIndex;
 
     <span class="kw">fn </span>patch(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#179">self</a>.ctxt.patch
+        <span class="kw-2">&amp;mut </span><a class="self" href="#179">self</a>.ctxt.patch
     }
 
     <span class="kw">fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#183">self</a>.ctxt.body
+        <a class="self" href="#183">self</a>.ctxt.body
     }
 
     <span class="kw">fn </span>tcx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#187">self</a>.ctxt.tcx
+        <a class="self" href="#187">self</a>.ctxt.tcx
     }
 
     <span class="kw">fn </span>param_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#191">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#308">param_env</a>()
+        <a class="self" href="#191">self</a>.ctxt.<a href="#308">param_env</a>()
     }
 
     <span class="kw">fn </span>drop_style(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, mode: DropFlagMode) -&gt; DropStyle {
-        <span class="kw">let </span>((maybe_live, maybe_dead), multipart) = <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">mode</a> {
-            DropFlagMode::Shallow =&gt; (<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">self</a>.ctxt.init_data.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">maybe_live_dead</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">path</a>), <span class="bool-val">false</span>),
+        <span class="kw">let </span>((maybe_live, maybe_dead), multipart) = <span class="kw">match </span><a href="#195">mode</a> {
+            DropFlagMode::Shallow =&gt; (<a class="self" href="#195">self</a>.ctxt.init_data.<a href="#161">maybe_live_dead</a>(<a href="#195">path</a>), <span class="bool-val">false</span>),
             DropFlagMode::Deep =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>some_live = <span class="bool-val">false</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>some_dead = <span class="bool-val">false</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>children_count = <span class="number">0</span>;
-                on_all_drop_children_bits(<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#76">tcx</a>(), <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#75">body</a>(), <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">self</a>.ctxt.env, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">path</a>, |child| {
-                    <span class="kw">let </span>(live, dead) = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#195">self</a>.ctxt.init_data.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#161">maybe_live_dead</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#202">child</a>);
+                on_all_drop_children_bits(<a class="self" href="#195">self</a>.<a href="mir_dataflow.rs.html#76">tcx</a>(), <a class="self" href="#195">self</a>.<a href="mir_dataflow.rs.html#75">body</a>(), <a class="self" href="#195">self</a>.ctxt.env, <a href="#195">path</a>, |child| {
+                    <span class="kw">let </span>(live, dead) = <a class="self" href="#195">self</a>.ctxt.init_data.<a href="#161">maybe_live_dead</a>(<a href="#202">child</a>);
                     <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;elaborate_drop: state({:?}) = {:?}&quot;</span>, child, (live, dead));
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#199">some_live</a> |= <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#203">live</a>;
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#200">some_dead</a> |= <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#203">dead</a>;
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#201">children_count</a> += <span class="number">1</span>;
+                    <a href="#199">some_live</a> |= <a href="#203">live</a>;
+                    <a href="#200">some_dead</a> |= <a href="#203">dead</a>;
+                    <a href="#201">children_count</a> += <span class="number">1</span>;
                 });
-                ((<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#199">some_live</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#200">some_dead</a>), <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#201">children_count</a> != <span class="number">1</span>)
+                ((<a href="#199">some_live</a>, <a href="#200">some_dead</a>), <a href="#201">children_count</a> != <span class="number">1</span>)
             }
         };
-        <span class="kw">match </span>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#196">maybe_live</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#196">maybe_dead</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#196">multipart</a>) {
+        <span class="kw">match </span>(<a href="#196">maybe_live</a>, <a href="#196">maybe_dead</a>, <a href="#196">multipart</a>) {
             (<span class="bool-val">false</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; DropStyle::Dead,
             (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; DropStyle::Static,
             (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; DropStyle::Conditional,
@@ -906,17 +906,17 @@
     }
 
     <span class="kw">fn </span>clear_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, path: <span class="self">Self</span>::Path, mode: DropFlagMode) {
-        <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">mode</a> {
+        <span class="kw">match </span><a href="#220">mode</a> {
             DropFlagMode::Shallow =&gt; {
-                <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">set_drop_flag</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">loc</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">path</a>, DropFlagState::Absent);
+                <a class="self" href="#220">self</a>.ctxt.<a href="#558">set_drop_flag</a>(<a href="#220">loc</a>, <a href="#220">path</a>, DropFlagState::Absent);
             }
             DropFlagMode::Deep =&gt; {
                 on_all_children_bits(
-                    <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#76">tcx</a>(),
-                    <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#75">body</a>(),
-                    <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(),
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">path</a>,
-                    |child| <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">set_drop_flag</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#220">loc</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#231">child</a>, DropFlagState::Absent),
+                    <a class="self" href="#220">self</a>.<a href="mir_dataflow.rs.html#76">tcx</a>(),
+                    <a class="self" href="#220">self</a>.<a href="mir_dataflow.rs.html#75">body</a>(),
+                    <a class="self" href="#220">self</a>.ctxt.<a href="#304">move_data</a>(),
+                    <a href="#220">path</a>,
+                    |child| <a class="self" href="#220">self</a>.ctxt.<a href="#558">set_drop_flag</a>(<a href="#220">loc</a>, <a href="#231">child</a>, DropFlagState::Absent),
                 );
             }
         }
@@ -924,10 +924,10 @@
 
     <span class="kw">fn </span>field_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, field: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Field.html">Field</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt; {
         prusti_rustc_interface::dataflow::move_path_children_matching(
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#237">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(),
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#237">path</a>,
-            |e| <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#241">e</a> {
-                ProjectionElem::Field(idx, <span class="kw">_</span>) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#242">idx</a> == <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#237">field</a>,
+            <a class="self" href="#237">self</a>.ctxt.<a href="#304">move_data</a>(),
+            <a href="#237">path</a>,
+            |e| <span class="kw">match </span><a href="#241">e</a> {
+                ProjectionElem::Field(idx, <span class="kw">_</span>) =&gt; <a href="#242">idx</a> == <a href="#237">field</a>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
         )
@@ -935,9 +935,9 @@
 
     <span class="kw">fn </span>array_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt; {
         prusti_rustc_interface::dataflow::move_path_children_matching(
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#248">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(),
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#248">path</a>,
-            |e| <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#252">e</a> {
+            <a class="self" href="#248">self</a>.ctxt.<a href="#304">move_data</a>(),
+            <a href="#248">path</a>,
+            |e| <span class="kw">match </span><a href="#252">e</a> {
                 <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">ProjectionElem::ConstantIndex</a> {
                     offset,
                     min_length,
@@ -948,7 +948,7 @@
                         !from_end,
                         <span class="string">&quot;from_end should not be used for array element ConstantIndex&quot;
                     </span>);
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#254">offset</a> == <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#248">index</a>
+                    <a href="#254">offset</a> == <a href="#248">index</a>
                 }
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
@@ -957,25 +957,25 @@
 
     <span class="kw">fn </span>deref_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt; {
         prusti_rustc_interface::dataflow::move_path_children_matching(
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#270">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(),
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#270">path</a>,
-            |e| <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#274">e</a> == ProjectionElem::Deref,
+            <a class="self" href="#270">self</a>.ctxt.<a href="#304">move_data</a>(),
+            <a href="#270">path</a>,
+            |e| <a href="#274">e</a> == ProjectionElem::Deref,
         )
     }
 
     <span class="kw">fn </span>downcast_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, variant: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">VariantIdx</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt; {
         prusti_rustc_interface::dataflow::move_path_children_matching(
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#278">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(),
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#278">path</a>,
-            |e| <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#282">e</a> {
-                ProjectionElem::Downcast(<span class="kw">_</span>, idx) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#283">idx</a> == <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#278">variant</a>,
+            <a class="self" href="#278">self</a>.ctxt.<a href="#304">move_data</a>(),
+            <a href="#278">path</a>,
+            |e| <span class="kw">match </span><a href="#282">e</a> {
+                ProjectionElem::Downcast(<span class="kw">_</span>, idx) =&gt; <a href="#283">idx</a> == <a href="#278">variant</a>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
         )
     }
 
     <span class="kw">fn </span>get_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="self">Self</span>::Path) -&gt; <span class="prelude-ty">Option</span>&lt;Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#289">self</a>.ctxt.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#321">drop_flag</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#289">path</a>).map(Operand::Copy)
+        <a class="self" href="#289">self</a>.ctxt.<a href="#321">drop_flag</a>(<a href="#289">path</a>).map(Operand::Copy)
     }
 }
 
@@ -990,39 +990,39 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; ElaborateDropsCtxt&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>move_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>MoveData&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">self</a>.env.move_data
+        <span class="kw-2">&amp;</span><a class="self" href="#304">self</a>.env.move_data
     }
 
     <span class="kw">fn </span>param_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#308">self</a>.env.param_env
+        <a class="self" href="#308">self</a>.env.param_env
     }
 
     <span class="kw">fn </span>create_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: MovePathIndex, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) {
-        <span class="kw">let </span>tcx = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#312">self</a>.tcx;
-        <span class="kw">let </span>patch = <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#312">self</a>.patch;
+        <span class="kw">let </span>tcx = <a class="self" href="#312">self</a>.tcx;
+        <span class="kw">let </span>patch = <span class="kw-2">&amp;mut </span><a class="self" href="#312">self</a>.patch;
         <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;create_drop_flag({:?})&quot;</span>, <span class="self">self</span>.body.span);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#312">self</a>.drop_flags
-            .entry(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#312">index</a>)
-            .or_insert_with(|| <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#314">patch</a>.new_internal(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#313">tcx</a>.types.bool, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#312">span</a>));
+        <a class="self" href="#312">self</a>.drop_flags
+            .entry(<a href="#312">index</a>)
+            .or_insert_with(|| <a href="#314">patch</a>.new_internal(<a href="#313">tcx</a>.types.bool, <a href="#312">span</a>));
     }
 
     <span class="kw">fn </span>drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: MovePathIndex) -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#321">self</a>.drop_flags.get(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#321">index</a>).map(|t| Place::from(<span class="kw-2">*</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#322">t</a>))
+        <a class="self" href="#321">self</a>.drop_flags.get(<span class="kw-2">&amp;</span><a href="#321">index</a>).map(|t| Place::from(<span class="kw-2">*</span><a href="#322">t</a>))
     }
 
     <span class="doccomment">/// create a patch that elaborates all drops in the input
     /// MIR.
     </span><span class="kw">fn </span>elaborate(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#340">collect_drop_flags</a>();
+        <a class="self" href="#327">self</a>.<a href="#340">collect_drop_flags</a>();
 
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#391">elaborate_drops</a>();
+        <a class="self" href="#327">self</a>.<a href="#391">elaborate_drops</a>();
 
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#566">drop_flags_on_init</a>();
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#576">drop_flags_for_fn_rets</a>();
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#599">drop_flags_for_args</a>();
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#611">drop_flags_for_locs</a>();
+        <a class="self" href="#327">self</a>.<a href="#566">drop_flags_on_init</a>();
+        <a class="self" href="#327">self</a>.<a href="#576">drop_flags_for_fn_rets</a>();
+        <a class="self" href="#327">self</a>.<a href="#599">drop_flags_for_args</a>();
+        <a class="self" href="#327">self</a>.<a href="#611">drop_flags_for_locs</a>();
 
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#327">self</a>.patch
+        <a class="self" href="#327">self</a>.patch
     }
 
     <span class="kw">fn </span>collect_drop_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1149,69 +1149,69 @@
         target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
         unwind: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt;,
     ) {
-        <span class="kw">let </span>bb = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#458">loc</a>.block;
-        <span class="kw">let </span>data = <span class="kw-2">&amp;</span><a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.body[<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#464">bb</a>];
-        <span class="kw">let </span>terminator = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#465">data</a>.terminator();
+        <span class="kw">let </span>bb = <a href="#458">loc</a>.block;
+        <span class="kw">let </span>data = <span class="kw-2">&amp;</span><a class="self" href="#457">self</a>.body[<a href="#464">bb</a>];
+        <span class="kw">let </span>terminator = <a href="#465">data</a>.terminator();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             !data.is_cleanup,
             <span class="string">&quot;DropAndReplace in unwind path not supported&quot;
         </span>);
 
         <span class="kw">let </span>assign = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Statement.html">Statement</a> {
-            kind: StatementKind::Assign(Box::new((<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#459">place</a>, Rvalue::Use(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#460">value</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())))),
-            source_info: <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#466">terminator</a>.source_info,
+            kind: StatementKind::Assign(Box::new((<a href="#459">place</a>, Rvalue::Use(<a href="#460">value</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())))),
+            source_info: <a href="#466">terminator</a>.source_info,
         };
 
-        <span class="kw">let </span>unwind = <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#462">unwind</a>.unwrap_or_else(|| <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.patch.resume_block());
-        <span class="kw">let </span>unwind = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.patch.new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
+        <span class="kw">let </span>unwind = <a href="#462">unwind</a>.unwrap_or_else(|| <a class="self" href="#457">self</a>.patch.resume_block());
+        <span class="kw">let </span>unwind = <a class="self" href="#457">self</a>.patch.new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[assign.clone()],
             terminator: <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">Terminator</a> {
-                kind: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#477">unwind</a> },
-                ..<span class="kw-2">*</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#466">terminator</a>
+                kind: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="#477">unwind</a> },
+                ..<span class="kw-2">*</span><a href="#466">terminator</a>
             }),
             is_cleanup: <span class="bool-val">true</span>,
         });
 
-        <span class="kw">let </span>target = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.patch.new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
+        <span class="kw">let </span>target = <a class="self" href="#457">self</a>.patch.new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[assign],
             terminator: <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">Terminator</a> {
-                kind: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#461">target</a> },
-                ..<span class="kw-2">*</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#466">terminator</a>
+                kind: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <a href="#461">target</a> },
+                ..<span class="kw-2">*</span><a href="#466">terminator</a>
             }),
             is_cleanup: <span class="bool-val">false</span>,
         });
 
-        <span class="kw">match </span><a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>().rev_lookup.find(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#459">place</a>.as_ref()) {
+        <span class="kw">match </span><a class="self" href="#457">self</a>.<a href="#304">move_data</a>().rev_lookup.find(<a href="#459">place</a>.as_ref()) {
             LookupResult::Exact(path) =&gt; {
                 <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(
                     <span class="string">&quot;elaborate_drop_and_replace({:?}) - tracked {:?}&quot;</span>,
                     terminator, path
                 );
-                <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.init_data.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#156">seek_before</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#458">loc</a>);
-                <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs.html#143-153">elaborate_drop</a>(
-                    <span class="kw-2">&amp;mut </span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#166">Elaborator</a> { ctxt: <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a> </span>},
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#466">terminator</a>.source_info,
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#459">place</a>,
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#497">path</a>,
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#487">target</a>,
-                    Unwind::To(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#478">unwind</a>),
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#464">bb</a>,
+                <a class="self" href="#457">self</a>.init_data.<a href="#156">seek_before</a>(<a href="#458">loc</a>);
+                <a href="mir_dataflow.rs.html#143-153">elaborate_drop</a>(
+                    <span class="kw-2">&amp;mut </span><a href="#166">Elaborator</a> { ctxt: <span class="self"><a href="#457">self</a> </span>},
+                    <a href="#466">terminator</a>.source_info,
+                    <a href="#459">place</a>,
+                    <a href="#497">path</a>,
+                    <a href="#487">target</a>,
+                    Unwind::To(<a href="#478">unwind</a>),
+                    <a href="#464">bb</a>,
                 );
-                on_all_children_bits(<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.tcx, <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.body, <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#304">move_data</a>(), <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#497">path</a>, |child| {
-                    <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">set_drop_flag</a>(
+                on_all_children_bits(<a class="self" href="#457">self</a>.tcx, <a class="self" href="#457">self</a>.body, <a class="self" href="#457">self</a>.<a href="#304">move_data</a>(), <a href="#497">path</a>, |child| {
+                    <a class="self" href="#457">self</a>.<a href="#558">set_drop_flag</a>(
                         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-                            block: <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#487">target</a>,
+                            block: <a href="#487">target</a>,
                             statement_index: <span class="number">0</span>,
                         },
-                        <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#512">child</a>,
+                        <a href="#512">child</a>,
                         DropFlagState::Present,
                     );
-                    <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">set_drop_flag</a>(
+                    <a class="self" href="#457">self</a>.<a href="#558">set_drop_flag</a>(
                         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-                            block: <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#478">unwind</a>,
+                            block: <a href="#478">unwind</a>,
                             statement_index: <span class="number">0</span>,
                         },
-                        <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#512">child</a>,
+                        <a href="#512">child</a>,
                         DropFlagState::Present,
                     );
                 });
@@ -1223,12 +1223,12 @@
                     <span class="string">&quot;elaborate_drop_and_replace({:?}) - untracked {:?}&quot;</span>,
                     terminator, parent
                 );
-                <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#457">self</a>.patch.patch_terminator(
-                    <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#464">bb</a>,
+                <a class="self" href="#457">self</a>.patch.patch_terminator(
+                    <a href="#464">bb</a>,
                     <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> {
-                        <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#459">place</a>,
-                        <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#487">target</a>,
-                        unwind: <span class="prelude-val">Some</span>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#478">unwind</a>),
+                        <a href="#459">place</a>,
+                        <a href="#487">target</a>,
+                        unwind: <span class="prelude-val">Some</span>(<a href="#478">unwind</a>),
                     },
                 );
             }
@@ -1237,24 +1237,24 @@
 
     <span class="kw">fn </span>constant_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Rvalue&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         Rvalue::Use(Operand::Constant(Box::new(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Constant.html">Constant</a> {
-            <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#550">span</a>,
+            <a href="#550">span</a>,
             user_ty: <span class="prelude-val">None</span>,
-            literal: ConstantKind::Ty(ty::Const::from_bool(<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#550">self</a>.tcx, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#550">val</a>)),
+            literal: ConstantKind::Ty(ty::Const::from_bool(<a class="self" href="#550">self</a>.tcx, <a href="#550">val</a>)),
         })))
     }
 
     <span class="kw">fn </span>set_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, path: MovePathIndex, val: DropFlagState) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>flag) = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">self</a>.drop_flags.get(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">path</a>) {
-            <span class="kw">let </span>span = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">self</a>.patch.source_info_for_location(<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">self</a>.body, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">loc</a>).span;
-            <span class="kw">let </span>val = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#550">constant_bool</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#560">span</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">val</a>.value());
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">self</a>.patch.add_assign(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">loc</a>, Place::from(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#559">flag</a>), <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#561">val</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>flag) = <a class="self" href="#558">self</a>.drop_flags.get(<span class="kw-2">&amp;</span><a href="#558">path</a>) {
+            <span class="kw">let </span>span = <a class="self" href="#558">self</a>.patch.source_info_for_location(<a class="self" href="#558">self</a>.body, <a href="#558">loc</a>).span;
+            <span class="kw">let </span>val = <a class="self" href="#558">self</a>.<a href="#550">constant_bool</a>(<a href="#560">span</a>, <a href="#558">val</a>.value());
+            <a class="self" href="#558">self</a>.patch.add_assign(<a href="#558">loc</a>, Place::from(<a href="#559">flag</a>), <a href="#561">val</a>);
         }
     }
 
     <span class="kw">fn </span>drop_flags_on_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>loc = Location::START;
-        <span class="kw">let </span>span = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#566">self</a>.patch.source_info_for_location(<a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#566">self</a>.body, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#567">loc</a>).span;
-        <span class="kw">let </span>false_ = <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#566">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#550">constant_bool</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#568">span</a>, <span class="bool-val">false</span>);
+        <span class="kw">let </span>span = <a class="self" href="#566">self</a>.patch.source_info_for_location(<a class="self" href="#566">self</a>.body, <a href="#567">loc</a>).span;
+        <span class="kw">let </span>false_ = <a class="self" href="#566">self</a>.<a href="#550">constant_bool</a>(<a href="#568">span</a>, <span class="bool-val">false</span>);
         <span class="kw">for </span>flag <span class="kw">in </span><span class="self">self</span>.drop_flags.values() {
             <span class="self">self</span>.patch
                 .add_assign(loc, Place::from(<span class="kw-2">*</span>flag), false_.clone());
@@ -1287,11 +1287,11 @@
     <span class="kw">fn </span>drop_flags_for_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>loc = Location::START;
         prusti_rustc_interface::dataflow::drop_flag_effects_for_function_entry(
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#599">self</a>.tcx,
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#599">self</a>.body,
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#599">self</a>.env,
+            <a class="self" href="#599">self</a>.tcx,
+            <a class="self" href="#599">self</a>.body,
+            <a class="self" href="#599">self</a>.env,
             |path, ds| {
-                <a class="self" href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#599">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#558">set_drop_flag</a>(<a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#600">loc</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#605">path</a>, <a href="../../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/elaborate_drops/mir_transform.rs.html#605">ds</a>);
+                <a class="self" href="#599">self</a>.<a href="#558">set_drop_flag</a>(<a href="#600">loc</a>, <a href="#605">path</a>, <a href="#605">ds</a>);
             },
         )
     }
@@ -1375,4 +1375,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

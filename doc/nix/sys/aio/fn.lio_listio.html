@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Submits multiple asynchronous I/O requests with a single system call."><meta name="keywords" content="rust, rustlang, rust-lang, lio_listio"><title>lio_listio in nix::sys::aio - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><div class="sidebar-elems"><h2 class="location"><a href="index.html">In nix::sys::aio</a></h2></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Function <a href="../../index.html">nix</a>::<wbr><a href="../index.html">sys</a>::<wbr><a href="index.html">aio</a>::<wbr><a class="fn" href="#">lio_listio</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../../src/nix/sys/aio.rs.html#1177-1191">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust fn"><code>pub fn lio_listio(<br>&nbsp;&nbsp;&nbsp;&nbsp;mode: <a class="enum" href="enum.LioMode.html" title="enum nix::sys::aio::LioMode">LioMode</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;list: &amp;mut [<a class="struct" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html" title="struct core::pin::Pin">Pin</a>&lt;&amp;mut dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html" title="trait core::convert::AsMut">AsMut</a>&lt;<a class="struct" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html" title="struct libc::unix::linux_like::linux::gnu::aiocb">aiocb</a>&gt;&gt;],<br>&nbsp;&nbsp;&nbsp;&nbsp;sigev_notify: <a class="enum" href="../signal/enum.SigevNotify.html" title="enum nix::sys::signal::SigevNotify">SigevNotify</a><br>) -&gt; <a class="type" href="../../type.Result.html" title="type nix::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>&gt;</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Submits multiple asynchronous I/O requests with a single system call.</p>
+<p>They are not guaranteed to complete atomically, and the order in which the
+requests are carried out is not specified. Reads, and writes may be freely
+mixed.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Use <code>lio_listio</code> to submit an aio operation and wait for its completion. In
+this case, there is no need to use aio_suspend to wait or <code>error</code> to poll.
+This mode is useful for otherwise-synchronous programs that want to execute
+a handful of I/O operations in parallel.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>WBUF: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;abcdef123456&quot;</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>f = tempfile().unwrap();
+<span class="kw">let </span><span class="kw-2">mut </span>aiow = Box::pin(AioWrite::new(
+    f.as_raw_fd(),
+    <span class="number">2</span>,      <span class="comment">// offset
+    </span>WBUF,
+    <span class="number">0</span>,      <span class="comment">// priority
+    </span>SigevNotify::SigevNone
+));
+lio_listio(LioMode::LIO_WAIT, <span class="kw-2">&amp;mut</span>[aiow.as_mut()], SigevNotify::SigevNone)
+    .unwrap();
+<span class="comment">// At this point, we are guaranteed that aiow is complete.
+</span><span class="macro">assert_eq!</span>(aiow.as_mut().aio_return().unwrap(), WBUF.len());</code></pre></div>
+<p>Use <code>lio_listio</code> to submit multiple asynchronous operations with a single
+syscall, but receive notification individually.  This is an efficient
+technique for reducing overall context-switch overhead, especially when
+combined with kqueue.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>WBUF: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;abcdef123456&quot;</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>f = tempfile().unwrap();
+<span class="kw">let </span><span class="kw-2">mut </span>aiow = Box::pin(AioWrite::new(
+    f.as_raw_fd(),
+    <span class="number">2</span>,      <span class="comment">// offset
+    </span>WBUF,
+    <span class="number">0</span>,      <span class="comment">// priority
+    </span>SigevNotify::SigevNone
+));
+lio_listio(LioMode::LIO_NOWAIT, <span class="kw-2">&amp;mut</span>[aiow.as_mut()], SigevNotify::SigevNone)
+    .unwrap();
+<span class="comment">// We must wait for the completion of each individual operation
+</span><span class="kw">while </span>(aiow.as_mut().error() == <span class="prelude-val">Err</span>(Errno::EINPROGRESS)) {
+    thread::sleep(time::Duration::from_millis(<span class="number">10</span>));
+}
+<span class="macro">assert_eq!</span>(aiow.as_mut().aio_return().unwrap(), WBUF.len());</code></pre></div>
+<p>Use <code>lio_listio</code> to submit multiple operations, and receive notification
+only when all of them are complete.  This can be useful when there is some
+logical relationship between the operations.  But beware!  Errors or system
+resource limitations may cause <code>lio_listio</code> to return <code>EIO</code>, <code>EAGAIN</code>, or
+<code>EINTR</code>, in which case some but not all operations may have been submitted.
+In that case, you must check the status of each individual operation, and
+possibly resubmit some.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">lazy_static! </span>{
+    <span class="kw">pub static </span><span class="kw-2">ref </span>SIGNALED: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
+}
+
+<span class="kw">extern fn </span>sigfunc(<span class="kw">_</span>: c_int) {
+    SIGNALED.store(<span class="bool-val">true</span>, Ordering::Relaxed);
+}
+<span class="kw">let </span>sa = SigAction::new(SigHandler::Handler(sigfunc),
+                        SaFlags::SA_RESETHAND,
+                        SigSet::empty());
+SIGNALED.store(<span class="bool-val">false</span>, Ordering::Relaxed);
+<span class="kw">unsafe </span>{ sigaction(Signal::SIGUSR2, <span class="kw-2">&amp;</span>sa) }.unwrap();
+
+<span class="kw">const </span>WBUF: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;abcdef123456&quot;</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>f = tempfile().unwrap();
+<span class="kw">let </span><span class="kw-2">mut </span>aiow = Box::pin(AioWrite::new(
+    f.as_raw_fd(),
+    <span class="number">2</span>,      <span class="comment">// offset
+    </span>WBUF,
+    <span class="number">0</span>,      <span class="comment">// priority
+    </span>SigevNotify::SigevNone
+));
+<span class="kw">let </span>sev = SigevNotify::SigevSignal { signal: Signal::SIGUSR2, si_value: <span class="number">0 </span>};
+lio_listio(LioMode::LIO_NOWAIT, <span class="kw-2">&amp;mut</span>[aiow.as_mut()], sev).unwrap();
+<span class="kw">while </span>!SIGNALED.load(Ordering::Relaxed) {
+    thread::sleep(time::Duration::from_millis(<span class="number">10</span>));
+}
+<span class="comment">// At this point, since `lio_listio` returned success and delivered its
+// notification, we know that all operations are complete.
+</span><span class="macro">assert_eq!</span>(aiow.as_mut().aio_return().unwrap(), WBUF.len());</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

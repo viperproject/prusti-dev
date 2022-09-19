@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/time/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,9 +207,9 @@
 //! [`Timeout`]: struct@Timeout
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../../src/tokio/lib.rs.html#427">coop</a>,
-    time::{<a href="../../../src/tokio/time/error.rs.html#45">error::Elapsed</a>, <a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>},
-    <a href="../../../src/tokio/util/mod.rs.html#70">util::trace</a>,
+    <a href="../lib.rs.html#505">coop</a>,
+    time::{<a href="error.rs.html#45">error::Elapsed</a>, <a href="driver/sleep.rs.html#64">sleep_until</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="instant.rs.html#34">Instant</a>, <a href="driver/sleep.rs.html#136-235">Sleep</a>},
+    <a href="../util/mod.rs.html#68">util::trace</a>,
 };
 
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
@@ -274,14 +274,14 @@
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let </span>location = <a href="../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
+    <span class="kw">let </span>location = <a href="../util/trace.rs.html#84">trace::caller_location</a>();
 
-    <span class="kw">let </span>deadline = Instant::now().<a href="../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a href="../../../src/tokio/time/timeout.rs.html#71">duration</a>);
-    <span class="kw">let </span>delay = <span class="kw">match </span><a href="../../../src/tokio/time/timeout.rs.html#77">deadline</a> {
-        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="../../../src/tokio/time/timeout.rs.html#79">deadline</a>, <a href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
-        <span class="prelude-val">None </span>=&gt; Sleep::far_future(<a href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
+    <span class="kw">let </span>deadline = Instant::now().<a href="instant.rs.html#141">checked_add</a>(<a href="#71">duration</a>);
+    <span class="kw">let </span>delay = <span class="kw">match </span><a href="#77">deadline</a> {
+        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="#79">deadline</a>, <a href="#75">location</a>),
+        <span class="prelude-val">None </span>=&gt; Sleep::far_future(<a href="#75">location</a>),
     };
-    Timeout::new_with_delay(<a href="../../../src/tokio/time/timeout.rs.html#71">future</a>, <a href="../../../src/tokio/time/timeout.rs.html#78">delay</a>)
+    Timeout::new_with_delay(<a href="#71">future</a>, <a href="#78">delay</a>)
 }
 
 <span class="doccomment">/// Requires a `Future` to complete before the specified instant in time.
@@ -318,15 +318,15 @@
 /// }
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>timeout_at&lt;T&gt;(deadline: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, future: T) -&gt; Timeout&lt;T&gt;
+</span><span class="kw">pub fn </span>timeout_at&lt;T&gt;(deadline: <a href="instant.rs.html#34">Instant</a>, future: T) -&gt; Timeout&lt;T&gt;
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let </span>delay = <a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>(<a href="../../../src/tokio/time/timeout.rs.html#119">deadline</a>);
+    <span class="kw">let </span>delay = <a href="driver/sleep.rs.html#64">sleep_until</a>(<a href="#119">deadline</a>);
 
-    <a href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> {
-        value: <a href="../../../src/tokio/time/timeout.rs.html#119">future</a>,
-        <a href="../../../src/tokio/time/timeout.rs.html#123">delay</a>,
+    <a href="#131-141">Timeout</a> {
+        value: <a href="#119">future</a>,
+        <a href="#123">delay</a>,
     }
 }
 
@@ -338,28 +338,28 @@
         <span class="attribute">#[pin]
         </span>value: T,
         <span class="attribute">#[pin]
-        </span>delay: <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>,
+        </span>delay: <a href="driver/sleep.rs.html#136-235">Sleep</a>,
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Timeout&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_delay(value: T, delay: <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>) -&gt; Timeout&lt;T&gt; {
-        <a href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> { <a href="../../../src/tokio/time/timeout.rs.html#144">value</a>, <a href="../../../src/tokio/time/timeout.rs.html#144">delay</a> }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_delay(value: T, delay: <a href="driver/sleep.rs.html#136-235">Sleep</a>) -&gt; Timeout&lt;T&gt; {
+        <a href="#131-141">Timeout</a> { <a href="#144">value</a>, <a href="#144">delay</a> }
     }
 
     <span class="doccomment">/// Gets a reference to the underlying value in this timeout.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/time/timeout.rs.html#149">self</a>.value
+        <span class="kw-2">&amp;</span><a class="self" href="#149">self</a>.value
     }
 
     <span class="doccomment">/// Gets a mutable reference to the underlying value in this timeout.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/time/timeout.rs.html#154">self</a>.value
+        <span class="kw-2">&amp;mut </span><a class="self" href="#154">self</a>.value
     }
 
     <span class="doccomment">/// Consumes this timeout, returning the underlying value.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../../src/tokio/time/timeout.rs.html#159">self</a>.value
+        <a class="self" href="#159">self</a>.value
     }
 }
 
@@ -367,40 +367,40 @@
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T::Output, <a href="../../../src/tokio/time/error.rs.html#45">Elapsed</a>&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T::Output, <a href="error.rs.html#45">Elapsed</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/time/timeout.rs.html#170">self</a>.<a href="../../../src/tokio/time/timeout.rs.html#131-141">project</a>();
+        <span class="kw">let </span>me = <a class="self" href="#170">self</a>.<a href="#131-141">project</a>();
 
-        <span class="kw">let </span>had_budget_before = <a href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
+        <span class="kw">let </span>had_budget_before = <a href="../coop.rs.html#107">coop::has_budget_remaining</a>();
 
         <span class="comment">// First, try polling the future
-        </span><span class="kw">if let </span>Poll::Ready(v) = <a href="../../../src/tokio/time/timeout.rs.html#171">me</a>.value.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/time/timeout.rs.html#176">v</a>));
+        </span><span class="kw">if let </span>Poll::Ready(v) = <a href="#171">me</a>.value.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#170">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#176">v</a>));
         }
 
-        <span class="kw">let </span>has_budget_now = <a href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
+        <span class="kw">let </span>has_budget_now = <a href="../coop.rs.html#107">coop::has_budget_remaining</a>();
 
-        <span class="kw">let </span>delay = <a href="../../../src/tokio/time/timeout.rs.html#171">me</a>.delay;
+        <span class="kw">let </span>delay = <a href="#171">me</a>.delay;
 
         <span class="kw">let </span>poll_delay = || -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-            <span class="kw">match </span><a href="../../../src/tokio/time/timeout.rs.html#182">delay</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
+            <span class="kw">match </span><a href="#182">delay</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#170">cx</a>) {
                 Poll::Ready(()) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Elapsed::new())),
                 Poll::Pending =&gt; Poll::Pending,
             }
         };
 
-        <span class="kw">if let </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) = (<a href="../../../src/tokio/time/timeout.rs.html#173">had_budget_before</a>, <a href="../../../src/tokio/time/timeout.rs.html#180">has_budget_now</a>) {
+        <span class="kw">if let </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) = (<a href="#173">had_budget_before</a>, <a href="#180">has_budget_now</a>) {
             <span class="comment">// if it is the underlying future that exhausted the budget, we poll
             // the `delay` with an unconstrained one. This prevents pathological
             // cases where the underlying future always exhausts the budget and
             // we never get a chance to evaluate whether the timeout was hit or
             // not.
-            </span><a href="../../../src/tokio/coop.rs.html#78">coop::with_unconstrained</a>(<a href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>)
+            </span><a href="../coop.rs.html#78">coop::with_unconstrained</a>(<a href="#184">poll_delay</a>)
         } <span class="kw">else </span>{
-            <a href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>()
+            <a href="#184">poll_delay</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

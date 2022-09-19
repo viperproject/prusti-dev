@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/groupbylazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>groupbylazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/groupbylazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>groupbylazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -572,24 +572,24 @@
 </pre><pre class="rust"><code><span class="kw">use </span>std::cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
 <span class="kw">use </span>alloc::vec::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
 
-<span class="doccomment">/// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks
+<span class="doccomment">/// A trait to unify `FnMut` for `GroupBy` with the chunk key in `IntoChunks`
 </span><span class="kw">trait </span>KeyFunction&lt;A&gt; {
     <span class="kw">type </span>Key;
     <span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: A) -&gt; <span class="self">Self</span>::Key;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, K, F: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; KeyFunction&lt;A&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;A, K, F: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; KeyFunction&lt;A&gt; <span class="kw">for </span>F
     <span class="kw">where </span>F: FnMut(A) -&gt; K
 {
     <span class="kw">type </span>Key = K;
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: A) -&gt; <span class="self">Self</span>::Key {
-        (<span class="kw-2">*</span><a class="self" href="../../src/itertools/groupbylazy.rs.html#15">self</a>)(<a href="../../src/itertools/groupbylazy.rs.html#15">arg</a>)
+        (<span class="kw-2">*</span><a class="self" href="#15">self</a>)(<a href="#15">arg</a>)
     }
 }
 
 
-<span class="doccomment">/// ChunkIndex acts like the grouping key function for IntoChunks
+<span class="doccomment">/// `ChunkIndex` acts like the grouping key function for `IntoChunks`
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">struct </span>ChunkIndex {
     size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
@@ -597,27 +597,27 @@
     key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/itertools/groupbylazy.rs.html#23">ChunkIndex</a> {
+<span class="kw">impl </span><a href="#23">ChunkIndex</a> {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>new(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/itertools/groupbylazy.rs.html#23">ChunkIndex</a> {
-            <a href="../../src/itertools/groupbylazy.rs.html#31">size</a>,
+        <a href="#23">ChunkIndex</a> {
+            <a href="#31">size</a>,
             index: <span class="number">0</span>,
             key: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A&gt; KeyFunction&lt;A&gt; <span class="kw">for </span><a href="../../src/itertools/groupbylazy.rs.html#23">ChunkIndex</a> {
+<span class="kw">impl</span>&lt;A&gt; KeyFunction&lt;A&gt; <span class="kw">for </span><a href="#23">ChunkIndex</a> {
     <span class="kw">type </span>Key = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _arg: A) -&gt; <span class="self">Self</span>::Key {
         <span class="kw">if </span><span class="self">self</span>.index == <span class="self">self</span>.size {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#43">self</a>.key += <span class="number">1</span>;
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#43">self</a>.index = <span class="number">0</span>;
+            <a class="self" href="#43">self</a>.key += <span class="number">1</span>;
+            <a class="self" href="#43">self</a>.index = <span class="number">0</span>;
         }
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#43">self</a>.index += <span class="number">1</span>;
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#43">self</a>.key
+        <a class="self" href="#43">self</a>.index += <span class="number">1</span>;
+        <a class="self" href="#43">self</a>.key
     }
 }
 
@@ -665,29 +665,29 @@
             (client == <span class="self">self</span>.top_group &amp;&amp;
              <span class="self">self</span>.buffer.len() &gt; <span class="self">self</span>.top_group - <span class="self">self</span>.bottom_group)
         {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#84">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#108">lookup_buffer</a>(<a href="../../src/itertools/groupbylazy.rs.html#84">client</a>)
+            <a class="self" href="#84">self</a>.<a href="#108">lookup_buffer</a>(<a href="#84">client</a>)
         } <span class="kw">else if </span><span class="self">self</span>.done {
             <span class="prelude-val">None
         </span>} <span class="kw">else if </span><span class="self">self</span>.top_group == client {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#84">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#212">step_current</a>()
+            <a class="self" href="#84">self</a>.<a href="#212">step_current</a>()
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#84">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#154">step_buffering</a>(<a href="../../src/itertools/groupbylazy.rs.html#84">client</a>)
+            <a class="self" href="#84">self</a>.<a href="#154">step_buffering</a>(<a href="#84">client</a>)
         }
     }
 
     <span class="attribute">#[inline(never)]
     </span><span class="kw">fn </span>lookup_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
         <span class="comment">// if `bufidx` doesn&#39;t exist in self.buffer, it might be empty
-        </span><span class="kw">let </span>bufidx = <a href="../../src/itertools/groupbylazy.rs.html#108">client</a> - <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.bottom_group;
+        </span><span class="kw">let </span>bufidx = <a href="#108">client</a> - <a class="self" href="#108">self</a>.bottom_group;
         <span class="kw">if </span>client &lt; <span class="self">self</span>.oldest_buffered_group {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>elt = <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.buffer.get_mut(<a href="../../src/itertools/groupbylazy.rs.html#110">bufidx</a>).and_then(|queue| <a href="../../src/itertools/groupbylazy.rs.html#114">queue</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>());
+        <span class="kw">let </span>elt = <a class="self" href="#108">self</a>.buffer.get_mut(<a href="#110">bufidx</a>).and_then(|queue| <a href="#114">queue</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>());
         <span class="kw">if </span>elt.is_none() &amp;&amp; client == <span class="self">self</span>.oldest_buffered_group {
             <span class="comment">// FIXME: VecDeque is unfortunately not zero allocation when empty,
             // so we do this job manually.
             // `bottom_group..oldest_buffered_group` is unused, and if it&#39;s large enough, erase it.
-            </span><a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.oldest_buffered_group += <span class="number">1</span>;
+            </span><a class="self" href="#108">self</a>.oldest_buffered_group += <span class="number">1</span>;
             <span class="comment">// skip forward further empty queues too
             </span><span class="kw">while </span><span class="self">self</span>.buffer.get(<span class="self">self</span>.oldest_buffered_group - <span class="self">self</span>.bottom_group)
                              .map_or(<span class="bool-val">false</span>, |buf| buf.len() == <span class="number">0</span>)
@@ -695,18 +695,18 @@
                 <span class="self">self</span>.oldest_buffered_group += <span class="number">1</span>;
             }
 
-            <span class="kw">let </span>nclear = <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.oldest_buffered_group - <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.bottom_group;
+            <span class="kw">let </span>nclear = <a class="self" href="#108">self</a>.oldest_buffered_group - <a class="self" href="#108">self</a>.bottom_group;
             <span class="kw">if </span>nclear &gt; <span class="number">0 </span>&amp;&amp; nclear &gt;= <span class="self">self</span>.buffer.len() / <span class="number">2 </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-                <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.buffer.retain(|buf| {
-                    <a href="../../src/itertools/groupbylazy.rs.html#129">i</a> += <span class="number">1</span>;
+                <a class="self" href="#108">self</a>.buffer.retain(|buf| {
+                    <a href="#129">i</a> += <span class="number">1</span>;
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() == <span class="number">0 </span>|| i &gt; nclear);
-                    <a href="../../src/itertools/groupbylazy.rs.html#129">i</a> &gt; <a href="../../src/itertools/groupbylazy.rs.html#127">nclear</a>
+                    <a href="#129">i</a> &gt; <a href="#127">nclear</a>
                 });
-                <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.bottom_group = <a class="self" href="../../src/itertools/groupbylazy.rs.html#108">self</a>.oldest_buffered_group;
+                <a class="self" href="#108">self</a>.bottom_group = <a class="self" href="#108">self</a>.oldest_buffered_group;
             }
         }
-        <a href="../../src/itertools/groupbylazy.rs.html#114">elt</a>
+        <a href="#114">elt</a>
     }
 
     <span class="doccomment">/// Take the next element from the iterator, and set the done
@@ -714,9 +714,9 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>next_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.done);
-        <span class="kw">match </span><a class="self" href="../../src/itertools/groupbylazy.rs.html#144">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">None </span>=&gt; { <a class="self" href="../../src/itertools/groupbylazy.rs.html#144">self</a>.done = <span class="bool-val">true</span>; <span class="prelude-val">None </span>}
-            otherwise =&gt; <a href="../../src/itertools/groupbylazy.rs.html#148">otherwise</a>,
+        <span class="kw">match </span><a class="self" href="#144">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">None </span>=&gt; { <a class="self" href="#144">self</a>.done = <span class="bool-val">true</span>; <span class="prelude-val">None </span>}
+            otherwise =&gt; <a href="#148">otherwise</a>,
         }
     }
 
@@ -731,9 +731,9 @@
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.top_group + <span class="number">1 </span>== client);
         <span class="kw">let </span><span class="kw-2">mut </span>group = Vec::new();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <a class="self" href="../../src/itertools/groupbylazy.rs.html#154">self</a>.current_elt.take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <a class="self" href="#154">self</a>.current_elt.take() {
             <span class="kw">if </span><span class="self">self</span>.top_group != <span class="self">self</span>.dropped_group {
-                <a href="../../src/itertools/groupbylazy.rs.html#161">group</a>.push(<a href="../../src/itertools/groupbylazy.rs.html#163">elt</a>);
+                <a href="#161">group</a>.push(<a href="#163">elt</a>);
             }
         }
         <span class="kw">let </span><span class="kw-2">mut </span>first_elt = <span class="prelude-val">None</span>; <span class="comment">// first element of the next group
@@ -755,13 +755,13 @@
         }
 
         <span class="kw">if </span><span class="self">self</span>.top_group != <span class="self">self</span>.dropped_group {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#154">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#196">push_next_group</a>(<a href="../../src/itertools/groupbylazy.rs.html#161">group</a>);
+            <a class="self" href="#154">self</a>.<a href="#196">push_next_group</a>(<a href="#161">group</a>);
         }
         <span class="kw">if </span>first_elt.is_some() {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#154">self</a>.top_group += <span class="number">1</span>;
+            <a class="self" href="#154">self</a>.top_group += <span class="number">1</span>;
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.top_group == client);
         }
-        <a href="../../src/itertools/groupbylazy.rs.html#168">first_elt</a>
+        <a href="#168">first_elt</a>
     }
 
     <span class="kw">fn </span>push_next_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, group: Vec&lt;I::Item&gt;) {
@@ -774,7 +774,7 @@
                 <span class="self">self</span>.buffer.push(Vec::new().into_iter());
             }
         }
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#196">self</a>.buffer.push(<a href="../../src/itertools/groupbylazy.rs.html#196">group</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>());
+        <a class="self" href="#196">self</a>.buffer.push(<a href="#196">group</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.top_group + <span class="number">1 </span>- <span class="self">self</span>.bottom_group == <span class="self">self</span>.buffer.len());
     }
 
@@ -782,24 +782,24 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>step_current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.done);
-        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.current_elt.take() {
-            <span class="kw">return </span><a href="../../src/itertools/groupbylazy.rs.html#214">elt</a>;
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="#212">self</a>.current_elt.take() {
+            <span class="kw">return </span><a href="#214">elt</a>;
         }
-        <span class="kw">match </span><a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#144">next_element</a>() {
+        <span class="kw">match </span><a class="self" href="#212">self</a>.<a href="#144">next_element</a>() {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(elt) =&gt; {
-                <span class="kw">let </span>key = <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.key.<a href="../../src/itertools/groupbylazy.rs.html#7">call_mut</a>(<span class="kw-2">&amp;</span><a href="../../src/itertools/groupbylazy.rs.html#219">elt</a>);
-                <span class="kw">match </span><a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.current_key.take() {
+                <span class="kw">let </span>key = <a class="self" href="#212">self</a>.key.<a href="#7">call_mut</a>(<span class="kw-2">&amp;</span><a href="#219">elt</a>);
+                <span class="kw">match </span><a class="self" href="#212">self</a>.current_key.take() {
                     <span class="prelude-val">None </span>=&gt; {}
                     <span class="prelude-val">Some</span>(old_key) =&gt; <span class="kw">if </span>old_key != key {
-                        <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#220">key</a>);
-                        <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.current_elt = <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#219">elt</a>);
-                        <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.top_group += <span class="number">1</span>;
+                        <a class="self" href="#212">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="#220">key</a>);
+                        <a class="self" href="#212">self</a>.current_elt = <span class="prelude-val">Some</span>(<a href="#219">elt</a>);
+                        <a class="self" href="#212">self</a>.top_group += <span class="number">1</span>;
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     },
                 }
-                <a class="self" href="../../src/itertools/groupbylazy.rs.html#212">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#220">key</a>);
-                <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#219">elt</a>)
+                <a class="self" href="#212">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="#220">key</a>);
+                <span class="prelude-val">Some</span>(<a href="#219">elt</a>)
             }
         }
     }
@@ -818,16 +818,16 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(client == <span class="self">self</span>.top_group);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.current_key.is_some());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.current_elt.is_none());
-        <span class="kw">let </span>old_key = <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.current_key.take().unwrap();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.<a href="../../src/itertools/groupbylazy.rs.html#144">next_element</a>() {
-            <span class="kw">let </span>key = <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.key.<a href="../../src/itertools/groupbylazy.rs.html#7">call_mut</a>(<span class="kw-2">&amp;</span><a href="../../src/itertools/groupbylazy.rs.html#251">elt</a>);
+        <span class="kw">let </span>old_key = <a class="self" href="#241">self</a>.current_key.take().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <a class="self" href="#241">self</a>.<a href="#144">next_element</a>() {
+            <span class="kw">let </span>key = <a class="self" href="#241">self</a>.key.<a href="#7">call_mut</a>(<span class="kw-2">&amp;</span><a href="#251">elt</a>);
             <span class="kw">if </span>old_key != key {
-                <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.top_group += <span class="number">1</span>;
+                <a class="self" href="#241">self</a>.top_group += <span class="number">1</span>;
             }
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#252">key</a>);
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#241">self</a>.current_elt = <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#251">elt</a>);
+            <a class="self" href="#241">self</a>.current_key = <span class="prelude-val">Some</span>(<a href="#252">key</a>);
+            <a class="self" href="#241">self</a>.current_elt = <span class="prelude-val">Some</span>(<a href="#251">elt</a>);
         }
-        <a href="../../src/itertools/groupbylazy.rs.html#250">old_key</a>
+        <a href="#250">old_key</a>
     }
 }
 
@@ -838,7 +838,7 @@
     </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="comment">// It&#39;s only useful to track the maximal index
         </span><span class="kw">if </span><span class="self">self</span>.dropped_group == !<span class="number">0 </span>|| client &gt; <span class="self">self</span>.dropped_group {
-            <a class="self" href="../../src/itertools/groupbylazy.rs.html#267">self</a>.dropped_group = <a href="../../src/itertools/groupbylazy.rs.html#267">client</a>;
+            <a class="self" href="#267">self</a>.dropped_group = <a href="#267">client</a>;
         }
     }
 }
@@ -871,10 +871,10 @@
     <span class="kw">where </span>J: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
           F: FnMut(<span class="kw-2">&amp;</span>J::Item) -&gt; K,
 {
-    <a href="../../src/itertools/groupbylazy.rs.html#289">GroupBy</a> {
-        inner: RefCell::new(<a href="../../src/itertools/groupbylazy.rs.html#54">GroupInner</a> {
-            key: <a href="../../src/itertools/groupbylazy.rs.html#299">f</a>,
-            iter: <a href="../../src/itertools/groupbylazy.rs.html#299">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+    <a href="#289">GroupBy</a> {
+        inner: RefCell::new(<a href="#54">GroupInner</a> {
+            key: <a href="#299">f</a>,
+            iter: <a href="#299">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
             current_key: <span class="prelude-val">None</span>,
             current_elt: <span class="prelude-val">None</span>,
             done: <span class="bool-val">false</span>,
@@ -896,12 +896,12 @@
         <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>I::Item) -&gt; K,
               K: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
     {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#324">self</a>.inner.borrow_mut().<a href="../../src/itertools/groupbylazy.rs.html#84">step</a>(<a href="../../src/itertools/groupbylazy.rs.html#324">client</a>)
+        <a class="self" href="#324">self</a>.inner.borrow_mut().<a href="#84">step</a>(<a href="#324">client</a>)
     }
 
     <span class="doccomment">/// `client`: Index of group
     </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;</span><span class="self">self</span>, client: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#332">self</a>.inner.borrow_mut().<a href="../../src/itertools/groupbylazy.rs.html#267">drop_group</a>(<a href="../../src/itertools/groupbylazy.rs.html#332">client</a>)
+        <a class="self" href="#332">self</a>.inner.borrow_mut().<a href="#267">drop_group</a>(<a href="#332">client</a>);
     }
 }
 
@@ -915,7 +915,7 @@
     <span class="kw">type </span>IntoIter = Groups&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a href="../../src/itertools/groupbylazy.rs.html#359">Groups</a> { parent: <span class="self"><a href="../../src/itertools/groupbylazy.rs.html#346">self</a> </span>}
+        <a href="#359">Groups</a> { parent: <span class="self"><a href="#346">self</a> </span>}
     }
 }
 
@@ -944,15 +944,15 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>index = <a class="self" href="../../src/itertools/groupbylazy.rs.html#375">self</a>.parent.index.get();
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#375">self</a>.parent.index.set(<a href="../../src/itertools/groupbylazy.rs.html#376">index</a> + <span class="number">1</span>);
-        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/itertools/groupbylazy.rs.html#375">self</a>.parent.inner.borrow_mut();
-        <a href="../../src/itertools/groupbylazy.rs.html#378">inner</a>.<a href="../../src/itertools/groupbylazy.rs.html#84">step</a>(<a href="../../src/itertools/groupbylazy.rs.html#376">index</a>).map(|elt| {
-            <span class="kw">let </span>key = <a href="../../src/itertools/groupbylazy.rs.html#378">inner</a>.<a href="../../src/itertools/groupbylazy.rs.html#241">group_key</a>(<a href="../../src/itertools/groupbylazy.rs.html#376">index</a>);
-            (<a href="../../src/itertools/groupbylazy.rs.html#380">key</a>, <a href="../../src/itertools/groupbylazy.rs.html#393">Group</a> {
-                parent: <a class="self" href="../../src/itertools/groupbylazy.rs.html#375">self</a>.parent,
-                <a href="../../src/itertools/groupbylazy.rs.html#376">index</a>,
-                first: <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#379">elt</a>),
+        <span class="kw">let </span>index = <a class="self" href="#375">self</a>.parent.index.get();
+        <a class="self" href="#375">self</a>.parent.index.set(<a href="#376">index</a> + <span class="number">1</span>);
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="#375">self</a>.parent.inner.borrow_mut();
+        <a href="#378">inner</a>.<a href="#84">step</a>(<a href="#376">index</a>).map(|elt| {
+            <span class="kw">let </span>key = <a href="#378">inner</a>.<a href="#241">group_key</a>(<a href="#376">index</a>);
+            (<a href="#380">key</a>, <a href="#393">Group</a> {
+                parent: <a class="self" href="#375">self</a>.parent,
+                <a href="#376">index</a>,
+                first: <span class="prelude-val">Some</span>(<a href="#379">elt</a>),
             })
         })
     }
@@ -975,7 +975,7 @@
           I::Item: <span class="lifetime">&#39;a</span>,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#406">self</a>.parent.<a href="../../src/itertools/groupbylazy.rs.html#332">drop_group</a>(<a class="self" href="../../src/itertools/groupbylazy.rs.html#406">self</a>.index);
+        <a class="self" href="#406">self</a>.parent.<a href="#332">drop_group</a>(<a class="self" href="#406">self</a>.index);
     }
 }
 
@@ -988,10 +988,10 @@
     <span class="kw">type </span>Item = I::Item;
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="../../src/itertools/groupbylazy.rs.html#419">self</a>.first.take() {
-            <span class="kw">return </span><a href="../../src/itertools/groupbylazy.rs.html#420">elt</a>;
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="#419">self</a>.first.take() {
+            <span class="kw">return </span><a href="#420">elt</a>;
         }
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#419">self</a>.parent.<a href="../../src/itertools/groupbylazy.rs.html#324-326">step</a>(<a class="self" href="../../src/itertools/groupbylazy.rs.html#419">self</a>.index)
+        <a class="self" href="#419">self</a>.parent.<a href="#324-326">step</a>(<a class="self" href="#419">self</a>.index)
     }
 }
 
@@ -1001,10 +1001,10 @@
 </span><span class="kw">pub fn </span>new_chunks&lt;J&gt;(iter: J, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; IntoChunks&lt;J::IntoIter&gt;
     <span class="kw">where </span>J: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
 {
-    <a href="../../src/itertools/groupbylazy.rs.html#465">IntoChunks</a> {
-        inner: RefCell::new(<a href="../../src/itertools/groupbylazy.rs.html#54">GroupInner</a> {
-            key: ChunkIndex::new(<a href="../../src/itertools/groupbylazy.rs.html#430">size</a>),
-            iter: <a href="../../src/itertools/groupbylazy.rs.html#430">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+    <a href="#465">IntoChunks</a> {
+        inner: RefCell::new(<a href="#54">GroupInner</a> {
+            key: ChunkIndex::new(<a href="#430">size</a>),
+            iter: <a href="#430">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
             current_key: <span class="prelude-val">None</span>,
             current_elt: <span class="prelude-val">None</span>,
             done: <span class="bool-val">false</span>,
@@ -1036,7 +1036,7 @@
 </span><span class="kw">pub struct </span>IntoChunks&lt;I&gt;
     <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
 {
-    inner: RefCell&lt;GroupInner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, I, <a href="../../src/itertools/groupbylazy.rs.html#23">ChunkIndex</a>&gt;&gt;,
+    inner: RefCell&lt;GroupInner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, I, <a href="#23">ChunkIndex</a>&gt;&gt;,
     <span class="comment">// the chunk iterator&#39;s current index. Keep this in the main value
     // so that simultaneous iterators all use the same state.
     </span>index: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
@@ -1048,12 +1048,12 @@
 {
     <span class="doccomment">/// `client`: Index of chunk that requests next element
     </span><span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, client: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#479">self</a>.inner.borrow_mut().<a href="../../src/itertools/groupbylazy.rs.html#84">step</a>(<a href="../../src/itertools/groupbylazy.rs.html#479">client</a>)
+        <a class="self" href="#479">self</a>.inner.borrow_mut().<a href="#84">step</a>(<a href="#479">client</a>)
     }
 
     <span class="doccomment">/// `client`: Index of chunk
     </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;</span><span class="self">self</span>, client: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#484">self</a>.inner.borrow_mut().<a href="../../src/itertools/groupbylazy.rs.html#267">drop_group</a>(<a href="../../src/itertools/groupbylazy.rs.html#484">client</a>)
+        <a class="self" href="#484">self</a>.inner.borrow_mut().<a href="#267">drop_group</a>(<a href="#484">client</a>);
     }
 }
 
@@ -1065,8 +1065,8 @@
     <span class="kw">type </span>IntoIter = Chunks&lt;<span class="lifetime">&#39;a</span>, I&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <a href="../../src/itertools/groupbylazy.rs.html#510">Chunks</a> {
-            parent: <a class="self" href="../../src/itertools/groupbylazy.rs.html#496">self</a>,
+        <a href="#510">Chunks</a> {
+            parent: <a class="self" href="#496">self</a>,
         }
     }
 }
@@ -1093,14 +1093,14 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>index = <a class="self" href="../../src/itertools/groupbylazy.rs.html#524">self</a>.parent.index.get();
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#524">self</a>.parent.index.set(<a href="../../src/itertools/groupbylazy.rs.html#525">index</a> + <span class="number">1</span>);
-        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/itertools/groupbylazy.rs.html#524">self</a>.parent.inner.borrow_mut();
-        <a href="../../src/itertools/groupbylazy.rs.html#527">inner</a>.<a href="../../src/itertools/groupbylazy.rs.html#84">step</a>(<a href="../../src/itertools/groupbylazy.rs.html#525">index</a>).map(|elt| {
-            <a href="../../src/itertools/groupbylazy.rs.html#541">Chunk</a> {
-                parent: <a class="self" href="../../src/itertools/groupbylazy.rs.html#524">self</a>.parent,
-                <a href="../../src/itertools/groupbylazy.rs.html#525">index</a>,
-                first: <span class="prelude-val">Some</span>(<a href="../../src/itertools/groupbylazy.rs.html#528">elt</a>),
+        <span class="kw">let </span>index = <a class="self" href="#524">self</a>.parent.index.get();
+        <a class="self" href="#524">self</a>.parent.index.set(<a href="#525">index</a> + <span class="number">1</span>);
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><a class="self" href="#524">self</a>.parent.inner.borrow_mut();
+        <a href="#527">inner</a>.<a href="#84">step</a>(<a href="#525">index</a>).map(|elt| {
+            <a href="#541">Chunk</a> {
+                parent: <a class="self" href="#524">self</a>.parent,
+                <a href="#525">index</a>,
+                first: <span class="prelude-val">Some</span>(<a href="#528">elt</a>),
             }
         })
     }
@@ -1123,7 +1123,7 @@
           I::Item: <span class="lifetime">&#39;a</span>,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#554">self</a>.parent.<a href="../../src/itertools/groupbylazy.rs.html#484">drop_group</a>(<a class="self" href="../../src/itertools/groupbylazy.rs.html#554">self</a>.index);
+        <a class="self" href="#554">self</a>.parent.<a href="#484">drop_group</a>(<a class="self" href="#554">self</a>.index);
     }
 }
 
@@ -1134,11 +1134,11 @@
     <span class="kw">type </span>Item = I::Item;
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="../../src/itertools/groupbylazy.rs.html#565">self</a>.first.take() {
-            <span class="kw">return </span><a href="../../src/itertools/groupbylazy.rs.html#566">elt</a>;
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <a class="self" href="#565">self</a>.first.take() {
+            <span class="kw">return </span><a href="#566">elt</a>;
         }
-        <a class="self" href="../../src/itertools/groupbylazy.rs.html#565">self</a>.parent.<a href="../../src/itertools/groupbylazy.rs.html#479">step</a>(<a class="self" href="../../src/itertools/groupbylazy.rs.html#565">self</a>.index)
+        <a class="self" href="#565">self</a>.parent.<a href="#479">step</a>(<a class="self" href="#565">self</a>.index)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

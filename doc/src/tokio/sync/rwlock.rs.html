@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/rwlock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/sync/rwlock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1078,8 +1078,8 @@
 <span id="1078">1078</span>
 <span id="1079">1079</span>
 <span id="1080">1080</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
-<span class="kw">use </span><a href="../../../src/tokio/sync/mutex.rs.html#209"><span class="kw">crate</span>::sync::mutex::TryLockError</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<a href="batch_semaphore.rs.html#36">Semaphore</a>, <a href="batch_semaphore.rs.html#53">TryAcquireError</a>};
+<span class="kw">use </span><a href="mutex.rs.html#210"><span class="kw">crate</span>::sync::mutex::TryLockError</a>;
 <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
@@ -1088,18 +1088,18 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#1-170">owned_read_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#1-279">owned_write_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#1-191">owned_write_guard_mapped</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#1-177">read_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#1-282">write_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#1-197">write_guard_mapped</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">owned_read_guard::OwnedRwLockReadGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">owned_write_guard::OwnedRwLockWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#17">owned_write_guard_mapped::OwnedRwLockMappedWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">read_guard::RwLockReadGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">write_guard::RwLockWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">write_guard_mapped::RwLockMappedWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/owned_read_guard.rs.html#1-170">owned_read_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/owned_write_guard.rs.html#1-279">owned_write_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/owned_write_guard_mapped.rs.html#1-191">owned_write_guard_mapped</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/read_guard.rs.html#1-178">read_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/write_guard.rs.html#1-283">write_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="rwlock/write_guard_mapped.rs.html#1-197">write_guard_mapped</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/owned_read_guard.rs.html#17">owned_read_guard::OwnedRwLockReadGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/owned_write_guard.rs.html#18">owned_write_guard::OwnedRwLockWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/owned_write_guard_mapped.rs.html#17">owned_write_guard_mapped::OwnedRwLockMappedWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/read_guard.rs.html#16">read_guard::RwLockReadGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/write_guard.rs.html#18">write_guard::RwLockWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="rwlock/write_guard_mapped.rs.html#16">write_guard_mapped::RwLockMappedWriteGuard</a>;
 
 <span class="attribute">#[cfg(not(loom))]
 </span><span class="kw">const </span>MAX_READS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = std::u32::MAX &gt;&gt; <span class="number">3</span>;
@@ -1175,7 +1175,7 @@
     </span>mr: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 
     <span class="comment">//semaphore to coordinate read and write access to T
-    </span>s: <a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
+    </span>s: <a href="batch_semaphore.rs.html#36">Semaphore</a>,
 
     <span class="comment">//inner data T
     </span>c: UnsafeCell&lt;T&gt;,
@@ -1323,12 +1323,12 @@
         </span><span class="kw">let </span>s = resource_span.in_scope(|| Semaphore::new(MAX_READS <span class="kw">as </span>usize));
 
         <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">let </span>s = Semaphore::new(<a href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        </span><span class="kw">let </span>s = Semaphore::new(<a href="#25">MAX_READS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <a href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
-            mr: <a href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a>,
-            c: UnsafeCell::new(<a href="../../../src/tokio/sync/rwlock.rs.html#206">value</a>),
-            <a href="../../../src/tokio/sync/rwlock.rs.html#246">s</a>,
+        <a href="#90">RwLock</a> {
+            mr: <a href="#25">MAX_READS</a>,
+            c: UnsafeCell::new(<a href="#206">value</a>),
+            <a href="#246">s</a>,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span,
         }
@@ -1396,12 +1396,12 @@
         </span><span class="kw">let </span>s = resource_span.in_scope(|| Semaphore::new(max_reads <span class="kw">as </span>usize));
 
         <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
-        </span><span class="kw">let </span>s = Semaphore::new(<a href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        </span><span class="kw">let </span>s = Semaphore::new(<a href="#272">max_reads</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <a href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
-            mr: <a href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a>,
-            c: UnsafeCell::new(<a href="../../../src/tokio/sync/rwlock.rs.html#272">value</a>),
-            <a href="../../../src/tokio/sync/rwlock.rs.html#319">s</a>,
+        <a href="#90">RwLock</a> {
+            mr: <a href="#272">max_reads</a>,
+            c: UnsafeCell::new(<a href="#272">value</a>),
+            <a href="#319">s</a>,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span,
         }
@@ -1589,7 +1589,7 @@
     </span><span class="attribute">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
     </span><span class="kw">pub fn </span>blocking_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#511">self</a>.<a href="../../../src/tokio/sync/rwlock.rs.html#425">read</a>())
+        <a href="../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#511">self</a>.<a href="#425">read</a>())
     }
 
     <span class="doccomment">/// Locks this `RwLock` with shared read access, causing the current task
@@ -1715,11 +1715,11 @@
     ///     drop(v);
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#640">permit</a>,
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="mutex.rs.html#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#638">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="#640">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mutex.rs.html#210">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -1731,9 +1731,9 @@
             )
         });
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
-            s: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.s,
-            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.c.get(),
+        <span class="prelude-val">Ok</span>(<a href="rwlock/read_guard.rs.html#16">RwLockReadGuard</a> {
+            s: <span class="kw-2">&amp;</span><a class="self" href="#638">self</a>.s,
+            data: <a class="self" href="#638">self</a>.c.get(),
             marker: marker::PhantomData,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span: <span class="self">self</span>.resource_span.clone(),
@@ -1778,11 +1778,11 @@
     ///     drop(v);
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_read_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockReadGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#703">permit</a>,
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub fn </span>try_read_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockReadGuard&lt;T&gt;, <a href="mutex.rs.html#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#701">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="#703">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mutex.rs.html#210">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -1797,9 +1797,9 @@
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">OwnedRwLockReadGuard</a> {
-            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.c.get(),
-            lock: ManuallyDrop::new(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>),
+        <span class="prelude-val">Ok</span>(<a href="rwlock/owned_read_guard.rs.html#17">OwnedRwLockReadGuard</a> {
+            data: <a class="self" href="#701">self</a>.c.get(),
+            lock: ManuallyDrop::new(<a class="self" href="#701">self</a>),
             _p: PhantomData,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span,
@@ -1924,7 +1924,7 @@
     </span><span class="attribute">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
     </span><span class="kw">pub fn </span>blocking_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#846">self</a>.<a href="../../../src/tokio/sync/rwlock.rs.html#757">write</a>())
+        <a href="../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#846">self</a>.<a href="#757">write</a>())
     }
 
     <span class="doccomment">/// Locks this `RwLock` with exclusive write access, causing the current
@@ -2026,11 +2026,11 @@
     ///     assert!(rw.try_write().is_err());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.mr) {
-            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#951">permit</a>,
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="mutex.rs.html#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#949">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<a class="self" href="#949">self</a>.mr) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="#951">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mutex.rs.html#210">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -2042,10 +2042,10 @@
             )
         });
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> {
-            permits_acquired: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.mr,
-            s: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.s,
-            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.c.get(),
+        <span class="prelude-val">Ok</span>(<a href="rwlock/write_guard.rs.html#18">RwLockWriteGuard</a> {
+            permits_acquired: <a class="self" href="#949">self</a>.mr,
+            s: <span class="kw-2">&amp;</span><a class="self" href="#949">self</a>.s,
+            data: <a class="self" href="#949">self</a>.c.get(),
             marker: marker::PhantomData,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span: <span class="self">self</span>.resource_span.clone(),
@@ -2082,11 +2082,11 @@
     ///     assert!(rw.try_write_owned().is_err());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_write_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockWriteGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.mr) {
-            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#1007">permit</a>,
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    </span><span class="kw">pub fn </span>try_write_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockWriteGuard&lt;T&gt;, <a href="mutex.rs.html#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#1005">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<a class="self" href="#1005">self</a>.mr) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="#1007">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mutex.rs.html#210">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -2101,10 +2101,10 @@
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">OwnedRwLockWriteGuard</a> {
-            permits_acquired: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.mr,
-            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.c.get(),
-            lock: ManuallyDrop::new(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>),
+        <span class="prelude-val">Ok</span>(<a href="rwlock/owned_write_guard.rs.html#18">OwnedRwLockWriteGuard</a> {
+            permits_acquired: <a class="self" href="#1005">self</a>.mr,
+            data: <a class="self" href="#1005">self</a>.c.get(),
+            lock: ManuallyDrop::new(<a class="self" href="#1005">self</a>),
             _p: PhantomData,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span,
@@ -2131,7 +2131,7 @@
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw">unsafe </span>{
             <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936
-            </span><span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1051">self</a>.c.get()
+            </span><span class="kw-2">&amp;mut *</span><a class="self" href="#1051">self</a>.c.get()
         }
     }
 
@@ -2140,13 +2140,13 @@
     <span class="kw">where
         </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1059">self</a>.c.into_inner()
+        <a class="self" href="#1059">self</a>.c.into_inner()
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>RwLock&lt;T&gt; {
     <span class="kw">fn </span>from(s: T) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="../../../src/tokio/sync/rwlock.rs.html#1068">s</a>)
+        <span class="self">Self</span>::new(<a href="#1068">s</a>)
     }
 }
 
@@ -2159,4 +2159,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

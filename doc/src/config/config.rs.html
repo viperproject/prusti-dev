@@ -218,31 +218,31 @@
 <span id="218">218</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">std::fmt::Debug</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::builder::{<a href="../../src/config/builder.rs.html#90">ConfigBuilder</a>, <a href="../../src/config/builder.rs.html#101">DefaultState</a>};
+<span class="kw">use </span><span class="kw">crate</span>::builder::{<a href="builder.rs.html#90">ConfigBuilder</a>, <a href="builder.rs.html#101">DefaultState</a>};
 <span class="kw">use </span><a href="../../serde/de/trait.Deserialize.html">serde::de::Deserialize</a>;
 <span class="kw">use </span><a href="../../serde/ser/trait.Serialize.html">serde::ser::Serialize</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../src/config/error.rs.html#41">ConfigError</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span><a href="../../src/config/map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
-<span class="kw">use </span><a href="../../src/config/lib.rs.html#31"><span class="kw">crate</span>::path</a>;
-<span class="kw">use </span><a href="../../src/config/ser.rs.html#10"><span class="kw">crate</span>::ser::ConfigSerializer</a>;
-<span class="kw">use </span><a href="../../src/config/source.rs.html#12"><span class="kw">crate</span>::source::Source</a>;
-<span class="kw">use </span><span class="kw">crate</span>::value::{<a href="../../src/config/value.rs.html#30">Table</a>, <a href="../../src/config/value.rs.html#179">Value</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#41">ConfigError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
+<span class="kw">use </span><a href="lib.rs.html#31"><span class="kw">crate</span>::path</a>;
+<span class="kw">use </span><a href="ser.rs.html#10"><span class="kw">crate</span>::ser::ConfigSerializer</a>;
+<span class="kw">use </span><a href="source.rs.html#12"><span class="kw">crate</span>::source::Source</a>;
+<span class="kw">use </span><span class="kw">crate</span>::value::{<a href="value.rs.html#30">Table</a>, <a href="value.rs.html#179">Value</a>};
 
 <span class="doccomment">/// A prioritized configuration repository. It maintains a set of
 /// configuration sources, fetches values to populate those, and provides
 /// them according to the source&#39;s priority.
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Config {
-    defaults: Map&lt;<a href="../../src/config/path/mod.rs.html#10">path::Expression</a>, <a href="../../src/config/value.rs.html#179">Value</a>&gt;,
-    overrides: Map&lt;<a href="../../src/config/path/mod.rs.html#10">path::Expression</a>, <a href="../../src/config/value.rs.html#179">Value</a>&gt;,
-    sources: Vec&lt;Box&lt;<span class="kw">dyn </span><a href="../../src/config/source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    defaults: Map&lt;<a href="path/mod.rs.html#10">path::Expression</a>, <a href="value.rs.html#179">Value</a>&gt;,
+    overrides: Map&lt;<a href="path/mod.rs.html#10">path::Expression</a>, <a href="value.rs.html#179">Value</a>&gt;,
+    sources: Vec&lt;Box&lt;<span class="kw">dyn </span><a href="source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 
     <span class="doccomment">/// Root of the cached configuration.
-    </span><span class="kw">pub </span>cache: <a href="../../src/config/value.rs.html#179">Value</a>,
+    </span><span class="kw">pub </span>cache: <a href="value.rs.html#179">Value</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/config/config.rs.html#18">Config</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#18">Config</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             defaults: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
@@ -253,17 +253,17 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../src/config/config.rs.html#18">Config</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(value: <a href="../../src/config/value.rs.html#179">Value</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span><a href="#18">Config</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(value: <a href="value.rs.html#179">Value</a>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            cache: <a href="../../src/config/config.rs.html#39">value</a>,
+            cache: <a href="#39">value</a>,
             ..<span class="self">Self</span>::default()
         }
     }
 
     <span class="doccomment">/// Creates new [`ConfigBuilder`] instance
-    </span><span class="kw">pub fn </span>builder() -&gt; ConfigBuilder&lt;<a href="../../src/config/builder.rs.html#101">DefaultState</a>&gt; {
-        ConfigBuilder::&lt;<a href="../../src/config/builder.rs.html#101">DefaultState</a>&gt;::default()
+    </span><span class="kw">pub fn </span>builder() -&gt; ConfigBuilder&lt;<a href="builder.rs.html#101">DefaultState</a>&gt; {
+        ConfigBuilder::&lt;<a href="builder.rs.html#101">DefaultState</a>&gt;::default()
     }
 
     <span class="doccomment">/// Merge in a configuration property source.
@@ -271,12 +271,12 @@
     </span><span class="kw">pub fn </span>merge&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;
     <span class="kw">where
         </span>T: <span class="lifetime">&#39;static</span>,
-        T: <a href="../../src/config/source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+        T: <a href="source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
     {
-        <a class="self" href="../../src/config/config.rs.html#53">self</a>.sources.push(Box::new(<a href="../../src/config/config.rs.html#53">source</a>));
+        <a class="self" href="#53">self</a>.sources.push(Box::new(<a href="#53">source</a>));
 
         <span class="attribute">#[allow(deprecated)]
-        </span><a class="self" href="../../src/config/config.rs.html#53">self</a>.<a href="../../src/config/config.rs.html#84">refresh</a>()
+        </span><a class="self" href="#53">self</a>.<a href="#84">refresh</a>()
     }
 
     <span class="doccomment">/// Merge in a configuration property source.
@@ -284,13 +284,13 @@
     </span><span class="kw">pub fn </span>with_merged&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, source: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>T: <span class="lifetime">&#39;static</span>,
-        T: <a href="../../src/config/source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+        T: <a href="source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
     {
-        <a class="self" href="../../src/config/config.rs.html#66">self</a>.sources.push(Box::new(<a href="../../src/config/config.rs.html#66">source</a>));
+        <a class="self" href="#66">self</a>.sources.push(Box::new(<a href="#66">source</a>));
 
         <span class="attribute">#[allow(deprecated)]
         </span><span class="self">self</span>.refresh()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/config/config.rs.html#66">self</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="#66">self</a>)
     }
 
     <span class="doccomment">/// Refresh the configuration cache with fresh
@@ -300,8 +300,8 @@
     /// operation (`set`, `merge`, `set_default`, etc.).
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.12.0&quot;</span>, note = <span class="string">&quot;please use &#39;ConfigBuilder&#39; instead&quot;</span>)]
     </span><span class="kw">pub fn </span>refresh(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt; {
-        <a class="self" href="../../src/config/config.rs.html#84">self</a>.cache = {
-            <span class="kw">let </span><span class="kw-2">mut </span>cache: <a href="../../src/config/value.rs.html#179">Value</a> = Map::&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/config/value.rs.html#179">Value</a>&gt;::new().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a class="self" href="#84">self</a>.cache = {
+            <span class="kw">let </span><span class="kw-2">mut </span>cache: <a href="value.rs.html#179">Value</a> = Map::&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="value.rs.html#179">Value</a>&gt;::new().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
             <span class="comment">// Add defaults
             </span><span class="kw">for </span>(key, val) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.defaults {
@@ -316,22 +316,22 @@
                 key.set(<span class="kw-2">&amp;mut </span>cache, val.clone());
             }
 
-            <a href="../../src/config/config.rs.html#86">cache</a>
+            <a href="#86">cache</a>
         };
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/config/config.rs.html#84">self</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="#84">self</a>)
     }
 
     <span class="doccomment">/// Set a default `value` at `key`
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.12.0&quot;</span>, note = <span class="string">&quot;please use &#39;ConfigBuilder&#39; instead&quot;</span>)]
     </span><span class="kw">pub fn </span>set_default&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>T: Into&lt;<a href="../../src/config/value.rs.html#179">Value</a>&gt;,
+        </span>T: Into&lt;<a href="value.rs.html#179">Value</a>&gt;,
     {
-        <a class="self" href="../../src/config/config.rs.html#109">self</a>.defaults.insert(key.parse()<span class="question-mark">?</span>, <a href="../../src/config/config.rs.html#109">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="#109">self</a>.defaults.insert(key.parse()<span class="question-mark">?</span>, <a href="#109">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
 
         <span class="attribute">#[allow(deprecated)]
-        </span><a class="self" href="../../src/config/config.rs.html#109">self</a>.<a href="../../src/config/config.rs.html#84">refresh</a>()
+        </span><a class="self" href="#109">self</a>.<a href="#84">refresh</a>()
     }
 
     <span class="doccomment">/// Set an overwrite
@@ -345,94 +345,94 @@
     </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.12.0&quot;</span>, note = <span class="string">&quot;please use &#39;ConfigBuilder&#39; instead&quot;</span>)]
     </span><span class="kw">pub fn </span>set&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>T: Into&lt;<a href="../../src/config/value.rs.html#179">Value</a>&gt;,
+        </span>T: Into&lt;<a href="value.rs.html#179">Value</a>&gt;,
     {
-        <a class="self" href="../../src/config/config.rs.html#128">self</a>.overrides.insert(key.parse()<span class="question-mark">?</span>, <a href="../../src/config/config.rs.html#128">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="#128">self</a>.overrides.insert(key.parse()<span class="question-mark">?</span>, <a href="#128">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
 
         <span class="attribute">#[allow(deprecated)]
-        </span><a class="self" href="../../src/config/config.rs.html#128">self</a>.<a href="../../src/config/config.rs.html#84">refresh</a>()
+        </span><a class="self" href="#128">self</a>.<a href="#84">refresh</a>()
     }
 
     <span class="attribute">#[deprecated(since = <span class="string">&quot;0.12.0&quot;</span>, note = <span class="string">&quot;please use &#39;ConfigBuilder&#39; instead&quot;</span>)]
-    </span><span class="kw">pub fn </span>set_once(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="../../src/config/value.rs.html#179">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>expr: <a href="../../src/config/path/mod.rs.html#10">path::Expression</a> = key.parse()<span class="question-mark">?</span>;
+    </span><span class="kw">pub fn </span>set_once(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="value.rs.html#179">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>expr: <a href="path/mod.rs.html#10">path::Expression</a> = key.parse()<span class="question-mark">?</span>;
 
         <span class="comment">// Traverse the cache using the path to (possibly) retrieve a value
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>val) = <a href="../../src/config/config.rs.html#140">expr</a>.<a href="../../src/config/path/mod.rs.html#81">get_mut</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/config/config.rs.html#139">self</a>.cache) {
-            <span class="kw-2">**</span><a href="../../src/config/config.rs.html#143">val</a> = <a href="../../src/config/config.rs.html#139">value</a>;
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>val) = <a href="#140">expr</a>.<a href="path/mod.rs.html#81">get_mut</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#139">self</a>.cache) {
+            <span class="kw-2">**</span><a href="#143">val</a> = <a href="#139">value</a>;
         } <span class="kw">else </span>{
-            <a href="../../src/config/config.rs.html#140">expr</a>.<a href="../../src/config/path/mod.rs.html#181">set</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/config/config.rs.html#139">self</a>.cache, <a href="../../src/config/config.rs.html#139">value</a>);
+            <a href="#140">expr</a>.<a href="path/mod.rs.html#181">set</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#139">self</a>.cache, <a href="#139">value</a>);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;de</span>, T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
         <span class="comment">// Parse the key into a path expression
-        </span><span class="kw">let </span>expr: <a href="../../src/config/path/mod.rs.html#10">path::Expression</a> = key.parse()<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>expr: <a href="path/mod.rs.html#10">path::Expression</a> = key.parse()<span class="question-mark">?</span>;
 
         <span class="comment">// Traverse the cache using the path to (possibly) retrieve a value
-        </span><span class="kw">let </span>value = <a href="../../src/config/config.rs.html#153">expr</a>.<a href="../../src/config/path/mod.rs.html#33">get</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/config/config.rs.html#151">self</a>.cache).cloned();
+        </span><span class="kw">let </span>value = <a href="#153">expr</a>.<a href="path/mod.rs.html#33">get</a>(<span class="kw-2">&amp;</span><a class="self" href="#151">self</a>.cache).cloned();
 
-        <span class="kw">match </span><a href="../../src/config/config.rs.html#156">value</a> {
+        <span class="kw">match </span><a href="#156">value</a> {
             <span class="prelude-val">Some</span>(value) =&gt; {
                 <span class="comment">// Deserialize the received value into the requested type
-                </span>T::deserialize(<a href="../../src/config/config.rs.html#159">value</a>).map_err(|e| <a href="../../src/config/config.rs.html#161">e</a>.<a href="../../src/config/error.rs.html#118">extend_with_key</a>(<a href="../../src/config/config.rs.html#151">key</a>))
+                </span>T::deserialize(<a href="#159">value</a>).map_err(|e| <a href="#161">e</a>.<a href="error.rs.html#118">extend_with_key</a>(<a href="#151">key</a>))
             }
 
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/config/error.rs.html#46">ConfigError::NotFound</a>(<a href="../../src/config/config.rs.html#151">key</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="error.rs.html#46">ConfigError::NotFound</a>(<a href="#151">key</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
         }
     }
 
     <span class="kw">pub fn </span>get_string(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a class="self" href="../../src/config/config.rs.html#168">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#168">key</a>).and_then(Value::into_string)
+        <a class="self" href="#168">self</a>.<a href="#151">get</a>(<a href="#168">key</a>).and_then(Value::into_string)
     }
 
     <span class="kw">pub fn </span>get_int(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
-        <a class="self" href="../../src/config/config.rs.html#172">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#172">key</a>).and_then(Value::into_int)
+        <a class="self" href="#172">self</a>.<a href="#151">get</a>(<a href="#172">key</a>).and_then(Value::into_int)
     }
 
     <span class="kw">pub fn </span>get_float(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <a class="self" href="../../src/config/config.rs.html#176">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#176">key</a>).and_then(Value::into_float)
+        <a class="self" href="#176">self</a>.<a href="#151">get</a>(<a href="#176">key</a>).and_then(Value::into_float)
     }
 
     <span class="kw">pub fn </span>get_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="../../src/config/config.rs.html#180">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#180">key</a>).and_then(Value::into_bool)
+        <a class="self" href="#180">self</a>.<a href="#151">get</a>(<a href="#180">key</a>).and_then(Value::into_bool)
     }
 
-    <span class="kw">pub fn </span>get_table(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/config/value.rs.html#179">Value</a>&gt;&gt; {
-        <a class="self" href="../../src/config/config.rs.html#184">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#184">key</a>).and_then(Value::into_table)
+    <span class="kw">pub fn </span>get_table(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="value.rs.html#179">Value</a>&gt;&gt; {
+        <a class="self" href="#184">self</a>.<a href="#151">get</a>(<a href="#184">key</a>).and_then(Value::into_table)
     }
 
-    <span class="kw">pub fn </span>get_array(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../src/config/value.rs.html#179">Value</a>&gt;&gt; {
-        <a class="self" href="../../src/config/config.rs.html#188">self</a>.<a href="../../src/config/config.rs.html#151">get</a>(<a href="../../src/config/config.rs.html#188">key</a>).and_then(Value::into_array)
+    <span class="kw">pub fn </span>get_array(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="value.rs.html#179">Value</a>&gt;&gt; {
+        <a class="self" href="#188">self</a>.<a href="#151">get</a>(<a href="#188">key</a>).and_then(Value::into_array)
     }
 
     <span class="doccomment">/// Attempt to deserialize the entire configuration into the requested type.
     </span><span class="kw">pub fn </span>try_deserialize&lt;<span class="lifetime">&#39;de</span>, T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        T::deserialize(<a class="self" href="../../src/config/config.rs.html#193">self</a>)
+        T::deserialize(<a class="self" href="#193">self</a>)
     }
 
     <span class="doccomment">/// Attempt to serialize the entire configuration from the given type.
     </span><span class="kw">pub fn </span>try_from&lt;T: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>&gt;(from: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>serializer = ConfigSerializer::default();
         from.serialize(<span class="kw-2">&amp;mut </span>serializer)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/config/config.rs.html#199">serializer</a>.output)
+        <span class="prelude-val">Ok</span>(<a href="#199">serializer</a>.output)
     }
 
     <span class="attribute">#[deprecated(since = <span class="string">&quot;0.7.0&quot;</span>, note = <span class="string">&quot;please use &#39;try_deserialize&#39; instead&quot;</span>)]
     </span><span class="kw">pub fn </span>deserialize&lt;<span class="lifetime">&#39;de</span>, T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <a class="self" href="../../src/config/config.rs.html#205">self</a>.<a href="../../src/config/config.rs.html#193">try_deserialize</a>()
+        <a class="self" href="#205">self</a>.<a href="#193">try_deserialize</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/config/source.rs.html#12">Source</a> <span class="kw">for </span><a href="../../src/config/config.rs.html#18">Config</a> {
-    <span class="kw">fn </span>clone_into_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/config/source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; {
-        Box::new((<span class="kw-2">*</span><a class="self" href="../../src/config/config.rs.html#211">self</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+<span class="kw">impl </span><a href="source.rs.html#12">Source</a> <span class="kw">for </span><a href="#18">Config</a> {
+    <span class="kw">fn </span>clone_into_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="source.rs.html#12">Source</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; {
+        Box::new((<span class="kw-2">*</span><a class="self" href="#211">self</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="kw">fn </span>collect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/config/value.rs.html#179">Value</a>&gt;&gt; {
-        <a class="self" href="../../src/config/config.rs.html#215">self</a>.cache.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../src/config/value.rs.html#644">into_table</a>()
+    <span class="kw">fn </span>collect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="value.rs.html#179">Value</a>&gt;&gt; {
+        <a class="self" href="#215">self</a>.cache.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="value.rs.html#644">into_table</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

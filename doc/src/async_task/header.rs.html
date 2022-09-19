@@ -165,9 +165,9 @@
 <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">core::task::Waker</a>;
 
-<span class="kw">use </span><a href="../../src/async_task/raw.rs.html#16"><span class="kw">crate</span>::raw::TaskVTable</a>;
-<span class="kw">use </span><a href="../../src/async_task/lib.rs.html#91"><span class="kw">crate</span>::state</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../src/async_task/utils.rs.html#24"><span class="kw">crate</span>::utils::abort_on_panic</a>;
+<span class="kw">use </span><a href="raw.rs.html#16"><span class="kw">crate</span>::raw::TaskVTable</a>;
+<span class="kw">use </span><a href="lib.rs.html#91"><span class="kw">crate</span>::state</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="utils.rs.html#24"><span class="kw">crate</span>::utils::abort_on_panic</a>;
 
 <span class="doccomment">/// The header of a task.
 ///
@@ -187,17 +187,17 @@
     ///
     /// In addition to the actual waker virtual table, it also contains pointers to several other
     /// methods necessary for bookkeeping the heap-allocated task.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/async_task/raw.rs.html#16">TaskVTable</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="raw.rs.html#16">TaskVTable</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/async_task/header.rs.html#13">Header</a> {
+<span class="kw">impl </span><a href="#13">Header</a> {
     <span class="doccomment">/// Notifies the awaiter blocked on this task.
     ///
     /// If the awaiter is the same as the current waker, it will not be notified.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a class="self" href="../../src/async_task/header.rs.html#36">self</a>.<a href="../../src/async_task/header.rs.html#46">take</a>(<a href="../../src/async_task/header.rs.html#36">current</a>) {
-            <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/header.rs.html#37">w</a>.wake());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a class="self" href="#36">self</a>.<a href="#46">take</a>(<a href="#36">current</a>) {
+            <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#37">w</a>.wake());
         }
     }
 
@@ -207,23 +207,23 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
         <span class="comment">// Set the bit indicating that the task is notifying its awaiter.
-        </span><span class="kw">let </span>state = <a class="self" href="../../src/async_task/header.rs.html#46">self</a>.state.fetch_or(<a href="../../src/async_task/state.rs.html#59">NOTIFYING</a>, Ordering::AcqRel);
+        </span><span class="kw">let </span>state = <a class="self" href="#46">self</a>.state.fetch_or(<a href="state.rs.html#59">NOTIFYING</a>, Ordering::AcqRel);
 
         <span class="comment">// If the task was not notifying or registering an awaiter...
         </span><span class="kw">if </span>state &amp; (NOTIFYING | REGISTERING) == <span class="number">0 </span>{
             <span class="comment">// Take the waker out.
-            </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/async_task/header.rs.html#46">self</a>.awaiter.get()).take() };
+            </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#46">self</a>.awaiter.get()).take() };
 
             <span class="comment">// Unset the bit indicating that the task is notifying its awaiter.
-            </span><a class="self" href="../../src/async_task/header.rs.html#46">self</a>.state
-                .fetch_and(!<a href="../../src/async_task/state.rs.html#59">NOTIFYING</a> &amp; !<a href="../../src/async_task/state.rs.html#48">AWAITER</a>, Ordering::Release);
+            </span><a class="self" href="#46">self</a>.state
+                .fetch_and(!<a href="state.rs.html#59">NOTIFYING</a> &amp; !<a href="state.rs.html#48">AWAITER</a>, Ordering::Release);
 
             <span class="comment">// Finally, notify the waker if it&#39;s different from the current waker.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/header.rs.html#53">waker</a> {
-                <span class="kw">match </span><a href="../../src/async_task/header.rs.html#46">current</a> {
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/async_task/header.rs.html#60">w</a>),
-                    <span class="prelude-val">Some</span>(c) <span class="kw">if </span>!<a href="../../src/async_task/header.rs.html#60">w</a>.will_wake(<a href="../../src/async_task/header.rs.html#63">c</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/async_task/header.rs.html#60">w</a>),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/async_task/header.rs.html#60">w</a>)),
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#53">waker</a> {
+                <span class="kw">match </span><a href="#46">current</a> {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#60">w</a>),
+                    <span class="prelude-val">Some</span>(c) <span class="kw">if </span>!<a href="#60">w</a>.will_wake(<a href="#63">c</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#60">w</a>),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#60">w</a>)),
                 }
             }
         }
@@ -237,7 +237,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
         <span class="comment">// Load the state and synchronize with it.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/async_task/header.rs.html#76">self</a>.state.fetch_or(<span class="number">0</span>, Ordering::Acquire);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#76">self</a>.state.fetch_or(<span class="number">0</span>, Ordering::Acquire);
 
         <span class="kw">loop </span>{
             <span class="comment">// There can&#39;t be two concurrent registrations because `Task` can only be polled
@@ -247,28 +247,28 @@
             <span class="comment">// If we&#39;re in the notifying state at this moment, just wake and return without
             // registering.
             </span><span class="kw">if </span>state &amp; NOTIFYING != <span class="number">0 </span>{
-                <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/header.rs.html#76">waker</a>.wake_by_ref());
+                <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#76">waker</a>.wake_by_ref());
                 <span class="kw">return</span>;
             }
 
             <span class="comment">// Mark the state to let other threads know we&#39;re registering a new awaiter.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_task/header.rs.html#76">self</a>.state.compare_exchange_weak(
-                <a href="../../src/async_task/header.rs.html#78">state</a>,
-                <a href="../../src/async_task/header.rs.html#78">state</a> | <a href="../../src/async_task/state.rs.html#53">REGISTERING</a>,
+            </span><span class="kw">match </span><a class="self" href="#76">self</a>.state.compare_exchange_weak(
+                <a href="#78">state</a>,
+                <a href="#78">state</a> | <a href="state.rs.html#53">REGISTERING</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <a href="../../src/async_task/header.rs.html#78">state</a> |= <a href="../../src/async_task/state.rs.html#53">REGISTERING</a>;
+                    <a href="#78">state</a> |= <a href="state.rs.html#53">REGISTERING</a>;
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/header.rs.html#78">state</a> = <a href="../../src/async_task/header.rs.html#103">s</a>,
+                <span class="prelude-val">Err</span>(s) =&gt; <a href="#78">state</a> = <a href="#103">s</a>,
             }
         }
 
         <span class="comment">// Put the waker into the awaiter field.
         </span><span class="kw">unsafe </span>{
-            <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| (<span class="kw-2">*</span><a class="self" href="../../src/async_task/header.rs.html#76">self</a>.awaiter.get()) = <span class="prelude-val">Some</span>(<a href="../../src/async_task/header.rs.html#76">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            <a href="utils.rs.html#24">abort_on_panic</a>(|| (<span class="kw-2">*</span><a class="self" href="#76">self</a>.awaiter.get()) = <span class="prelude-val">Some</span>(<a href="#76">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
         }
 
         <span class="comment">// This variable will contain the newly registered waker if a notification comes in before
@@ -278,49 +278,49 @@
         <span class="kw">loop </span>{
             <span class="comment">// If there was a notification, take the waker out of the awaiter field.
             </span><span class="kw">if </span>state &amp; NOTIFYING != <span class="number">0 </span>{
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/async_task/header.rs.html#76">self</a>.awaiter.get()).take() } {
-                    <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/header.rs.html#114">waker</a> = <span class="prelude-val">Some</span>(<a href="../../src/async_task/header.rs.html#119">w</a>));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#76">self</a>.awaiter.get()).take() } {
+                    <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#114">waker</a> = <span class="prelude-val">Some</span>(<a href="#119">w</a>));
                 }
             }
 
             <span class="comment">// The new state is not being notified nor registered, but there might or might not be
             // an awaiter depending on whether there was a concurrent notification.
             </span><span class="kw">let </span>new = <span class="kw">if </span>waker.is_none() {
-                (<a href="../../src/async_task/header.rs.html#78">state</a> &amp; !<a href="../../src/async_task/state.rs.html#59">NOTIFYING</a> &amp; !<a href="../../src/async_task/state.rs.html#53">REGISTERING</a>) | <a href="../../src/async_task/state.rs.html#48">AWAITER</a>
+                (<a href="#78">state</a> &amp; !<a href="state.rs.html#59">NOTIFYING</a> &amp; !<a href="state.rs.html#53">REGISTERING</a>) | <a href="state.rs.html#48">AWAITER</a>
             } <span class="kw">else </span>{
-                <a href="../../src/async_task/header.rs.html#78">state</a> &amp; !<a href="../../src/async_task/state.rs.html#59">NOTIFYING</a> &amp; !<a href="../../src/async_task/state.rs.html#53">REGISTERING</a> &amp; !<a href="../../src/async_task/state.rs.html#48">AWAITER</a>
+                <a href="#78">state</a> &amp; !<a href="state.rs.html#59">NOTIFYING</a> &amp; !<a href="state.rs.html#53">REGISTERING</a> &amp; !<a href="state.rs.html#48">AWAITER</a>
             };
 
-            <span class="kw">match </span><span class="self"><a href="../../src/async_task/header.rs.html#76">self</a>
+            <span class="kw">match </span><span class="self"><a href="#76">self</a>
                 </span>.state
-                .compare_exchange_weak(<a href="../../src/async_task/header.rs.html#78">state</a>, <a href="../../src/async_task/header.rs.html#126">new</a>, Ordering::AcqRel, Ordering::Acquire)
+                .compare_exchange_weak(<a href="#78">state</a>, <a href="#126">new</a>, Ordering::AcqRel, Ordering::Acquire)
             {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/header.rs.html#78">state</a> = <a href="../../src/async_task/header.rs.html#137">s</a>,
+                <span class="prelude-val">Err</span>(s) =&gt; <a href="#78">state</a> = <a href="#137">s</a>,
             }
         }
 
         <span class="comment">// If there was a notification during registration, wake the awaiter now.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/header.rs.html#114">waker</a> {
-            <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/header.rs.html#142">w</a>.wake());
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#114">waker</a> {
+            <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#142">w</a>.wake());
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/async_task/header.rs.html#13">Header</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#13">Header</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>state = <a class="self" href="../../src/async_task/header.rs.html#149">self</a>.state.load(Ordering::SeqCst);
+        <span class="kw">let </span>state = <a class="self" href="#149">self</a>.state.load(Ordering::SeqCst);
 
-        <a href="../../src/async_task/header.rs.html#149">f</a>.debug_struct(<span class="string">&quot;Header&quot;</span>)
-            .field(<span class="string">&quot;scheduled&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#7">SCHEDULED</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;running&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#15">RUNNING</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;completed&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#24">COMPLETED</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#35">CLOSED</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;awaiter&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#48">AWAITER</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;task&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> &amp; <a href="../../src/async_task/state.rs.html#41">TASK</a> != <span class="number">0</span>))
-            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span>(<a href="../../src/async_task/header.rs.html#150">state</a> / <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>))
+        <a href="#149">f</a>.debug_struct(<span class="string">&quot;Header&quot;</span>)
+            .field(<span class="string">&quot;scheduled&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#7">SCHEDULED</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;running&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#15">RUNNING</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;completed&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#24">COMPLETED</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#35">CLOSED</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;awaiter&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#48">AWAITER</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;task&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> &amp; <a href="state.rs.html#41">TASK</a> != <span class="number">0</span>))
+            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span>(<a href="#150">state</a> / <a href="state.rs.html#69">REFERENCE</a>))
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

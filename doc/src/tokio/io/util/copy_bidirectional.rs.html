@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/copy_bidirectional.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>copy_bidirectional.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/io/util/copy_bidirectional.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>copy_bidirectional.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -118,9 +118,9 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/io/util/copy.rs.html#9"><span class="kw">super</span>::copy::CopyBuffer</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="copy.rs.html#9"><span class="kw">super</span>::copy::CopyBuffer</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../async_read.rs.html#43">AsyncRead</a>, <a href="../async_write.rs.html#45">AsyncWrite</a>};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -128,7 +128,7 @@
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
 <span class="kw">enum </span>TransferState {
-    Running(<a href="../../../../src/tokio/io/util/copy.rs.html#9">CopyBuffer</a>),
+    Running(<a href="copy.rs.html#9">CopyBuffer</a>),
     ShuttingDown(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
     Done(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
 }
@@ -136,64 +136,64 @@
 <span class="kw">struct </span>CopyBidirectional&lt;<span class="lifetime">&#39;a</span>, A: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, B: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
     a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>A,
     b: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B,
-    a_to_b: <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#10">TransferState</a>,
-    b_to_a: <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#10">TransferState</a>,
+    a_to_b: <a href="#10">TransferState</a>,
+    b_to_a: <a href="#10">TransferState</a>,
 }
 
 <span class="kw">fn </span>transfer_one_direction&lt;A, B&gt;(
     cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    state: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#10">TransferState</a>,
+    state: <span class="kw-2">&amp;mut </span><a href="#10">TransferState</a>,
     r: <span class="kw-2">&amp;mut </span>A,
     w: <span class="kw-2">&amp;mut </span>B,
 ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt;
 <span class="kw">where
-    </span>A: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-    B: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>A: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    B: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>r = Pin::new(<a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#26">r</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>w = Pin::new(<a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#27">w</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>r = Pin::new(<a href="#26">r</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>w = Pin::new(<a href="#27">w</a>);
 
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#25">state</a> {
-            <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#11">TransferState::Running</a>(buf) =&gt; {
+        <span class="kw">match </span><a href="#25">state</a> {
+            <a href="#11">TransferState::Running</a>(buf) =&gt; {
                 <span class="kw">let </span>count = <span class="macro">ready!</span>(buf.poll_copy(cx, r.as_mut(), w.as_mut()))<span class="question-mark">?</span>;
-                <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#25">state</a> = <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#12">TransferState::ShuttingDown</a>(<a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#39">count</a>);
+                <span class="kw-2">*</span><a href="#25">state</a> = <a href="#12">TransferState::ShuttingDown</a>(<a href="#39">count</a>);
             }
-            <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#12">TransferState::ShuttingDown</a>(count) =&gt; {
+            <a href="#12">TransferState::ShuttingDown</a>(count) =&gt; {
                 <span class="macro">ready!</span>(w.as_mut().poll_shutdown(cx))<span class="question-mark">?</span>;
 
-                <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#25">state</a> = <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#13">TransferState::Done</a>(<span class="kw-2">*</span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#42">count</a>);
+                <span class="kw-2">*</span><a href="#25">state</a> = <a href="#13">TransferState::Done</a>(<span class="kw-2">*</span><a href="#42">count</a>);
             }
-            <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#13">TransferState::Done</a>(count) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#47">count</a>)),
+            <a href="#13">TransferState::Done</a>(count) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a href="#47">count</a>)),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, B&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>CopyBidirectional&lt;<span class="lifetime">&#39;a</span>, A, B&gt;
 <span class="kw">where
-    </span>A: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-    B: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>A: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    B: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">type </span>Output = io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// Unpack self into mut refs to each field to avoid borrow check issues.
-        </span><span class="kw">let </span><a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#16">CopyBidirectional</a> {
+        </span><span class="kw">let </span><a href="#16">CopyBidirectional</a> {
             a,
             b,
             a_to_b,
             b_to_a,
-        } = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#59">self</a>;
+        } = <span class="kw-2">&amp;mut *</span><a class="self" href="#59">self</a>;
 
         <span class="kw">let </span>a_to_b = transfer_one_direction(cx, a_to_b, <span class="kw-2">&amp;mut *</span>a, <span class="kw-2">&amp;mut *</span>b)<span class="question-mark">?</span>;
         <span class="kw">let </span>b_to_a = transfer_one_direction(cx, b_to_a, <span class="kw-2">&amp;mut *</span>b, <span class="kw-2">&amp;mut *</span>a)<span class="question-mark">?</span>;
 
         <span class="comment">// It is not a problem if ready! returns early because transfer_one_direction for the
         // other direction will keep returning TransferState::Done(count) in future calls to poll
-        </span><span class="kw">let </span>a_to_b = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(a_to_b);
-        <span class="kw">let </span>b_to_a = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(b_to_a);
+        </span><span class="kw">let </span>a_to_b = <a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(a_to_b);
+        <span class="kw">let </span>b_to_a = <a class="macro" href="../../macros/ready.rs.html#1-8">ready!</a>(b_to_a);
 
-        Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#73">a_to_b</a>, <a href="../../../../src/tokio/io/util/copy_bidirectional.rs.html#74">b_to_a</a>)))
+        Poll::Ready(<span class="prelude-val">Ok</span>((<a href="#73">a_to_b</a>, <a href="#74">b_to_a</a>)))
     }
 }
 
@@ -227,8 +227,8 @@
 </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io-util&quot;</span>)))]
 </span><span class="kw">pub async fn </span>copy_bidirectional&lt;A, B&gt;(a: <span class="kw-2">&amp;mut </span>A, b: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt;
 <span class="kw">where
-    </span>A: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-    B: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    </span>A: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    B: <a href="../async_read.rs.html#43">AsyncRead</a> + <a href="../async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     CopyBidirectional {
         a,
@@ -239,4 +239,4 @@
     .<span class="kw">await
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

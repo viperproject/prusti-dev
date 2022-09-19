@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/automaton.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>automaton.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/automaton.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>automaton.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -571,10 +571,10 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
-<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<a class="self" href="../../src/aho_corasick/lib.rs.html#212">self</a>, <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a>, <a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>, <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>};
-<span class="kw">use </span><span class="kw">crate</span>::state_id::{<a href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>, <a href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>, <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>};
-<span class="kw">use </span><a href="../../src/aho_corasick/lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="ahocorasick.rs.html#2041"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
+<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<a class="self" href="lib.rs.html#212">self</a>, <a href="prefilter.rs.html#27">Candidate</a>, <a href="prefilter.rs.html#50-51">Prefilter</a>, <a href="prefilter.rs.html#151">PrefilterState</a>};
+<span class="kw">use </span><span class="kw">crate</span>::state_id::{<a href="state_id.rs.html#45">dead_id</a>, <a href="state_id.rs.html#39">fail_id</a>, <a href="state_id.rs.html#72-81">StateID</a>};
+<span class="kw">use </span><a href="lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
 
 <span class="comment">// NOTE: This trait essentially started as a copy of the same trait from from
 // regex-automata, with some wording changed since we use this trait for
@@ -654,10 +654,10 @@
     <span class="doccomment">/// The representation used for state identifiers in this automaton.
     ///
     /// Typically, this is one of `u8`, `u16`, `u32`, `u64` or `usize`.
-    </span><span class="kw">type </span>ID: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>;
+    </span><span class="kw">type </span>ID: <a href="state_id.rs.html#72-81">StateID</a>;
 
     <span class="doccomment">/// The type of matching that should be done.
-    </span><span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a>;
+    </span><span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="ahocorasick.rs.html#2041">MatchKind</a>;
 
     <span class="doccomment">/// Returns true if and only if this automaton uses anchored searches.
     </span><span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
@@ -670,7 +670,7 @@
     /// Currently, a prefilter only runs when the automaton is in the start
     /// state. That is, the position reported by a prefilter should always
     /// correspond to the start of a potential match.
-    </span><span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;;
+    </span><span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt;;
 
     <span class="doccomment">/// Return the identifier of this automaton&#39;s start state.
     </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ID;
@@ -695,7 +695,7 @@
     ///
     /// The state ID given must be valid, or else implementors may panic.
     </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="../../src/aho_corasick/automaton.rs.html#124">id</a> == <a href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() || <a class="self" href="../../src/aho_corasick/automaton.rs.html#124">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#113">is_match_state</a>(<a href="../../src/aho_corasick/automaton.rs.html#124">id</a>)
+        <a href="#124">id</a> == <a href="state_id.rs.html#45">dead_id</a>() || <a class="self" href="#124">self</a>.<a href="#113">is_match_state</a>(<a href="#124">id</a>)
     }
 
     <span class="doccomment">/// If the given state is a match state, return the match corresponding
@@ -713,7 +713,7 @@
         id: <span class="self">Self</span>::ID,
         match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt;;
 
     <span class="doccomment">/// Returns the number of matches for the given state. If the given state
     /// is not a match state, then this returns 0.
@@ -737,13 +737,13 @@
     <span class="doccomment">/// Like next_state, but debug_asserts that the underlying
     /// implementation never returns a `fail_id()` for the next state.
     </span><span class="kw">fn </span>next_state_no_fail(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="self">Self</span>::ID, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>::ID {
-        <span class="kw">let </span>next = <a class="self" href="../../src/aho_corasick/automaton.rs.html#166">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#162">next_state</a>(<a href="../../src/aho_corasick/automaton.rs.html#166">current</a>, <a href="../../src/aho_corasick/automaton.rs.html#166">input</a>);
+        <span class="kw">let </span>next = <a class="self" href="#166">self</a>.<a href="#162">next_state</a>(<a href="#166">current</a>, <a href="#166">input</a>);
         <span class="comment">// We should never see a transition to the failure state.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
             next != fail_id(),
             <span class="string">&quot;automaton should never return fail_id for next state&quot;
         </span>);
-        <a href="../../src/aho_corasick/automaton.rs.html#167">next</a>
+        <a href="#167">next</a>
     }
 
     <span class="doccomment">/// Execute a search using standard match semantics.
@@ -757,21 +757,21 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>standard_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="../../src/aho_corasick/automaton.rs.html#186">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#100">prefilter</a>() {
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#186">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#209-216">standard_find_at_imp</a>(
-                <a href="../../src/aho_corasick/automaton.rs.html#187">prestate</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#192">pre</a>),
-                <a href="../../src/aho_corasick/automaton.rs.html#188">haystack</a>,
-                <a href="../../src/aho_corasick/automaton.rs.html#189">at</a>,
-                <a href="../../src/aho_corasick/automaton.rs.html#190">state_id</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="#186">self</a>.<a href="#100">prefilter</a>() {
+            <a class="self" href="#186">self</a>.<a href="#209-216">standard_find_at_imp</a>(
+                <a href="#187">prestate</a>,
+                <span class="prelude-val">Some</span>(<a href="#192">pre</a>),
+                <a href="#188">haystack</a>,
+                <a href="#189">at</a>,
+                <a href="#190">state_id</a>,
             )
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#186">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#209-216">standard_find_at_imp</a>(<a href="../../src/aho_corasick/automaton.rs.html#187">prestate</a>, <span class="prelude-val">None</span>, <a href="../../src/aho_corasick/automaton.rs.html#188">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#189">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#190">state_id</a>)
+            <a class="self" href="#186">self</a>.<a href="#209-216">standard_find_at_imp</a>(<a href="#187">prestate</a>, <span class="prelude-val">None</span>, <a href="#188">haystack</a>, <a href="#189">at</a>, <a href="#190">state_id</a>)
         }
     }
 
@@ -781,12 +781,12 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>standard_find_at_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt;,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
         <span class="kw">while </span>at &lt; haystack.len() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
                 <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state()
@@ -842,21 +842,21 @@
     </span><span class="attribute">#[inline(never)]
     </span><span class="kw">fn </span>leftmost_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="../../src/aho_corasick/automaton.rs.html#271">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#100">prefilter</a>() {
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#271">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#294-301">leftmost_find_at_imp</a>(
-                <a href="../../src/aho_corasick/automaton.rs.html#272">prestate</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#277">pre</a>),
-                <a href="../../src/aho_corasick/automaton.rs.html#273">haystack</a>,
-                <a href="../../src/aho_corasick/automaton.rs.html#274">at</a>,
-                <a href="../../src/aho_corasick/automaton.rs.html#275">state_id</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="#271">self</a>.<a href="#100">prefilter</a>() {
+            <a class="self" href="#271">self</a>.<a href="#294-301">leftmost_find_at_imp</a>(
+                <a href="#272">prestate</a>,
+                <span class="prelude-val">Some</span>(<a href="#277">pre</a>),
+                <a href="#273">haystack</a>,
+                <a href="#274">at</a>,
+                <a href="#275">state_id</a>,
             )
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#271">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#294-301">leftmost_find_at_imp</a>(<a href="../../src/aho_corasick/automaton.rs.html#272">prestate</a>, <span class="prelude-val">None</span>, <a href="../../src/aho_corasick/automaton.rs.html#273">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#274">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#275">state_id</a>)
+            <a class="self" href="#271">self</a>.<a href="#294-301">leftmost_find_at_imp</a>(<a href="#272">prestate</a>, <span class="prelude-val">None</span>, <a href="#273">haystack</a>, <a href="#274">at</a>, <a href="#275">state_id</a>)
         }
     }
 
@@ -866,17 +866,17 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>leftmost_find_at_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt;,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.match_kind().is_leftmost());
         <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>&amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <a class="self" href="../../src/aho_corasick/automaton.rs.html#295">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#138-143">get_match</a>(<span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#300">state_id</a>, <span class="number">0</span>, <a href="../../src/aho_corasick/automaton.rs.html#299">at</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <a class="self" href="#295">self</a>.<a href="#138-143">get_match</a>(<span class="kw-2">*</span><a href="#300">state_id</a>, <span class="number">0</span>, <a href="#299">at</a>);
         <span class="kw">while </span>at &lt; haystack.len() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
                 <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state()
@@ -920,7 +920,7 @@
                 last_match = <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="number">0</span>, at);
             }
         }
-        <a href="../../src/aho_corasick/automaton.rs.html#306">last_match</a>
+        <a href="#306">last_match</a>
     }
 
     <span class="doccomment">/// This is like leftmost_find_at, but does not need to track a caller
@@ -943,19 +943,19 @@
     </span><span class="attribute">#[inline(never)]
     </span><span class="kw">fn </span>leftmost_find_at_no_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="../../src/aho_corasick/automaton.rs.html#372">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#100">prefilter</a>() {
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#372">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#393-399">leftmost_find_at_no_state_imp</a>(
-                <a href="../../src/aho_corasick/automaton.rs.html#373">prestate</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#377">pre</a>),
-                <a href="../../src/aho_corasick/automaton.rs.html#374">haystack</a>,
-                <a href="../../src/aho_corasick/automaton.rs.html#375">at</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a class="self" href="#372">self</a>.<a href="#100">prefilter</a>() {
+            <a class="self" href="#372">self</a>.<a href="#393-399">leftmost_find_at_no_state_imp</a>(
+                <a href="#373">prestate</a>,
+                <span class="prelude-val">Some</span>(<a href="#377">pre</a>),
+                <a href="#374">haystack</a>,
+                <a href="#375">at</a>,
             )
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/aho_corasick/automaton.rs.html#372">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#393-399">leftmost_find_at_no_state_imp</a>(<a href="../../src/aho_corasick/automaton.rs.html#373">prestate</a>, <span class="prelude-val">None</span>, <a href="../../src/aho_corasick/automaton.rs.html#374">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#375">at</a>)
+            <a class="self" href="#372">self</a>.<a href="#393-399">leftmost_find_at_no_state_imp</a>(<a href="#373">prestate</a>, <span class="prelude-val">None</span>, <a href="#374">haystack</a>, <a href="#375">at</a>)
         }
     }
 
@@ -965,11 +965,11 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>leftmost_find_at_no_state_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="prefilter.rs.html#50-51">Prefilter</a>&gt;,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="kw-2">mut </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.match_kind().is_leftmost());
         <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -977,20 +977,20 @@
         <span class="comment">// If our prefilter handles confirmation of matches 100% of the
         // time, and since we don&#39;t need to track state IDs, we can avoid
         // Aho-Corasick completely.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a href="../../src/aho_corasick/automaton.rs.html#396">prefilter</a> {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <a href="#396">prefilter</a> {
             <span class="comment">// We should never have a prefilter during an anchored search.
             </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.anchored());
             <span class="kw">if </span>!pre.reports_false_positives() {
-                <span class="kw">return match </span><a href="../../src/aho_corasick/automaton.rs.html#407">pre</a>.<a href="../../src/aho_corasick/prefilter.rs.html#58-63">next_candidate</a>(<a href="../../src/aho_corasick/automaton.rs.html#395">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#397">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#398">at</a>) {
-                    <a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a> =&gt; <span class="prelude-val">None</span>,
-                    <a href="../../src/aho_corasick/prefilter.rs.html#29">Candidate::Match</a>(m) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#413">m</a>),
-                    <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">return match </span><a href="#407">pre</a>.<a href="prefilter.rs.html#58-63">next_candidate</a>(<a href="#395">prestate</a>, <a href="#397">haystack</a>, <a href="#398">at</a>) {
+                    <a href="prefilter.rs.html#28">Candidate::None</a> =&gt; <span class="prelude-val">None</span>,
+                    <a href="prefilter.rs.html#29">Candidate::Match</a>(m) =&gt; <span class="prelude-val">Some</span>(<a href="#413">m</a>),
+                    <a href="prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                 };
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state_id = <a class="self" href="../../src/aho_corasick/automaton.rs.html#394">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#103">start_state</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <a class="self" href="../../src/aho_corasick/automaton.rs.html#394">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#138-143">get_match</a>(<a href="../../src/aho_corasick/automaton.rs.html#419">state_id</a>, <span class="number">0</span>, <a href="../../src/aho_corasick/automaton.rs.html#398">at</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>state_id = <a class="self" href="#394">self</a>.<a href="#103">start_state</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <a class="self" href="#394">self</a>.<a href="#138-143">get_match</a>(<a href="#419">state_id</a>, <span class="number">0</span>, <a href="#398">at</a>);
         <span class="kw">while </span>at &lt; haystack.len() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
                 <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; state_id == <span class="self">self</span>.start_state()
@@ -1035,7 +1035,7 @@
                 last_match = <span class="self">self</span>.get_match(state_id, <span class="number">0</span>, at);
             }
         }
-        <a href="../../src/aho_corasick/automaton.rs.html#420">last_match</a>
+        <a href="#420">last_match</a>
     }
 
     <span class="doccomment">/// Execute an overlapping search.
@@ -1047,32 +1047,32 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>overlapping_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
         match_index: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>&amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>match_count = <a class="self" href="../../src/aho_corasick/automaton.rs.html#476">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#149">match_count</a>(<span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#480">state_id</a>);
+        <span class="kw">let </span>match_count = <a class="self" href="#476">self</a>.<a href="#149">match_count</a>(<span class="kw-2">*</span><a href="#480">state_id</a>);
         <span class="kw">if </span><span class="kw-2">*</span>match_index &lt; match_count {
             <span class="comment">// This is guaranteed to return a match since
             // match_index &lt; match_count.
-            </span><span class="kw">let </span>result = <a class="self" href="../../src/aho_corasick/automaton.rs.html#476">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#138-143">get_match</a>(<span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#480">state_id</a>, <span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#481">match_index</a>, <a href="../../src/aho_corasick/automaton.rs.html#479">at</a>);
+            </span><span class="kw">let </span>result = <a class="self" href="#476">self</a>.<a href="#138-143">get_match</a>(<span class="kw-2">*</span><a href="#480">state_id</a>, <span class="kw-2">*</span><a href="#481">match_index</a>, <a href="#479">at</a>);
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(result.is_some(), <span class="string">&quot;must be a match&quot;</span>);
-            <span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#481">match_index</a> += <span class="number">1</span>;
-            <span class="kw">return </span><a href="../../src/aho_corasick/automaton.rs.html#491">result</a>;
+            <span class="kw-2">*</span><a href="#481">match_index</a> += <span class="number">1</span>;
+            <span class="kw">return </span><a href="#491">result</a>;
         }
 
-        <span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#481">match_index</a> = <span class="number">0</span>;
-        <span class="kw">match </span><a class="self" href="../../src/aho_corasick/automaton.rs.html#476">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#185-191">standard_find_at</a>(<a href="../../src/aho_corasick/automaton.rs.html#477">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#478">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#479">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#480">state_id</a>) {
+        <span class="kw-2">*</span><a href="#481">match_index</a> = <span class="number">0</span>;
+        <span class="kw">match </span><a class="self" href="#476">self</a>.<a href="#185-191">standard_find_at</a>(<a href="#477">prestate</a>, <a href="#478">haystack</a>, <a href="#479">at</a>, <a href="#480">state_id</a>) {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(m) =&gt; {
-                <span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#481">match_index</a> = <span class="number">1</span>;
-                <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#500">m</a>)
+                <span class="kw-2">*</span><a href="#481">match_index</a> = <span class="number">1</span>;
+                <span class="prelude-val">Some</span>(<a href="#500">m</a>)
             }
         }
     }
@@ -1084,20 +1084,20 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>earliest_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
         <span class="kw">if </span><span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
             <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a class="self" href="../../src/aho_corasick/automaton.rs.html#513">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#138-143">get_match</a>(<span class="kw-2">*</span><a href="../../src/aho_corasick/automaton.rs.html#517">state_id</a>, <span class="number">0</span>, <a href="../../src/aho_corasick/automaton.rs.html#516">at</a>) {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/automaton.rs.html#523">m</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <a class="self" href="#513">self</a>.<a href="#138-143">get_match</a>(<span class="kw-2">*</span><a href="#517">state_id</a>, <span class="number">0</span>, <a href="#516">at</a>) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#523">m</a>);
             }
         }
-        <a class="self" href="../../src/aho_corasick/automaton.rs.html#513">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#185-191">standard_find_at</a>(<a href="../../src/aho_corasick/automaton.rs.html#514">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#515">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#516">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#517">state_id</a>)
+        <a class="self" href="#513">self</a>.<a href="#185-191">standard_find_at</a>(<a href="#514">prestate</a>, <a href="#515">haystack</a>, <a href="#516">at</a>, <a href="#517">state_id</a>)
     }
 
     <span class="doccomment">/// A convenience function for finding the next match according to the
@@ -1106,19 +1106,19 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/automaton.rs.html#535">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#87">match_kind</a>() {
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2050">MatchKind::Standard</a> =&gt; {
-                <a class="self" href="../../src/aho_corasick/automaton.rs.html#535">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/automaton.rs.html#536">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#537">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#538">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#539">state_id</a>)
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#535">self</a>.<a href="#87">match_kind</a>() {
+            <a href="ahocorasick.rs.html#2045">MatchKind::Standard</a> =&gt; {
+                <a class="self" href="#535">self</a>.<a href="#512-518">earliest_find_at</a>(<a href="#536">prestate</a>, <a href="#537">haystack</a>, <a href="#538">at</a>, <a href="#539">state_id</a>)
             }
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2059">MatchKind::LeftmostFirst</a> | <a href="../../src/aho_corasick/ahocorasick.rs.html#2067">MatchKind::LeftmostLongest</a> =&gt; {
-                <a class="self" href="../../src/aho_corasick/automaton.rs.html#535">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#270-276">leftmost_find_at</a>(<a href="../../src/aho_corasick/automaton.rs.html#536">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#537">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#538">at</a>, <a href="../../src/aho_corasick/automaton.rs.html#539">state_id</a>)
+            <a href="ahocorasick.rs.html#2054">MatchKind::LeftmostFirst</a> | <a href="ahocorasick.rs.html#2062">MatchKind::LeftmostLongest</a> =&gt; {
+                <a class="self" href="#535">self</a>.<a href="#270-276">leftmost_find_at</a>(<a href="#536">prestate</a>, <a href="#537">haystack</a>, <a href="#538">at</a>, <a href="#539">state_id</a>)
             }
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2074">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <a href="ahocorasick.rs.html#2069">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
@@ -1128,21 +1128,21 @@
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>find_at_no_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="prefilter.rs.html#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/automaton.rs.html#557">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#87">match_kind</a>() {
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2050">MatchKind::Standard</a> =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/aho_corasick/automaton.rs.html#557">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#103">start_state</a>();
-                <a class="self" href="../../src/aho_corasick/automaton.rs.html#557">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/automaton.rs.html#558">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#559">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#560">at</a>, <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/automaton.rs.html#564">state</a>)
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a class="self" href="#557">self</a>.<a href="#87">match_kind</a>() {
+            <a href="ahocorasick.rs.html#2045">MatchKind::Standard</a> =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#557">self</a>.<a href="#103">start_state</a>();
+                <a class="self" href="#557">self</a>.<a href="#512-518">earliest_find_at</a>(<a href="#558">prestate</a>, <a href="#559">haystack</a>, <a href="#560">at</a>, <span class="kw-2">&amp;mut </span><a href="#564">state</a>)
             }
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2059">MatchKind::LeftmostFirst</a> | <a href="../../src/aho_corasick/ahocorasick.rs.html#2067">MatchKind::LeftmostLongest</a> =&gt; {
-                <a class="self" href="../../src/aho_corasick/automaton.rs.html#557">self</a>.<a href="../../src/aho_corasick/automaton.rs.html#371-376">leftmost_find_at_no_state</a>(<a href="../../src/aho_corasick/automaton.rs.html#558">prestate</a>, <a href="../../src/aho_corasick/automaton.rs.html#559">haystack</a>, <a href="../../src/aho_corasick/automaton.rs.html#560">at</a>)
+            <a href="ahocorasick.rs.html#2054">MatchKind::LeftmostFirst</a> | <a href="ahocorasick.rs.html#2062">MatchKind::LeftmostLongest</a> =&gt; {
+                <a class="self" href="#557">self</a>.<a href="#371-376">leftmost_find_at_no_state</a>(<a href="#558">prestate</a>, <a href="#559">haystack</a>, <a href="#560">at</a>)
             }
-            <a href="../../src/aho_corasick/ahocorasick.rs.html#2074">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <a href="ahocorasick.rs.html#2069">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

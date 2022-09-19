@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha-1-0.10.0/src/compress.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compress.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha1-0.10.5/src/compress.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compress.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../sha1/index.html">
                         <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -37,9 +37,8 @@
 <span id="35">35</span>
 <span id="36">36</span>
 <span id="37">37</span>
-<span id="38">38</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../crypto_common/type.Block.html">Block</a>, <a href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a>, <a href="../../src/sha1/lib.rs.html#69">Sha1Core</a>};
-<span class="kw">use </span><a href="../../typenum/marker_traits/trait.Unsigned.html">digest::generic_array::typenum::Unsigned</a>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../crypto_common/type.Block.html">Block</a>, <a href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a>, <a href="lib.rs.html#77">Sha1Core</a>};
+<span class="kw">use </span><a href="../../typenum/marker_traits/trait.Unsigned.html">digest::typenum::Unsigned</a>;
 
 <span class="macro">cfg_if::cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(feature = <span class="string">&quot;force-soft&quot;</span>)] </span>{
@@ -51,30 +50,29 @@
         <span class="kw">use </span>aarch64::compress <span class="kw">as </span>compress_inner;
     } <span class="kw">else if </span><span class="attribute">#[cfg(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>))] </span>{
         <span class="attribute">#[cfg(not(feature = <span class="string">&quot;asm&quot;</span>))]
-        </span><span class="kw">mod </span><a href="../../src/sha1/compress/soft.rs.html#1-259">soft</a>;
+        </span><span class="kw">mod </span><a href="compress/soft.rs.html#1-260">soft</a>;
         <span class="attribute">#[cfg(feature = <span class="string">&quot;asm&quot;</span>)]
         </span><span class="kw">mod </span>soft {
             <span class="kw">pub use </span>sha1_asm::compress;
         }
-        <span class="kw">mod </span><a href="../../src/sha1/compress/x86.rs.html#1-112">x86</a>;
-        <span class="kw">use </span><a href="../../src/sha1/compress/x86.rs.html#102">x86::compress</a> <span class="kw">as </span>compress_inner;
+        <span class="kw">mod </span><a href="compress/x86.rs.html#1-112">x86</a>;
+        <span class="kw">use </span><a href="compress/x86.rs.html#102">x86::compress</a> <span class="kw">as </span>compress_inner;
     } <span class="kw">else </span>{
         <span class="kw">mod </span>soft;
         <span class="kw">use </span>soft::compress <span class="kw">as </span>compress_inner;
     }
 }
 
-<span class="kw">const </span>BLOCK_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = &lt;<a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> <span class="kw">as </span>BlockSizeUser&gt;::BlockSize::USIZE;
+<span class="kw">const </span>BLOCK_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = &lt;<a href="lib.rs.html#77">Sha1Core</a> <span class="kw">as </span>BlockSizeUser&gt;::BlockSize::USIZE;
 
 <span class="doccomment">/// SHA-1 compression function
 </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;compress&quot;</span>)))]
-</span><span class="kw">pub fn </span>compress(state: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">5</span>], blocks: <span class="kw-2">&amp;</span>[Block&lt;<a href="../../src/sha1/lib.rs.html#69">Sha1Core</a>&gt;]) {
+</span><span class="kw">pub fn </span>compress(state: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <span class="number">5</span>], blocks: <span class="kw-2">&amp;</span>[Block&lt;<a href="lib.rs.html#77">Sha1Core</a>&gt;]) {
     <span class="comment">// SAFETY: GenericArray&lt;u8, U64&gt; and [u8; 64] have
     // exactly the same memory layout
-    </span><span class="attribute">#[allow(unsafe_code)]
-    </span><span class="kw">let </span>blocks: <span class="kw-2">&amp;</span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../src/sha1/compress.rs.html#27">BLOCK_SIZE</a>]] =
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="../../src/sha1/compress.rs.html#31">blocks</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../src/sha1/compress.rs.html#27">BLOCK_SIZE</a>]]) };
-    <a href="../../src/sha1/compress/x86.rs.html#102">compress_inner</a>(<a href="../../src/sha1/compress.rs.html#31">state</a>, <a href="../../src/sha1/compress.rs.html#35">blocks</a>);
+    </span><span class="kw">let </span>blocks: <span class="kw-2">&amp;</span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#27">BLOCK_SIZE</a>]] =
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="#31">blocks</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>[[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#27">BLOCK_SIZE</a>]]) };
+    <a href="compress/x86.rs.html#102">compress_inner</a>(<a href="#31">state</a>, <a href="#34">blocks</a>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

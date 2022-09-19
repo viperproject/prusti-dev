@@ -87,22 +87,22 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/proc_macro_error_attr/lib.rs.html#19">Error</a>, <span class="prelude-ty">Result</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#19">Error</a>, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a href="../../proc_macro2/struct.Ident.html">Ident</a>, <a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
 <span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/peekable/struct.Peekable.html">std::iter::Peekable</a>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_input(
     input: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;<a href="../../src/proc_macro_error_attr/parse.rs.html#72">Attribute</a>&gt;, Vec&lt;<a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>input = <a href="../../src/proc_macro_error_attr/parse.rs.html#7">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;<a href="#72">Attribute</a>&gt;, Vec&lt;<a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>input = <a href="#7">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
     <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::new();
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = parse_next_attr(<span class="kw-2">&amp;mut </span>input)<span class="question-mark">? </span>{
         attrs.push(attr);
     }
 
-    <span class="kw">let </span>sig = <a href="../../src/proc_macro_error_attr/parse.rs.html#59">parse_signature</a>(<span class="kw-2">&amp;mut </span><a href="../../src/proc_macro_error_attr/parse.rs.html#9">input</a>);
+    <span class="kw">let </span>sig = <a href="#59">parse_signature</a>(<span class="kw-2">&amp;mut </span><a href="#9">input</a>);
     <span class="kw">let </span>body = input.next().ok_or_else(|| {
         Error::new(
             Span::call_site(),
@@ -110,50 +110,50 @@
         )
     })<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>((<a href="../../src/proc_macro_error_attr/parse.rs.html#10">attrs</a>, <a href="../../src/proc_macro_error_attr/parse.rs.html#16">sig</a>, <a href="../../src/proc_macro_error_attr/parse.rs.html#17">body</a>))
+    <span class="prelude-val">Ok</span>((<a href="#10">attrs</a>, <a href="#16">sig</a>, <a href="#17">body</a>))
 }
 
 <span class="kw">fn </span>parse_next_attr(
     input: <span class="kw-2">&amp;mut </span>Peekable&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/proc_macro_error_attr/parse.rs.html#72">Attribute</a>&gt;&gt; {
-    <span class="kw">let </span>shebang = <span class="kw">match </span><a href="../../src/proc_macro_error_attr/parse.rs.html#28">input</a>.peek() {
-        <span class="prelude-val">Some</span>(TokenTree::Punct(<span class="kw-2">ref </span>punct)) <span class="kw">if </span><a href="../../src/proc_macro_error_attr/parse.rs.html#31">punct</a>.as_char() == <span class="string">&#39;#&#39; </span>=&gt; <a href="../../src/proc_macro_error_attr/parse.rs.html#28">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(),
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#72">Attribute</a>&gt;&gt; {
+    <span class="kw">let </span>shebang = <span class="kw">match </span><a href="#28">input</a>.peek() {
+        <span class="prelude-val">Some</span>(TokenTree::Punct(<span class="kw-2">ref </span>punct)) <span class="kw">if </span><a href="#31">punct</a>.as_char() == <span class="string">&#39;#&#39; </span>=&gt; <a href="#28">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(),
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     };
 
-    <span class="kw">let </span>group = <span class="kw">match </span><a href="../../src/proc_macro_error_attr/parse.rs.html#28">input</a>.peek() {
-        <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span><a href="../../src/proc_macro_error_attr/parse.rs.html#36">group</a>.delimiter() == Delimiter::Bracket =&gt; {
-            <span class="kw">let </span>res = <a href="../../src/proc_macro_error_attr/parse.rs.html#36">group</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a href="../../src/proc_macro_error_attr/parse.rs.html#28">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-            <a href="../../src/proc_macro_error_attr/parse.rs.html#37">res</a>
+    <span class="kw">let </span>group = <span class="kw">match </span><a href="#28">input</a>.peek() {
+        <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span><a href="#36">group</a>.delimiter() == Delimiter::Bracket =&gt; {
+            <span class="kw">let </span>res = <a href="#36">group</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a href="#28">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            <a href="#37">res</a>
         }
         other =&gt; {
-            <span class="kw">let </span>span = <a href="../../src/proc_macro_error_attr/parse.rs.html#41">other</a>.map_or(Span::call_site(), |tt| <a href="../../src/proc_macro_error_attr/parse.rs.html#42">tt</a>.span());
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="../../src/proc_macro_error_attr/parse.rs.html#42">span</a>, <span class="string">&quot;expected `[`&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
+            <span class="kw">let </span>span = <a href="#41">other</a>.map_or(Span::call_site(), |tt| <a href="#42">tt</a>.span());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(<a href="#42">span</a>, <span class="string">&quot;expected `[`&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
         }
     };
 
-    <span class="kw">let </span>path = <span class="kw">match </span><a href="../../src/proc_macro_error_attr/parse.rs.html#35">group</a>.stream().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">Some</span>(TokenTree::Ident(ident)) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/proc_macro_error_attr/parse.rs.html#48">ident</a>),
+    <span class="kw">let </span>path = <span class="kw">match </span><a href="#35">group</a>.stream().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="prelude-val">Some</span>(TokenTree::Ident(ident)) =&gt; <span class="prelude-val">Some</span>(<a href="#48">ident</a>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/proc_macro_error_attr/parse.rs.html#72">Attribute</a> {
-        <a href="../../src/proc_macro_error_attr/parse.rs.html#30">shebang</a>,
-        group: TokenTree::Group(<a href="../../src/proc_macro_error_attr/parse.rs.html#35">group</a>),
-        <a href="../../src/proc_macro_error_attr/parse.rs.html#47">path</a>,
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#72">Attribute</a> {
+        <a href="#30">shebang</a>,
+        group: TokenTree::Group(<a href="#35">group</a>),
+        <a href="#47">path</a>,
     }))
 }
 
 <span class="kw">fn </span>parse_signature(input: <span class="kw-2">&amp;mut </span>Peekable&lt;<span class="kw">impl </span>Iterator&lt;Item = <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;&gt;) -&gt; Vec&lt;<a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>sig = Vec::new();
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../src/proc_macro_error_attr/parse.rs.html#59">input</a>.peek() {
-            <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span><a href="../../src/proc_macro_error_attr/parse.rs.html#63">group</a>.delimiter() == Delimiter::Brace =&gt; {
-                <span class="kw">return </span><a href="../../src/proc_macro_error_attr/parse.rs.html#60">sig</a>;
+        <span class="kw">match </span><a href="#59">input</a>.peek() {
+            <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span><a href="#63">group</a>.delimiter() == Delimiter::Brace =&gt; {
+                <span class="kw">return </span><a href="#60">sig</a>;
             }
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/proc_macro_error_attr/parse.rs.html#60">sig</a>,
-            <span class="kw">_ </span>=&gt; <a href="../../src/proc_macro_error_attr/parse.rs.html#60">sig</a>.push(<a href="../../src/proc_macro_error_attr/parse.rs.html#59">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#60">sig</a>,
+            <span class="kw">_ </span>=&gt; <a href="#60">sig</a>.push(<a href="#59">input</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()),
         }
     }
 }
@@ -164,17 +164,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) path: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Ident.html">Ident</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/proc_macro_error_attr/parse.rs.html#72">Attribute</a> {
+<span class="kw">impl </span><a href="#72">Attribute</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>path_is_ident(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/proc_macro_error_attr/parse.rs.html#79">self</a>.path.as_ref().map_or(<span class="bool-val">false</span>, |p| <span class="kw-2">*</span><a href="../../src/proc_macro_error_attr/parse.rs.html#80">p</a> == <a href="../../src/proc_macro_error_attr/parse.rs.html#79">ident</a>)
+        <a class="self" href="#79">self</a>.path.as_ref().map_or(<span class="bool-val">false</span>, |p| <span class="kw-2">*</span><a href="#80">p</a> == <a href="#79">ident</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/proc_macro_error_attr/parse.rs.html#72">Attribute</a> {
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#72">Attribute</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <a class="self" href="../../src/proc_macro_error_attr/parse.rs.html#85">self</a>.shebang.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/proc_macro_error_attr/parse.rs.html#85">ts</a>);
-        <a class="self" href="../../src/proc_macro_error_attr/parse.rs.html#85">self</a>.group.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/proc_macro_error_attr/parse.rs.html#85">ts</a>);
+        <a class="self" href="#85">self</a>.shebang.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#85">ts</a>);
+        <a class="self" href="#85">self</a>.group.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#85">ts</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error_attr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error_attr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

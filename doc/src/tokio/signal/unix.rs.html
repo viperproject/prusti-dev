@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/signal/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -533,9 +533,9 @@
 </span><span class="attribute">#![cfg(unix)]
 #![cfg_attr(docsrs, doc(cfg(all(unix, feature = <span class="string">&quot;signal&quot;</span>))))]
 
-</span><span class="kw">use </span><span class="kw">crate</span>::signal::registry::{<a href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>, <a href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>, <a href="../../../src/tokio/signal/registry.rs.html#17">EventInfo</a>, <a href="../../../src/tokio/signal/registry.rs.html#117">Globals</a>, <a href="../../../src/tokio/signal/registry.rs.html#59">Init</a>, <a href="../../../src/tokio/signal/registry.rs.html#34">Storage</a>};
-<span class="kw">use </span><a href="../../../src/tokio/signal/mod.rs.html#68"><span class="kw">crate</span>::signal::RxFuture</a>;
-<span class="kw">use </span><a href="../../../src/tokio/sync/mod.rs.html#472"><span class="kw">crate</span>::sync::watch</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::signal::registry::{<a href="registry.rs.html#155-158">globals</a>, <a href="registry.rs.html#12">EventId</a>, <a href="registry.rs.html#17">EventInfo</a>, <a href="registry.rs.html#117">Globals</a>, <a href="registry.rs.html#59">Init</a>, <a href="registry.rs.html#34">Storage</a>};
+<span class="kw">use </span><a href="mod.rs.html#68"><span class="kw">crate</span>::signal::RxFuture</a>;
+<span class="kw">use </span><a href="../sync/mod.rs.html#472"><span class="kw">crate</span>::sync::watch</a>;
 
 <span class="kw">use </span><a href="../../../mio/net/uds/stream/struct.UnixStream.html">mio::net::UnixStream</a>;
 <span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
@@ -544,12 +544,12 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/signal/unix/driver.rs.html#1-209">driver</a>;
-<span class="kw">use </span><a href="../../../src/tokio/signal/unix/driver.rs.html#35"><span class="self">self</span>::driver::Handle</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="unix/driver.rs.html#1-207">driver</a>;
+<span class="kw">use </span><a href="unix/driver.rs.html#36"><span class="self">self</span>::driver::Handle</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>OsStorage = Vec&lt;<a href="../../../src/tokio/signal/unix.rs.html#220">SignalInfo</a>&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>OsStorage = Vec&lt;<a href="#220">SignalInfo</a>&gt;;
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/registry.rs.html#59">Init</a> <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#23">OsStorage</a> {
+<span class="kw">impl </span><a href="registry.rs.html#59">Init</a> <span class="kw">for </span><a href="#23">OsStorage</a> {
     <span class="kw">fn </span>init() -&gt; <span class="self">Self </span>{
         <span class="comment">// There are reliable signals ranging from 1 to 33 available on every Unix platform.
         </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
@@ -559,20 +559,20 @@
         </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
         </span><span class="kw">let </span>possible = <span class="number">0</span>..=libc::SIGRTMAX();
 
-        <a href="../../../src/tokio/signal/unix.rs.html#33">possible</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| SignalInfo::default()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <a href="#33">possible</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| SignalInfo::default()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/registry.rs.html#34">Storage</a> <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#23">OsStorage</a> {
-    <span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/registry.rs.html#17">EventInfo</a>&gt; {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#40">self</a>.get(<a href="../../../src/tokio/signal/unix.rs.html#40">id</a>).map(|si| <span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/unix.rs.html#41">si</a>.event_info)
+<span class="kw">impl </span><a href="registry.rs.html#34">Storage</a> <span class="kw">for </span><a href="#23">OsStorage</a> {
+    <span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="registry.rs.html#12">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="registry.rs.html#17">EventInfo</a>&gt; {
+        <a class="self" href="#40">self</a>.get(<a href="#40">id</a>).map(|si| <span class="kw-2">&amp;</span><a href="#41">si</a>.event_info)
     }
 
     <span class="kw">fn </span>for_each&lt;<span class="lifetime">&#39;a</span>, F&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, f: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/signal/registry.rs.html#17">EventInfo</a>),
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="registry.rs.html#17">EventInfo</a>),
     {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#44">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|si| <span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/unix.rs.html#48">si</a>.event_info).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="../../../src/tokio/signal/unix.rs.html#44">f</a>)
+        <a class="self" href="#44">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|si| <span class="kw-2">&amp;</span><a href="#48">si</a>.event_info).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#44">f</a>)
     }
 }
 
@@ -582,11 +582,11 @@
     receiver: <a href="../../../mio/net/uds/stream/struct.UnixStream.html">UnixStream</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/registry.rs.html#59">Init</a> <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#53">OsExtraData</a> {
+<span class="kw">impl </span><a href="registry.rs.html#59">Init</a> <span class="kw">for </span><a href="#53">OsExtraData</a> {
     <span class="kw">fn </span>init() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(receiver, sender) = UnixStream::pair().expect(<span class="string">&quot;failed to create UnixStream&quot;</span>);
 
-        <span class="self">Self </span>{ <a href="../../../src/tokio/signal/unix.rs.html#60">sender</a>, <a href="../../../src/tokio/signal/unix.rs.html#60">receiver</a> }
+        <span class="self">Self </span>{ <a href="#60">sender</a>, <a href="#60">receiver</a> }
     }
 }
 
@@ -594,7 +594,7 @@
 </span><span class="attribute">#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>SignalKind(<a href="../../../libc/unix/type.c_int.html">libc::c_int</a>);
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a> {
+<span class="kw">impl </span><a href="#68">SignalKind</a> {
     <span class="doccomment">/// Allows for listening to any valid OS signal.
     ///
     /// For example, this can be used for listening for platform-specific
@@ -611,8 +611,8 @@
     // unlikely to change to other types, but technically libc can change this
     // in the future minor version.
     // See https://github.com/tokio-rs/tokio/issues/3767 for more.
-    </span><span class="kw">pub fn </span>from_raw(signum: <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="../../../src/tokio/signal/unix.rs.html#87">signum</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
+    </span><span class="kw">pub const fn </span>from_raw(signum: <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="#87">signum</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
     }
 
     <span class="doccomment">/// Get the signal&#39;s numeric value.
@@ -622,15 +622,15 @@
     /// let kind = SignalKind::interrupt();
     /// assert_eq!(kind.as_raw_value(), libc::SIGINT);
     /// ```
-    </span><span class="kw">pub fn </span>as_raw_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#98">self</a>.<span class="number">0
+    </span><span class="kw">pub const fn </span>as_raw_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
+        <a class="self" href="#98">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Represents the SIGALRM signal.
     ///
     /// On Unix systems this signal is sent when a real-time timer has expired.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>alarm() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>alarm() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGALRM)
     }
 
@@ -638,7 +638,7 @@
     ///
     /// On Unix systems this signal is sent when the status of a child process
     /// has changed. By default, this signal is ignored.
-    </span><span class="kw">pub fn </span>child() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>child() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGCHLD)
     }
 
@@ -646,7 +646,7 @@
     ///
     /// On Unix systems this signal is sent when the terminal is disconnected.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>hangup() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>hangup() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGHUP)
     }
 
@@ -661,7 +661,7 @@
         target_os = <span class="string">&quot;netbsd&quot;</span>,
         target_os = <span class="string">&quot;openbsd&quot;
     </span>))]
-    </span><span class="kw">pub fn </span>info() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>info() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGINFO)
     }
 
@@ -669,7 +669,7 @@
     ///
     /// On Unix systems this signal is sent to interrupt a program.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>interrupt() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>interrupt() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGINT)
     }
 
@@ -677,7 +677,7 @@
     ///
     /// On Unix systems this signal is sent when I/O operations are possible
     /// on some file descriptor. By default, this signal is ignored.
-    </span><span class="kw">pub fn </span>io() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>io() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGIO)
     }
 
@@ -686,7 +686,7 @@
     /// On Unix systems this signal is sent when the process attempts to write
     /// to a pipe which has no reader. By default, the process is terminated by
     /// this signal.
-    </span><span class="kw">pub fn </span>pipe() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>pipe() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGPIPE)
     }
 
@@ -695,7 +695,7 @@
     /// On Unix systems this signal is sent to issue a shutdown of the
     /// process, after which the OS will dump the process core.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>quit() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>quit() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGQUIT)
     }
 
@@ -703,7 +703,7 @@
     ///
     /// On Unix systems this signal is sent to issue a shutdown of the
     /// process. By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>terminate() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>terminate() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGTERM)
     }
 
@@ -711,7 +711,7 @@
     ///
     /// On Unix systems this is a user defined signal.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>user_defined1() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>user_defined1() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGUSR1)
     }
 
@@ -719,7 +719,7 @@
     ///
     /// On Unix systems this is a user defined signal.
     /// By default, the process is terminated by this signal.
-    </span><span class="kw">pub fn </span>user_defined2() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>user_defined2() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGUSR2)
     }
 
@@ -727,32 +727,32 @@
     ///
     /// On Unix systems this signal is sent when the terminal window is resized.
     /// By default, this signal is ignored.
-    </span><span class="kw">pub fn </span>window_change() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>window_change() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGWINCH)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a> {
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>&gt; <span class="kw">for </span><a href="#68">SignalKind</a> {
     <span class="kw">fn </span>from(signum: <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_raw(<a href="../../../src/tokio/signal/unix.rs.html#209">signum</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
+        <span class="self">Self</span>::from_raw(<a href="#209">signum</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
-    <span class="kw">fn </span>from(kind: <a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tokio/signal/unix.rs.html#215">kind</a>.<a href="../../../src/tokio/signal/unix.rs.html#98">as_raw_value</a>()
+<span class="kw">impl </span>From&lt;<a href="#68">SignalKind</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
+    <span class="kw">fn </span>from(kind: <a href="#68">SignalKind</a>) -&gt; <span class="self">Self </span>{
+        <a href="#215">kind</a>.<a href="#98">as_raw_value</a>()
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SignalInfo {
-    event_info: <a href="../../../src/tokio/signal/registry.rs.html#17">EventInfo</a>,
+    event_info: <a href="registry.rs.html#17">EventInfo</a>,
     init: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a>,
     initialized: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#220">SignalInfo</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../../src/tokio/signal/unix.rs.html#220">SignalInfo</a> {
-        <a href="../../../src/tokio/signal/unix.rs.html#220">SignalInfo</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#220">SignalInfo</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#220">SignalInfo</a> {
+        <a href="#220">SignalInfo</a> {
             event_info: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             init: Once::new(),
             initialized: AtomicBool::new(<span class="bool-val">false</span>),
@@ -768,13 +768,13 @@
 /// 2. Wake up the driver by writing a byte to a pipe
 ///
 /// Those two operations should both be async-signal safe.
-</span><span class="kw">fn </span>action(globals: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../../src/tokio/signal/registry.rs.html#117">Globals</a>&gt;, signal: <a href="../../../libc/unix/type.c_int.html">libc::c_int</a>) {
-    <a href="../../../src/tokio/signal/unix.rs.html#244">globals</a>.<a href="../../../src/tokio/signal/registry.rs.html#138">record_event</a>(<a href="../../../src/tokio/signal/unix.rs.html#244">signal</a> <span class="kw">as </span><a href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>);
+</span><span class="kw">fn </span>action(globals: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="registry.rs.html#117">Globals</a>&gt;, signal: <a href="../../../libc/unix/type.c_int.html">libc::c_int</a>) {
+    <a href="#244">globals</a>.<a href="registry.rs.html#138">record_event</a>(<a href="#244">signal</a> <span class="kw">as </span><a href="registry.rs.html#12">EventId</a>);
 
     <span class="comment">// Send a wakeup, ignore any errors (anything reasonably possible is
     // full pipe and then it will wake up anyway).
-    </span><span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/unix.rs.html#244">globals</a>.sender;
-    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/signal/unix.rs.html#249">sender</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span>[<span class="number">1</span>]));
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="kw-2">&amp;</span><a href="#244">globals</a>.sender;
+    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#249">sender</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span>[<span class="number">1</span>]));
 }
 
 <span class="doccomment">/// Enables this module to receive signal notifications for the `signal`
@@ -782,8 +782,8 @@
 ///
 /// This will register the signal handler if it hasn&#39;t already been registered,
 /// returning any error along the way if that fails.
-</span><span class="kw">fn </span>signal_enable(signal: <a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>, handle: <span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a>) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">let </span>signal = <a href="../../../src/tokio/signal/unix.rs.html#258">signal</a>.<span class="number">0</span>;
+</span><span class="kw">fn </span>signal_enable(signal: <a href="#68">SignalKind</a>, handle: <span class="kw-2">&amp;</span><a href="unix/driver.rs.html#36">Handle</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>signal = <a href="#258">signal</a>.<span class="number">0</span>;
     <span class="kw">if </span>signal &lt; <span class="number">0 </span>|| signal_hook_registry::FORBIDDEN.contains(<span class="kw-2">&amp;</span>signal) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
             ErrorKind::Other,
@@ -794,18 +794,18 @@
     <span class="comment">// Check that we have a signal driver running
     </span>handle.check_inner()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>globals = <a href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>();
-    <span class="kw">let </span>siginfo = <span class="kw">match </span><a href="../../../src/tokio/signal/unix.rs.html#270">globals</a>.<a href="../../../src/tokio/signal/registry.rs.html#150">storage</a>().get(<a href="../../../src/tokio/signal/unix.rs.html#259">signal</a> <span class="kw">as </span><a href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>) {
-        <span class="prelude-val">Some</span>(slot) =&gt; <a href="../../../src/tokio/signal/unix.rs.html#272">slot</a>,
+    <span class="kw">let </span>globals = <a href="registry.rs.html#155-158">globals</a>();
+    <span class="kw">let </span>siginfo = <span class="kw">match </span><a href="#270">globals</a>.<a href="registry.rs.html#150">storage</a>().get(<a href="#259">signal</a> <span class="kw">as </span><a href="registry.rs.html#12">EventId</a>) {
+        <span class="prelude-val">Some</span>(slot) =&gt; <a href="#272">slot</a>,
         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;signal too large&quot;</span>)),
     };
     <span class="kw">let </span><span class="kw-2">mut </span>registered = <span class="prelude-val">Ok</span>(());
-    <a href="../../../src/tokio/signal/unix.rs.html#271">siginfo</a>.init.call_once(|| {
-        <a href="../../../src/tokio/signal/unix.rs.html#275">registered</a> = <span class="kw">unsafe </span>{
-            signal_hook_registry::register(<a href="../../../src/tokio/signal/unix.rs.html#259">signal</a>, <span class="kw">move </span>|| <a href="../../../src/tokio/signal/unix.rs.html#244">action</a>(<a href="../../../src/tokio/signal/unix.rs.html#270">globals</a>, <a href="../../../src/tokio/signal/unix.rs.html#259">signal</a>)).map(|<span class="kw">_</span>| ())
+    <a href="#271">siginfo</a>.init.call_once(|| {
+        <a href="#275">registered</a> = <span class="kw">unsafe </span>{
+            signal_hook_registry::register(<a href="#259">signal</a>, <span class="kw">move </span>|| <a href="#244">action</a>(<a href="#270">globals</a>, <a href="#259">signal</a>)).map(|<span class="kw">_</span>| ())
         };
         <span class="kw">if </span>registered.is_ok() {
-            <a href="../../../src/tokio/signal/unix.rs.html#271">siginfo</a>.initialized.store(<span class="bool-val">true</span>, Ordering::Relaxed);
+            <a href="#271">siginfo</a>.initialized.store(<span class="bool-val">true</span>, Ordering::Relaxed);
         }
     });
     registered<span class="question-mark">?</span>;
@@ -886,7 +886,7 @@
 </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
 #[derive(Debug)]
 </span><span class="kw">pub struct </span>Signal {
-    inner: <a href="../../../src/tokio/signal/mod.rs.html#68">RxFuture</a>,
+    inner: <a href="mod.rs.html#68">RxFuture</a>,
 }
 
 <span class="doccomment">/// Creates a new stream which will receive notifications when the current
@@ -917,25 +917,25 @@
 /// This function panics if there is no current reactor set, or if the `rt`
 /// feature flag is not enabled.
 </span><span class="attribute">#[track_caller]
-</span><span class="kw">pub fn </span>signal(kind: <a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>) -&gt; io::Result&lt;<a href="../../../src/tokio/signal/unix.rs.html#361">Signal</a>&gt; {
+</span><span class="kw">pub fn </span>signal(kind: <a href="#68">SignalKind</a>) -&gt; io::Result&lt;<a href="#361">Signal</a>&gt; {
     <span class="kw">let </span>rx = signal_with_handle(kind, <span class="kw-2">&amp;</span>Handle::current())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/signal/unix.rs.html#361">Signal</a> {
-        inner: RxFuture::new(<a href="../../../src/tokio/signal/unix.rs.html#394">rx</a>),
+    <span class="prelude-val">Ok</span>(<a href="#361">Signal</a> {
+        inner: RxFuture::new(<a href="#394">rx</a>),
     })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>signal_with_handle(
-    kind: <a href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>,
-    handle: <span class="kw-2">&amp;</span><a href="../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a>,
+    kind: <a href="#68">SignalKind</a>,
+    handle: <span class="kw-2">&amp;</span><a href="unix/driver.rs.html#36">Handle</a>,
 ) -&gt; io::Result&lt;watch::Receiver&lt;()&gt;&gt; {
     <span class="comment">// Turn the signal delivery on once we are ready for it
     </span>signal_enable(kind, handle)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<a href="../../../src/tokio/signal/registry.rs.html#132">register_listener</a>(<a href="../../../src/tokio/signal/unix.rs.html#402">kind</a>.<span class="number">0 </span><span class="kw">as </span><a href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>))
+    <span class="prelude-val">Ok</span>(<a href="registry.rs.html#155-158">globals</a>().<a href="registry.rs.html#132">register_listener</a>(<a href="#402">kind</a>.<span class="number">0 </span><span class="kw">as </span><a href="registry.rs.html#12">EventId</a>))
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/unix.rs.html#361">Signal</a> {
+<span class="kw">impl </span><a href="#361">Signal</a> {
     <span class="doccomment">/// Receives the next signal notification event.
     ///
     /// `None` is returned if no more events can be received by this stream.
@@ -1004,7 +1004,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#479">self</a>.inner.<a href="../../../src/tokio/signal/mod.rs.html#91">poll_recv</a>(<a href="../../../src/tokio/signal/unix.rs.html#479">cx</a>)
+        <a class="self" href="#479">self</a>.inner.<a href="mod.rs.html#91">poll_recv</a>(<a href="#479">cx</a>)
     }
 }
 
@@ -1013,14 +1013,14 @@
     <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt;;
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/signal/unix.rs.html#485">InternalStream</a> <span class="kw">for </span><a href="../../../src/tokio/signal/unix.rs.html#361">Signal</a> {
+<span class="kw">impl </span><a href="#485">InternalStream</a> <span class="kw">for </span><a href="#361">Signal</a> {
     <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#490">self</a>.<a href="../../../src/tokio/signal/unix.rs.html#479">poll_recv</a>(<a href="../../../src/tokio/signal/unix.rs.html#490">cx</a>)
+        <a class="self" href="#490">self</a>.<a href="#479">poll_recv</a>(<a href="#490">cx</a>)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ctrl_c() -&gt; io::Result&lt;<a href="../../../src/tokio/signal/unix.rs.html#361">Signal</a>&gt; {
-    <a href="../../../src/tokio/signal/unix.rs.html#393">signal</a>(SignalKind::interrupt())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ctrl_c() -&gt; io::Result&lt;<a href="#361">Signal</a>&gt; {
+    <a href="#393">signal</a>(SignalKind::interrupt())
 }
 
 <span class="attribute">#[cfg(all(test, not(loom)))]
@@ -1053,4 +1053,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

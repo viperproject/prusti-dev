@@ -266,49 +266,49 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
 
 </span><span class="doccomment">/// Whether RK is believed to be very fast for the given needle/haystack.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_fast(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], _needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/memchr/memmem/rabinkarp.rs.html#35">haystack</a>.len() &lt; <span class="number">16
+    <a href="#35">haystack</a>.len() &lt; <span class="number">16
 </span>}
 
 <span class="doccomment">/// Search for the first occurrence of needle in haystack using Rabin-Karp.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="../../../src/memchr/memmem/rabinkarp.rs.html#46-50">find_with</a>(<span class="kw-2">&amp;</span>NeedleHash::forward(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#40">needle</a>), <a href="../../../src/memchr/memmem/rabinkarp.rs.html#40">haystack</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#40">needle</a>)
+    <a href="#46-50">find_with</a>(<span class="kw-2">&amp;</span>NeedleHash::forward(<a href="#40">needle</a>), <a href="#40">haystack</a>, <a href="#40">needle</a>)
 }
 
 <span class="doccomment">/// Search for the first occurrence of needle in haystack using Rabin-Karp with
 /// a pre-computed needle hash.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_with(
-    nhash: <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a>,
+    nhash: <span class="kw-2">&amp;</span><a href="#105">NeedleHash</a>,
     <span class="kw-2">mut </span>haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
     <span class="kw">if </span>haystack.len() &lt; needle.len() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">let </span>start = <a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>hash = Hash::from_bytes_fwd(<span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>[..<a href="../../../src/memchr/memmem/rabinkarp.rs.html#49">needle</a>.len()]);
+    <span class="kw">let </span>start = <a href="#48">haystack</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>hash = Hash::from_bytes_fwd(<span class="kw-2">&amp;</span><a href="#48">haystack</a>[..<a href="#49">needle</a>.len()]);
     <span class="comment">// N.B. I&#39;ve experimented with unrolling this loop, but couldn&#39;t realize
     // any obvious gains.
     </span><span class="kw">loop </span>{
         <span class="kw">if </span>nhash.eq(hash) &amp;&amp; is_prefix(haystack, needle) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a href="../../../src/memchr/memmem/rabinkarp.rs.html#54">start</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#48">haystack</a>.as_ptr() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a href="#54">start</a>);
         }
         <span class="kw">if </span>needle.len() &gt;= haystack.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#55">hash</a>.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#186">roll</a>(<span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#47">nhash</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>[<span class="number">0</span>], <a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>[<a href="../../../src/memchr/memmem/rabinkarp.rs.html#49">needle</a>.len()]);
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a> = <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#48">haystack</a>[<span class="number">1</span>..];
+        <a href="#55">hash</a>.<a href="#186">roll</a>(<span class="kw-2">&amp;</span><a href="#47">nhash</a>, <a href="#48">haystack</a>[<span class="number">0</span>], <a href="#48">haystack</a>[<a href="#49">needle</a>.len()]);
+        <a href="#48">haystack</a> = <span class="kw-2">&amp;</span><a href="#48">haystack</a>[<span class="number">1</span>..];
     }
 }
 
 <span class="doccomment">/// Search for the last occurrence of needle in haystack using Rabin-Karp.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rfind(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="../../../src/memchr/memmem/rabinkarp.rs.html#77-81">rfind_with</a>(<span class="kw-2">&amp;</span>NeedleHash::reverse(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#71">needle</a>), <a href="../../../src/memchr/memmem/rabinkarp.rs.html#71">haystack</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#71">needle</a>)
+    <a href="#77-81">rfind_with</a>(<span class="kw-2">&amp;</span>NeedleHash::reverse(<a href="#71">needle</a>), <a href="#71">haystack</a>, <a href="#71">needle</a>)
 }
 
 <span class="doccomment">/// Search for the last occurrence of needle in haystack using Rabin-Karp with
 /// a pre-computed needle hash.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rfind_with(
-    nhash: <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a>,
+    nhash: <span class="kw-2">&amp;</span><a href="#105">NeedleHash</a>,
     <span class="kw-2">mut </span>haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
@@ -316,20 +316,20 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
     <span class="kw">let </span><span class="kw-2">mut </span>hash =
-        Hash::from_bytes_rev(<span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>[<a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>.len() - <a href="../../../src/memchr/memmem/rabinkarp.rs.html#80">needle</a>.len()..]);
+        Hash::from_bytes_rev(<span class="kw-2">&amp;</span><a href="#79">haystack</a>[<a href="#79">haystack</a>.len() - <a href="#80">needle</a>.len()..]);
     <span class="kw">loop </span>{
         <span class="kw">if </span>nhash.eq(hash) &amp;&amp; is_suffix(haystack, needle) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>.len() - <a href="../../../src/memchr/memmem/rabinkarp.rs.html#80">needle</a>.len());
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#79">haystack</a>.len() - <a href="#80">needle</a>.len());
         }
         <span class="kw">if </span>needle.len() &gt;= haystack.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#85">hash</a>.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#186">roll</a>(
-            <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#78">nhash</a>,
-            <a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>[<a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>.len() - <span class="number">1</span>],
-            <a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>[<a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>.len() - <a href="../../../src/memchr/memmem/rabinkarp.rs.html#80">needle</a>.len() - <span class="number">1</span>],
+        <a href="#85">hash</a>.<a href="#186">roll</a>(
+            <span class="kw-2">&amp;</span><a href="#78">nhash</a>,
+            <a href="#79">haystack</a>[<a href="#79">haystack</a>.len() - <span class="number">1</span>],
+            <a href="#79">haystack</a>[<a href="#79">haystack</a>.len() - <a href="#80">needle</a>.len() - <span class="number">1</span>],
         );
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a> = <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>[..<a href="../../../src/memchr/memmem/rabinkarp.rs.html#79">haystack</a>.len() - <span class="number">1</span>];
+        <a href="#79">haystack</a> = <span class="kw-2">&amp;</span><a href="#79">haystack</a>[..<a href="#79">haystack</a>.len() - <span class="number">1</span>];
     }
 }
 
@@ -337,7 +337,7 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
 </span><span class="attribute">#[derive(Clone, Copy, Debug, Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NeedleHash {
     <span class="doccomment">/// The actual hash.
-    </span>hash: <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a>,
+    </span>hash: <a href="#155">Hash</a>,
     <span class="doccomment">/// The factor needed to multiply a byte by in order to subtract it from
     /// the hash. It is defined to be 2^(n-1) (using wrapping exponentiation),
     /// where n is the length of the needle. This is how we &quot;remove&quot; a byte
@@ -345,40 +345,40 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
     </span>hash_2pow: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a> {
+<span class="kw">impl </span><a href="#105">NeedleHash</a> {
     <span class="doccomment">/// Create a new Rabin-Karp hash for the given needle for use in forward
     /// searching.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>nh = <a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a> { hash: Hash::new(), hash_2pow: <span class="number">1 </span>};
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#105">NeedleHash</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>nh = <a href="#105">NeedleHash</a> { hash: Hash::new(), hash_2pow: <span class="number">1 </span>};
         <span class="kw">if </span>needle.is_empty() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#119">nh</a>;
+            <span class="kw">return </span><a href="#119">nh</a>;
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#119">nh</a>.hash.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#192">add</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#118">needle</a>[<span class="number">0</span>]);
+        <a href="#119">nh</a>.hash.<a href="#192">add</a>(<a href="#118">needle</a>[<span class="number">0</span>]);
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>needle.iter().skip(<span class="number">1</span>) {
             nh.hash.add(b);
             nh.hash_2pow = nh.hash_2pow.wrapping_shl(<span class="number">1</span>);
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#119">nh</a>
+        <a href="#119">nh</a>
     }
 
     <span class="doccomment">/// Create a new Rabin-Karp hash for the given needle for use in reverse
     /// searching.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reverse(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>nh = <a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a> { hash: Hash::new(), hash_2pow: <span class="number">1 </span>};
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reverse(needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#105">NeedleHash</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>nh = <a href="#105">NeedleHash</a> { hash: Hash::new(), hash_2pow: <span class="number">1 </span>};
         <span class="kw">if </span>needle.is_empty() {
-            <span class="kw">return </span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#134">nh</a>;
+            <span class="kw">return </span><a href="#134">nh</a>;
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#134">nh</a>.hash.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#192">add</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#133">needle</a>[<a href="../../../src/memchr/memmem/rabinkarp.rs.html#133">needle</a>.len() - <span class="number">1</span>]);
+        <a href="#134">nh</a>.hash.<a href="#192">add</a>(<a href="#133">needle</a>[<a href="#133">needle</a>.len() - <span class="number">1</span>]);
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>needle.iter().rev().skip(<span class="number">1</span>) {
             nh.hash.add(b);
             nh.hash_2pow = nh.hash_2pow.wrapping_shl(<span class="number">1</span>);
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#134">nh</a>
+        <a href="#134">nh</a>
     }
 
     <span class="doccomment">/// Return true if the hashes are equivalent.
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#147">self</a>.hash == <a href="../../../src/memchr/memmem/rabinkarp.rs.html#147">hash</a>
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <a href="#155">Hash</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#147">self</a>.hash == <a href="#147">hash</a>
     }
 }
 
@@ -387,28 +387,28 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
 </span><span class="attribute">#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Hash(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
 
-<span class="kw">impl </span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a> {
+<span class="kw">impl </span><a href="#155">Hash</a> {
     <span class="doccomment">/// Create a new hash that represents the empty string.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a> {
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a>(<span class="number">0</span>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <a href="#155">Hash</a> {
+        <a href="#155">Hash</a>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Create a new hash from the bytes given for use in forward searches.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_bytes_fwd(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_bytes_fwd(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#155">Hash</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>hash = Hash::new();
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes {
             hash.add(b);
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#165">hash</a>
+        <a href="#165">hash</a>
     }
 
     <span class="doccomment">/// Create a new hash from the bytes given for use in reverse searches.
-    </span><span class="kw">fn </span>from_bytes_rev(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/memchr/memmem/rabinkarp.rs.html#155">Hash</a> {
+    </span><span class="kw">fn </span>from_bytes_rev(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#155">Hash</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>hash = Hash::new();
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes.iter().rev() {
             hash.add(b);
         }
-        <a href="../../../src/memchr/memmem/rabinkarp.rs.html#174">hash</a>
+        <a href="#174">hash</a>
     }
 
     <span class="doccomment">/// Add &#39;new&#39; and remove &#39;old&#39; from this hash. The given needle hash should
@@ -416,21 +416,21 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
     ///
     /// This is meant to be used when the rolling window of the haystack is
     /// advanced.
-    </span><span class="kw">fn </span>roll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nhash: <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a>, old: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, new: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#186">self</a>.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#198">del</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#186">nhash</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#186">old</a>);
-        <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#186">self</a>.<a href="../../../src/memchr/memmem/rabinkarp.rs.html#192">add</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#186">new</a>);
+    </span><span class="kw">fn </span>roll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nhash: <span class="kw-2">&amp;</span><a href="#105">NeedleHash</a>, old: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, new: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <a class="self" href="#186">self</a>.<a href="#198">del</a>(<a href="#186">nhash</a>, <a href="#186">old</a>);
+        <a class="self" href="#186">self</a>.<a href="#192">add</a>(<a href="#186">new</a>);
     }
 
     <span class="doccomment">/// Add a byte to this hash.
     </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#192">self</a>.<span class="number">0 </span>= <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#192">self</a>.<span class="number">0</span>.wrapping_shl(<span class="number">1</span>).wrapping_add(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#192">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+        <a class="self" href="#192">self</a>.<span class="number">0 </span>= <a class="self" href="#192">self</a>.<span class="number">0</span>.wrapping_shl(<span class="number">1</span>).wrapping_add(<a href="#192">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
     }
 
     <span class="doccomment">/// Remove a byte from this hash. The given needle hash should correspond
     /// to the hash computed for the needle being searched for.
-    </span><span class="kw">fn </span>del(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nhash: <span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/rabinkarp.rs.html#105">NeedleHash</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <span class="kw">let </span>factor = <a href="../../../src/memchr/memmem/rabinkarp.rs.html#198">nhash</a>.hash_2pow;
-        <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#198">self</a>.<span class="number">0 </span>= <a class="self" href="../../../src/memchr/memmem/rabinkarp.rs.html#198">self</a>.<span class="number">0</span>.wrapping_sub((<a href="../../../src/memchr/memmem/rabinkarp.rs.html#198">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).wrapping_mul(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#199">factor</a>));
+    </span><span class="kw">fn </span>del(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nhash: <span class="kw-2">&amp;</span><a href="#105">NeedleHash</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <span class="kw">let </span>factor = <a href="#198">nhash</a>.hash_2pow;
+        <a class="self" href="#198">self</a>.<span class="number">0 </span>= <a class="self" href="#198">self</a>.<span class="number">0</span>.wrapping_sub((<a href="#198">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).wrapping_mul(<a href="#199">factor</a>));
     }
 }
 
@@ -443,7 +443,7 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
 </span><span class="attribute">#[cold]
 #[inline(never)]
 </span><span class="kw">fn </span>is_prefix(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/memchr/memmem/util.rs.html#8"><span class="kw">crate</span>::memmem::util::is_prefix</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#212">haystack</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#212">needle</a>)
+    <a href="util.rs.html#8"><span class="kw">crate</span>::memmem::util::is_prefix</a>(<a href="#212">haystack</a>, <a href="#212">needle</a>)
 }
 
 <span class="doccomment">/// Returns true if the given needle is a suffix of the given haystack.
@@ -452,7 +452,7 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
 </span><span class="attribute">#[cold]
 #[inline(never)]
 </span><span class="kw">fn </span>is_suffix(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/memchr/memmem/util.rs.html#14"><span class="kw">crate</span>::memmem::util::is_suffix</a>(<a href="../../../src/memchr/memmem/rabinkarp.rs.html#221">haystack</a>, <a href="../../../src/memchr/memmem/rabinkarp.rs.html#221">needle</a>)
+    <a href="util.rs.html#14"><span class="kw">crate</span>::memmem::util::is_suffix</a>(<a href="#221">haystack</a>, <a href="#221">needle</a>)
 }
 
 <span class="attribute">#[cfg(test)]
@@ -465,4 +465,4 @@ https://github.com/BurntSushi/aho-corasick/blob/3852632f10587db0ff72ef29e88d58bf
     <span class="macro">define_memmem_quickcheck_tests!</span>(<span class="kw">super</span>::find, <span class="kw">super</span>::rfind);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

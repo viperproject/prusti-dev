@@ -1621,10 +1621,10 @@
 <span id="1621">1621</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions for values used in DWARF expressions.
 
-</span><span class="kw">use </span><a href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+</span><span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/unit.rs.html#944">AttributeValue</a>, <a href="../../../src/gimli/read/unit.rs.html#658">DebuggingInformationEntry</a>};
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::read::{<a href="unit.rs.html#944">AttributeValue</a>, <a href="unit.rs.html#658">DebuggingInformationEntry</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// Convert a u64 to an i64, with sign extension if required.
 ///
@@ -1632,14 +1632,14 @@
 /// as a signed value.
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>sign_extend(value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a> {
-    <span class="kw">let </span>value = (<a href="../../../src/gimli/read/value.rs.html#13">value</a> &amp; <a href="../../../src/gimli/read/value.rs.html#13">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
-    <span class="kw">let </span>sign = ((<a href="../../../src/gimli/read/value.rs.html#13">mask</a> &gt;&gt; <span class="number">1</span>) + <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
-    (<a href="../../../src/gimli/read/value.rs.html#14">value</a> ^ <a href="../../../src/gimli/read/value.rs.html#15">sign</a>).wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#15">sign</a>)
+    <span class="kw">let </span>value = (<a href="#13">value</a> &amp; <a href="#13">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
+    <span class="kw">let </span>sign = ((<a href="#13">mask</a> &gt;&gt; <span class="number">1</span>) + <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>;
+    (<a href="#14">value</a> ^ <a href="#15">sign</a>).wrapping_sub(<a href="#15">sign</a>)
 }
 
 <span class="attribute">#[inline]
 </span><span class="kw">fn </span>mask_bit_size(addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
-    <span class="number">64 </span>- <a href="../../../src/gimli/read/value.rs.html#20">addr_mask</a>.leading_zeros()
+    <span class="number">64 </span>- <a href="#20">addr_mask</a>.leading_zeros()
 }
 
 <span class="doccomment">/// The type of an entry on the DWARF stack.
@@ -1698,47 +1698,47 @@
     </span>F64(<a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/value.rs.html#26">ValueType</a> {
+<span class="kw">impl </span><a href="#26">ValueType</a> {
     <span class="doccomment">/// The size in bits of a value for this type.
     </span><span class="kw">pub fn </span>bit_size(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#82">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#20">mask_bit_size</a>(<a href="../../../src/gimli/read/value.rs.html#82">addr_mask</a>),
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> | <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <span class="number">8</span>,
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> | <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <span class="number">16</span>,
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> | <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> | <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <span class="number">32</span>,
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> | <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> | <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <span class="number">64</span>,
+        <span class="kw">match </span><span class="self"><a href="#82">self</a> </span>{
+            <a href="#30">ValueType::Generic</a> =&gt; <a href="#20">mask_bit_size</a>(<a href="#82">addr_mask</a>),
+            <a href="#32">ValueType::I8</a> | <a href="#34">ValueType::U8</a> =&gt; <span class="number">8</span>,
+            <a href="#36">ValueType::I16</a> | <a href="#38">ValueType::U16</a> =&gt; <span class="number">16</span>,
+            <a href="#40">ValueType::I32</a> | <a href="#42">ValueType::U32</a> | <a href="#48">ValueType::F32</a> =&gt; <span class="number">32</span>,
+            <a href="#44">ValueType::I64</a> | <a href="#46">ValueType::U64</a> | <a href="#50">ValueType::F64</a> =&gt; <span class="number">64</span>,
         }
     }
 
     <span class="doccomment">/// Construct a `ValueType` from the attributes of a base type DIE.
-    </span><span class="kw">pub fn </span>from_encoding(encoding: <a href="../../../src/gimli/constants.rs.html#714-744">constants::DwAte</a>, byte_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw">match </span>(<a href="../../../src/gimli/read/value.rs.html#93">encoding</a>, <a href="../../../src/gimli/read/value.rs.html#93">byte_size</a>) {
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">1</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">2</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">4</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">8</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">1</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">2</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">4</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">8</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_float</a>, <span class="number">4</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a>,
-            (<a href="../../../src/gimli/constants.rs.html#714-744">constants::DW_ATE_float</a>, <span class="number">8</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a>,
+    </span><span class="kw">pub fn </span>from_encoding(encoding: <a href="../constants.rs.html#714-744">constants::DwAte</a>, byte_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#26">ValueType</a>&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">match </span>(<a href="#93">encoding</a>, <a href="#93">byte_size</a>) {
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">1</span>) =&gt; <a href="#32">ValueType::I8</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">2</span>) =&gt; <a href="#36">ValueType::I16</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">4</span>) =&gt; <a href="#40">ValueType::I32</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_signed</a>, <span class="number">8</span>) =&gt; <a href="#44">ValueType::I64</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">1</span>) =&gt; <a href="#34">ValueType::U8</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">2</span>) =&gt; <a href="#38">ValueType::U16</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">4</span>) =&gt; <a href="#42">ValueType::U32</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_unsigned</a>, <span class="number">8</span>) =&gt; <a href="#46">ValueType::U64</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_float</a>, <span class="number">4</span>) =&gt; <a href="#48">ValueType::F32</a>,
+            (<a href="../constants.rs.html#714-744">constants::DW_ATE_float</a>, <span class="number">8</span>) =&gt; <a href="#50">ValueType::F64</a>,
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         })
     }
 
     <span class="doccomment">/// Construct a `ValueType` from a base type DIE.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;read&quot;</span>)]
-    </span><span class="kw">pub fn </span>from_entry&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+    </span><span class="kw">pub fn </span>from_entry&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(
         entry: <span class="kw-2">&amp;</span>DebuggingInformationEntry&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#26">ValueType</a>&gt;&gt; {
         <span class="kw">if </span>entry.tag() != constants::DW_TAG_base_type {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>encoding = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>byte_size = <span class="prelude-val">None</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>endianity = <a href="../../../src/gimli/constants.rs.html#775-785">constants::DW_END_default</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>attrs = <a href="../../../src/gimli/read/value.rs.html#112">entry</a>.<a href="../../../src/gimli/read/unit.rs.html#851">attrs</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>endianity = <a href="../constants.rs.html#775-785">constants::DW_END_default</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>attrs = <a href="#112">entry</a>.<a href="unit.rs.html#851">attrs</a>();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = attrs.next()<span class="question-mark">? </span>{
             <span class="kw">match </span>attr.name() {
                 constants::DW_AT_byte_size =&gt; byte_size = attr.udata_value(),
@@ -1762,48 +1762,48 @@
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(encoding), <span class="prelude-val">Some</span>(byte_size)) = (<a href="../../../src/gimli/read/value.rs.html#117">encoding</a>, <a href="../../../src/gimli/read/value.rs.html#118">byte_size</a>) {
-            <span class="prelude-val">Ok</span>(ValueType::from_encoding(<a href="../../../src/gimli/read/value.rs.html#144">encoding</a>, <a href="../../../src/gimli/read/value.rs.html#144">byte_size</a>))
+        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(encoding), <span class="prelude-val">Some</span>(byte_size)) = (<a href="#117">encoding</a>, <a href="#118">byte_size</a>) {
+            <span class="prelude-val">Ok</span>(ValueType::from_encoding(<a href="#144">encoding</a>, <a href="#144">byte_size</a>))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/value.rs.html#55">Value</a> {
+<span class="kw">impl </span><a href="#55">Value</a> {
     <span class="doccomment">/// Return the `ValueType` corresponding to this `Value`.
-    </span><span class="kw">pub fn </span>value_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/gimli/read/value.rs.html#154">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a>,
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a>,
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a>,
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a>,
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a>,
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a>,
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a>,
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a>,
-            <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<span class="kw">_</span>) =&gt; <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a>,
+    </span><span class="kw">pub fn </span>value_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#26">ValueType</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#154">self</a> </span>{
+            <a href="#57">Value::Generic</a>(<span class="kw">_</span>) =&gt; <a href="#30">ValueType::Generic</a>,
+            <a href="#59">Value::I8</a>(<span class="kw">_</span>) =&gt; <a href="#32">ValueType::I8</a>,
+            <a href="#61">Value::U8</a>(<span class="kw">_</span>) =&gt; <a href="#34">ValueType::U8</a>,
+            <a href="#63">Value::I16</a>(<span class="kw">_</span>) =&gt; <a href="#36">ValueType::I16</a>,
+            <a href="#65">Value::U16</a>(<span class="kw">_</span>) =&gt; <a href="#38">ValueType::U16</a>,
+            <a href="#67">Value::I32</a>(<span class="kw">_</span>) =&gt; <a href="#40">ValueType::I32</a>,
+            <a href="#69">Value::U32</a>(<span class="kw">_</span>) =&gt; <a href="#42">ValueType::U32</a>,
+            <a href="#71">Value::I64</a>(<span class="kw">_</span>) =&gt; <a href="#44">ValueType::I64</a>,
+            <a href="#73">Value::U64</a>(<span class="kw">_</span>) =&gt; <a href="#46">ValueType::U64</a>,
+            <a href="#75">Value::F32</a>(<span class="kw">_</span>) =&gt; <a href="#48">ValueType::F32</a>,
+            <a href="#77">Value::F64</a>(<span class="kw">_</span>) =&gt; <a href="#50">ValueType::F64</a>,
         }
     }
 
     <span class="doccomment">/// Read a `Value` with the given `value_type` from a `Reader`.
-    </span><span class="kw">pub fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, <span class="kw-2">mut </span>bytes: R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#171">value_type</a> {
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(bytes.read_i8()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(bytes.read_u8()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(bytes.read_i16()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(bytes.read_u16()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(bytes.read_i32()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(bytes.read_u32()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(bytes.read_i64()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(bytes.read_u64()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(bytes.read_f32()<span class="question-mark">?</span>),
-            <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(bytes.read_f64()<span class="question-mark">?</span>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#371">Error::UnsupportedTypeOperation</a>),
+    </span><span class="kw">pub fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(value_type: <a href="#26">ValueType</a>, <span class="kw-2">mut </span>bytes: R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#171">value_type</a> {
+            <a href="#32">ValueType::I8</a> =&gt; <a href="#59">Value::I8</a>(bytes.read_i8()<span class="question-mark">?</span>),
+            <a href="#34">ValueType::U8</a> =&gt; <a href="#61">Value::U8</a>(bytes.read_u8()<span class="question-mark">?</span>),
+            <a href="#36">ValueType::I16</a> =&gt; <a href="#63">Value::I16</a>(bytes.read_i16()<span class="question-mark">?</span>),
+            <a href="#38">ValueType::U16</a> =&gt; <a href="#65">Value::U16</a>(bytes.read_u16()<span class="question-mark">?</span>),
+            <a href="#40">ValueType::I32</a> =&gt; <a href="#67">Value::I32</a>(bytes.read_i32()<span class="question-mark">?</span>),
+            <a href="#42">ValueType::U32</a> =&gt; <a href="#69">Value::U32</a>(bytes.read_u32()<span class="question-mark">?</span>),
+            <a href="#44">ValueType::I64</a> =&gt; <a href="#71">Value::I64</a>(bytes.read_i64()<span class="question-mark">?</span>),
+            <a href="#46">ValueType::U64</a> =&gt; <a href="#73">Value::U64</a>(bytes.read_u64()<span class="question-mark">?</span>),
+            <a href="#48">ValueType::F32</a> =&gt; <a href="#75">Value::F32</a>(bytes.read_f32()<span class="question-mark">?</span>),
+            <a href="#50">ValueType::F64</a> =&gt; <a href="#77">Value::F64</a>(bytes.read_f64()<span class="question-mark">?</span>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#371">Error::UnsupportedTypeOperation</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#172">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#172">value</a>)
     }
 
     <span class="doccomment">/// Convert a `Value` to a `u64`.
@@ -1811,19 +1811,19 @@
     /// The `ValueType` of `self` must be integral.
     /// Values are sign extended if the source value is signed.
     </span><span class="kw">pub fn </span>to_u64(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#192">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#194">value</a> &amp; <a href="../../../src/gimli/read/value.rs.html#192">addr_mask</a>,
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#195">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#196">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#197">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#198">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#199">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#200">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#201">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#202">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#192">self</a> </span>{
+            <a href="#57">Value::Generic</a>(value) =&gt; <a href="#194">value</a> &amp; <a href="#192">addr_mask</a>,
+            <a href="#59">Value::I8</a>(value) =&gt; <a href="#195">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#61">Value::U8</a>(value) =&gt; u64::from(<a href="#196">value</a>),
+            <a href="#63">Value::I16</a>(value) =&gt; <a href="#197">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#65">Value::U16</a>(value) =&gt; u64::from(<a href="#198">value</a>),
+            <a href="#67">Value::I32</a>(value) =&gt; <a href="#199">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#69">Value::U32</a>(value) =&gt; u64::from(<a href="#200">value</a>),
+            <a href="#71">Value::I64</a>(value) =&gt; <a href="#201">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#73">Value::U64</a>(value) =&gt; <a href="#202">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#193">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#193">value</a>)
     }
 
     <span class="doccomment">/// Create a `Value` with the given `value_type` from a `u64` value.
@@ -1831,21 +1831,21 @@
     /// The `value_type` may be integral or floating point.
     /// The result is truncated if the `u64` value does
     /// not fit the bounds of the `value_type`.
-    </span><span class="kw">pub fn </span>from_u64(value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#213">value_type</a> {
-            <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>),
+    </span><span class="kw">pub fn </span>from_u64(value_type: <a href="#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#213">value_type</a> {
+            <a href="#30">ValueType::Generic</a> =&gt; <a href="#57">Value::Generic</a>(<a href="#213">value</a>),
+            <a href="#32">ValueType::I8</a> =&gt; <a href="#59">Value::I8</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
+            <a href="#34">ValueType::U8</a> =&gt; <a href="#61">Value::U8</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+            <a href="#36">ValueType::I16</a> =&gt; <a href="#63">Value::I16</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
+            <a href="#38">ValueType::U16</a> =&gt; <a href="#65">Value::U16</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
+            <a href="#40">ValueType::I32</a> =&gt; <a href="#67">Value::I32</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
+            <a href="#42">ValueType::U32</a> =&gt; <a href="#69">Value::U32</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
+            <a href="#44">ValueType::I64</a> =&gt; <a href="#71">Value::I64</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
+            <a href="#46">ValueType::U64</a> =&gt; <a href="#73">Value::U64</a>(<a href="#213">value</a>),
+            <a href="#48">ValueType::F32</a> =&gt; <a href="#75">Value::F32</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>),
+            <a href="#50">ValueType::F64</a> =&gt; <a href="#77">Value::F64</a>(<a href="#213">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#214">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#214">value</a>)
     }
 
     <span class="doccomment">/// Create a `Value` with the given `value_type` from a `f32` value.
@@ -1853,21 +1853,21 @@
     /// The `value_type` may be integral or floating point.
     /// The result is not defined if the `f32` value does
     /// not fit the bounds of the `value_type`.
-    </span><span class="kw">fn </span>from_f32(value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#235">value_type</a> {
-            <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#235">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(f64::from(<a href="../../../src/gimli/read/value.rs.html#235">value</a>)),
+    </span><span class="kw">fn </span>from_f32(value_type: <a href="#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#235">value_type</a> {
+            <a href="#30">ValueType::Generic</a> =&gt; <a href="#57">Value::Generic</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+            <a href="#32">ValueType::I8</a> =&gt; <a href="#59">Value::I8</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
+            <a href="#34">ValueType::U8</a> =&gt; <a href="#61">Value::U8</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+            <a href="#36">ValueType::I16</a> =&gt; <a href="#63">Value::I16</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
+            <a href="#38">ValueType::U16</a> =&gt; <a href="#65">Value::U16</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
+            <a href="#40">ValueType::I32</a> =&gt; <a href="#67">Value::I32</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
+            <a href="#42">ValueType::U32</a> =&gt; <a href="#69">Value::U32</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
+            <a href="#44">ValueType::I64</a> =&gt; <a href="#71">Value::I64</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
+            <a href="#46">ValueType::U64</a> =&gt; <a href="#73">Value::U64</a>(<a href="#235">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+            <a href="#48">ValueType::F32</a> =&gt; <a href="#75">Value::F32</a>(<a href="#235">value</a>),
+            <a href="#50">ValueType::F64</a> =&gt; <a href="#77">Value::F64</a>(f64::from(<a href="#235">value</a>)),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#236">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#236">value</a>)
     }
 
     <span class="doccomment">/// Create a `Value` with the given `value_type` from a `f64` value.
@@ -1875,21 +1875,21 @@
     /// The `value_type` may be integral or floating point.
     /// The result is not defined if the `f64` value does
     /// not fit the bounds of the `value_type`.
-    </span><span class="kw">fn </span>from_f64(value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#257">value_type</a> {
-            <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#257">value</a>),
+    </span><span class="kw">fn </span>from_f64(value_type: <a href="#26">ValueType</a>, value: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#257">value_type</a> {
+            <a href="#30">ValueType::Generic</a> =&gt; <a href="#57">Value::Generic</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+            <a href="#32">ValueType::I8</a> =&gt; <a href="#59">Value::I8</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
+            <a href="#34">ValueType::U8</a> =&gt; <a href="#61">Value::U8</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+            <a href="#36">ValueType::I16</a> =&gt; <a href="#63">Value::I16</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
+            <a href="#38">ValueType::U16</a> =&gt; <a href="#65">Value::U16</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
+            <a href="#40">ValueType::I32</a> =&gt; <a href="#67">Value::I32</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
+            <a href="#42">ValueType::U32</a> =&gt; <a href="#69">Value::U32</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
+            <a href="#44">ValueType::I64</a> =&gt; <a href="#71">Value::I64</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
+            <a href="#46">ValueType::U64</a> =&gt; <a href="#73">Value::U64</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>),
+            <a href="#48">ValueType::F32</a> =&gt; <a href="#75">Value::F32</a>(<a href="#257">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>),
+            <a href="#50">ValueType::F64</a> =&gt; <a href="#77">Value::F64</a>(<a href="#257">value</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#258">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#258">value</a>)
     }
 
     <span class="doccomment">/// Convert a `Value` to the given `value_type`.
@@ -1900,11 +1900,11 @@
     /// if the source value does not fit the bounds of the `value_type`.
     ///
     /// This corresponds to the DWARF `DW_OP_convert` operation.
-    </span><span class="kw">pub fn </span>convert(<span class="self">self</span>, value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#282">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(value) =&gt; Value::from_f32(<a href="../../../src/gimli/read/value.rs.html#282">value_type</a>, <a href="../../../src/gimli/read/value.rs.html#284">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(value) =&gt; Value::from_f64(<a href="../../../src/gimli/read/value.rs.html#282">value_type</a>, <a href="../../../src/gimli/read/value.rs.html#285">value</a>),
-            <span class="kw">_ </span>=&gt; Value::from_u64(<a href="../../../src/gimli/read/value.rs.html#282">value_type</a>, <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>),
+    </span><span class="kw">pub fn </span>convert(<span class="self">self</span>, value_type: <a href="#26">ValueType</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="#282">self</a> </span>{
+            <a href="#75">Value::F32</a>(value) =&gt; Value::from_f32(<a href="#282">value_type</a>, <a href="#284">value</a>),
+            <a href="#77">Value::F64</a>(value) =&gt; Value::from_f64(<a href="#282">value_type</a>, <a href="#285">value</a>),
+            <span class="kw">_ </span>=&gt; Value::from_u64(<a href="#282">value_type</a>, <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>),
         }
     }
 
@@ -1913,37 +1913,37 @@
     /// The source and result value types must have equal sizes.
     ///
     /// This corresponds to the DWARF `DW_OP_reinterpret` operation.
-    </span><span class="kw">pub fn </span>reinterpret(<span class="self">self</span>, value_type: <a href="../../../src/gimli/read/value.rs.html#26">ValueType</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>reinterpret(<span class="self">self</span>, value_type: <a href="#26">ValueType</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.value_type().bit_size(addr_mask) != value_type.bit_size(addr_mask) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>);
         }
-        <span class="kw">let </span>bits = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#295">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#300">value</a>,
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#301">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#302">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#303">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#304">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#305">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#306">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#307">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#308">value</a>,
-            <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(value) =&gt; u64::from(f32::to_bits(<a href="../../../src/gimli/read/value.rs.html#309">value</a>)),
-            <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(value) =&gt; f64::to_bits(<a href="../../../src/gimli/read/value.rs.html#310">value</a>),
+        <span class="kw">let </span>bits = <span class="kw">match </span><span class="self"><a href="#295">self</a> </span>{
+            <a href="#57">Value::Generic</a>(value) =&gt; <a href="#300">value</a>,
+            <a href="#59">Value::I8</a>(value) =&gt; <a href="#301">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#61">Value::U8</a>(value) =&gt; u64::from(<a href="#302">value</a>),
+            <a href="#63">Value::I16</a>(value) =&gt; <a href="#303">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#65">Value::U16</a>(value) =&gt; u64::from(<a href="#304">value</a>),
+            <a href="#67">Value::I32</a>(value) =&gt; <a href="#305">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#69">Value::U32</a>(value) =&gt; u64::from(<a href="#306">value</a>),
+            <a href="#71">Value::I64</a>(value) =&gt; <a href="#307">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#73">Value::U64</a>(value) =&gt; <a href="#308">value</a>,
+            <a href="#75">Value::F32</a>(value) =&gt; u64::from(f32::to_bits(<a href="#309">value</a>)),
+            <a href="#77">Value::F64</a>(value) =&gt; f64::to_bits(<a href="#310">value</a>),
         };
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#295">value_type</a> {
-            <a href="../../../src/gimli/read/value.rs.html#30">ValueType::Generic</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a>),
-            <a href="../../../src/gimli/read/value.rs.html#32">ValueType::I8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#34">ValueType::U8</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
-            <a href="../../../src/gimli/read/value.rs.html#36">ValueType::I16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#38">ValueType::U16</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
-            <a href="../../../src/gimli/read/value.rs.html#40">ValueType::I32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#42">ValueType::U32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
-            <a href="../../../src/gimli/read/value.rs.html#44">ValueType::I64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
-            <a href="../../../src/gimli/read/value.rs.html#46">ValueType::U64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#299">bits</a>),
-            <a href="../../../src/gimli/read/value.rs.html#48">ValueType::F32</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(f32::from_bits(<a href="../../../src/gimli/read/value.rs.html#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>)),
-            <a href="../../../src/gimli/read/value.rs.html#50">ValueType::F64</a> =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(f64::from_bits(<a href="../../../src/gimli/read/value.rs.html#299">bits</a>)),
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#295">value_type</a> {
+            <a href="#30">ValueType::Generic</a> =&gt; <a href="#57">Value::Generic</a>(<a href="#299">bits</a>),
+            <a href="#32">ValueType::I8</a> =&gt; <a href="#59">Value::I8</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>),
+            <a href="#34">ValueType::U8</a> =&gt; <a href="#61">Value::U8</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>),
+            <a href="#36">ValueType::I16</a> =&gt; <a href="#63">Value::I16</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>),
+            <a href="#38">ValueType::U16</a> =&gt; <a href="#65">Value::U16</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>),
+            <a href="#40">ValueType::I32</a> =&gt; <a href="#67">Value::I32</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>),
+            <a href="#42">ValueType::U32</a> =&gt; <a href="#69">Value::U32</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>),
+            <a href="#44">ValueType::I64</a> =&gt; <a href="#71">Value::I64</a>(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>),
+            <a href="#46">ValueType::U64</a> =&gt; <a href="#73">Value::U64</a>(<a href="#299">bits</a>),
+            <a href="#48">ValueType::F32</a> =&gt; <a href="#75">Value::F32</a>(f32::from_bits(<a href="#299">bits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>)),
+            <a href="#50">ValueType::F64</a> =&gt; <a href="#77">Value::F64</a>(f64::from_bits(<a href="#299">bits</a>)),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#312">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#312">value</a>)
     }
 
     <span class="doccomment">/// Perform an absolute value operation.
@@ -1951,23 +1951,23 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_abs` operation.
-    </span><span class="kw">pub fn </span>abs(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>abs(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="comment">// wrapping_abs() can be used because DWARF specifies that the result is undefined
         // for negative minimal values.
-        </span><span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#333">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(value) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#337">value</a>, <a href="../../../src/gimli/read/value.rs.html#333">addr_mask</a>).wrapping_abs() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>)
+        </span><span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#333">self</a> </span>{
+            <a href="#57">Value::Generic</a>(value) =&gt; {
+                <a href="#57">Value::Generic</a>(<a href="#13">sign_extend</a>(<a href="#337">value</a>, <a href="#333">addr_mask</a>).wrapping_abs() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>)
             }
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#340">value</a>.wrapping_abs()),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#341">value</a>.wrapping_abs()),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#342">value</a>.wrapping_abs()),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#343">value</a>.wrapping_abs()),
+            <a href="#59">Value::I8</a>(value) =&gt; <a href="#59">Value::I8</a>(<a href="#340">value</a>.wrapping_abs()),
+            <a href="#63">Value::I16</a>(value) =&gt; <a href="#63">Value::I16</a>(<a href="#341">value</a>.wrapping_abs()),
+            <a href="#67">Value::I32</a>(value) =&gt; <a href="#67">Value::I32</a>(<a href="#342">value</a>.wrapping_abs()),
+            <a href="#71">Value::I64</a>(value) =&gt; <a href="#71">Value::I64</a>(<a href="#343">value</a>.wrapping_abs()),
             <span class="comment">// f32/f64::abs() is not available in libcore
-            </span><a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<span class="kw">if </span>value &lt; <span class="number">0. </span>{ -<a href="../../../src/gimli/read/value.rs.html#345">value</a> } <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#345">value</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<span class="kw">if </span>value &lt; <span class="number">0. </span>{ -<a href="../../../src/gimli/read/value.rs.html#346">value</a> } <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#346">value</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">_</span>) =&gt; <a class="self" href="../../../src/gimli/read/value.rs.html#333">self</a>,
+            </span><a href="#75">Value::F32</a>(value) =&gt; <a href="#75">Value::F32</a>(<span class="kw">if </span>value &lt; <span class="number">0. </span>{ -<a href="#345">value</a> } <span class="kw">else </span>{ <a href="#345">value</a> }),
+            <a href="#77">Value::F64</a>(value) =&gt; <a href="#77">Value::F64</a>(<span class="kw">if </span>value &lt; <span class="number">0. </span>{ -<a href="#346">value</a> } <span class="kw">else </span>{ <a href="#346">value</a> }),
+            <a href="#61">Value::U8</a>(<span class="kw">_</span>) | <a href="#65">Value::U16</a>(<span class="kw">_</span>) | <a href="#69">Value::U32</a>(<span class="kw">_</span>) | <a href="#73">Value::U64</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#333">self</a>,
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#336">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#336">value</a>)
     }
 
     <span class="doccomment">/// Perform a negation operation.
@@ -1975,26 +1975,26 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_neg` operation.
-    </span><span class="kw">pub fn </span>neg(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>neg(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="comment">// wrapping_neg() can be used because DWARF specifies that the result is undefined
         // for negative minimal values.
-        </span><span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#357">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(value) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#361">value</a>, <a href="../../../src/gimli/read/value.rs.html#357">addr_mask</a>).wrapping_neg() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>)
+        </span><span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#357">self</a> </span>{
+            <a href="#57">Value::Generic</a>(value) =&gt; {
+                <a href="#57">Value::Generic</a>(<a href="#13">sign_extend</a>(<a href="#361">value</a>, <a href="#357">addr_mask</a>).wrapping_neg() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>)
             }
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#364">value</a>.wrapping_neg()),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#365">value</a>.wrapping_neg()),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#366">value</a>.wrapping_neg()),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#367">value</a>.wrapping_neg()),
-            <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(-<a href="../../../src/gimli/read/value.rs.html#368">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(-<a href="../../../src/gimli/read/value.rs.html#369">value</a>),
+            <a href="#59">Value::I8</a>(value) =&gt; <a href="#59">Value::I8</a>(<a href="#364">value</a>.wrapping_neg()),
+            <a href="#63">Value::I16</a>(value) =&gt; <a href="#63">Value::I16</a>(<a href="#365">value</a>.wrapping_neg()),
+            <a href="#67">Value::I32</a>(value) =&gt; <a href="#67">Value::I32</a>(<a href="#366">value</a>.wrapping_neg()),
+            <a href="#71">Value::I64</a>(value) =&gt; <a href="#71">Value::I64</a>(<a href="#367">value</a>.wrapping_neg()),
+            <a href="#75">Value::F32</a>(value) =&gt; <a href="#75">Value::F32</a>(-<a href="#368">value</a>),
+            <a href="#77">Value::F64</a>(value) =&gt; <a href="#77">Value::F64</a>(-<a href="#369">value</a>),
             <span class="comment">// It&#39;s unclear if these should implicity convert to a signed value.
             // For now, we don&#39;t support them.
-            </span><a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
+            </span><a href="#61">Value::U8</a>(<span class="kw">_</span>) | <a href="#65">Value::U16</a>(<span class="kw">_</span>) | <a href="#69">Value::U32</a>(<span class="kw">_</span>) | <a href="#73">Value::U64</a>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
             }
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#360">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#360">value</a>)
     }
 
     <span class="doccomment">/// Perform an addition operation.
@@ -2002,24 +2002,24 @@
     /// This operation requires matching types.
     ///
     /// This corresponds to the DWARF `DW_OP_plus` operation.
-    </span><span class="kw">pub fn </span>add(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#384">self</a>, <a href="../../../src/gimli/read/value.rs.html#384">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#386">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#386">v2</a>) &amp; <a href="../../../src/gimli/read/value.rs.html#384">addr_mask</a>)
+    </span><span class="kw">pub fn </span>add(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#384">self</a>, <a href="#384">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#57">Value::Generic</a>(<a href="#386">v1</a>.wrapping_add(<a href="#386">v2</a>) &amp; <a href="#384">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#389">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#389">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#390">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#390">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#391">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#391">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#392">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#392">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#393">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#393">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#394">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#394">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#395">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#395">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#396">v1</a>.wrapping_add(<a href="../../../src/gimli/read/value.rs.html#396">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#397">v1</a> + <a href="../../../src/gimli/read/value.rs.html#397">v2</a>),
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#398">v1</a> + <a href="../../../src/gimli/read/value.rs.html#398">v2</a>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#59">Value::I8</a>(<a href="#389">v1</a>.wrapping_add(<a href="#389">v2</a>)),
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#61">Value::U8</a>(<a href="#390">v1</a>.wrapping_add(<a href="#390">v2</a>)),
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#63">Value::I16</a>(<a href="#391">v1</a>.wrapping_add(<a href="#391">v2</a>)),
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#65">Value::U16</a>(<a href="#392">v1</a>.wrapping_add(<a href="#392">v2</a>)),
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#67">Value::I32</a>(<a href="#393">v1</a>.wrapping_add(<a href="#393">v2</a>)),
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#69">Value::U32</a>(<a href="#394">v1</a>.wrapping_add(<a href="#394">v2</a>)),
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#71">Value::I64</a>(<a href="#395">v1</a>.wrapping_add(<a href="#395">v2</a>)),
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#73">Value::U64</a>(<a href="#396">v1</a>.wrapping_add(<a href="#396">v2</a>)),
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#75">Value::F32</a>(<a href="#397">v1</a> + <a href="#397">v2</a>),
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#77">Value::F64</a>(<a href="#398">v1</a> + <a href="#398">v2</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#385">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#385">value</a>)
     }
 
     <span class="doccomment">/// Perform a subtraction operation.
@@ -2027,24 +2027,24 @@
     /// This operation requires matching types.
     ///
     /// This corresponds to the DWARF `DW_OP_minus` operation.
-    </span><span class="kw">pub fn </span>sub(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#409">self</a>, <a href="../../../src/gimli/read/value.rs.html#409">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#411">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#411">v2</a>) &amp; <a href="../../../src/gimli/read/value.rs.html#409">addr_mask</a>)
+    </span><span class="kw">pub fn </span>sub(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#409">self</a>, <a href="#409">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#57">Value::Generic</a>(<a href="#411">v1</a>.wrapping_sub(<a href="#411">v2</a>) &amp; <a href="#409">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#414">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#414">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#415">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#415">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#416">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#416">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#417">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#417">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#418">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#418">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#419">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#419">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#420">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#420">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#421">v1</a>.wrapping_sub(<a href="../../../src/gimli/read/value.rs.html#421">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#422">v1</a> - <a href="../../../src/gimli/read/value.rs.html#422">v2</a>),
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#423">v1</a> - <a href="../../../src/gimli/read/value.rs.html#423">v2</a>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#59">Value::I8</a>(<a href="#414">v1</a>.wrapping_sub(<a href="#414">v2</a>)),
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#61">Value::U8</a>(<a href="#415">v1</a>.wrapping_sub(<a href="#415">v2</a>)),
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#63">Value::I16</a>(<a href="#416">v1</a>.wrapping_sub(<a href="#416">v2</a>)),
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#65">Value::U16</a>(<a href="#417">v1</a>.wrapping_sub(<a href="#417">v2</a>)),
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#67">Value::I32</a>(<a href="#418">v1</a>.wrapping_sub(<a href="#418">v2</a>)),
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#69">Value::U32</a>(<a href="#419">v1</a>.wrapping_sub(<a href="#419">v2</a>)),
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#71">Value::I64</a>(<a href="#420">v1</a>.wrapping_sub(<a href="#420">v2</a>)),
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#73">Value::U64</a>(<a href="#421">v1</a>.wrapping_sub(<a href="#421">v2</a>)),
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#75">Value::F32</a>(<a href="#422">v1</a> - <a href="#422">v2</a>),
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#77">Value::F64</a>(<a href="#423">v1</a> - <a href="#423">v2</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#410">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#410">value</a>)
     }
 
     <span class="doccomment">/// Perform a multiplication operation.
@@ -2052,24 +2052,24 @@
     /// This operation requires matching types.
     ///
     /// This corresponds to the DWARF `DW_OP_mul` operation.
-    </span><span class="kw">pub fn </span>mul(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#434">self</a>, <a href="../../../src/gimli/read/value.rs.html#434">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#436">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#436">v2</a>) &amp; <a href="../../../src/gimli/read/value.rs.html#434">addr_mask</a>)
+    </span><span class="kw">pub fn </span>mul(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#434">self</a>, <a href="#434">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#57">Value::Generic</a>(<a href="#436">v1</a>.wrapping_mul(<a href="#436">v2</a>) &amp; <a href="#434">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#439">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#439">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#440">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#440">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#441">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#441">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#442">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#442">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#443">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#443">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#444">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#444">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#445">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#445">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#446">v1</a>.wrapping_mul(<a href="../../../src/gimli/read/value.rs.html#446">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#447">v1</a> * <a href="../../../src/gimli/read/value.rs.html#447">v2</a>),
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#448">v1</a> * <a href="../../../src/gimli/read/value.rs.html#448">v2</a>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#59">Value::I8</a>(<a href="#439">v1</a>.wrapping_mul(<a href="#439">v2</a>)),
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#61">Value::U8</a>(<a href="#440">v1</a>.wrapping_mul(<a href="#440">v2</a>)),
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#63">Value::I16</a>(<a href="#441">v1</a>.wrapping_mul(<a href="#441">v2</a>)),
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#65">Value::U16</a>(<a href="#442">v1</a>.wrapping_mul(<a href="#442">v2</a>)),
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#67">Value::I32</a>(<a href="#443">v1</a>.wrapping_mul(<a href="#443">v2</a>)),
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#69">Value::U32</a>(<a href="#444">v1</a>.wrapping_mul(<a href="#444">v2</a>)),
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#71">Value::I64</a>(<a href="#445">v1</a>.wrapping_mul(<a href="#445">v2</a>)),
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#73">Value::U64</a>(<a href="#446">v1</a>.wrapping_mul(<a href="#446">v2</a>)),
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#75">Value::F32</a>(<a href="#447">v1</a> * <a href="#447">v2</a>),
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#77">Value::F64</a>(<a href="#448">v1</a> * <a href="#448">v2</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#435">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#435">value</a>)
     }
 
     <span class="doccomment">/// Perform a division operation.
@@ -2078,43 +2078,43 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_div` operation.
-    </span><span class="kw">pub fn </span>div(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#460">rhs</a> {
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2) <span class="kw">if </span><a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#462">v2</a>, <a href="../../../src/gimli/read/value.rs.html#460">addr_mask</a>) == <span class="number">0 </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#364">Error::DivisionByZero</a>);
+    </span><span class="kw">pub fn </span>div(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">match </span><a href="#460">rhs</a> {
+            <a href="#57">Value::Generic</a>(v2) <span class="kw">if </span><a href="#13">sign_extend</a>(<a href="#462">v2</a>, <a href="#460">addr_mask</a>) == <span class="number">0 </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#364">Error::DivisionByZero</a>);
             }
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="number">0</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#364">Error::DivisionByZero</a>);
+            <a href="#59">Value::I8</a>(<span class="number">0</span>)
+            | <a href="#61">Value::U8</a>(<span class="number">0</span>)
+            | <a href="#63">Value::I16</a>(<span class="number">0</span>)
+            | <a href="#65">Value::U16</a>(<span class="number">0</span>)
+            | <a href="#67">Value::I32</a>(<span class="number">0</span>)
+            | <a href="#69">Value::U32</a>(<span class="number">0</span>)
+            | <a href="#71">Value::I64</a>(<span class="number">0</span>)
+            | <a href="#73">Value::U64</a>(<span class="number">0</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#364">Error::DivisionByZero</a>);
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#460">self</a>, <a href="../../../src/gimli/read/value.rs.html#460">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#460">self</a>, <a href="#460">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
                 <span class="comment">// Signed division
-                </span><a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(
-                    <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#478">v1</a>, <a href="../../../src/gimli/read/value.rs.html#460">addr_mask</a>).wrapping_div(<a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#478">v2</a>, <a href="../../../src/gimli/read/value.rs.html#460">addr_mask</a>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+                </span><a href="#57">Value::Generic</a>(
+                    <a href="#13">sign_extend</a>(<a href="#478">v1</a>, <a href="#460">addr_mask</a>).wrapping_div(<a href="#13">sign_extend</a>(<a href="#478">v2</a>, <a href="#460">addr_mask</a>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
                 )
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#484">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#484">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#485">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#485">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#486">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#486">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#487">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#487">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#488">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#488">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#489">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#489">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#490">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#490">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#491">v1</a>.wrapping_div(<a href="../../../src/gimli/read/value.rs.html#491">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<a href="../../../src/gimli/read/value.rs.html#492">v1</a> / <a href="../../../src/gimli/read/value.rs.html#492">v2</a>),
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<a href="../../../src/gimli/read/value.rs.html#493">v1</a> / <a href="../../../src/gimli/read/value.rs.html#493">v2</a>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#59">Value::I8</a>(<a href="#484">v1</a>.wrapping_div(<a href="#484">v2</a>)),
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#61">Value::U8</a>(<a href="#485">v1</a>.wrapping_div(<a href="#485">v2</a>)),
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#63">Value::I16</a>(<a href="#486">v1</a>.wrapping_div(<a href="#486">v2</a>)),
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#65">Value::U16</a>(<a href="#487">v1</a>.wrapping_div(<a href="#487">v2</a>)),
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#67">Value::I32</a>(<a href="#488">v1</a>.wrapping_div(<a href="#488">v2</a>)),
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#69">Value::U32</a>(<a href="#489">v1</a>.wrapping_div(<a href="#489">v2</a>)),
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#71">Value::I64</a>(<a href="#490">v1</a>.wrapping_div(<a href="#490">v2</a>)),
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#73">Value::U64</a>(<a href="#491">v1</a>.wrapping_div(<a href="#491">v2</a>)),
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#75">Value::F32</a>(<a href="#492">v1</a> / <a href="#492">v2</a>),
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#77">Value::F64</a>(<a href="#493">v1</a> / <a href="#493">v2</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#477">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#477">value</a>)
     }
 
     <span class="doccomment">/// Perform a remainder operation.
@@ -2123,41 +2123,41 @@
     /// If the value type is `Generic`, then it is interpreted as an unsigned value.
     ///
     /// This corresponds to the DWARF `DW_OP_mod` operation.
-    </span><span class="kw">pub fn </span>rem(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">match </span><a href="../../../src/gimli/read/value.rs.html#505">rhs</a> {
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(rhs) <span class="kw">if </span>(<a href="../../../src/gimli/read/value.rs.html#507">rhs</a> &amp; <a href="../../../src/gimli/read/value.rs.html#505">addr_mask</a>) == <span class="number">0 </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#364">Error::DivisionByZero</a>);
+    </span><span class="kw">pub fn </span>rem(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">match </span><a href="#505">rhs</a> {
+            <a href="#57">Value::Generic</a>(rhs) <span class="kw">if </span>(<a href="#507">rhs</a> &amp; <a href="#505">addr_mask</a>) == <span class="number">0 </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#364">Error::DivisionByZero</a>);
             }
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="number">0</span>)
-            | <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="number">0</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#364">Error::DivisionByZero</a>);
+            <a href="#59">Value::I8</a>(<span class="number">0</span>)
+            | <a href="#61">Value::U8</a>(<span class="number">0</span>)
+            | <a href="#63">Value::I16</a>(<span class="number">0</span>)
+            | <a href="#65">Value::U16</a>(<span class="number">0</span>)
+            | <a href="#67">Value::I32</a>(<span class="number">0</span>)
+            | <a href="#69">Value::U32</a>(<span class="number">0</span>)
+            | <a href="#71">Value::I64</a>(<span class="number">0</span>)
+            | <a href="#73">Value::U64</a>(<span class="number">0</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#364">Error::DivisionByZero</a>);
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#505">self</a>, <a href="../../../src/gimli/read/value.rs.html#505">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#505">self</a>, <a href="#505">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
                 <span class="comment">// Unsigned modulus
-                </span><a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>((<a href="../../../src/gimli/read/value.rs.html#523">v1</a> &amp; <a href="../../../src/gimli/read/value.rs.html#505">addr_mask</a>).wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#523">v2</a> &amp; <a href="../../../src/gimli/read/value.rs.html#505">addr_mask</a>))
+                </span><a href="#57">Value::Generic</a>((<a href="#523">v1</a> &amp; <a href="#505">addr_mask</a>).wrapping_rem(<a href="#523">v2</a> &amp; <a href="#505">addr_mask</a>))
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<a href="../../../src/gimli/read/value.rs.html#527">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#527">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<a href="../../../src/gimli/read/value.rs.html#528">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#528">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<a href="../../../src/gimli/read/value.rs.html#529">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#529">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<a href="../../../src/gimli/read/value.rs.html#530">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#530">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<a href="../../../src/gimli/read/value.rs.html#531">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#531">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<a href="../../../src/gimli/read/value.rs.html#532">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#532">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<a href="../../../src/gimli/read/value.rs.html#533">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#533">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<a href="../../../src/gimli/read/value.rs.html#534">v1</a>.wrapping_rem(<a href="../../../src/gimli/read/value.rs.html#534">v2</a>)),
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<span class="kw">_</span>), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<span class="kw">_</span>), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#59">Value::I8</a>(<a href="#527">v1</a>.wrapping_rem(<a href="#527">v2</a>)),
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#61">Value::U8</a>(<a href="#528">v1</a>.wrapping_rem(<a href="#528">v2</a>)),
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#63">Value::I16</a>(<a href="#529">v1</a>.wrapping_rem(<a href="#529">v2</a>)),
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#65">Value::U16</a>(<a href="#530">v1</a>.wrapping_rem(<a href="#530">v2</a>)),
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#67">Value::I32</a>(<a href="#531">v1</a>.wrapping_rem(<a href="#531">v2</a>)),
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#69">Value::U32</a>(<a href="#532">v1</a>.wrapping_rem(<a href="#532">v2</a>)),
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#71">Value::I64</a>(<a href="#533">v1</a>.wrapping_rem(<a href="#533">v2</a>)),
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#73">Value::U64</a>(<a href="#534">v1</a>.wrapping_rem(<a href="#534">v2</a>)),
+            (<a href="#75">Value::F32</a>(<span class="kw">_</span>), <a href="#75">Value::F32</a>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
+            (<a href="#77">Value::F64</a>(<span class="kw">_</span>), <a href="#77">Value::F64</a>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#522">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#522">value</a>)
     }
 
     <span class="doccomment">/// Perform a bitwise not operation.
@@ -2165,10 +2165,10 @@
     /// This operation requires matching integral types.
     ///
     /// This corresponds to the DWARF `DW_OP_not` operation.
-    </span><span class="kw">pub fn </span>not(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value_type = <a class="self" href="../../../src/gimli/read/value.rs.html#547">self</a>.<a href="../../../src/gimli/read/value.rs.html#154">value_type</a>();
+    </span><span class="kw">pub fn </span>not(<span class="self">self</span>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value_type = <a class="self" href="#547">self</a>.<a href="#154">value_type</a>();
         <span class="kw">let </span>v = <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>;
-        Value::from_u64(<a href="../../../src/gimli/read/value.rs.html#548">value_type</a>, !<a href="../../../src/gimli/read/value.rs.html#549">v</a>)
+        Value::from_u64(<a href="#548">value_type</a>, !<a href="#549">v</a>)
     }
 
     <span class="doccomment">/// Perform a bitwise and operation.
@@ -2176,14 +2176,14 @@
     /// This operation requires matching integral types.
     ///
     /// This corresponds to the DWARF `DW_OP_and` operation.
-    </span><span class="kw">pub fn </span>and(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value_type = <a class="self" href="../../../src/gimli/read/value.rs.html#558">self</a>.<a href="../../../src/gimli/read/value.rs.html#154">value_type</a>();
+    </span><span class="kw">pub fn </span>and(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value_type = <a class="self" href="#558">self</a>.<a href="#154">value_type</a>();
         <span class="kw">if </span>value_type != rhs.value_type() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>);
         }
         <span class="kw">let </span>v1 = <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>;
         <span class="kw">let </span>v2 = rhs.to_u64(addr_mask)<span class="question-mark">?</span>;
-        Value::from_u64(<a href="../../../src/gimli/read/value.rs.html#559">value_type</a>, <a href="../../../src/gimli/read/value.rs.html#563">v1</a> &amp; <a href="../../../src/gimli/read/value.rs.html#564">v2</a>)
+        Value::from_u64(<a href="#559">value_type</a>, <a href="#563">v1</a> &amp; <a href="#564">v2</a>)
     }
 
     <span class="doccomment">/// Perform a bitwise or operation.
@@ -2191,14 +2191,14 @@
     /// This operation requires matching integral types.
     ///
     /// This corresponds to the DWARF `DW_OP_or` operation.
-    </span><span class="kw">pub fn </span>or(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value_type = <a class="self" href="../../../src/gimli/read/value.rs.html#573">self</a>.<a href="../../../src/gimli/read/value.rs.html#154">value_type</a>();
+    </span><span class="kw">pub fn </span>or(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value_type = <a class="self" href="#573">self</a>.<a href="#154">value_type</a>();
         <span class="kw">if </span>value_type != rhs.value_type() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>);
         }
         <span class="kw">let </span>v1 = <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>;
         <span class="kw">let </span>v2 = rhs.to_u64(addr_mask)<span class="question-mark">?</span>;
-        Value::from_u64(<a href="../../../src/gimli/read/value.rs.html#574">value_type</a>, <a href="../../../src/gimli/read/value.rs.html#578">v1</a> | <a href="../../../src/gimli/read/value.rs.html#579">v2</a>)
+        Value::from_u64(<a href="#574">value_type</a>, <a href="#578">v1</a> | <a href="#579">v2</a>)
     }
 
     <span class="doccomment">/// Perform a bitwise exclusive-or operation.
@@ -2206,33 +2206,33 @@
     /// This operation requires matching integral types.
     ///
     /// This corresponds to the DWARF `DW_OP_xor` operation.
-    </span><span class="kw">pub fn </span>xor(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value_type = <a class="self" href="../../../src/gimli/read/value.rs.html#588">self</a>.<a href="../../../src/gimli/read/value.rs.html#154">value_type</a>();
+    </span><span class="kw">pub fn </span>xor(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value_type = <a class="self" href="#588">self</a>.<a href="#154">value_type</a>();
         <span class="kw">if </span>value_type != rhs.value_type() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>);
         }
         <span class="kw">let </span>v1 = <span class="self">self</span>.to_u64(addr_mask)<span class="question-mark">?</span>;
         <span class="kw">let </span>v2 = rhs.to_u64(addr_mask)<span class="question-mark">?</span>;
-        Value::from_u64(<a href="../../../src/gimli/read/value.rs.html#589">value_type</a>, <a href="../../../src/gimli/read/value.rs.html#593">v1</a> ^ <a href="../../../src/gimli/read/value.rs.html#594">v2</a>)
+        Value::from_u64(<a href="#589">value_type</a>, <a href="#593">v1</a> ^ <a href="#594">v2</a>)
     }
 
     <span class="doccomment">/// Convert value to bit length suitable for a shift operation.
     ///
     /// If the value is negative then an error is returned.
     </span><span class="kw">fn </span>shift_length(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#601">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#603">value</a>,
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(value) <span class="kw">if </span><a href="../../../src/gimli/read/value.rs.html#604">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="../../../src/gimli/read/value.rs.html#604">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#605">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(value) <span class="kw">if </span><a href="../../../src/gimli/read/value.rs.html#606">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="../../../src/gimli/read/value.rs.html#606">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#607">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(value) <span class="kw">if </span><a href="../../../src/gimli/read/value.rs.html#608">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="../../../src/gimli/read/value.rs.html#608">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(value) =&gt; u64::from(<a href="../../../src/gimli/read/value.rs.html#609">value</a>),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(value) <span class="kw">if </span><a href="../../../src/gimli/read/value.rs.html#610">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="../../../src/gimli/read/value.rs.html#610">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(value) =&gt; <a href="../../../src/gimli/read/value.rs.html#611">value</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#373">Error::InvalidShiftExpression</a>),
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#601">self</a> </span>{
+            <a href="#57">Value::Generic</a>(value) =&gt; <a href="#603">value</a>,
+            <a href="#59">Value::I8</a>(value) <span class="kw">if </span><a href="#604">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="#604">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#61">Value::U8</a>(value) =&gt; u64::from(<a href="#605">value</a>),
+            <a href="#63">Value::I16</a>(value) <span class="kw">if </span><a href="#606">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="#606">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#65">Value::U16</a>(value) =&gt; u64::from(<a href="#607">value</a>),
+            <a href="#67">Value::I32</a>(value) <span class="kw">if </span><a href="#608">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="#608">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#69">Value::U32</a>(value) =&gt; u64::from(<a href="#609">value</a>),
+            <a href="#71">Value::I64</a>(value) <span class="kw">if </span><a href="#610">value</a> &gt;= <span class="number">0 </span>=&gt; <a href="#610">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+            <a href="#73">Value::U64</a>(value) =&gt; <a href="#611">value</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#373">Error::InvalidShiftExpression</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#602">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#602">value</a>)
     }
 
     <span class="doccomment">/// Perform a shift left operation.
@@ -2242,25 +2242,25 @@
     /// If the shift length is negative then an error is returned.
     ///
     /// This corresponds to the DWARF `DW_OP_shl` operation.
-    </span><span class="kw">pub fn </span>shl(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>shl(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="kw">let </span>v2 = rhs.shift_length()<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#624">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<span class="kw">if </span>v2 &gt;= u64::from(mask_bit_size(addr_mask)) {
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#624">self</a> </span>{
+            <a href="#57">Value::Generic</a>(v1) =&gt; <a href="#57">Value::Generic</a>(<span class="kw">if </span>v2 &gt;= u64::from(mask_bit_size(addr_mask)) {
                 <span class="number">0
             </span>} <span class="kw">else </span>{
-                (<a href="../../../src/gimli/read/value.rs.html#627">v1</a> &amp; <a href="../../../src/gimli/read/value.rs.html#624">addr_mask</a>) &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a>
+                (<a href="#627">v1</a> &amp; <a href="#624">addr_mask</a>) &lt;&lt; <a href="#625">v2</a>
             }),
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#632">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#633">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#634">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#635">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#636">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#637">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#638">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#639">v1</a> &lt;&lt; <a href="../../../src/gimli/read/value.rs.html#625">v2</a> }),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
+            <a href="#59">Value::I8</a>(v1) =&gt; <a href="#59">Value::I8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#632">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#61">Value::U8</a>(v1) =&gt; <a href="#61">Value::U8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#633">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#63">Value::I16</a>(v1) =&gt; <a href="#63">Value::I16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#634">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#65">Value::U16</a>(v1) =&gt; <a href="#65">Value::U16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#635">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#67">Value::I32</a>(v1) =&gt; <a href="#67">Value::I32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#636">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#69">Value::U32</a>(v1) =&gt; <a href="#69">Value::U32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#637">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#71">Value::I64</a>(v1) =&gt; <a href="#71">Value::I64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#638">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <a href="#73">Value::U64</a>(v1) =&gt; <a href="#73">Value::U64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#639">v1</a> &lt;&lt; <a href="#625">v2</a> }),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#626">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#626">value</a>)
     }
 
     <span class="doccomment">/// Perform a logical shift right operation.
@@ -2273,26 +2273,26 @@
     /// If the shift length is negative then an error is returned.
     ///
     /// This corresponds to the DWARF `DW_OP_shr` operation.
-    </span><span class="kw">pub fn </span>shr(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>shr(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="kw">let </span>v2 = rhs.shift_length()<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#655">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<span class="kw">if </span>v2 &gt;= u64::from(mask_bit_size(addr_mask)) {
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#655">self</a> </span>{
+            <a href="#57">Value::Generic</a>(v1) =&gt; <a href="#57">Value::Generic</a>(<span class="kw">if </span>v2 &gt;= u64::from(mask_bit_size(addr_mask)) {
                 <span class="number">0
             </span>} <span class="kw">else </span>{
-                (<a href="../../../src/gimli/read/value.rs.html#658">v1</a> &amp; <a href="../../../src/gimli/read/value.rs.html#655">addr_mask</a>) &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#656">v2</a>
+                (<a href="#658">v1</a> &amp; <a href="#655">addr_mask</a>) &gt;&gt; <a href="#656">v2</a>
             }),
-            <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#663">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#656">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#664">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#656">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#665">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#656">v2</a> }),
-            <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="../../../src/gimli/read/value.rs.html#666">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#656">v2</a> }),
+            <a href="#61">Value::U8</a>(v1) =&gt; <a href="#61">Value::U8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#663">v1</a> &gt;&gt; <a href="#656">v2</a> }),
+            <a href="#65">Value::U16</a>(v1) =&gt; <a href="#65">Value::U16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#664">v1</a> &gt;&gt; <a href="#656">v2</a> }),
+            <a href="#69">Value::U32</a>(v1) =&gt; <a href="#69">Value::U32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#665">v1</a> &gt;&gt; <a href="#656">v2</a> }),
+            <a href="#73">Value::U64</a>(v1) =&gt; <a href="#73">Value::U64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <a href="#666">v1</a> &gt;&gt; <a href="#656">v2</a> }),
             <span class="comment">// It&#39;s unclear if signed values should implicity convert to an unsigned value.
             // For now, we don&#39;t support them.
-            </span><a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
+            </span><a href="#59">Value::I8</a>(<span class="kw">_</span>) | <a href="#63">Value::I16</a>(<span class="kw">_</span>) | <a href="#67">Value::I32</a>(<span class="kw">_</span>) | <a href="#71">Value::I64</a>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
             }
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#657">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#657">value</a>)
     }
 
     <span class="doccomment">/// Perform an arithmetic shift right operation.
@@ -2306,11 +2306,11 @@
     /// If the shift length is negative then an error is returned.
     ///
     /// This corresponds to the DWARF `DW_OP_shra` operation.
-    </span><span class="kw">pub fn </span>shra(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>shra(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
         <span class="kw">let </span>v2 = rhs.shift_length()<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/value.rs.html#688">self</a> </span>{
-            <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1) =&gt; {
-                <span class="kw">let </span>v1 = <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#691">v1</a>, <a href="../../../src/gimli/read/value.rs.html#688">addr_mask</a>);
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self"><a href="#688">self</a> </span>{
+            <a href="#57">Value::Generic</a>(v1) =&gt; {
+                <span class="kw">let </span>v1 = <a href="#13">sign_extend</a>(<a href="#691">v1</a>, <a href="#688">addr_mask</a>);
                 <span class="kw">let </span>value = <span class="kw">if </span>v2 &gt;= u64::from(mask_bit_size(addr_mask)) {
                     <span class="kw">if </span>v1 &lt; <span class="number">0 </span>{
                         !<span class="number">0
@@ -2318,54 +2318,54 @@
                         <span class="number">0
                     </span>}
                 } <span class="kw">else </span>{
-                    (<a href="../../../src/gimli/read/value.rs.html#692">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#689">v2</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
+                    (<a href="#692">v1</a> &gt;&gt; <a href="#689">v2</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
                 };
-                <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#693">value</a>)
+                <a href="#57">Value::Generic</a>(<a href="#693">value</a>)
             }
-            <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{
+            <a href="#59">Value::I8</a>(v1) =&gt; <a href="#59">Value::I8</a>(<span class="kw">if </span>v2 &gt;= <span class="number">8 </span>{
                 <span class="kw">if </span>v1 &lt; <span class="number">0 </span>{
                     !<span class="number">0
                 </span>} <span class="kw">else </span>{
                     <span class="number">0
                 </span>}
             } <span class="kw">else </span>{
-                <a href="../../../src/gimli/read/value.rs.html#704">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#689">v2</a>
+                <a href="#704">v1</a> &gt;&gt; <a href="#689">v2</a>
             }),
-            <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{
+            <a href="#63">Value::I16</a>(v1) =&gt; <a href="#63">Value::I16</a>(<span class="kw">if </span>v2 &gt;= <span class="number">16 </span>{
                 <span class="kw">if </span>v1 &lt; <span class="number">0 </span>{
                     !<span class="number">0
                 </span>} <span class="kw">else </span>{
                     <span class="number">0
                 </span>}
             } <span class="kw">else </span>{
-                <a href="../../../src/gimli/read/value.rs.html#713">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#689">v2</a>
+                <a href="#713">v1</a> &gt;&gt; <a href="#689">v2</a>
             }),
-            <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{
+            <a href="#67">Value::I32</a>(v1) =&gt; <a href="#67">Value::I32</a>(<span class="kw">if </span>v2 &gt;= <span class="number">32 </span>{
                 <span class="kw">if </span>v1 &lt; <span class="number">0 </span>{
                     !<span class="number">0
                 </span>} <span class="kw">else </span>{
                     <span class="number">0
                 </span>}
             } <span class="kw">else </span>{
-                <a href="../../../src/gimli/read/value.rs.html#722">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#689">v2</a>
+                <a href="#722">v1</a> &gt;&gt; <a href="#689">v2</a>
             }),
-            <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1) =&gt; <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{
+            <a href="#71">Value::I64</a>(v1) =&gt; <a href="#71">Value::I64</a>(<span class="kw">if </span>v2 &gt;= <span class="number">64 </span>{
                 <span class="kw">if </span>v1 &lt; <span class="number">0 </span>{
                     !<span class="number">0
                 </span>} <span class="kw">else </span>{
                     <span class="number">0
                 </span>}
             } <span class="kw">else </span>{
-                <a href="../../../src/gimli/read/value.rs.html#731">v1</a> &gt;&gt; <a href="../../../src/gimli/read/value.rs.html#689">v2</a>
+                <a href="#731">v1</a> &gt;&gt; <a href="#689">v2</a>
             }),
             <span class="comment">// It&#39;s unclear if unsigned values should implicity convert to a signed value.
             // For now, we don&#39;t support them.
-            </span><a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(<span class="kw">_</span>) | <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
+            </span><a href="#61">Value::U8</a>(<span class="kw">_</span>) | <a href="#65">Value::U16</a>(<span class="kw">_</span>) | <a href="#69">Value::U32</a>(<span class="kw">_</span>) | <a href="#73">Value::U64</a>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#371">Error::UnsupportedTypeOperation</a>);
             }
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#369">Error::IntegralTypeRequired</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#369">Error::IntegralTypeRequired</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#690">value</a>)
+        <span class="prelude-val">Ok</span>(<a href="#690">value</a>)
     }
 
     <span class="doccomment">/// Perform the `==` relational operation.
@@ -2374,24 +2374,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_eq` operation.
-    </span><span class="kw">pub fn </span>eq(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#756">self</a>, <a href="../../../src/gimli/read/value.rs.html#756">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#758">v1</a>, <a href="../../../src/gimli/read/value.rs.html#756">addr_mask</a>) == <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#758">v2</a>, <a href="../../../src/gimli/read/value.rs.html#756">addr_mask</a>)
+    </span><span class="kw">pub fn </span>eq(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#756">self</a>, <a href="#756">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#758">v1</a>, <a href="#756">addr_mask</a>) == <a href="#13">sign_extend</a>(<a href="#758">v2</a>, <a href="#756">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#761">v1</a> == <a href="../../../src/gimli/read/value.rs.html#761">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#762">v1</a> == <a href="../../../src/gimli/read/value.rs.html#762">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#763">v1</a> == <a href="../../../src/gimli/read/value.rs.html#763">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#764">v1</a> == <a href="../../../src/gimli/read/value.rs.html#764">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#765">v1</a> == <a href="../../../src/gimli/read/value.rs.html#765">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#766">v1</a> == <a href="../../../src/gimli/read/value.rs.html#766">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#767">v1</a> == <a href="../../../src/gimli/read/value.rs.html#767">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#768">v1</a> == <a href="../../../src/gimli/read/value.rs.html#768">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#769">v1</a> == <a href="../../../src/gimli/read/value.rs.html#769">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#770">v1</a> == <a href="../../../src/gimli/read/value.rs.html#770">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#761">v1</a> == <a href="#761">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#762">v1</a> == <a href="#762">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#763">v1</a> == <a href="#763">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#764">v1</a> == <a href="#764">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#765">v1</a> == <a href="#765">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#766">v1</a> == <a href="#766">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#767">v1</a> == <a href="#767">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#768">v1</a> == <a href="#768">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#769">v1</a> == <a href="#769">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#770">v1</a> == <a href="#770">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#757">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#757">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 
     <span class="doccomment">/// Perform the `&gt;=` relational operation.
@@ -2400,24 +2400,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_ge` operation.
-    </span><span class="kw">pub fn </span>ge(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#782">self</a>, <a href="../../../src/gimli/read/value.rs.html#782">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#784">v1</a>, <a href="../../../src/gimli/read/value.rs.html#782">addr_mask</a>) &gt;= <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#784">v2</a>, <a href="../../../src/gimli/read/value.rs.html#782">addr_mask</a>)
+    </span><span class="kw">pub fn </span>ge(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#782">self</a>, <a href="#782">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#784">v1</a>, <a href="#782">addr_mask</a>) &gt;= <a href="#13">sign_extend</a>(<a href="#784">v2</a>, <a href="#782">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#787">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#787">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#788">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#788">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#789">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#789">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#790">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#790">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#791">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#791">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#792">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#792">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#793">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#793">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#794">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#794">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#795">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#795">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#796">v1</a> &gt;= <a href="../../../src/gimli/read/value.rs.html#796">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#787">v1</a> &gt;= <a href="#787">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#788">v1</a> &gt;= <a href="#788">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#789">v1</a> &gt;= <a href="#789">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#790">v1</a> &gt;= <a href="#790">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#791">v1</a> &gt;= <a href="#791">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#792">v1</a> &gt;= <a href="#792">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#793">v1</a> &gt;= <a href="#793">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#794">v1</a> &gt;= <a href="#794">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#795">v1</a> &gt;= <a href="#795">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#796">v1</a> &gt;= <a href="#796">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#783">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#783">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 
     <span class="doccomment">/// Perform the `&gt;` relational operation.
@@ -2426,24 +2426,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_gt` operation.
-    </span><span class="kw">pub fn </span>gt(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#808">self</a>, <a href="../../../src/gimli/read/value.rs.html#808">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#810">v1</a>, <a href="../../../src/gimli/read/value.rs.html#808">addr_mask</a>) &gt; <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#810">v2</a>, <a href="../../../src/gimli/read/value.rs.html#808">addr_mask</a>)
+    </span><span class="kw">pub fn </span>gt(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#808">self</a>, <a href="#808">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#810">v1</a>, <a href="#808">addr_mask</a>) &gt; <a href="#13">sign_extend</a>(<a href="#810">v2</a>, <a href="#808">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#813">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#813">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#814">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#814">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#815">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#815">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#816">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#816">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#817">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#817">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#818">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#818">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#819">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#819">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#820">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#820">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#821">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#821">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#822">v1</a> &gt; <a href="../../../src/gimli/read/value.rs.html#822">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#813">v1</a> &gt; <a href="#813">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#814">v1</a> &gt; <a href="#814">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#815">v1</a> &gt; <a href="#815">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#816">v1</a> &gt; <a href="#816">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#817">v1</a> &gt; <a href="#817">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#818">v1</a> &gt; <a href="#818">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#819">v1</a> &gt; <a href="#819">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#820">v1</a> &gt; <a href="#820">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#821">v1</a> &gt; <a href="#821">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#822">v1</a> &gt; <a href="#822">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#809">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#809">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 
     <span class="doccomment">/// Perform the `&lt;= relational operation.
@@ -2452,24 +2452,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_le` operation.
-    </span><span class="kw">pub fn </span>le(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#834">self</a>, <a href="../../../src/gimli/read/value.rs.html#834">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#836">v1</a>, <a href="../../../src/gimli/read/value.rs.html#834">addr_mask</a>) &lt;= <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#836">v2</a>, <a href="../../../src/gimli/read/value.rs.html#834">addr_mask</a>)
+    </span><span class="kw">pub fn </span>le(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#834">self</a>, <a href="#834">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#836">v1</a>, <a href="#834">addr_mask</a>) &lt;= <a href="#13">sign_extend</a>(<a href="#836">v2</a>, <a href="#834">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#839">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#839">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#840">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#840">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#841">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#841">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#842">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#842">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#843">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#843">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#844">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#844">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#845">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#845">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#846">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#846">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#847">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#847">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#848">v1</a> &lt;= <a href="../../../src/gimli/read/value.rs.html#848">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#839">v1</a> &lt;= <a href="#839">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#840">v1</a> &lt;= <a href="#840">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#841">v1</a> &lt;= <a href="#841">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#842">v1</a> &lt;= <a href="#842">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#843">v1</a> &lt;= <a href="#843">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#844">v1</a> &lt;= <a href="#844">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#845">v1</a> &lt;= <a href="#845">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#846">v1</a> &lt;= <a href="#846">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#847">v1</a> &lt;= <a href="#847">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#848">v1</a> &lt;= <a href="#848">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#835">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#835">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 
     <span class="doccomment">/// Perform the `&lt; relational operation.
@@ -2478,24 +2478,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_lt` operation.
-    </span><span class="kw">pub fn </span>lt(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#860">self</a>, <a href="../../../src/gimli/read/value.rs.html#860">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#862">v1</a>, <a href="../../../src/gimli/read/value.rs.html#860">addr_mask</a>) &lt; <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#862">v2</a>, <a href="../../../src/gimli/read/value.rs.html#860">addr_mask</a>)
+    </span><span class="kw">pub fn </span>lt(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#860">self</a>, <a href="#860">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#862">v1</a>, <a href="#860">addr_mask</a>) &lt; <a href="#13">sign_extend</a>(<a href="#862">v2</a>, <a href="#860">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#865">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#865">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#866">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#866">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#867">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#867">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#868">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#868">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#869">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#869">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#870">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#870">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#871">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#871">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#872">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#872">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#873">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#873">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#874">v1</a> &lt; <a href="../../../src/gimli/read/value.rs.html#874">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#865">v1</a> &lt; <a href="#865">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#866">v1</a> &lt; <a href="#866">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#867">v1</a> &lt; <a href="#867">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#868">v1</a> &lt; <a href="#868">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#869">v1</a> &lt; <a href="#869">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#870">v1</a> &lt; <a href="#870">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#871">v1</a> &lt; <a href="#871">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#872">v1</a> &lt; <a href="#872">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#873">v1</a> &lt; <a href="#873">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#874">v1</a> &lt; <a href="#874">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#861">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#861">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 
     <span class="doccomment">/// Perform the `!= relational operation.
@@ -2504,24 +2504,24 @@
     /// If the value type is `Generic`, then it is interpreted as a signed value.
     ///
     /// This corresponds to the DWARF `DW_OP_ne` operation.
-    </span><span class="kw">pub fn </span>ne(<span class="self">self</span>, rhs: <a href="../../../src/gimli/read/value.rs.html#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/value.rs.html#55">Value</a>&gt; {
-        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="../../../src/gimli/read/value.rs.html#886">self</a>, <a href="../../../src/gimli/read/value.rs.html#886">rhs</a>) {
-            (<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v1), <a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(v2)) =&gt; {
-                <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#888">v1</a>, <a href="../../../src/gimli/read/value.rs.html#886">addr_mask</a>) != <a href="../../../src/gimli/read/value.rs.html#13">sign_extend</a>(<a href="../../../src/gimli/read/value.rs.html#888">v2</a>, <a href="../../../src/gimli/read/value.rs.html#886">addr_mask</a>)
+    </span><span class="kw">pub fn </span>ne(<span class="self">self</span>, rhs: <a href="#55">Value</a>, addr_mask: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#55">Value</a>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>(<a class="self" href="#886">self</a>, <a href="#886">rhs</a>) {
+            (<a href="#57">Value::Generic</a>(v1), <a href="#57">Value::Generic</a>(v2)) =&gt; {
+                <a href="#13">sign_extend</a>(<a href="#888">v1</a>, <a href="#886">addr_mask</a>) != <a href="#13">sign_extend</a>(<a href="#888">v2</a>, <a href="#886">addr_mask</a>)
             }
-            (<a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#59">Value::I8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#891">v1</a> != <a href="../../../src/gimli/read/value.rs.html#891">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v1), <a href="../../../src/gimli/read/value.rs.html#61">Value::U8</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#892">v1</a> != <a href="../../../src/gimli/read/value.rs.html#892">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#63">Value::I16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#893">v1</a> != <a href="../../../src/gimli/read/value.rs.html#893">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v1), <a href="../../../src/gimli/read/value.rs.html#65">Value::U16</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#894">v1</a> != <a href="../../../src/gimli/read/value.rs.html#894">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#67">Value::I32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#895">v1</a> != <a href="../../../src/gimli/read/value.rs.html#895">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#69">Value::U32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#896">v1</a> != <a href="../../../src/gimli/read/value.rs.html#896">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#71">Value::I64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#897">v1</a> != <a href="../../../src/gimli/read/value.rs.html#897">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#73">Value::U64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#898">v1</a> != <a href="../../../src/gimli/read/value.rs.html#898">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v1), <a href="../../../src/gimli/read/value.rs.html#75">Value::F32</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#899">v1</a> != <a href="../../../src/gimli/read/value.rs.html#899">v2</a>,
-            (<a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v1), <a href="../../../src/gimli/read/value.rs.html#77">Value::F64</a>(v2)) =&gt; <a href="../../../src/gimli/read/value.rs.html#900">v1</a> != <a href="../../../src/gimli/read/value.rs.html#900">v2</a>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#366">Error::TypeMismatch</a>),
+            (<a href="#59">Value::I8</a>(v1), <a href="#59">Value::I8</a>(v2)) =&gt; <a href="#891">v1</a> != <a href="#891">v2</a>,
+            (<a href="#61">Value::U8</a>(v1), <a href="#61">Value::U8</a>(v2)) =&gt; <a href="#892">v1</a> != <a href="#892">v2</a>,
+            (<a href="#63">Value::I16</a>(v1), <a href="#63">Value::I16</a>(v2)) =&gt; <a href="#893">v1</a> != <a href="#893">v2</a>,
+            (<a href="#65">Value::U16</a>(v1), <a href="#65">Value::U16</a>(v2)) =&gt; <a href="#894">v1</a> != <a href="#894">v2</a>,
+            (<a href="#67">Value::I32</a>(v1), <a href="#67">Value::I32</a>(v2)) =&gt; <a href="#895">v1</a> != <a href="#895">v2</a>,
+            (<a href="#69">Value::U32</a>(v1), <a href="#69">Value::U32</a>(v2)) =&gt; <a href="#896">v1</a> != <a href="#896">v2</a>,
+            (<a href="#71">Value::I64</a>(v1), <a href="#71">Value::I64</a>(v2)) =&gt; <a href="#897">v1</a> != <a href="#897">v2</a>,
+            (<a href="#73">Value::U64</a>(v1), <a href="#73">Value::U64</a>(v2)) =&gt; <a href="#898">v1</a> != <a href="#898">v2</a>,
+            (<a href="#75">Value::F32</a>(v1), <a href="#75">Value::F32</a>(v2)) =&gt; <a href="#899">v1</a> != <a href="#899">v2</a>,
+            (<a href="#77">Value::F64</a>(v1), <a href="#77">Value::F64</a>(v2)) =&gt; <a href="#900">v1</a> != <a href="#900">v2</a>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#366">Error::TypeMismatch</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/value.rs.html#57">Value::Generic</a>(<a href="../../../src/gimli/read/value.rs.html#887">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
+        <span class="prelude-val">Ok</span>(<a href="#57">Value::Generic</a>(<a href="#887">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>))
     }
 }
 
@@ -3241,4 +3241,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

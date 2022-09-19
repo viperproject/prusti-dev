@@ -1564,74 +1564,74 @@
 /// This function will take a **mangled** symbol and return a value. When printed,
 /// the de-mangled version will be written. If the symbol does not look like
 /// a mangled symbol, the original value will be written instead.
-</span><span class="kw">pub fn </span>demangle(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../src/rustc_demangle/v0.rs.html#19">Demangle</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>), <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
+</span><span class="kw">pub fn </span>demangle(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#19">Demangle</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>), <a href="#24">ParseError</a>&gt; {
     <span class="comment">// First validate the symbol. If it doesn&#39;t look like anything we&#39;re
     // expecting, we just print it literally. Note that we must handle non-Rust
     // symbols because we could have any function in the backtrace.
     </span><span class="kw">let </span>inner;
     <span class="kw">if </span>s.len() &gt; <span class="number">2 </span>&amp;&amp; s.starts_with(<span class="string">&quot;_R&quot;</span>) {
-        <a href="../../src/rustc_demangle/v0.rs.html#41">inner</a> = <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#37">s</a>[<span class="number">2</span>..];
+        <a href="#41">inner</a> = <span class="kw-2">&amp;</span><a href="#37">s</a>[<span class="number">2</span>..];
     } <span class="kw">else if </span>s.len() &gt; <span class="number">1 </span>&amp;&amp; s.starts_with(<span class="string">&#39;R&#39;</span>) {
         <span class="comment">// On Windows, dbghelp strips leading underscores, so we accept &quot;R...&quot;
         // form too.
-        </span><a href="../../src/rustc_demangle/v0.rs.html#41">inner</a> = <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#37">s</a>[<span class="number">1</span>..];
+        </span><a href="#41">inner</a> = <span class="kw-2">&amp;</span><a href="#37">s</a>[<span class="number">1</span>..];
     } <span class="kw">else if </span>s.len() &gt; <span class="number">3 </span>&amp;&amp; s.starts_with(<span class="string">&quot;__R&quot;</span>) {
         <span class="comment">// On OSX, symbols are prefixed with an extra _
-        </span><a href="../../src/rustc_demangle/v0.rs.html#41">inner</a> = <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#37">s</a>[<span class="number">3</span>..];
+        </span><a href="#41">inner</a> = <span class="kw-2">&amp;</span><a href="#37">s</a>[<span class="number">3</span>..];
     } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>);
     }
 
     <span class="comment">// Paths always start with uppercase characters.
-    </span><span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#41">inner</a>.as_bytes()[<span class="number">0</span>] {
+    </span><span class="kw">match </span><a href="#41">inner</a>.as_bytes()[<span class="number">0</span>] {
         <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39; </span>=&gt; {}
-        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>),
     }
 
     <span class="comment">// only work with ascii text
     </span><span class="kw">if </span>inner.bytes().any(|c| c &amp; <span class="number">0x80 </span>!= <span class="number">0</span>) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>);
     }
 
     <span class="comment">// Verify that the symbol is indeed a valid path.
     </span><span class="kw">let </span>try_parse_path = |parser| {
-        <span class="kw">let </span><span class="kw-2">mut </span>dummy_printer = <a href="../../src/rustc_demangle/v0.rs.html#568">Printer</a> {
-            parser: <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#67">parser</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>dummy_printer = <a href="#568">Printer</a> {
+            parser: <span class="prelude-val">Ok</span>(<a href="#67">parser</a>),
             out: <span class="prelude-val">None</span>,
             bound_lifetime_depth: <span class="number">0</span>,
         };
-        <a href="../../src/rustc_demangle/v0.rs.html#68">dummy_printer</a>
-            .<a href="../../src/rustc_demangle/v0.rs.html#795">print_path</a>(<span class="bool-val">false</span>)
+        <a href="#68">dummy_printer</a>
+            .<a href="#795">print_path</a>(<span class="bool-val">false</span>)
             .expect(<span class="string">&quot;`fmt::Error`s should be impossible without a `fmt::Formatter`&quot;</span>);
-        <a href="../../src/rustc_demangle/v0.rs.html#68">dummy_printer</a>.parser
+        <a href="#68">dummy_printer</a>.parser
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>parser = <a href="../../src/rustc_demangle/v0.rs.html#398">Parser</a> {
-        sym: <a href="../../src/rustc_demangle/v0.rs.html#41">inner</a>,
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = <a href="#398">Parser</a> {
+        sym: <a href="#41">inner</a>,
         next: <span class="number">0</span>,
         depth: <span class="number">0</span>,
     };
-    <a href="../../src/rustc_demangle/v0.rs.html#78">parser</a> = try_parse_path(parser)<span class="question-mark">?</span>;
+    <a href="#78">parser</a> = try_parse_path(parser)<span class="question-mark">?</span>;
 
     <span class="comment">// Instantiating crate (paths always start with uppercase characters).
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39;</span>)) = <a href="../../src/rustc_demangle/v0.rs.html#78">parser</a>.sym.as_bytes().get(<a href="../../src/rustc_demangle/v0.rs.html#78">parser</a>.next) {
-        <a href="../../src/rustc_demangle/v0.rs.html#78">parser</a> = try_parse_path(parser)<span class="question-mark">?</span>;
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39;</span>)) = <a href="#78">parser</a>.sym.as_bytes().get(<a href="#78">parser</a>.next) {
+        <a href="#78">parser</a> = try_parse_path(parser)<span class="question-mark">?</span>;
     }
 
-    <span class="prelude-val">Ok</span>((<a href="../../src/rustc_demangle/v0.rs.html#19">Demangle</a> { <a href="../../src/rustc_demangle/v0.rs.html#41">inner</a> }, <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#78">parser</a>.sym[<a href="../../src/rustc_demangle/v0.rs.html#78">parser</a>.next..]))
+    <span class="prelude-val">Ok</span>((<a href="#19">Demangle</a> { <a href="#41">inner</a> }, <span class="kw-2">&amp;</span><a href="#78">parser</a>.sym[<a href="#78">parser</a>.next..]))
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Demangle&lt;<span class="lifetime">&#39;s</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>printer = <a href="../../src/rustc_demangle/v0.rs.html#568">Printer</a> {
-            parser: <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#398">Parser</a> {
-                sym: <a class="self" href="../../src/rustc_demangle/v0.rs.html#94">self</a>.inner,
+        <span class="kw">let </span><span class="kw-2">mut </span>printer = <a href="#568">Printer</a> {
+            parser: <span class="prelude-val">Ok</span>(<a href="#398">Parser</a> {
+                sym: <a class="self" href="#94">self</a>.inner,
                 next: <span class="number">0</span>,
                 depth: <span class="number">0</span>,
             }),
-            out: <span class="prelude-val">Some</span>(<a href="../../src/rustc_demangle/v0.rs.html#94">f</a>),
+            out: <span class="prelude-val">Some</span>(<a href="#94">f</a>),
             bound_lifetime_depth: <span class="number">0</span>,
         };
-        <a href="../../src/rustc_demangle/v0.rs.html#95">printer</a>.<a href="../../src/rustc_demangle/v0.rs.html#795">print_path</a>(<span class="bool-val">true</span>)
+        <a href="#95">printer</a>.<a href="#795">print_path</a>(<span class="bool-val">true</span>)
     }
 }
 
@@ -1649,15 +1649,15 @@
     /// and pass the char slice to the closure, if successful.
     /// This supports up to `SMALL_PUNYCODE_LEN` characters.
     </span><span class="kw">fn </span>try_small_punycode_decode&lt;F: FnOnce(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>]) -&gt; R, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>out = [<span class="string">&#39;\0&#39;</span>; <a href="../../src/rustc_demangle/v0.rs.html#115">SMALL_PUNYCODE_LEN</a>];
+        <span class="kw">let </span><span class="kw-2">mut </span>out = [<span class="string">&#39;\0&#39;</span>; <a href="#115">SMALL_PUNYCODE_LEN</a>];
         <span class="kw">let </span><span class="kw-2">mut </span>out_len = <span class="number">0</span>;
-        <span class="kw">let </span>r = <a class="self" href="../../src/rustc_demangle/v0.rs.html#121">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#152-155">punycode_decode</a>(|i, c| {
+        <span class="kw">let </span>r = <a class="self" href="#121">self</a>.<a href="#152-155">punycode_decode</a>(|i, c| {
             <span class="comment">// Check there&#39;s space left for another character.
             </span>out.get(out_len).ok_or(())<span class="question-mark">?</span>;
 
             <span class="comment">// Move the characters after the insert position.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>j = <a href="../../src/rustc_demangle/v0.rs.html#123">out_len</a>;
-            <a href="../../src/rustc_demangle/v0.rs.html#123">out_len</a> += <span class="number">1</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>j = <a href="#123">out_len</a>;
+            <a href="#123">out_len</a> += <span class="number">1</span>;
 
             <span class="kw">while </span>j &gt; i {
                 out[j] = out[j - <span class="number">1</span>];
@@ -1665,12 +1665,12 @@
             }
 
             <span class="comment">// Insert the new character.
-            </span><a href="../../src/rustc_demangle/v0.rs.html#122">out</a>[<a href="../../src/rustc_demangle/v0.rs.html#124">i</a>] = <a href="../../src/rustc_demangle/v0.rs.html#124">c</a>;
+            </span><a href="#122">out</a>[<a href="#124">i</a>] = <a href="#124">c</a>;
 
             <span class="prelude-val">Ok</span>(())
         });
         <span class="kw">if </span>r.is_ok() {
-            <span class="prelude-val">Some</span>(<a href="../../src/rustc_demangle/v0.rs.html#121">f</a>(<span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#122">out</a>[..<a href="../../src/rustc_demangle/v0.rs.html#123">out_len</a>]))
+            <span class="prelude-val">Some</span>(<a href="#121">f</a>(<span class="kw-2">&amp;</span><a href="#122">out</a>[..<a href="#123">out_len</a>]))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1683,7 +1683,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw-2">mut </span>insert: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>punycode_bytes = <a class="self" href="../../src/rustc_demangle/v0.rs.html#153">self</a>.punycode.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>punycode_bytes = <a class="self" href="#153">self</a>.punycode.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
         <span class="kw">if </span>punycode_bytes.peek().is_none() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(());
         }
@@ -1714,29 +1714,29 @@
             <span class="kw">loop </span>{
                 <span class="kw">use </span>core::cmp::{max, min};
 
-                <a href="../../src/rustc_demangle/v0.rs.html#183">k</a> += <a href="../../src/rustc_demangle/v0.rs.html#170">base</a>;
-                <span class="kw">let </span>t = min(max(<a href="../../src/rustc_demangle/v0.rs.html#183">k</a>.saturating_sub(<a href="../../src/rustc_demangle/v0.rs.html#175">bias</a>), <a href="../../src/rustc_demangle/v0.rs.html#171">t_min</a>), <a href="../../src/rustc_demangle/v0.rs.html#172">t_max</a>);
+                <a href="#183">k</a> += <a href="#170">base</a>;
+                <span class="kw">let </span>t = min(max(<a href="#183">k</a>.saturating_sub(<a href="#175">bias</a>), <a href="#171">t_min</a>), <a href="#172">t_max</a>);
 
-                <span class="kw">let </span>d = <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#156">punycode_bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39;</span>) =&gt; <a href="../../src/rustc_demangle/v0.rs.html#191">d</a> - <span class="string">b&#39;a&#39;</span>,
-                    <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <span class="number">26 </span>+ (<a href="../../src/rustc_demangle/v0.rs.html#192">d</a> - <span class="string">b&#39;0&#39;</span>),
+                <span class="kw">let </span>d = <span class="kw">match </span><a href="#156">punycode_bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39;</span>) =&gt; <a href="#191">d</a> - <span class="string">b&#39;a&#39;</span>,
+                    <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <span class="number">26 </span>+ (<a href="#192">d</a> - <span class="string">b&#39;0&#39;</span>),
                     <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(()),
                 };
-                <span class="kw">let </span>d = <a href="../../src/rustc_demangle/v0.rs.html#190">d</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-                <a href="../../src/rustc_demangle/v0.rs.html#181">delta</a> = delta.checked_add(d.checked_mul(w).ok_or(())<span class="question-mark">?</span>).ok_or(())<span class="question-mark">?</span>;
+                <span class="kw">let </span>d = <a href="#190">d</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+                <a href="#181">delta</a> = delta.checked_add(d.checked_mul(w).ok_or(())<span class="question-mark">?</span>).ok_or(())<span class="question-mark">?</span>;
                 <span class="kw">if </span>d &lt; t {
                     <span class="kw">break</span>;
                 }
-                <a href="../../src/rustc_demangle/v0.rs.html#182">w</a> = w.checked_mul(base - t).ok_or(())<span class="question-mark">?</span>;
+                <a href="#182">w</a> = w.checked_mul(base - t).ok_or(())<span class="question-mark">?</span>;
             }
 
             <span class="comment">// Compute the new insert position and character.
-            </span><a href="../../src/rustc_demangle/v0.rs.html#161">len</a> += <span class="number">1</span>;
-            <a href="../../src/rustc_demangle/v0.rs.html#176">i</a> = i.checked_add(delta).ok_or(())<span class="question-mark">?</span>;
-            <a href="../../src/rustc_demangle/v0.rs.html#177">n</a> = n.checked_add(i / len).ok_or(())<span class="question-mark">?</span>;
-            <a href="../../src/rustc_demangle/v0.rs.html#176">i</a> %= <a href="../../src/rustc_demangle/v0.rs.html#161">len</a>;
+            </span><a href="#161">len</a> += <span class="number">1</span>;
+            <a href="#176">i</a> = i.checked_add(delta).ok_or(())<span class="question-mark">?</span>;
+            <a href="#177">n</a> = n.checked_add(i / len).ok_or(())<span class="question-mark">?</span>;
+            <a href="#176">i</a> %= <a href="#161">len</a>;
 
-            <span class="kw">let </span>n_u32 = <a href="../../src/rustc_demangle/v0.rs.html#177">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+            <span class="kw">let </span>n_u32 = <a href="#177">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
             <span class="kw">let </span>c = <span class="kw">if </span>n_u32 <span class="kw">as </span>usize == n {
                 char::from_u32(n_u32).ok_or(())<span class="question-mark">?
             </span>} <span class="kw">else </span>{
@@ -1745,7 +1745,7 @@
 
             <span class="comment">// Insert the new character and increment the insert position.
             </span>insert(i, c)<span class="question-mark">?</span>;
-            <a href="../../src/rustc_demangle/v0.rs.html#176">i</a> += <span class="number">1</span>;
+            <a href="#176">i</a> += <span class="number">1</span>;
 
             <span class="comment">// If there are no more deltas, decoding is complete.
             </span><span class="kw">if </span>punycode_bytes.peek().is_none() {
@@ -1753,23 +1753,23 @@
             }
 
             <span class="comment">// Perform bias adaptation.
-            </span><a href="../../src/rustc_demangle/v0.rs.html#181">delta</a> /= <a href="../../src/rustc_demangle/v0.rs.html#174">damp</a>;
-            <a href="../../src/rustc_demangle/v0.rs.html#174">damp</a> = <span class="number">2</span>;
+            </span><a href="#181">delta</a> /= <a href="#174">damp</a>;
+            <a href="#174">damp</a> = <span class="number">2</span>;
 
-            <a href="../../src/rustc_demangle/v0.rs.html#181">delta</a> += <a href="../../src/rustc_demangle/v0.rs.html#181">delta</a> / <a href="../../src/rustc_demangle/v0.rs.html#161">len</a>;
+            <a href="#181">delta</a> += <a href="#181">delta</a> / <a href="#161">len</a>;
             <span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
             <span class="kw">while </span>delta &gt; ((base - t_min) * t_max) / <span class="number">2 </span>{
                 delta /= base - t_min;
                 k += base;
             }
-            <a href="../../src/rustc_demangle/v0.rs.html#175">bias</a> = <a href="../../src/rustc_demangle/v0.rs.html#230">k</a> + ((<a href="../../src/rustc_demangle/v0.rs.html#170">base</a> - <a href="../../src/rustc_demangle/v0.rs.html#171">t_min</a> + <span class="number">1</span>) * <a href="../../src/rustc_demangle/v0.rs.html#181">delta</a>) / (<a href="../../src/rustc_demangle/v0.rs.html#181">delta</a> + <a href="../../src/rustc_demangle/v0.rs.html#173">skew</a>);
+            <a href="#175">bias</a> = <a href="#230">k</a> + ((<a href="#170">base</a> - <a href="#171">t_min</a> + <span class="number">1</span>) * <a href="#181">delta</a>) / (<a href="#181">delta</a> + <a href="#173">skew</a>);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Ident&lt;<span class="lifetime">&#39;s</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#241">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#121">try_small_punycode_decode</a>(|chars| {
+        <a class="self" href="#241">self</a>.<a href="#121">try_small_punycode_decode</a>(|chars| {
             <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span>chars {
                 c.fmt(f)<span class="question-mark">?</span>;
             }
@@ -1787,9 +1787,9 @@
                 }
                 f.write_str(<span class="self">self</span>.punycode)<span class="question-mark">?</span>;
 
-                <a href="../../src/rustc_demangle/v0.rs.html#241">f</a>.write_str(<span class="string">&quot;}&quot;</span>)
+                <a href="#241">f</a>.write_str(<span class="string">&quot;}&quot;</span>)
             } <span class="kw">else </span>{
-                <a href="../../src/rustc_demangle/v0.rs.html#241">f</a>.write_str(<a class="self" href="../../src/rustc_demangle/v0.rs.html#241">self</a>.ascii)
+                <a href="#241">f</a>.write_str(<a class="self" href="#241">self</a>.ascii)
             }
         })
     }
@@ -1805,7 +1805,7 @@
     /// returning `None` if it can&#39;t fit in an `u64`.
     </span><span class="comment">// FIXME(eddyb) should this &quot;just&quot; use `u128` instead?
     </span><span class="kw">fn </span>try_parse_uint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">let </span>nibbles = <a class="self" href="../../src/rustc_demangle/v0.rs.html#277">self</a>.nibbles.trim_start_matches(<span class="string">&quot;0&quot;</span>);
+        <span class="kw">let </span>nibbles = <a class="self" href="#277">self</a>.nibbles.trim_start_matches(<span class="string">&quot;0&quot;</span>);
 
         <span class="kw">if </span>nibbles.len() &gt; <span class="number">16 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1815,7 +1815,7 @@
         <span class="kw">for </span>nibble <span class="kw">in </span>nibbles.chars() {
             v = (v &lt;&lt; <span class="number">4</span>) | (nibble.to_digit(<span class="number">16</span>).unwrap() <span class="kw">as </span>u64);
         }
-        <span class="prelude-val">Some</span>(<a href="../../src/rustc_demangle/v0.rs.html#284">v</a>)
+        <span class="prelude-val">Some</span>(<a href="#284">v</a>)
     }
 
     <span class="doccomment">/// Decode a UTF-8 byte sequence (with each byte using a pair of nibbles)
@@ -1826,43 +1826,43 @@
         }
 
         <span class="comment">// FIXME(eddyb) use `array_chunks` instead, when that becomes stable.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="self"><a href="../../src/rustc_demangle/v0.rs.html#293">self</a>
+        </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="self"><a href="#293">self</a>
             </span>.nibbles
             .as_bytes()
             .chunks_exact(<span class="number">2</span>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|slice| <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#303">slice</a> {
-                [a, b] =&gt; [<a href="../../src/rustc_demangle/v0.rs.html#304">a</a>, <a href="../../src/rustc_demangle/v0.rs.html#304">b</a>],
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|slice| <span class="kw">match </span><a href="#303">slice</a> {
+                [a, b] =&gt; [<a href="#304">a</a>, <a href="#304">b</a>],
                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|[<span class="kw-2">&amp;</span>hi, <span class="kw-2">&amp;</span>lo]| {
-                <span class="kw">let </span>half = |nibble: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>| (<a href="../../src/rustc_demangle/v0.rs.html#308">nibble</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>).to_digit(<span class="number">16</span>).unwrap() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
-                (<a href="../../src/rustc_demangle/v0.rs.html#308">half</a>(<a href="../../src/rustc_demangle/v0.rs.html#307">hi</a>) &lt;&lt; <span class="number">4</span>) | <a href="../../src/rustc_demangle/v0.rs.html#308">half</a>(<a href="../../src/rustc_demangle/v0.rs.html#307">lo</a>)
+                <span class="kw">let </span>half = |nibble: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>| (<a href="#308">nibble</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>).to_digit(<span class="number">16</span>).unwrap() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
+                (<a href="#308">half</a>(<a href="#307">hi</a>) &lt;&lt; <span class="number">4</span>) | <a href="#308">half</a>(<a href="#307">lo</a>)
             });
 
         <span class="kw">let </span>chars = iter::from_fn(<span class="kw">move </span>|| {
             <span class="comment">// As long as there are any bytes left, there&#39;s at least one more
             // UTF-8-encoded `char` to decode (or the possibility of error).
-            </span><a href="../../src/rustc_demangle/v0.rs.html#299">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|first_byte| -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>, ()&gt; {
+            </span><a href="#299">bytes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|first_byte| -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>, ()&gt; {
                 <span class="comment">// FIXME(eddyb) this `enum` and `fn` should be somewhere in `core`.
                 </span><span class="kw">enum </span>Utf8FirstByteError {
                     ContinuationByte,
                     TooLong,
                 }
-                <span class="kw">fn </span>utf8_len_from_first_byte(byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="../../src/rustc_demangle/v0.rs.html#317">Utf8FirstByteError</a>&gt; {
-                    <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#321">byte</a> {
+                <span class="kw">fn </span>utf8_len_from_first_byte(byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="#317">Utf8FirstByteError</a>&gt; {
+                    <span class="kw">match </span><a href="#321">byte</a> {
                         <span class="number">0x00</span>..=<span class="number">0x7f </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
-                        <span class="number">0x80</span>..=<span class="number">0xbf </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#318">Utf8FirstByteError::ContinuationByte</a>),
+                        <span class="number">0x80</span>..=<span class="number">0xbf </span>=&gt; <span class="prelude-val">Err</span>(<a href="#318">Utf8FirstByteError::ContinuationByte</a>),
                         <span class="number">0xc0</span>..=<span class="number">0xdf </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">2</span>),
                         <span class="number">0xe0</span>..=<span class="number">0xef </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">3</span>),
                         <span class="number">0xf0</span>..=<span class="number">0xf7 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">4</span>),
-                        <span class="number">0xf8</span>..=<span class="number">0xff </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#319">Utf8FirstByteError::TooLong</a>),
+                        <span class="number">0xf8</span>..=<span class="number">0xff </span>=&gt; <span class="prelude-val">Err</span>(<a href="#319">Utf8FirstByteError::TooLong</a>),
                     }
                 }
 
                 <span class="comment">// Collect the appropriate amount of bytes (up to 4), according
                 // to the UTF-8 length implied by the first byte.
                 </span><span class="kw">let </span>utf8_len = utf8_len_from_first_byte(first_byte).map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-                <span class="kw">let </span>utf8 = <span class="kw-2">&amp;mut </span>[<a href="../../src/rustc_demangle/v0.rs.html#315">first_byte</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>][..<a href="../../src/rustc_demangle/v0.rs.html#334">utf8_len</a>];
+                <span class="kw">let </span>utf8 = <span class="kw-2">&amp;mut </span>[<a href="#315">first_byte</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>][..<a href="#334">utf8_len</a>];
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..utf8_len {
                     utf8[i] = bytes.next().ok_or(())<span class="question-mark">?</span>;
                 }
@@ -1872,9 +1872,9 @@
 
                 <span class="comment">// Since we included exactly one UTF-8 sequence, and validation
                 // succeeded, `str::chars` should return exactly one `char`.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="../../src/rustc_demangle/v0.rs.html#341">s</a>.chars();
-                <span class="kw">match </span>(<a href="../../src/rustc_demangle/v0.rs.html#345">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(), <a href="../../src/rustc_demangle/v0.rs.html#345">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()) {
-                    (<span class="prelude-val">Some</span>(c), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#347">c</a>),
+                </span><span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="#341">s</a>.chars();
+                <span class="kw">match </span>(<a href="#345">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>(), <a href="#345">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()) {
+                    (<span class="prelude-val">Some</span>(c), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#347">c</a>),
                     <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
                         <span class="string">&quot;str::from_utf8({:?}) = {:?} was expected to have 1 char, \
                          but {} chars were found&quot;</span>,
@@ -1892,13 +1892,13 @@
         </span><span class="kw">if </span>chars.clone().any(|r| r.is_err()) {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="../../src/rustc_demangle/v0.rs.html#312">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Result::unwrap))
+            <span class="prelude-val">Some</span>(<a href="#312">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Result::unwrap))
         }
     }
 }
 
 <span class="kw">fn </span>basic_type(tag: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>&gt; {
-    <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#370">tag</a> {
+    <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#370">tag</a> {
         <span class="string">b&#39;b&#39; </span>=&gt; <span class="string">&quot;bool&quot;</span>,
         <span class="string">b&#39;c&#39; </span>=&gt; <span class="string">&quot;char&quot;</span>,
         <span class="string">b&#39;e&#39; </span>=&gt; <span class="string">&quot;str&quot;</span>,
@@ -1932,73 +1932,73 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Parser&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">fn </span>push_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#405">self</a>.depth += <span class="number">1</span>;
+    <span class="kw">fn </span>push_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#24">ParseError</a>&gt; {
+        <a class="self" href="#405">self</a>.depth += <span class="number">1</span>;
         <span class="kw">if </span><span class="self">self</span>.depth &gt; MAX_DEPTH {
-            <span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#29">ParseError::RecursedTooDeep</a>)
+            <span class="prelude-val">Err</span>(<a href="#29">ParseError::RecursedTooDeep</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="kw">fn </span>pop_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#414">self</a>.depth -= <span class="number">1</span>;
+        <a class="self" href="#414">self</a>.depth -= <span class="number">1</span>;
     }
 
     <span class="kw">fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#418">self</a>.sym.as_bytes().get(<a class="self" href="../../src/rustc_demangle/v0.rs.html#418">self</a>.next).cloned()
+        <a class="self" href="#418">self</a>.sym.as_bytes().get(<a class="self" href="#418">self</a>.next).cloned()
     }
 
     <span class="kw">fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <span class="kw">if </span><span class="self">self</span>.peek() == <span class="prelude-val">Some</span>(b) {
-            <a class="self" href="../../src/rustc_demangle/v0.rs.html#422">self</a>.next += <span class="number">1</span>;
+            <a class="self" href="#422">self</a>.next += <span class="number">1</span>;
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
     }
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="#24">ParseError</a>&gt; {
         <span class="kw">let </span>b = <span class="self">self</span>.peek().ok_or(ParseError::Invalid)<span class="question-mark">?</span>;
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#431">self</a>.next += <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#432">b</a>)
+        <a class="self" href="#431">self</a>.next += <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<a href="#432">b</a>)
     }
 
-    <span class="kw">fn </span>hex_nibbles(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;HexNibbles&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <span class="kw">let </span>start = <a class="self" href="../../src/rustc_demangle/v0.rs.html#437">self</a>.next;
+    <span class="kw">fn </span>hex_nibbles(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;HexNibbles&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="#24">ParseError</a>&gt; {
+        <span class="kw">let </span>start = <a class="self" href="#437">self</a>.next;
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
                 <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; {}
                 <span class="string">b&#39;_&#39; </span>=&gt; <span class="kw">break</span>,
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>),
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#269">HexNibbles</a> {
-            nibbles: <span class="kw-2">&amp;</span><a class="self" href="../../src/rustc_demangle/v0.rs.html#437">self</a>.sym[<a href="../../src/rustc_demangle/v0.rs.html#438">start</a>..<a class="self" href="../../src/rustc_demangle/v0.rs.html#437">self</a>.next - <span class="number">1</span>],
+        <span class="prelude-val">Ok</span>(<a href="#269">HexNibbles</a> {
+            nibbles: <span class="kw-2">&amp;</span><a class="self" href="#437">self</a>.sym[<a href="#438">start</a>..<a class="self" href="#437">self</a>.next - <span class="number">1</span>],
         })
     }
 
-    <span class="kw">fn </span>digit_10(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <span class="kw">let </span>d = <span class="kw">match </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#451">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#418">peek</a>() {
-            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <a href="../../src/rustc_demangle/v0.rs.html#453">d</a> - <span class="string">b&#39;0&#39;</span>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>),
+    <span class="kw">fn </span>digit_10(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="#24">ParseError</a>&gt; {
+        <span class="kw">let </span>d = <span class="kw">match </span><a class="self" href="#451">self</a>.<a href="#418">peek</a>() {
+            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <a href="#453">d</a> - <span class="string">b&#39;0&#39;</span>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>),
         };
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#451">self</a>.next += <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#452">d</a>)
+        <a class="self" href="#451">self</a>.next += <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<a href="#452">d</a>)
     }
 
-    <span class="kw">fn </span>digit_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <span class="kw">let </span>d = <span class="kw">match </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#460">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#418">peek</a>() {
-            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <a href="../../src/rustc_demangle/v0.rs.html#462">d</a> - <span class="string">b&#39;0&#39;</span>,
-            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39;</span>) =&gt; <span class="number">10 </span>+ (<a href="../../src/rustc_demangle/v0.rs.html#463">d</a> - <span class="string">b&#39;a&#39;</span>),
-            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39;</span>) =&gt; <span class="number">10 </span>+ <span class="number">26 </span>+ (<a href="../../src/rustc_demangle/v0.rs.html#464">d</a> - <span class="string">b&#39;A&#39;</span>),
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>),
+    <span class="kw">fn </span>digit_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="#24">ParseError</a>&gt; {
+        <span class="kw">let </span>d = <span class="kw">match </span><a class="self" href="#460">self</a>.<a href="#418">peek</a>() {
+            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; <a href="#462">d</a> - <span class="string">b&#39;0&#39;</span>,
+            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39;</span>) =&gt; <span class="number">10 </span>+ (<a href="#463">d</a> - <span class="string">b&#39;a&#39;</span>),
+            <span class="prelude-val">Some</span>(d @ <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39;</span>) =&gt; <span class="number">10 </span>+ <span class="number">26 </span>+ (<a href="#464">d</a> - <span class="string">b&#39;A&#39;</span>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>),
         };
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#460">self</a>.next += <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#461">d</a>)
+        <a class="self" href="#460">self</a>.next += <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<a href="#461">d</a>)
     }
 
-    <span class="kw">fn </span>integer_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
+    <span class="kw">fn </span>integer_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="#24">ParseError</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.eat(<span class="string">b&#39;_&#39;</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
@@ -2009,49 +2009,49 @@
             x = x.checked_mul(<span class="number">62</span>).ok_or(ParseError::Invalid)<span class="question-mark">?</span>;
             x = x.checked_add(d).ok_or(ParseError::Invalid)<span class="question-mark">?</span>;
         }
-        <a href="../../src/rustc_demangle/v0.rs.html#476">x</a>.checked_add(<span class="number">1</span>).ok_or(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>)
+        <a href="#476">x</a>.checked_add(<span class="number">1</span>).ok_or(<a href="#26">ParseError::Invalid</a>)
     }
 
-    <span class="kw">fn </span>opt_integer_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
+    <span class="kw">fn </span>opt_integer_62(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="#24">ParseError</a>&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.eat(tag) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
-        <span class="self">self</span>.integer_62()<span class="question-mark">?</span>.checked_add(<span class="number">1</span>).ok_or(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>)
+        <span class="self">self</span>.integer_62()<span class="question-mark">?</span>.checked_add(<span class="number">1</span>).ok_or(<a href="#26">ParseError::Invalid</a>)
     }
 
-    <span class="kw">fn </span>disambiguator(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#492">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#485">opt_integer_62</a>(<span class="string">b&#39;s&#39;</span>)
+    <span class="kw">fn </span>disambiguator(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="#24">ParseError</a>&gt; {
+        <a class="self" href="#492">self</a>.<a href="#485">opt_integer_62</a>(<span class="string">b&#39;s&#39;</span>)
     }
 
-    <span class="kw">fn </span>namespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>&gt;, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
+    <span class="kw">fn </span>namespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>&gt;, <a href="#24">ParseError</a>&gt; {
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="comment">// Special namespaces, like closures and shims.
-            </span>ns @ <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/rustc_demangle/v0.rs.html#499">ns</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>)),
+            </span>ns @ <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#499">ns</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>)),
 
             <span class="comment">// Implementation-specific/unspecified namespaces.
             </span><span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
 
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>),
         }
     }
 
-    <span class="kw">fn </span>backref(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Parser&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <span class="kw">let </span>s_start = <a class="self" href="../../src/rustc_demangle/v0.rs.html#508">self</a>.next - <span class="number">1</span>;
+    <span class="kw">fn </span>backref(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Parser&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="#24">ParseError</a>&gt; {
+        <span class="kw">let </span>s_start = <a class="self" href="#508">self</a>.next - <span class="number">1</span>;
         <span class="kw">let </span>i = <span class="self">self</span>.integer_62()<span class="question-mark">?</span>;
         <span class="kw">if </span>i &gt;= s_start <span class="kw">as </span>u64 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>);
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>new_parser = <a href="../../src/rustc_demangle/v0.rs.html#398">Parser</a> {
-            sym: <a class="self" href="../../src/rustc_demangle/v0.rs.html#508">self</a>.sym,
-            next: <a href="../../src/rustc_demangle/v0.rs.html#510">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-            depth: <a class="self" href="../../src/rustc_demangle/v0.rs.html#508">self</a>.depth,
+        <span class="kw">let </span><span class="kw-2">mut </span>new_parser = <a href="#398">Parser</a> {
+            sym: <a class="self" href="#508">self</a>.sym,
+            next: <a href="#510">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+            depth: <a class="self" href="#508">self</a>.depth,
         };
         new_parser.push_depth()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#514">new_parser</a>)
+        <span class="prelude-val">Ok</span>(<a href="#514">new_parser</a>)
     }
 
-    <span class="kw">fn </span>ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Ident&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt; {
-        <span class="kw">let </span>is_punycode = <a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#422">eat</a>(<span class="string">b&#39;u&#39;</span>);
+    <span class="kw">fn </span>ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Ident&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="#24">ParseError</a>&gt; {
+        <span class="kw">let </span>is_punycode = <a class="self" href="#523">self</a>.<a href="#422">eat</a>(<span class="string">b&#39;u&#39;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="self">self</span>.digit_10()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
         <span class="kw">if </span>len != <span class="number">0 </span>{
             <span class="kw">while let </span><span class="prelude-val">Ok</span>(d) = <span class="self">self</span>.digit_10() {
@@ -2061,34 +2061,34 @@
         }
 
         <span class="comment">// Skip past the optional `_` separator.
-        </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#422">eat</a>(<span class="string">b&#39;_&#39;</span>);
+        </span><a class="self" href="#523">self</a>.<a href="#422">eat</a>(<span class="string">b&#39;_&#39;</span>);
 
-        <span class="kw">let </span>start = <a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.next;
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.next = <span class="self">self</span>.next.checked_add(len).ok_or(ParseError::Invalid)<span class="question-mark">?</span>;
+        <span class="kw">let </span>start = <a class="self" href="#523">self</a>.next;
+        <a class="self" href="#523">self</a>.next = <span class="self">self</span>.next.checked_add(len).ok_or(ParseError::Invalid)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.next &gt; <span class="self">self</span>.sym.len() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>);
         }
 
-        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.sym[<a href="../../src/rustc_demangle/v0.rs.html#536">start</a>..<a class="self" href="../../src/rustc_demangle/v0.rs.html#523">self</a>.next];
+        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a class="self" href="#523">self</a>.sym[<a href="#536">start</a>..<a class="self" href="#523">self</a>.next];
 
         <span class="kw">if </span>is_punycode {
-            <span class="kw">let </span>ident = <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#542">ident</a>.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(|b| <a href="../../src/rustc_demangle/v0.rs.html#545">b</a> == <span class="string">b&#39;_&#39;</span>) {
-                <span class="prelude-val">Some</span>(i) =&gt; <a href="../../src/rustc_demangle/v0.rs.html#108">Ident</a> {
-                    ascii: <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#542">ident</a>[..<a href="../../src/rustc_demangle/v0.rs.html#546">i</a>],
-                    punycode: <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/v0.rs.html#542">ident</a>[<a href="../../src/rustc_demangle/v0.rs.html#546">i</a> + <span class="number">1</span>..],
+            <span class="kw">let </span>ident = <span class="kw">match </span><a href="#542">ident</a>.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(|b| <a href="#545">b</a> == <span class="string">b&#39;_&#39;</span>) {
+                <span class="prelude-val">Some</span>(i) =&gt; <a href="#108">Ident</a> {
+                    ascii: <span class="kw-2">&amp;</span><a href="#542">ident</a>[..<a href="#546">i</a>],
+                    punycode: <span class="kw-2">&amp;</span><a href="#542">ident</a>[<a href="#546">i</a> + <span class="number">1</span>..],
                 },
-                <span class="prelude-val">None </span>=&gt; <a href="../../src/rustc_demangle/v0.rs.html#108">Ident</a> {
+                <span class="prelude-val">None </span>=&gt; <a href="#108">Ident</a> {
                     ascii: <span class="string">&quot;&quot;</span>,
-                    punycode: <a href="../../src/rustc_demangle/v0.rs.html#542">ident</a>,
+                    punycode: <a href="#542">ident</a>,
                 },
             };
             <span class="kw">if </span>ident.punycode.is_empty() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#26">ParseError::Invalid</a>);
             }
-            <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#545">ident</a>)
+            <span class="prelude-val">Ok</span>(<a href="#545">ident</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#108">Ident</a> {
-                ascii: <a href="../../src/rustc_demangle/v0.rs.html#542">ident</a>,
+            <span class="prelude-val">Ok</span>(<a href="#108">Ident</a> {
+                ascii: <a href="#542">ident</a>,
                 punycode: <span class="string">&quot;&quot;</span>,
             })
         }
@@ -2100,7 +2100,7 @@
     /// encountered (in order to disallow further likely-incorrect demangling).
     ///
     /// See also the documentation on the `invalid!` and `parse!` macros below.
-    </span>parser: <span class="prelude-ty">Result</span>&lt;Parser&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a>&gt;,
+    </span>parser: <span class="prelude-ty">Result</span>&lt;Parser&lt;<span class="lifetime">&#39;s</span>&gt;, <a href="#24">ParseError</a>&gt;,
 
     <span class="doccomment">/// The output formatter to demangle to, or `None` while skipping printing.
     </span>out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;b</span>&gt;&gt;,
@@ -2113,12 +2113,12 @@
     </span>bound_lifetime_depth: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/rustc_demangle/v0.rs.html#24">ParseError</a> {
+<span class="kw">impl </span><a href="#24">ParseError</a> {
     <span class="doccomment">/// Snippet to print when the error is initially encountered.
     </span><span class="kw">fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/rustc_demangle/v0.rs.html#588">self</a> </span>{
-            <a href="../../src/rustc_demangle/v0.rs.html#26">ParseError::Invalid</a> =&gt; <span class="string">&quot;{invalid syntax}&quot;</span>,
-            <a href="../../src/rustc_demangle/v0.rs.html#29">ParseError::RecursedTooDeep</a> =&gt; <span class="string">&quot;{recursion limit reached}&quot;</span>,
+        <span class="kw">match </span><span class="self"><a href="#588">self</a> </span>{
+            <a href="#26">ParseError::Invalid</a> =&gt; <span class="string">&quot;{invalid syntax}&quot;</span>,
+            <a href="#29">ParseError::RecursedTooDeep</a> =&gt; <span class="string">&quot;{recursion limit reached}&quot;</span>,
         }
     }
 }
@@ -2163,7 +2163,7 @@
     <span class="doccomment">/// Eat the given character from the parser,
     /// returning `false` if the parser errored.
     </span><span class="kw">fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#635">self</a>.parser.as_mut().map(|p| <a href="../../src/rustc_demangle/v0.rs.html#636">p</a>.<a href="../../src/rustc_demangle/v0.rs.html#422">eat</a>(<a href="../../src/rustc_demangle/v0.rs.html#635">b</a>)) == <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        <a class="self" href="#635">self</a>.parser.as_mut().map(|p| <a href="#636">p</a>.<a href="#422">eat</a>(<a href="#635">b</a>)) == <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Skip printing (i.e. `self.out` will be `None`) for the duration of the
@@ -2173,9 +2173,9 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
     {
-        <span class="kw">let </span>orig_out = <a class="self" href="../../src/rustc_demangle/v0.rs.html#642">self</a>.out.take();
-        <a href="../../src/rustc_demangle/v0.rs.html#642">f</a>(<a class="self" href="../../src/rustc_demangle/v0.rs.html#642">self</a>).expect(<span class="string">&quot;`fmt::Error`s should be impossible without a `fmt::Formatter`&quot;</span>);
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#642">self</a>.out = <a href="../../src/rustc_demangle/v0.rs.html#646">orig_out</a>;
+        <span class="kw">let </span>orig_out = <a class="self" href="#642">self</a>.out.take();
+        <a href="#642">f</a>(<a class="self" href="#642">self</a>).expect(<span class="string">&quot;`fmt::Error`s should be impossible without a `fmt::Formatter`&quot;</span>);
+        <a class="self" href="#642">self</a>.out = <a href="#646">orig_out</a>;
     }
 
     <span class="doccomment">/// Print the target of a backref, using the given closure.
@@ -2185,28 +2185,28 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
     {
-        <span class="kw">let </span>backref_parser = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, backref);
+        <span class="kw">let </span>backref_parser = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, backref);
 
         <span class="kw">if </span><span class="self">self</span>.out.is_none() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let </span>orig_parser = mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#654">self</a>.parser, <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#658">backref_parser</a>));
-        <span class="kw">let </span>r = <a href="../../src/rustc_demangle/v0.rs.html#654">f</a>(<a class="self" href="../../src/rustc_demangle/v0.rs.html#654">self</a>);
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#654">self</a>.parser = <a href="../../src/rustc_demangle/v0.rs.html#664">orig_parser</a>;
-        <a href="../../src/rustc_demangle/v0.rs.html#665">r</a>
+        <span class="kw">let </span>orig_parser = mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#654">self</a>.parser, <span class="prelude-val">Ok</span>(<a href="#658">backref_parser</a>));
+        <span class="kw">let </span>r = <a href="#654">f</a>(<a class="self" href="#654">self</a>);
+        <a class="self" href="#654">self</a>.parser = <a href="#664">orig_parser</a>;
+        <a href="#665">r</a>
     }
 
     <span class="kw">fn </span>pop_depth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>parser) = <a class="self" href="../../src/rustc_demangle/v0.rs.html#670">self</a>.parser {
-            <a href="../../src/rustc_demangle/v0.rs.html#671">parser</a>.<a href="../../src/rustc_demangle/v0.rs.html#414">pop_depth</a>();
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>parser) = <a class="self" href="#670">self</a>.parser {
+            <a href="#671">parser</a>.<a href="#414">pop_depth</a>();
         }
     }
 
     <span class="doccomment">/// Output the given value to `self.out` (using `fmt::Display` formatting),
     /// if printing isn&#39;t being skipped.
     </span><span class="kw">fn </span>print(<span class="kw-2">&amp;mut </span><span class="self">self</span>, x: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#678">self</a>.out {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="#678">self</a>.out {
             fmt::Display::fmt(<span class="kw-2">&amp;</span>x, out)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
@@ -2220,7 +2220,7 @@
         quote: <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>,
         chars: <span class="kw">impl </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#689">self</a>.out {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="#689">self</a>.out {
             <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">core::fmt::Write</a>;
 
             out.write_char(quote)<span class="question-mark">?</span>;
@@ -2252,21 +2252,21 @@
 
         <span class="self">self</span>.print(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>lt == <span class="number">0 </span>{
-            <span class="kw">return </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#717">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#678">print</a>(<span class="string">&quot;_&quot;</span>);
+            <span class="kw">return </span><a class="self" href="#717">self</a>.<a href="#678">print</a>(<span class="string">&quot;_&quot;</span>);
         }
-        <span class="kw">match </span>(<a class="self" href="../../src/rustc_demangle/v0.rs.html#717">self</a>.bound_lifetime_depth <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>).checked_sub(<a href="../../src/rustc_demangle/v0.rs.html#717">lt</a>) {
+        <span class="kw">match </span>(<a class="self" href="#717">self</a>.bound_lifetime_depth <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>).checked_sub(<a href="#717">lt</a>) {
             <span class="prelude-val">Some</span>(depth) =&gt; {
                 <span class="comment">// Try to print lifetimes alphabetically first.
                 </span><span class="kw">if </span>depth &lt; <span class="number">26 </span>{
-                    <span class="kw">let </span>c = (<span class="string">b&#39;a&#39; </span>+ <a href="../../src/rustc_demangle/v0.rs.html#728">depth</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>;
-                    <a class="self" href="../../src/rustc_demangle/v0.rs.html#717">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#678">print</a>(<a href="../../src/rustc_demangle/v0.rs.html#731">c</a>)
+                    <span class="kw">let </span>c = (<span class="string">b&#39;a&#39; </span>+ <a href="#728">depth</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.char.html">char</a>;
+                    <a class="self" href="#717">self</a>.<a href="#678">print</a>(<a href="#731">c</a>)
                 } <span class="kw">else </span>{
                     <span class="comment">// Use `&#39;_123` after running out of letters.
                     </span><span class="self">self</span>.print(<span class="string">&quot;_&quot;</span>)<span class="question-mark">?</span>;
-                    <a class="self" href="../../src/rustc_demangle/v0.rs.html#717">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#678">print</a>(<a href="../../src/rustc_demangle/v0.rs.html#728">depth</a>)
+                    <a class="self" href="#717">self</a>.<a href="#678">print</a>(<a href="#728">depth</a>)
                 }
             }
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
         }
     }
 
@@ -2277,11 +2277,11 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
     {
-        <span class="kw">let </span>bound_lifetimes = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, opt_integer_62(<span class="string">b&#39;G&#39;</span>));
+        <span class="kw">let </span>bound_lifetimes = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, opt_integer_62(<span class="string">b&#39;G&#39;</span>));
 
         <span class="comment">// Don&#39;t track bound lifetimes when skipping printing.
         </span><span class="kw">if </span><span class="self">self</span>.out.is_none() {
-            <span class="kw">return </span><a href="../../src/rustc_demangle/v0.rs.html#746">f</a>(<a class="self" href="../../src/rustc_demangle/v0.rs.html#746">self</a>);
+            <span class="kw">return </span><a href="#746">f</a>(<a class="self" href="#746">self</a>);
         }
 
         <span class="kw">if </span>bound_lifetimes &gt; <span class="number">0 </span>{
@@ -2296,12 +2296,12 @@
             <span class="self">self</span>.print(<span class="string">&quot;&gt; &quot;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>r = <a href="../../src/rustc_demangle/v0.rs.html#746">f</a>(<a class="self" href="../../src/rustc_demangle/v0.rs.html#746">self</a>);
+        <span class="kw">let </span>r = <a href="#746">f</a>(<a class="self" href="#746">self</a>);
 
         <span class="comment">// Restore `bound_lifetime_depth` to the previous value.
-        </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#746">self</a>.bound_lifetime_depth -= <a href="../../src/rustc_demangle/v0.rs.html#750">bound_lifetimes</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+        </span><a class="self" href="#746">self</a>.bound_lifetime_depth -= <a href="#750">bound_lifetimes</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
 
-        <a href="../../src/rustc_demangle/v0.rs.html#769">r</a>
+        <a href="#769">r</a>
     }
 
     <span class="doccomment">/// Print list elements using the given closure and separator,
@@ -2319,20 +2319,20 @@
             f(<span class="self">self</span>)<span class="question-mark">?</span>;
             i += <span class="number">1</span>;
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#784">i</a>)
+        <span class="prelude-val">Ok</span>(<a href="#784">i</a>)
     }
 
     <span class="kw">fn </span>print_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, in_value: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, push_depth);
+        <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, push_depth);
 
-        <span class="kw">let </span>tag = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, next);
-        <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#798">tag</a> {
+        <span class="kw">let </span>tag = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, next);
+        <span class="kw">match </span><a href="#798">tag</a> {
             <span class="string">b&#39;C&#39; </span>=&gt; {
-                <span class="kw">let </span>dis = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
-                <span class="kw">let </span>name = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, ident);
+                <span class="kw">let </span>dis = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
+                <span class="kw">let </span>name = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, ident);
 
                 <span class="self">self</span>.print(name)<span class="question-mark">?</span>;
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#795">self</a>.out {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="#795">self</a>.out {
                     <span class="kw">if </span>!out.alternate() {
                         out.write_str(<span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
                         fmt::LowerHex::fmt(<span class="kw-2">&amp;</span>dis, out)<span class="question-mark">?</span>;
@@ -2341,7 +2341,7 @@
                 }
             }
             <span class="string">b&#39;N&#39; </span>=&gt; {
-                <span class="kw">let </span>ns = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, namespace);
+                <span class="kw">let </span>ns = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, namespace);
 
                 <span class="self">self</span>.print_path(in_value)<span class="question-mark">?</span>;
 
@@ -2354,14 +2354,14 @@
                     <span class="self">self</span>.print(<span class="string">&quot;::&quot;</span>)<span class="question-mark">?</span>;
                 }
 
-                <span class="kw">let </span>dis = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
-                <span class="kw">let </span>name = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, ident);
+                <span class="kw">let </span>dis = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
+                <span class="kw">let </span>name = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, ident);
 
-                <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#814">ns</a> {
+                <span class="kw">match </span><a href="#814">ns</a> {
                     <span class="comment">// Special namespaces, like closures and shims.
                     </span><span class="prelude-val">Some</span>(ns) =&gt; {
                         <span class="self">self</span>.print(<span class="string">&quot;::{&quot;</span>)<span class="question-mark">?</span>;
-                        <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#832">ns</a> {
+                        <span class="kw">match </span><a href="#832">ns</a> {
                             <span class="string">&#39;C&#39; </span>=&gt; <span class="self">self</span>.print(<span class="string">&quot;closure&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&#39;S&#39; </span>=&gt; <span class="self">self</span>.print(<span class="string">&quot;shim&quot;</span>)<span class="question-mark">?</span>,
                             <span class="kw">_ </span>=&gt; <span class="self">self</span>.print(ns)<span class="question-mark">?</span>,
@@ -2387,8 +2387,8 @@
             <span class="string">b&#39;M&#39; </span>| <span class="string">b&#39;X&#39; </span>| <span class="string">b&#39;Y&#39; </span>=&gt; {
                 <span class="kw">if </span>tag != <span class="string">b&#39;Y&#39; </span>{
                     <span class="comment">// Ignore the `impl`&#39;s own path.
-                    </span><a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
-                    <a class="self" href="../../src/rustc_demangle/v0.rs.html#795">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#642-644">skipping_printing</a>(|this| <a href="../../src/rustc_demangle/v0.rs.html#861">this</a>.<a href="../../src/rustc_demangle/v0.rs.html#795">print_path</a>(<span class="bool-val">false</span>));
+                    </span><a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, disambiguator);
+                    <a class="self" href="#795">self</a>.<a href="#642-644">skipping_printing</a>(|this| <a href="#861">this</a>.<a href="#795">print_path</a>(<span class="bool-val">false</span>));
                 }
 
                 <span class="self">self</span>.print(<span class="string">&quot;&lt;&quot;</span>)<span class="question-mark">?</span>;
@@ -2411,38 +2411,38 @@
             <span class="string">b&#39;B&#39; </span>=&gt; {
                 <span class="self">self</span>.print_backref(|this| this.print_path(in_value))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+            <span class="kw">_ </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
         }
 
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#795">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#670">pop_depth</a>();
+        <a class="self" href="#795">self</a>.<a href="#670">pop_depth</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>print_generic_arg(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if </span><span class="self">self</span>.eat(<span class="string">b&#39;L&#39;</span>) {
-            <span class="kw">let </span>lt = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, integer_62);
-            <a class="self" href="../../src/rustc_demangle/v0.rs.html#891">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#717">print_lifetime_from_index</a>(<a href="../../src/rustc_demangle/v0.rs.html#893">lt</a>)
+            <span class="kw">let </span>lt = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, integer_62);
+            <a class="self" href="#891">self</a>.<a href="#717">print_lifetime_from_index</a>(<a href="#893">lt</a>)
         } <span class="kw">else if </span><span class="self">self</span>.eat(<span class="string">b&#39;K&#39;</span>) {
-            <a class="self" href="../../src/rustc_demangle/v0.rs.html#891">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#1082">print_const</a>(<span class="bool-val">false</span>)
+            <a class="self" href="#891">self</a>.<a href="#1082">print_const</a>(<span class="bool-val">false</span>)
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/rustc_demangle/v0.rs.html#891">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#902">print_type</a>()
+            <a class="self" href="#891">self</a>.<a href="#902">print_type</a>()
         }
     }
 
     <span class="kw">fn </span>print_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>tag = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, next);
+        <span class="kw">let </span>tag = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, next);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <a href="../../src/rustc_demangle/v0.rs.html#370">basic_type</a>(<a href="../../src/rustc_demangle/v0.rs.html#903">tag</a>) {
-            <span class="kw">return </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#902">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#678">print</a>(<a href="../../src/rustc_demangle/v0.rs.html#905">ty</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <a href="#370">basic_type</a>(<a href="#903">tag</a>) {
+            <span class="kw">return </span><a class="self" href="#902">self</a>.<a href="#678">print</a>(<a href="#905">ty</a>);
         }
 
-        <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, push_depth);
+        <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, push_depth);
 
-        <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#903">tag</a> {
+        <span class="kw">match </span><a href="#903">tag</a> {
             <span class="string">b&#39;R&#39; </span>| <span class="string">b&#39;Q&#39; </span>=&gt; {
                 <span class="self">self</span>.print(<span class="string">&quot;&amp;&quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">if </span><span class="self">self</span>.eat(<span class="string">b&#39;L&#39;</span>) {
-                    <span class="kw">let </span>lt = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, integer_62);
+                    <span class="kw">let </span>lt = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, integer_62);
                     <span class="kw">if </span>lt != <span class="number">0 </span>{
                         <span class="self">self</span>.print_lifetime_from_index(lt)<span class="question-mark">?</span>;
                         <span class="self">self</span>.print(<span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
@@ -2537,9 +2537,9 @@
                 })<span class="question-mark">?</span>;
 
                 <span class="kw">if </span>!<span class="self">self</span>.eat(<span class="string">b&#39;L&#39;</span>) {
-                    <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>);
+                    <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>);
                 }
-                <span class="kw">let </span>lt = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, integer_62);
+                <span class="kw">let </span>lt = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, integer_62);
                 <span class="kw">if </span>lt != <span class="number">0 </span>{
                     <span class="self">self</span>.print(<span class="string">&quot; + &quot;</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.print_lifetime_from_index(lt)<span class="question-mark">?</span>;
@@ -2550,12 +2550,12 @@
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// Go back to the tag, so `print_path` also sees it.
-                </span><span class="kw">let _ </span>= <a class="self" href="../../src/rustc_demangle/v0.rs.html#902">self</a>.parser.as_mut().map(|p| <a href="../../src/rustc_demangle/v0.rs.html#1023">p</a>.next -= <span class="number">1</span>);
+                </span><span class="kw">let _ </span>= <a class="self" href="#902">self</a>.parser.as_mut().map(|p| <a href="#1023">p</a>.next -= <span class="number">1</span>);
                 <span class="self">self</span>.print_path(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
             }
         }
 
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#902">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#670">pop_depth</a>();
+        <a class="self" href="#902">self</a>.<a href="#670">pop_depth</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2573,7 +2573,7 @@
                 open = this.print_path_maybe_open_generics()<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             })<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/rustc_demangle/v0.rs.html#1041">open</a>)
+            <span class="prelude-val">Ok</span>(<a href="#1041">open</a>)
         } <span class="kw">else if </span><span class="self">self</span>.eat(<span class="string">b&#39;I&#39;</span>) {
             <span class="self">self</span>.print_path(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.print(<span class="string">&quot;&lt;&quot;</span>)<span class="question-mark">?</span>;
@@ -2610,9 +2610,9 @@
     }
 
     <span class="kw">fn </span>print_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, in_value: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>tag = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, next);
+        <span class="kw">let </span>tag = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, next);
 
-        <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, push_depth);
+        <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, push_depth);
 
         <span class="comment">// Only literals (and the names of `const` generic parameters, but they
         // don&#39;t get mangled at all), can appear in generic argument position
@@ -2627,11 +2627,11 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
 
-            <a href="../../src/rustc_demangle/v0.rs.html#1093">opened_brace</a> = <span class="bool-val">true</span>;
-            <a href="../../src/rustc_demangle/v0.rs.html#1094">this</a>.<a href="../../src/rustc_demangle/v0.rs.html#678">print</a>(<span class="string">&quot;{&quot;</span>)
+            <a href="#1093">opened_brace</a> = <span class="bool-val">true</span>;
+            <a href="#1094">this</a>.<a href="#678">print</a>(<span class="string">&quot;{&quot;</span>)
         };
 
-        <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#1083">tag</a> {
+        <span class="kw">match </span><a href="#1083">tag</a> {
             <span class="string">b&#39;p&#39; </span>=&gt; <span class="self">self</span>.print(<span class="string">&quot;_&quot;</span>)<span class="question-mark">?</span>,
 
             <span class="comment">// Primitive leaves with hex-encoded values (see `basic_type`).
@@ -2643,19 +2643,19 @@
 
                 <span class="self">self</span>.print_const_uint(tag)<span class="question-mark">?</span>;
             }
-            <span class="string">b&#39;b&#39; </span>=&gt; <span class="kw">match </span><a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles).<a href="../../src/rustc_demangle/v0.rs.html#277">try_parse_uint</a>() {
+            <span class="string">b&#39;b&#39; </span>=&gt; <span class="kw">match </span><a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles).<a href="#277">try_parse_uint</a>() {
                 <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="self">self</span>.print(<span class="string">&quot;false&quot;</span>)<span class="question-mark">?</span>,
                 <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; <span class="self">self</span>.print(<span class="string">&quot;true&quot;</span>)<span class="question-mark">?</span>,
-                <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+                <span class="kw">_ </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
             },
             <span class="string">b&#39;c&#39; </span>=&gt; {
-                <span class="kw">let </span>valid_char = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles)
-                    .<a href="../../src/rustc_demangle/v0.rs.html#277">try_parse_uint</a>()
-                    .and_then(|v| u32::try_from(<a href="../../src/rustc_demangle/v0.rs.html#1124">v</a>).ok())
+                <span class="kw">let </span>valid_char = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles)
+                    .<a href="#277">try_parse_uint</a>()
+                    .and_then(|v| u32::try_from(<a href="#1124">v</a>).ok())
                     .and_then(char::from_u32);
-                <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#1122">valid_char</a> {
+                <span class="kw">match </span><a href="#1122">valid_char</a> {
                     <span class="prelude-val">Some</span>(c) =&gt; <span class="self">self</span>.print_quoted_escaped_chars(<span class="string">&#39;\&#39;&#39;</span>, iter::once(c))<span class="question-mark">?</span>,
-                    <span class="prelude-val">None </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+                    <span class="prelude-val">None </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
                 }
             }
             <span class="string">b&#39;e&#39; </span>=&gt; {
@@ -2700,7 +2700,7 @@
             <span class="string">b&#39;V&#39; </span>=&gt; {
                 open_brace_if_outside_expr(<span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.print_path(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="kw">match </span><a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, next) {
+                <span class="kw">match </span><a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, next) {
                     <span class="string">b&#39;U&#39; </span>=&gt; {}
                     <span class="string">b&#39;T&#39; </span>=&gt; {
                         <span class="self">self</span>.print(<span class="string">&quot;(&quot;</span>)<span class="question-mark">?</span>;
@@ -2721,27 +2721,27 @@
                         )<span class="question-mark">?</span>;
                         <span class="self">self</span>.print(<span class="string">&quot; }&quot;</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+                    <span class="kw">_ </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
                 }
             }
             <span class="string">b&#39;B&#39; </span>=&gt; {
                 <span class="self">self</span>.print_backref(|this| this.print_const(in_value))<span class="question-mark">?</span>;
             }
-            <span class="kw">_ </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+            <span class="kw">_ </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
         }
 
         <span class="kw">if </span>opened_brace {
             <span class="self">self</span>.print(<span class="string">&quot;}&quot;</span>)<span class="question-mark">?</span>;
         }
 
-        <a class="self" href="../../src/rustc_demangle/v0.rs.html#1082">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#670">pop_depth</a>();
+        <a class="self" href="#1082">self</a>.<a href="#670">pop_depth</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>print_const_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty_tag: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>hex = <a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles);
+        <span class="kw">let </span>hex = <a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles);
 
-        <span class="kw">match </span><a href="../../src/rustc_demangle/v0.rs.html#1212">hex</a>.<a href="../../src/rustc_demangle/v0.rs.html#277">try_parse_uint</a>() {
+        <span class="kw">match </span><a href="#1212">hex</a>.<a href="#277">try_parse_uint</a>() {
             <span class="prelude-val">Some</span>(v) =&gt; <span class="self">self</span>.print(v)<span class="question-mark">?</span>,
 
             <span class="comment">// Print anything that doesn&#39;t fit in `u64` verbatim.
@@ -2751,9 +2751,9 @@
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/rustc_demangle/v0.rs.html#1211">self</a>.out {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(out) = <span class="kw-2">&amp;mut </span><a class="self" href="#1211">self</a>.out {
             <span class="kw">if </span>!out.alternate() {
-                <span class="kw">let </span>ty = <a href="../../src/rustc_demangle/v0.rs.html#370">basic_type</a>(<a href="../../src/rustc_demangle/v0.rs.html#1211">ty_tag</a>).unwrap();
+                <span class="kw">let </span>ty = <a href="#370">basic_type</a>(<a href="#1211">ty_tag</a>).unwrap();
                 <span class="self">self</span>.print(ty)<span class="question-mark">?</span>;
             }
         }
@@ -2762,9 +2762,9 @@
     }
 
     <span class="kw">fn </span>print_const_str_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="macro" href="../../src/rustc_demangle/v0.rs.html#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles).<a href="../../src/rustc_demangle/v0.rs.html#293">try_parse_str_chars</a>() {
-            <span class="prelude-val">Some</span>(chars) =&gt; <a class="self" href="../../src/rustc_demangle/v0.rs.html#1234">self</a>.<a href="../../src/rustc_demangle/v0.rs.html#688-692">print_quoted_escaped_chars</a>(<span class="string">&#39;&quot;&#39;</span>, <a href="../../src/rustc_demangle/v0.rs.html#1236">chars</a>),
-            <span class="prelude-val">None </span>=&gt; <a class="macro" href="../../src/rustc_demangle/v0.rs.html#598-605">invalid!</a>(<span class="self">self</span>),
+        <span class="kw">match </span><a class="macro" href="#616-630">parse!</a>(<span class="self">self</span>, hex_nibbles).<a href="#293">try_parse_str_chars</a>() {
+            <span class="prelude-val">Some</span>(chars) =&gt; <a class="self" href="#1234">self</a>.<a href="#688-692">print_quoted_escaped_chars</a>(<span class="string">&#39;&quot;&#39;</span>, <a href="#1236">chars</a>),
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="#598-605">invalid!</a>(<span class="self">self</span>),
         }
     }
 }
@@ -3059,4 +3059,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustc_demangle" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustc_demangle" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

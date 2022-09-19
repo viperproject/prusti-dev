@@ -285,9 +285,9 @@
 <span class="doccomment">/// Returns the smallest possible index of the next valid UTF-8 sequence
 /// starting after `i`.
 </span><span class="kw">pub fn </span>next_utf8(text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>b = <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#23">text</a>.get(<a href="../../src/regex/utf8.rs.html#23">i</a>) {
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/utf8.rs.html#23">i</a> + <span class="number">1</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; <a href="../../src/regex/utf8.rs.html#26">b</a>,
+    <span class="kw">let </span>b = <span class="kw">match </span><a href="#23">text</a>.get(<a href="#23">i</a>) {
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#23">i</a> + <span class="number">1</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; <a href="#26">b</a>,
     };
     <span class="kw">let </span>inc = <span class="kw">if </span>b &lt;= <span class="number">0x7F </span>{
         <span class="number">1
@@ -298,7 +298,7 @@
     </span>} <span class="kw">else </span>{
         <span class="number">4
     </span>};
-    <a href="../../src/regex/utf8.rs.html#23">i</a> + <a href="../../src/regex/utf8.rs.html#28">inc</a>
+    <a href="#23">i</a> + <a href="#28">inc</a>
 }
 
 <span class="doccomment">/// Decode a single UTF-8 sequence into a single Unicode codepoint from `src`.
@@ -313,23 +313,23 @@
 /// is not the shortest possible UTF-8 sequence for that codepoint.
 </span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>decode_utf8(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-    <span class="kw">let </span>b0 = <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#51">src</a>.get(<span class="number">0</span>) {
+    <span class="kw">let </span>b0 = <span class="kw">match </span><a href="#51">src</a>.get(<span class="number">0</span>) {
         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) <span class="kw">if </span><a href="../../src/regex/utf8.rs.html#54">b</a> &lt;= <span class="number">0x7F </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="../../src/regex/utf8.rs.html#54">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="number">1</span>)),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; <a href="../../src/regex/utf8.rs.html#55">b</a>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) <span class="kw">if </span><a href="#54">b</a> &lt;= <span class="number">0x7F </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="#54">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="number">1</span>)),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; <a href="#55">b</a>,
     };
-    <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#52">b0</a> {
+    <span class="kw">match </span><a href="#52">b0</a> {
         <span class="number">0b110_00000</span>..=<span class="number">0b110_11111 </span>=&gt; {
             <span class="kw">if </span>src.len() &lt; <span class="number">2 </span>{
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>b1 = <a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">1</span>];
+            <span class="kw">let </span>b1 = <a href="#51">src</a>[<span class="number">1</span>];
             <span class="kw">if </span><span class="number">0b11_000000 </span>&amp; b1 != TAG_CONT {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>cp = ((<a href="../../src/regex/utf8.rs.html#52">b0</a> &amp; !<a href="../../src/regex/utf8.rs.html#17">TAG_TWO</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6 </span>| ((<a href="../../src/regex/utf8.rs.html#62">b1</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-            <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#66">cp</a> {
-                <span class="number">0x80</span>..=<span class="number">0x7FF </span>=&gt; char::from_u32(<a href="../../src/regex/utf8.rs.html#66">cp</a>).map(|cp| (<a href="../../src/regex/utf8.rs.html#68">cp</a>, <span class="number">2</span>)),
+            <span class="kw">let </span>cp = ((<a href="#52">b0</a> &amp; !<a href="#17">TAG_TWO</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6 </span>| ((<a href="#62">b1</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">match </span><a href="#66">cp</a> {
+                <span class="number">0x80</span>..=<span class="number">0x7FF </span>=&gt; char::from_u32(<a href="#66">cp</a>).map(|cp| (<a href="#68">cp</a>, <span class="number">2</span>)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
@@ -337,19 +337,19 @@
             <span class="kw">if </span>src.len() &lt; <span class="number">3 </span>{
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>(b1, b2) = (<a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">1</span>], <a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">2</span>]);
+            <span class="kw">let </span>(b1, b2) = (<a href="#51">src</a>[<span class="number">1</span>], <a href="#51">src</a>[<span class="number">2</span>]);
             <span class="kw">if </span><span class="number">0b11_000000 </span>&amp; b1 != TAG_CONT {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
             <span class="kw">if </span><span class="number">0b11_000000 </span>&amp; b2 != TAG_CONT {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>cp = ((<a href="../../src/regex/utf8.rs.html#52">b0</a> &amp; !<a href="../../src/regex/utf8.rs.html#18">TAG_THREE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">12
-                </span>| ((<a href="../../src/regex/utf8.rs.html#76">b1</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6
-                </span>| ((<a href="../../src/regex/utf8.rs.html#76">b2</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-            <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#83">cp</a> {
+            <span class="kw">let </span>cp = ((<a href="#52">b0</a> &amp; !<a href="#18">TAG_THREE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">12
+                </span>| ((<a href="#76">b1</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6
+                </span>| ((<a href="#76">b2</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">match </span><a href="#83">cp</a> {
                 <span class="comment">// char::from_u32 will disallow surrogate codepoints.
-                </span><span class="number">0x800</span>..=<span class="number">0xFFFF </span>=&gt; char::from_u32(<a href="../../src/regex/utf8.rs.html#83">cp</a>).map(|cp| (<a href="../../src/regex/utf8.rs.html#88">cp</a>, <span class="number">3</span>)),
+                </span><span class="number">0x800</span>..=<span class="number">0xFFFF </span>=&gt; char::from_u32(<a href="#83">cp</a>).map(|cp| (<a href="#88">cp</a>, <span class="number">3</span>)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
@@ -357,7 +357,7 @@
             <span class="kw">if </span>src.len() &lt; <span class="number">4 </span>{
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>(b1, b2, b3) = (<a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">1</span>], <a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">2</span>], <a href="../../src/regex/utf8.rs.html#51">src</a>[<span class="number">3</span>]);
+            <span class="kw">let </span>(b1, b2, b3) = (<a href="#51">src</a>[<span class="number">1</span>], <a href="#51">src</a>[<span class="number">2</span>], <a href="#51">src</a>[<span class="number">3</span>]);
             <span class="kw">if </span><span class="number">0b11_000000 </span>&amp; b1 != TAG_CONT {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
@@ -367,12 +367,12 @@
             <span class="kw">if </span><span class="number">0b11_000000 </span>&amp; b3 != TAG_CONT {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let </span>cp = ((<a href="../../src/regex/utf8.rs.html#52">b0</a> &amp; !<a href="../../src/regex/utf8.rs.html#19">TAG_FOUR</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">18
-                </span>| ((<a href="../../src/regex/utf8.rs.html#96">b1</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">12
-                </span>| ((<a href="../../src/regex/utf8.rs.html#96">b2</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6
-                </span>| ((<a href="../../src/regex/utf8.rs.html#96">b3</a> &amp; !<a href="../../src/regex/utf8.rs.html#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-            <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#106">cp</a> {
-                <span class="number">0x10000</span>..=<span class="number">0x0010_FFFF </span>=&gt; char::from_u32(<a href="../../src/regex/utf8.rs.html#106">cp</a>).map(|cp| (<a href="../../src/regex/utf8.rs.html#111">cp</a>, <span class="number">4</span>)),
+            <span class="kw">let </span>cp = ((<a href="#52">b0</a> &amp; !<a href="#19">TAG_FOUR</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">18
+                </span>| ((<a href="#96">b1</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">12
+                </span>| ((<a href="#96">b2</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">6
+                </span>| ((<a href="#96">b3</a> &amp; !<a href="#16">TAG_CONT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">match </span><a href="#106">cp</a> {
+                <span class="number">0x10000</span>..=<span class="number">0x0010_FFFF </span>=&gt; char::from_u32(<a href="#106">cp</a>).map(|cp| (<a href="#111">cp</a>, <span class="number">4</span>)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
@@ -386,9 +386,9 @@
     <span class="kw">if </span>src.is_empty() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>start = <a href="../../src/regex/utf8.rs.html#121">src</a>.len() - <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>start = <a href="#121">src</a>.len() - <span class="number">1</span>;
     <span class="kw">if </span>src[start] &lt;= <span class="number">0x7F </span>{
-        <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="../../src/regex/utf8.rs.html#121">src</a>[<a href="../../src/regex/utf8.rs.html#125">start</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="number">1</span>));
+        <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="#121">src</a>[<a href="#125">start</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="number">1</span>));
     }
     <span class="kw">while </span>start &gt; src.len().saturating_sub(<span class="number">4</span>) {
         start -= <span class="number">1</span>;
@@ -396,15 +396,15 @@
             <span class="kw">break</span>;
         }
     }
-    <span class="kw">match </span><a href="../../src/regex/utf8.rs.html#51">decode_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/regex/utf8.rs.html#121">src</a>[<a href="../../src/regex/utf8.rs.html#125">start</a>..]) {
+    <span class="kw">match </span><a href="#51">decode_utf8</a>(<span class="kw-2">&amp;</span><a href="#121">src</a>[<a href="#125">start</a>..]) {
         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>((<span class="kw">_</span>, n)) <span class="kw">if </span><a href="../../src/regex/utf8.rs.html#137">n</a> &lt; <a href="../../src/regex/utf8.rs.html#121">src</a>.len() - <a href="../../src/regex/utf8.rs.html#125">start</a> =&gt; <span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>((cp, n)) =&gt; <span class="prelude-val">Some</span>((<a href="../../src/regex/utf8.rs.html#138">cp</a>, <a href="../../src/regex/utf8.rs.html#138">n</a>)),
+        <span class="prelude-val">Some</span>((<span class="kw">_</span>, n)) <span class="kw">if </span><a href="#137">n</a> &lt; <a href="#121">src</a>.len() - <a href="#125">start</a> =&gt; <span class="prelude-val">None</span>,
+        <span class="prelude-val">Some</span>((cp, n)) =&gt; <span class="prelude-val">Some</span>((<a href="#138">cp</a>, <a href="#138">n</a>)),
     }
 }
 
 <span class="kw">fn </span>is_start_byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../src/regex/utf8.rs.html#142">b</a> &amp; <span class="number">0b11_000000 </span>!= <span class="number">0b1_0000000
+    <a href="#142">b</a> &amp; <span class="number">0b11_000000 </span>!= <span class="number">0b1_0000000
 </span>}
 
 <span class="attribute">#[cfg(test)]
@@ -527,4 +527,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

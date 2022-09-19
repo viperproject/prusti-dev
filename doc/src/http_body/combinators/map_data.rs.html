@@ -92,7 +92,7 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/http_body/lib.rs.html#46"><span class="kw">crate</span>::Body</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../lib.rs.html#46"><span class="kw">crate</span>::Body</a>;
 <span class="kw">use </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use </span>std::{
@@ -117,33 +117,33 @@
 <span class="kw">impl</span>&lt;B, F&gt; MapData&lt;B, F&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(body: B, f: F) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ inner: <a href="../../../src/http_body/combinators/map_data.rs.html#25">body</a>, <a href="../../../src/http_body/combinators/map_data.rs.html#25">f</a> }
+        <span class="self">Self </span>{ inner: <a href="#25">body</a>, <a href="#25">f</a> }
     }
 
     <span class="doccomment">/// Get a reference to the inner body
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>B {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/http_body/combinators/map_data.rs.html#30">self</a>.inner
+        <span class="kw-2">&amp;</span><a class="self" href="#30">self</a>.inner
     }
 
     <span class="doccomment">/// Get a mutable reference to the inner body
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>B {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/http_body/combinators/map_data.rs.html#35">self</a>.inner
+        <span class="kw-2">&amp;mut </span><a class="self" href="#35">self</a>.inner
     }
 
     <span class="doccomment">/// Get a pinned mutable reference to the inner body
     </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>B&gt; {
-        <a class="self" href="../../../src/http_body/combinators/map_data.rs.html#40">self</a>.<a href="../../../src/http_body/combinators/map_data.rs.html#11-21">project</a>().inner
+        <a class="self" href="#40">self</a>.<a href="#11-21">project</a>().inner
     }
 
     <span class="doccomment">/// Consume `self`, returning the inner body
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; B {
-        <a class="self" href="../../../src/http_body/combinators/map_data.rs.html#45">self</a>.inner
+        <a class="self" href="#45">self</a>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;B, F, B2&gt; <a href="../../../src/http_body/lib.rs.html#46">Body</a> <span class="kw">for </span>MapData&lt;B, F&gt;
+<span class="kw">impl</span>&lt;B, F, B2&gt; <a href="../lib.rs.html#46">Body</a> <span class="kw">for </span>MapData&lt;B, F&gt;
 <span class="kw">where
-    </span>B: <a href="../../../src/http_body/lib.rs.html#46">Body</a>,
+    </span>B: <a href="../lib.rs.html#46">Body</a>,
     F: FnMut(B::Data) -&gt; B2,
     B2: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
@@ -154,12 +154,12 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/http_body/combinators/map_data.rs.html#60">self</a>.<a href="../../../src/http_body/combinators/map_data.rs.html#11-21">project</a>();
-        <span class="kw">match </span><a href="../../../src/http_body/combinators/map_data.rs.html#63">this</a>.inner.<a href="../../../src/http_body/lib.rs.html#54-57">poll_data</a>(<a href="../../../src/http_body/combinators/map_data.rs.html#61">cx</a>) {
+        <span class="kw">let </span>this = <a class="self" href="#60">self</a>.<a href="#11-21">project</a>();
+        <span class="kw">match </span><a href="#63">this</a>.inner.<a href="../lib.rs.html#54-57">poll_data</a>(<a href="#61">cx</a>) {
             Poll::Pending =&gt; Poll::Pending,
             Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
-            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(data))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="../../../src/http_body/combinators/map_data.rs.html#63">this</a>.f)(<a href="../../../src/http_body/combinators/map_data.rs.html#67">data</a>)))),
-            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../src/http_body/combinators/map_data.rs.html#68">err</a>))),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(data))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="#63">this</a>.f)(<a href="#67">data</a>)))),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#68">err</a>))),
         }
     }
 
@@ -167,11 +167,11 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="../../../src/http_body/combinators/map_data.rs.html#73">self</a>.<a href="../../../src/http_body/combinators/map_data.rs.html#11-21">project</a>().inner.<a href="../../../src/http_body/lib.rs.html#62-65">poll_trailers</a>(<a href="../../../src/http_body/combinators/map_data.rs.html#74">cx</a>)
+        <a class="self" href="#73">self</a>.<a href="#11-21">project</a>().inner.<a href="../lib.rs.html#62-65">poll_trailers</a>(<a href="#74">cx</a>)
     }
 
     <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http_body/combinators/map_data.rs.html#79">self</a>.inner.<a href="../../../src/http_body/lib.rs.html#74">is_end_stream</a>()
+        <a class="self" href="#79">self</a>.inner.<a href="../lib.rs.html#74">is_end_stream</a>()
     }
 }
 
@@ -180,11 +180,11 @@
     </span>B: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/http_body/combinators/map_data.rs.html#88">f</a>.debug_struct(<span class="string">&quot;MapData&quot;</span>)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/http_body/combinators/map_data.rs.html#88">self</a>.inner)
+        <a href="#88">f</a>.debug_struct(<span class="string">&quot;MapData&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#88">self</a>.inner)
             .field(<span class="string">&quot;f&quot;</span>, <span class="kw-2">&amp;</span>type_name::&lt;F&gt;())
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -85,8 +85,8 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../../../src/futures_util/future/try_future/into_future.rs.html#6-14">IntoFuture</a>, <a href="../../../../src/futures_util/future/try_future/mod.rs.html#137">TryFutureExt</a>};
-<span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#9-18">Fuse</a>, <a href="../../../../src/futures_util/stream/futures_ordered.rs.html#95">FuturesOrdered</a>, <a href="../../../../src/futures_util/stream/try_stream/into_stream.rs.html#8-16">IntoStream</a>, <a href="../../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../future/try_future/into_future.rs.html#6-14">IntoFuture</a>, <a href="../../future/try_future/mod.rs.html#137">TryFutureExt</a>};
+<span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../stream/fuse.rs.html#9-18">Fuse</a>, <a href="../futures_ordered.rs.html#95">FuturesOrdered</a>, <a href="into_stream.rs.html#8-16">IntoStream</a>, <a href="../stream/mod.rs.html#249">StreamExt</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 <span class="kw">use </span><a href="../../../../futures_util/future/trait.TryFuture.html">futures_core::future::TryFuture</a>;
 <span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, <a href="../../../../futures_util/stream/trait.TryStream.html">TryStream</a>};
@@ -118,13 +118,13 @@
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            stream: IntoStream::new(<a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#32">stream</a>).<a href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(),
+            stream: IntoStream::new(<a href="#32">stream</a>).<a href="../stream/mod.rs.html#1232-1234">fuse</a>(),
             in_progress_queue: FuturesOrdered::new(),
-            max: <a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#32">n</a>,
+            max: <a href="#32">n</a>,
         }
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (. .));
+    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (. .));
 }
 
 <span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>TryBuffered&lt;St&gt;
@@ -135,7 +135,7 @@
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;&lt;St::Ok <span class="kw">as </span>TryFuture&gt;::Ok, St::Error&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#50">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#11-25">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#50">self</a>.<a href="#11-25">project</a>();
 
         <span class="comment">// First up, try to spawn off as many futures as possible by filling up
         // our queue of futures. Propagate errors from the stream immediately.
@@ -147,8 +147,8 @@
         }
 
         <span class="comment">// Attempt to pull the next value from the in_progress_queue
-        </span><span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#51">this</a>.in_progress_queue.<a href="../../../../src/futures_util/stream/stream/mod.rs.html#1622-1624">poll_next_unpin</a>(<a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#50">cx</a>) {
-            x @ Poll::Pending | x @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><a href="../../../../src/futures_util/stream/try_stream/try_buffered.rs.html#64">x</a>,
+        </span><span class="kw">match </span><a href="#51">this</a>.in_progress_queue.<a href="../stream/mod.rs.html#1622-1624">poll_next_unpin</a>(<a href="#50">cx</a>) {
+            x @ Poll::Pending | x @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><a href="#64">x</a>,
             Poll::Ready(<span class="prelude-val">None</span>) =&gt; {}
         }
 
@@ -170,7 +170,7 @@
 {
     <span class="kw">type </span>Error = E;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
+    <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -966,9 +966,10 @@
 <span id="966">966</span>
 <span id="967">967</span>
 <span id="968">968</span>
+<span id="969">969</span>
 </pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(unreachable_pub, dead_code))]
 
-</span><span class="kw">use </span><a href="../../../src/tokio/sync/mod.rs.html#451"><span class="kw">crate</span>::sync::batch_semaphore</a> <span class="kw">as </span>semaphore;
+</span><span class="kw">use </span><a href="mod.rs.html#451"><span class="kw">crate</span>::sync::batch_semaphore</a> <span class="kw">as </span>semaphore;
 <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
 
@@ -1096,7 +1097,7 @@
 </span><span class="kw">pub struct </span>Mutex&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span>resource_span: tracing::Span,
-    s: <a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
+    s: <a href="batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
     c: UnsafeCell&lt;T&gt;,
 }
 
@@ -1109,6 +1110,7 @@
 ///
 /// The lock is automatically released whenever the guard is dropped, at which
 /// point `lock` will succeed yet again.
+</span><span class="attribute">#[must_use = <span class="string">&quot;if unused the Mutex will immediately unlock&quot;</span>]
 </span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span>resource_span: tracing::Span,
@@ -1143,7 +1145,7 @@
 /// [`MutexGuard::map`]: method@MutexGuard::map
 </span><span class="attribute">#[must_use = <span class="string">&quot;if unused the Mutex will immediately unlock&quot;</span>]
 </span><span class="kw">pub struct </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
-    s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
+    s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
     data: <span class="kw-2">*mut </span>T,
     <span class="comment">// Needed to tell the borrow checker that we are holding a `&amp;mut T`
     </span>marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;,
@@ -1176,13 +1178,13 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>TryLockError(<span class="kw">pub</span>(<span class="kw">super</span>) ());
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#210">TryLockError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/mutex.rs.html#212">fmt</a>, <span class="string">&quot;operation would block&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#213">fmt</a>, <span class="string">&quot;operation would block&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="#210">TryLockError</a> {}
 
 <span class="attribute">#[test]
 #[cfg(not(loom))]
@@ -1250,8 +1252,8 @@
         </span><span class="kw">let </span>s = semaphore::Semaphore::new(<span class="number">1</span>);
 
         <span class="self">Self </span>{
-            c: UnsafeCell::new(<a href="../../../src/tokio/sync/mutex.rs.html#254">t</a>),
-            <a href="../../../src/tokio/sync/mutex.rs.html#282">s</a>,
+            c: UnsafeCell::new(<a href="#255">t</a>),
+            <a href="#283">s</a>,
             <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
             </span>resource_span,
         }
@@ -1382,7 +1384,7 @@
     </span><span class="attribute">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
     </span><span class="kw">pub fn </span>blocking_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/mutex.rs.html#416">self</a>.<a href="../../../src/tokio/sync/mutex.rs.html#338">lock</a>())
+        <a href="../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#417">self</a>.<a href="#339">lock</a>())
     }
 
     <span class="doccomment">/// Locks this mutex, causing the current task to yield until the lock has
@@ -1474,8 +1476,8 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+    </span><span class="kw">pub fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#510">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                 </span><span class="self">self</span>.resource_span.in_scope(|| {
@@ -1485,13 +1487,13 @@
                     );
                 });
 
-                <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#144">MutexGuard</a> {
-                    lock: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>,
+                <span class="prelude-val">Ok</span>(<a href="#145">MutexGuard</a> {
+                    lock: <a class="self" href="#510">self</a>,
                     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                     </span>resource_span: <span class="self">self</span>.resource_span.clone(),
                 })
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="#210">TryLockError</a>(())),
         }
     }
 
@@ -1515,7 +1517,7 @@
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw">unsafe </span>{
             <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936
-            </span><span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#547">self</a>.c.get()
+            </span><span class="kw-2">&amp;mut *</span><a class="self" href="#548">self</a>.c.get()
         }
     }
 
@@ -1543,8 +1545,8 @@
     /// assert_eq!(*n, 1);
     /// # Ok(())
     /// # }
-    </span><span class="kw">pub fn </span>try_lock_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedMutexGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+    </span><span class="kw">pub fn </span>try_lock_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedMutexGuard&lt;T&gt;, <a href="#210">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#579">self</a>.s.<a href="batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                 </span><span class="self">self</span>.resource_span.in_scope(|| {
@@ -1557,13 +1559,13 @@
                 <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                 </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-                <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#165">OwnedMutexGuard</a> {
-                    lock: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>,
+                <span class="prelude-val">Ok</span>(<a href="#166">OwnedMutexGuard</a> {
+                    lock: <a class="self" href="#579">self</a>,
                     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
                     </span>resource_span,
                 })
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="#210">TryLockError</a>(())),
         }
     }
 
@@ -1585,13 +1587,13 @@
     <span class="kw">where
         </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#616">self</a>.c.into_inner()
+        <a class="self" href="#617">self</a>.c.into_inner()
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>Mutex&lt;T&gt; {
     <span class="kw">fn </span>from(s: T) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<a href="../../../src/tokio/sync/mutex.rs.html#625">s</a>)
+        <span class="self">Self</span>::new(<a href="#626">s</a>)
     }
 }
 
@@ -1609,12 +1611,12 @@
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>d = <a href="../../../src/tokio/sync/mutex.rs.html#643">f</a>.debug_struct(<span class="string">&quot;Mutex&quot;</span>);
-        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#643">self</a>.<a href="../../../src/tokio/sync/mutex.rs.html#509">try_lock</a>() {
-            <span class="prelude-val">Ok</span>(inner) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="../../../src/tokio/sync/mutex.rs.html#646">inner</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;&lt;locked&gt;&quot;</span>)),
+        <span class="kw">let </span><span class="kw-2">mut </span>d = <a href="#644">f</a>.debug_struct(<span class="string">&quot;Mutex&quot;</span>);
+        <span class="kw">match </span><a class="self" href="#644">self</a>.<a href="#510">try_lock</a>() {
+            <span class="prelude-val">Ok</span>(inner) =&gt; <a href="#645">d</a>.field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="#647">inner</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#645">d</a>.field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;&lt;locked&gt;&quot;</span>)),
         };
-        <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.finish()
+        <a href="#645">d</a>.finish()
     }
 }
 
@@ -1656,12 +1658,12 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U,
     {
-        <span class="kw">let </span>data = <a href="../../../src/tokio/sync/mutex.rs.html#687">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
-        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>.lock.s;
-        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>);
-        <a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a href="../../../src/tokio/sync/mutex.rs.html#692">s</a>,
-            <a href="../../../src/tokio/sync/mutex.rs.html#691">data</a>,
+        <span class="kw">let </span>data = <a href="#688">f</a>(<span class="kw-2">&amp;mut *</span><a href="#688">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
+        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#688">this</a>.lock.s;
+        mem::forget(<a href="#688">this</a>);
+        <a href="#178">MappedMutexGuard</a> {
+            <a href="#693">s</a>,
+            <a href="#692">data</a>,
             marker: marker::PhantomData,
         }
     }
@@ -1703,15 +1705,15 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>U&gt;,
     {
-        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../src/tokio/sync/mutex.rs.html#734">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>) {
-            <span class="prelude-val">Some</span>(data) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#739">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>),
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="#735">f</a>(<span class="kw-2">&amp;mut *</span><a href="#735">this</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; <a href="#740">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#735">this</a>),
         };
-        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>.lock.s;
-        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a href="../../../src/tokio/sync/mutex.rs.html#742">s</a>,
-            <a href="../../../src/tokio/sync/mutex.rs.html#738">data</a>,
+        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="#735">this</a>.lock.s;
+        mem::forget(<a href="#735">this</a>);
+        <span class="prelude-val">Ok</span>(<a href="#178">MappedMutexGuard</a> {
+            <a href="#743">s</a>,
+            <a href="#739">data</a>,
             marker: marker::PhantomData,
         })
     }
@@ -1734,12 +1736,12 @@
     /// # async fn main() {
     /// #     let mutex = Mutex::new(0u32);
     /// #     let guard = mutex.lock().await;
-    /// #     unlock_and_relock(guard).await;
+    /// #     let _guard = unlock_and_relock(guard).await;
     /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>mutex(this: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt; {
-        <a href="../../../src/tokio/sync/mutex.rs.html#773">this</a>.lock
+        <a href="#774">this</a>.lock
     }
 }
 
@@ -1752,32 +1754,32 @@
                 locked = <span class="bool-val">false</span>,
             );
         });
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#779">self</a>.lock.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>);
+        <a class="self" href="#780">self</a>.lock.s.<a href="batch_semaphore.rs.html#209">release</a>(<span class="number">1</span>);
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#793">self</a>.lock.c.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#794">self</a>.lock.c.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#799">self</a>.lock.c.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#800">self</a>.lock.c.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#805">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#805">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#806">self</a>, <a href="#806">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#811">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#811">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#812">self</a>, <a href="#812">f</a>)
     }
 }
 
@@ -1808,7 +1810,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>mutex(this: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;T&gt;&gt; {
-        <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#842">this</a>.lock
+        <span class="kw-2">&amp;</span><a href="#843">this</a>.lock
     }
 }
 
@@ -1821,32 +1823,32 @@
                 locked = <span class="bool-val">false</span>,
             );
         });
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#848">self</a>.lock.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
+        <a class="self" href="#849">self</a>.lock.s.<a href="batch_semaphore.rs.html#209">release</a>(<span class="number">1</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
     <span class="kw">type </span>Target = T;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#862">self</a>.lock.c.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#863">self</a>.lock.c.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#868">self</a>.lock.c.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#869">self</a>.lock.c.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#874">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#874">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#875">self</a>, <a href="#875">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#880">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#880">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#881">self</a>, <a href="#881">f</a>)
     }
 }
 
@@ -1866,12 +1868,12 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U,
     {
-        <span class="kw">let </span>data = <a href="../../../src/tokio/sync/mutex.rs.html#897">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
-        <span class="kw">let </span>s = <a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>.s;
-        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>);
-        <a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a href="../../../src/tokio/sync/mutex.rs.html#902">s</a>,
-            <a href="../../../src/tokio/sync/mutex.rs.html#901">data</a>,
+        <span class="kw">let </span>data = <a href="#898">f</a>(<span class="kw-2">&amp;mut *</span><a href="#898">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
+        <span class="kw">let </span>s = <a href="#898">this</a>.s;
+        mem::forget(<a href="#898">this</a>);
+        <a href="#178">MappedMutexGuard</a> {
+            <a href="#903">s</a>,
+            <a href="#902">data</a>,
             marker: marker::PhantomData,
         }
     }
@@ -1890,15 +1892,15 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>U&gt;,
     {
-        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../src/tokio/sync/mutex.rs.html#921">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>) {
-            <span class="prelude-val">Some</span>(data) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#926">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>),
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="#922">f</a>(<span class="kw-2">&amp;mut *</span><a href="#922">this</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; <a href="#927">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#922">this</a>),
         };
-        <span class="kw">let </span>s = <a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>.s;
-        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a href="../../../src/tokio/sync/mutex.rs.html#929">s</a>,
-            <a href="../../../src/tokio/sync/mutex.rs.html#925">data</a>,
+        <span class="kw">let </span>s = <a href="#922">this</a>.s;
+        mem::forget(<a href="#922">this</a>);
+        <span class="prelude-val">Ok</span>(<a href="#178">MappedMutexGuard</a> {
+            <a href="#930">s</a>,
+            <a href="#926">data</a>,
             marker: marker::PhantomData,
         })
     }
@@ -1906,33 +1908,33 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#940">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
+        <a class="self" href="#941">self</a>.s.<a href="batch_semaphore.rs.html#209">release</a>(<span class="number">1</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Target = T;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#947">self</a>.data }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#948">self</a>.data }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#953">self</a>.data }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#954">self</a>.data }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#959">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#959">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#960">self</a>, <a href="#960">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#965">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#965">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#966">self</a>, <a href="#966">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

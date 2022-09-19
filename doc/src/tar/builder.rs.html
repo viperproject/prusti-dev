@@ -667,15 +667,15 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../src/tar/header.rs.html#1589">path2bytes</a>, <a href="../../src/tar/header.rs.html#30">HeaderMode</a>};
-<span class="kw">use crate</span>::{<a href="../../src/tar/lib.rs.html#42">other</a>, <a href="../../src/tar/entry_type.rs.html#9">EntryType</a>, <a href="../../src/tar/header.rs.html#22">Header</a>};
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="header.rs.html#1589">path2bytes</a>, <a href="header.rs.html#30">HeaderMode</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#42">other</a>, <a href="entry_type.rs.html#9">EntryType</a>, <a href="header.rs.html#22">Header</a>};
 
 <span class="doccomment">/// A structure for building archives
 ///
 /// This structure has methods for building up an archive from scratch into any
 /// arbitrary writer.
 </span><span class="kw">pub struct </span>Builder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
     follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     finished: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     obj: <span class="prelude-ty">Option</span>&lt;W&gt;,
@@ -686,30 +686,30 @@
     /// destination of all data written. The builder will use
     /// `HeaderMode::Complete` by default.
     </span><span class="kw">pub fn </span>new(obj: W) -&gt; Builder&lt;W&gt; {
-        <a href="../../src/tar/builder.rs.html#14">Builder</a> {
-            mode: <a href="../../src/tar/header.rs.html#33">HeaderMode::Complete</a>,
+        <a href="#14">Builder</a> {
+            mode: <a href="header.rs.html#33">HeaderMode::Complete</a>,
             follow: <span class="bool-val">true</span>,
             finished: <span class="bool-val">false</span>,
-            obj: <span class="prelude-val">Some</span>(<a href="../../src/tar/builder.rs.html#25">obj</a>),
+            obj: <span class="prelude-val">Some</span>(<a href="#25">obj</a>),
         }
     }
 
     <span class="doccomment">/// Changes the HeaderMode that will be used when reading fs Metadata for
     /// methods that implicitly read metadata for an input Path. Notably, this
     /// does _not_ apply to `append(Header)`.
-    </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>) {
-        <a class="self" href="../../src/tar/builder.rs.html#37">self</a>.mode = <a href="../../src/tar/builder.rs.html#37">mode</a>;
+    </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="header.rs.html#30">HeaderMode</a>) {
+        <a class="self" href="#37">self</a>.mode = <a href="#37">mode</a>;
     }
 
     <span class="doccomment">/// Follow symlinks, archiving the contents of the file they point to rather
     /// than adding a symlink to the archive. Defaults to true.
     </span><span class="kw">pub fn </span>follow_symlinks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/tar/builder.rs.html#43">self</a>.follow = <a href="../../src/tar/builder.rs.html#43">follow</a>;
+        <a class="self" href="#43">self</a>.follow = <a href="#43">follow</a>;
     }
 
     <span class="doccomment">/// Gets shared reference to the underlying object.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
-        <a class="self" href="../../src/tar/builder.rs.html#48">self</a>.obj.as_ref().unwrap()
+        <a class="self" href="#48">self</a>.obj.as_ref().unwrap()
     }
 
     <span class="doccomment">/// Gets mutable reference to the underlying object.
@@ -719,7 +719,7 @@
     /// useful in the situations when one needs to be ensured that
     /// tar entry was flushed to the disk.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
-        <a class="self" href="../../src/tar/builder.rs.html#58">self</a>.obj.as_mut().unwrap()
+        <a class="self" href="#58">self</a>.obj.as_mut().unwrap()
     }
 
     <span class="doccomment">/// Unwrap this archive, returning the underlying object.
@@ -731,7 +731,7 @@
         <span class="kw">if </span>!<span class="self">self</span>.finished {
             <span class="self">self</span>.finish()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/tar/builder.rs.html#67">self</a>.obj.take().unwrap())
+        <span class="prelude-val">Ok</span>(<a class="self" href="#67">self</a>.obj.take().unwrap())
     }
 
     <span class="doccomment">/// Adds a new entry to this archive.
@@ -770,8 +770,8 @@
     /// ar.append(&amp;header, data).unwrap();
     /// let data = ar.into_inner().unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>append&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;</span><a href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: R) -&gt; io::Result&lt;()&gt; {
-        <a href="../../src/tar/builder.rs.html#409">append</a>(<a class="self" href="../../src/tar/builder.rs.html#110">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#110">header</a>, <span class="kw-2">&amp;mut </span><a href="../../src/tar/builder.rs.html#110">data</a>)
+    </span><span class="kw">pub fn </span>append&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;</span><a href="header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: R) -&gt; io::Result&lt;()&gt; {
+        <a href="#409">append</a>(<a class="self" href="#110">self</a>.<a href="#58">get_mut</a>(), <a href="#110">header</a>, <span class="kw-2">&amp;mut </span><a href="#110">data</a>)
     }
 
     <span class="doccomment">/// Adds a new entry to this archive with the specified path.
@@ -816,13 +816,13 @@
     /// ```
     </span><span class="kw">pub fn </span>append_data&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+        header: <span class="kw-2">&amp;mut </span><a href="header.rs.html#22">Header</a>,
         path: P,
         data: R,
     ) -&gt; io::Result&lt;()&gt; {
         prepare_header_path(<span class="self">self</span>.get_mut(), header, path.as_ref())<span class="question-mark">?</span>;
-        <a href="../../src/tar/builder.rs.html#156">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
-        <a class="self" href="../../src/tar/builder.rs.html#155">self</a>.<a href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#156">header</a>, <a href="../../src/tar/builder.rs.html#158">data</a>)
+        <a href="#156">header</a>.<a href="header.rs.html#699">set_cksum</a>();
+        <a class="self" href="#155">self</a>.<a href="#110">append</a>(<span class="kw-2">&amp;</span><a href="#156">header</a>, <a href="#158">data</a>)
     }
 
     <span class="doccomment">/// Adds a new link (symbolic or hard) entry to this archive with the specified path and target.
@@ -859,18 +859,18 @@
     /// ```
     </span><span class="kw">pub fn </span>append_link&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+        header: <span class="kw-2">&amp;mut </span><a href="header.rs.html#22">Header</a>,
         path: P,
         target: T,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../src/tar/builder.rs.html#198">self</a>.<a href="../../src/tar/builder.rs.html#206">_append_link</a>(<a href="../../src/tar/builder.rs.html#199">header</a>, <a href="../../src/tar/builder.rs.html#200">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#201">target</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        <a class="self" href="#198">self</a>.<a href="#206">_append_link</a>(<a href="#199">header</a>, <a href="#200">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#201">target</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
     }
 
-    <span class="kw">fn </span>_append_link(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>_append_link(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;mut </span><a href="header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
         prepare_header_path(<span class="self">self</span>.get_mut(), header, path)<span class="question-mark">?</span>;
         prepare_header_link(<span class="self">self</span>.get_mut(), header, target)<span class="question-mark">?</span>;
-        <a href="../../src/tar/builder.rs.html#206">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
-        <a class="self" href="../../src/tar/builder.rs.html#206">self</a>.<a href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#206">header</a>, std::io::empty())
+        <a href="#206">header</a>.<a href="header.rs.html#699">set_cksum</a>();
+        <a class="self" href="#206">self</a>.<a href="#110">append</a>(<span class="kw-2">&amp;</span><a href="#206">header</a>, std::io::empty())
     }
 
     <span class="doccomment">/// Adds a file on the local filesystem to this archive.
@@ -898,9 +898,9 @@
     /// ar.append_path(&quot;foo/bar.txt&quot;).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>append_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.follow;
-        <a href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(<a class="self" href="../../src/tar/builder.rs.html#237">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#237">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <span class="prelude-val">None</span>, <a href="../../src/tar/builder.rs.html#238">mode</a>, <a href="../../src/tar/builder.rs.html#239">follow</a>)
+        <span class="kw">let </span>mode = <a class="self" href="#237">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="#237">self</a>.follow;
+        <a href="#423-429">append_path_with_name</a>(<a class="self" href="#237">self</a>.<a href="#58">get_mut</a>(), <a href="#237">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <span class="prelude-val">None</span>, <a href="#238">mode</a>, <a href="#239">follow</a>)
     }
 
     <span class="doccomment">/// Adds a file on the local filesystem to this archive under another name.
@@ -936,14 +936,14 @@
         path: P,
         name: N,
     ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.follow;
-        <a href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(
-            <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(),
-            <a href="../../src/tar/builder.rs.html#273">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <span class="prelude-val">Some</span>(<a href="../../src/tar/builder.rs.html#274">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
-            <a href="../../src/tar/builder.rs.html#276">mode</a>,
-            <a href="../../src/tar/builder.rs.html#277">follow</a>,
+        <span class="kw">let </span>mode = <a class="self" href="#272">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="#272">self</a>.follow;
+        <a href="#423-429">append_path_with_name</a>(
+            <a class="self" href="#272">self</a>.<a href="#58">get_mut</a>(),
+            <a href="#273">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <span class="prelude-val">Some</span>(<a href="#274">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
+            <a href="#276">mode</a>,
+            <a href="#277">follow</a>,
         )
     }
 
@@ -974,8 +974,8 @@
     /// ar.append_file(&quot;bar/baz.txt&quot;, &amp;mut f).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>append_file&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P, file: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#313">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../src/tar/builder.rs.html#516-521">append_file</a>(<a class="self" href="../../src/tar/builder.rs.html#313">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#313">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#313">file</a>, <a href="../../src/tar/builder.rs.html#314">mode</a>)
+        <span class="kw">let </span>mode = <a class="self" href="#313">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#516-521">append_file</a>(<a class="self" href="#313">self</a>.<a href="#58">get_mut</a>(), <a href="#313">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#313">file</a>, <a href="#314">mode</a>)
     }
 
     <span class="doccomment">/// Adds a directory to this archive with the given path as the name of the
@@ -1011,8 +1011,8 @@
         </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         Q: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
     {
-        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#346">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../src/tar/builder.rs.html#526-531">append_dir</a>(<a class="self" href="../../src/tar/builder.rs.html#346">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#346">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#346">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#351">mode</a>)
+        <span class="kw">let </span>mode = <a class="self" href="#346">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#526-531">append_dir</a>(<a class="self" href="#346">self</a>.<a href="#58">get_mut</a>(), <a href="#346">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#346">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#351">mode</a>)
     }
 
     <span class="doccomment">/// Adds a directory and all of its contents (recursively) to this archive
@@ -1042,14 +1042,14 @@
         </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         Q: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
     {
-        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.follow;
-        <a href="../../src/tar/builder.rs.html#620-626">append_dir_all</a>(
-            <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(),
-            <a href="../../src/tar/builder.rs.html#377">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="../../src/tar/builder.rs.html#377">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a href="../../src/tar/builder.rs.html#382">mode</a>,
-            <a href="../../src/tar/builder.rs.html#383">follow</a>,
+        <span class="kw">let </span>mode = <a class="self" href="#377">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="#377">self</a>.follow;
+        <a href="#620-626">append_dir_all</a>(
+            <a class="self" href="#377">self</a>.<a href="#58">get_mut</a>(),
+            <a href="#377">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <a href="#377">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <a href="#382">mode</a>,
+            <a href="#383">follow</a>,
         )
     }
 
@@ -1064,18 +1064,18 @@
         <span class="kw">if </span><span class="self">self</span>.finished {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.finished = <span class="bool-val">true</span>;
-        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">1024</span>])
+        <a class="self" href="#400">self</a>.finished = <span class="bool-val">true</span>;
+        <a class="self" href="#400">self</a>.<a href="#58">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">1024</span>])
     }
 }
 
-<span class="kw">fn </span>append(<span class="kw-2">mut </span>dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;</span><a href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>append(<span class="kw-2">mut </span>dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;</span><a href="header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; io::Result&lt;()&gt; {
     dst.write_all(header.as_bytes())<span class="question-mark">?</span>;
     <span class="kw">let </span>len = io::copy(<span class="kw-2">&amp;mut </span>data, <span class="kw-2">&amp;mut </span>dst)<span class="question-mark">?</span>;
 
     <span class="comment">// Pad with zeros if necessary.
     </span><span class="kw">let </span>buf = [<span class="number">0</span>; <span class="number">512</span>];
-    <span class="kw">let </span>remaining = <span class="number">512 </span>- (<a href="../../src/tar/builder.rs.html#411">len</a> % <span class="number">512</span>);
+    <span class="kw">let </span>remaining = <span class="number">512 </span>- (<a href="#411">len</a> % <span class="number">512</span>);
     <span class="kw">if </span>remaining &lt; <span class="number">512 </span>{
         dst.write_all(<span class="kw-2">&amp;</span>buf[..remaining <span class="kw">as </span>usize])<span class="question-mark">?</span>;
     }
@@ -1087,7 +1087,7 @@
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
     follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>stat = <span class="kw">if </span>follow {
@@ -1105,25 +1105,25 @@
             )
         })<span class="question-mark">?
     </span>};
-    <span class="kw">let </span>ar_name = <a href="../../src/tar/builder.rs.html#426">name</a>.unwrap_or(<a href="../../src/tar/builder.rs.html#425">path</a>);
+    <span class="kw">let </span>ar_name = <a href="#426">name</a>.unwrap_or(<a href="#425">path</a>);
     <span class="kw">if </span>stat.is_file() {
-        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut </span>fs::File::open(path)<span class="question-mark">?</span>, <a href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
+        <a href="#601-608">append_fs</a>(<a href="#424">dst</a>, <a href="#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="#430">stat</a>, <span class="kw-2">&amp;mut </span>fs::File::open(path)<span class="question-mark">?</span>, <a href="#427">mode</a>, <span class="prelude-val">None</span>)
     } <span class="kw">else if </span>stat.is_dir() {
-        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
+        <a href="#601-608">append_fs</a>(<a href="#424">dst</a>, <a href="#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="#430">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="#427">mode</a>, <span class="prelude-val">None</span>)
     } <span class="kw">else if </span>stat.file_type().is_symlink() {
         <span class="kw">let </span>link_name = fs::read_link(path)<span class="question-mark">?</span>;
-        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(
-            <a href="../../src/tar/builder.rs.html#424">dst</a>,
-            <a href="../../src/tar/builder.rs.html#445">ar_name</a>,
-            <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>,
+        <a href="#601-608">append_fs</a>(
+            <a href="#424">dst</a>,
+            <a href="#445">ar_name</a>,
+            <span class="kw-2">&amp;</span><a href="#430">stat</a>,
             <span class="kw-2">&amp;mut </span>io::empty(),
-            <a href="../../src/tar/builder.rs.html#427">mode</a>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#451">link_name</a>),
+            <a href="#427">mode</a>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#451">link_name</a>),
         )
     } <span class="kw">else </span>{
         <span class="attribute">#[cfg(unix)]
         </span>{
-            <a href="../../src/tar/builder.rs.html#473-478">append_special</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#425">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <a href="../../src/tar/builder.rs.html#427">mode</a>)
+            <a href="#473-478">append_special</a>(<a href="#424">dst</a>, <a href="#425">path</a>, <span class="kw-2">&amp;</span><a href="#430">stat</a>, <a href="#427">mode</a>)
         }
         <span class="attribute">#[cfg(not(unix))]
         </span>{
@@ -1137,40 +1137,40 @@
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     stat: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">use </span>::std::os::unix::fs::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.FileTypeExt.html">FileTypeExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">MetadataExt</a>};
 
-    <span class="kw">let </span>file_type = <a href="../../src/tar/builder.rs.html#476">stat</a>.file_type();
+    <span class="kw">let </span>file_type = <a href="#476">stat</a>.file_type();
     <span class="kw">let </span>entry_type;
     <span class="kw">if </span>file_type.is_socket() {
         <span class="comment">// sockets can&#39;t be archived
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
             <span class="string">&quot;{}: socket can not be archived&quot;</span>,
             path.display()
         )));
     } <span class="kw">else if </span>file_type.is_fifo() {
-        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#23">EntryType::Fifo</a>;
+        <a href="#482">entry_type</a> = <a href="entry_type.rs.html#23">EntryType::Fifo</a>;
     } <span class="kw">else if </span>file_type.is_char_device() {
-        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#17">EntryType::Char</a>;
+        <a href="#482">entry_type</a> = <a href="entry_type.rs.html#17">EntryType::Char</a>;
     } <span class="kw">else if </span>file_type.is_block_device() {
-        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#19">EntryType::Block</a>;
+        <a href="#482">entry_type</a> = <a href="entry_type.rs.html#19">EntryType::Block</a>;
     } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} has unknown file type&quot;</span>, path.display())));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} has unknown file type&quot;</span>, path.display())));
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
-    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a href="../../src/tar/builder.rs.html#476">stat</a>, <a href="../../src/tar/builder.rs.html#477">mode</a>);
+    <a href="#499">header</a>.<a href="header.rs.html#288">set_metadata_in_mode</a>(<a href="#476">stat</a>, <a href="#477">mode</a>);
     prepare_header_path(dst, <span class="kw-2">&amp;mut </span>header, path)<span class="question-mark">?</span>;
 
-    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#679">set_entry_type</a>(<a href="../../src/tar/builder.rs.html#482">entry_type</a>);
-    <span class="kw">let </span>dev_id = <a href="../../src/tar/builder.rs.html#476">stat</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">rdev</a>();
-    <span class="kw">let </span>dev_major = ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xffff_f000</span>) | ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0x0000_0fff</span>);
-    <span class="kw">let </span>dev_minor = ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0xffff_ff00</span>) | ((<a href="../../src/tar/builder.rs.html#504">dev_id</a>) &amp; <span class="number">0x0000_00ff</span>);
+    <a href="#499">header</a>.<a href="header.rs.html#679">set_entry_type</a>(<a href="#482">entry_type</a>);
+    <span class="kw">let </span>dev_id = <a href="#476">stat</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">rdev</a>();
+    <span class="kw">let </span>dev_major = ((<a href="#504">dev_id</a> &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xffff_f000</span>) | ((<a href="#504">dev_id</a> &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0x0000_0fff</span>);
+    <span class="kw">let </span>dev_minor = ((<a href="#504">dev_id</a> &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0xffff_ff00</span>) | ((<a href="#504">dev_id</a>) &amp; <span class="number">0x0000_00ff</span>);
     header.set_device_major(dev_major <span class="kw">as </span>u32)<span class="question-mark">?</span>;
     header.set_device_minor(dev_minor <span class="kw">as </span>u32)<span class="question-mark">?</span>;
 
-    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+    <a href="#499">header</a>.<a href="header.rs.html#699">set_cksum</a>();
     dst.write_all(header.as_bytes())<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
@@ -1180,53 +1180,53 @@
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     file: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>stat = file.metadata()<span class="question-mark">?</span>;
-    <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#517">dst</a>, <a href="../../src/tar/builder.rs.html#518">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#522">stat</a>, <a href="../../src/tar/builder.rs.html#519">file</a>, <a href="../../src/tar/builder.rs.html#520">mode</a>, <span class="prelude-val">None</span>)
+    <a href="#601-608">append_fs</a>(<a href="#517">dst</a>, <a href="#518">path</a>, <span class="kw-2">&amp;</span><a href="#522">stat</a>, <a href="#519">file</a>, <a href="#520">mode</a>, <span class="prelude-val">None</span>)
 }
 
 <span class="kw">fn </span>append_dir(
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     src_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>stat = fs::metadata(src_path)<span class="question-mark">?</span>;
-    <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#527">dst</a>, <a href="../../src/tar/builder.rs.html#528">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#532">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="../../src/tar/builder.rs.html#530">mode</a>, <span class="prelude-val">None</span>)
+    <a href="#601-608">append_fs</a>(<a href="#527">dst</a>, <a href="#528">path</a>, <span class="kw-2">&amp;</span><a href="#532">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="#530">mode</a>, <span class="prelude-val">None</span>)
 }
 
-<span class="kw">fn </span>prepare_header(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, entry_type: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../src/tar/header.rs.html#22">Header</a> {
+<span class="kw">fn </span>prepare_header(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, entry_type: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="header.rs.html#22">Header</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
     <span class="kw">let </span>name = <span class="string">b&quot;././@LongLink&quot;</span>;
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#249">as_gnu_mut</a>().unwrap().name[..<a href="../../src/tar/builder.rs.html#538">name</a>.len()].clone_from_slice(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#538">name</a>[..]);
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#465">set_mode</a>(<span class="number">0o644</span>);
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#484">set_uid</a>(<span class="number">0</span>);
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#501">set_gid</a>(<span class="number">0</span>);
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#519">set_mtime</a>(<span class="number">0</span>);
+    <a href="#537">header</a>.<a href="header.rs.html#249">as_gnu_mut</a>().unwrap().name[..<a href="#538">name</a>.len()].clone_from_slice(<span class="kw-2">&amp;</span><a href="#538">name</a>[..]);
+    <a href="#537">header</a>.<a href="header.rs.html#465">set_mode</a>(<span class="number">0o644</span>);
+    <a href="#537">header</a>.<a href="header.rs.html#484">set_uid</a>(<span class="number">0</span>);
+    <a href="#537">header</a>.<a href="header.rs.html#501">set_gid</a>(<span class="number">0</span>);
+    <a href="#537">header</a>.<a href="header.rs.html#519">set_mtime</a>(<span class="number">0</span>);
     <span class="comment">// + 1 to be compliant with GNU tar
-    </span><a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#323">set_size</a>(<a href="../../src/tar/builder.rs.html#536">size</a> + <span class="number">1</span>);
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#679">set_entry_type</a>(EntryType::new(<a href="../../src/tar/builder.rs.html#536">entry_type</a>));
-    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
-    <a href="../../src/tar/builder.rs.html#537">header</a>
+    </span><a href="#537">header</a>.<a href="header.rs.html#323">set_size</a>(<a href="#536">size</a> + <span class="number">1</span>);
+    <a href="#537">header</a>.<a href="header.rs.html#679">set_entry_type</a>(EntryType::new(<a href="#536">entry_type</a>));
+    <a href="#537">header</a>.<a href="header.rs.html#699">set_cksum</a>();
+    <a href="#537">header</a>
 }
 
-<span class="kw">fn </span>prepare_header_path(dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>prepare_header_path(dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;mut </span><a href="header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
     <span class="comment">// Try to encode the path directly in the header, but if it ends up not
     // working (probably because it&#39;s too long) then try to use the GNU-specific
     // long name extension by emitting an entry which indicates that it&#39;s the
     // filename.
-    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../src/tar/builder.rs.html#551">header</a>.<a href="../../src/tar/header.rs.html#370">set_path</a>(<a href="../../src/tar/builder.rs.html#551">path</a>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="#551">header</a>.<a href="header.rs.html#370">set_path</a>(<a href="#551">path</a>) {
         <span class="kw">let </span>data = path2bytes(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
-        <span class="kw">let </span>max = <a href="../../src/tar/builder.rs.html#551">header</a>.<a href="../../src/tar/header.rs.html#196">as_old</a>().name.len();
+        <span class="kw">let </span>max = <a href="#551">header</a>.<a href="header.rs.html#196">as_old</a>().name.len();
         <span class="comment">// Since `e` isn&#39;t specific enough to let us know the path is indeed too
         // long, verify it first before using the extension.
         </span><span class="kw">if </span>data.len() &lt; max {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/builder.rs.html#556">e</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#556">e</a>);
         }
-        <span class="kw">let </span>header2 = <a href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a href="../../src/tar/builder.rs.html#557">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;L&#39;</span>);
+        <span class="kw">let </span>header2 = <a href="#536">prepare_header</a>(<a href="#557">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;L&#39;</span>);
         <span class="comment">// null-terminated string
-        </span><span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="../../src/tar/builder.rs.html#557">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
+        </span><span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="#557">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
         append(dst, <span class="kw-2">&amp;</span>header2, <span class="kw-2">&amp;mut </span>data2)<span class="question-mark">?</span>;
 
         <span class="comment">// Truncate the path to store in the header we&#39;re about to emit to
@@ -1234,9 +1234,9 @@
         // `str`-encoding to be compatible with Windows, but in general the
         // entry in the header itself shouldn&#39;t matter too much since extraction
         // doesn&#39;t look at it.
-        </span><span class="kw">let </span>truncated = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#557">data</a>[..<a href="../../src/tar/builder.rs.html#558">max</a>]) {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../src/tar/builder.rs.html#575">s</a>,
-            <span class="prelude-val">Err</span>(e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#557">data</a>[..<a href="../../src/tar/builder.rs.html#576">e</a>.valid_up_to()]).unwrap(),
+        </span><span class="kw">let </span>truncated = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#557">data</a>[..<a href="#558">max</a>]) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#575">s</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#557">data</a>[..<a href="#576">e</a>.valid_up_to()]).unwrap(),
         };
         header.set_path(truncated)<span class="question-mark">?</span>;
     }
@@ -1245,17 +1245,17 @@
 
 <span class="kw">fn </span>prepare_header_link(
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+    header: <span class="kw-2">&amp;mut </span><a href="header.rs.html#22">Header</a>,
     link_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="comment">// Same as previous function but for linkname
-    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../src/tar/builder.rs.html#585">header</a>.<a href="../../src/tar/header.rs.html#425">set_link_name</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#586">link_name</a>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="#585">header</a>.<a href="header.rs.html#425">set_link_name</a>(<span class="kw-2">&amp;</span><a href="#586">link_name</a>) {
         <span class="kw">let </span>data = path2bytes(<span class="kw-2">&amp;</span>link_name)<span class="question-mark">?</span>;
         <span class="kw">if </span>data.len() &lt; header.as_old().linkname.len() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/builder.rs.html#589">e</a>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#589">e</a>);
         }
-        <span class="kw">let </span>header2 = <a href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a href="../../src/tar/builder.rs.html#590">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;K&#39;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="../../src/tar/builder.rs.html#590">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
+        <span class="kw">let </span>header2 = <a href="#536">prepare_header</a>(<a href="#590">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;K&#39;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="#590">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
         append(dst, <span class="kw-2">&amp;</span>header2, <span class="kw-2">&amp;mut </span>data2)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
@@ -1266,25 +1266,25 @@
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
     read: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
     link_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
 
     prepare_header_path(dst, <span class="kw-2">&amp;mut </span>header, path)<span class="question-mark">?</span>;
-    <a href="../../src/tar/builder.rs.html#609">header</a>.<a href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a href="../../src/tar/builder.rs.html#604">meta</a>, <a href="../../src/tar/builder.rs.html#606">mode</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(link_name) = <a href="../../src/tar/builder.rs.html#607">link_name</a> {
+    <a href="#609">header</a>.<a href="header.rs.html#288">set_metadata_in_mode</a>(<a href="#604">meta</a>, <a href="#606">mode</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(link_name) = <a href="#607">link_name</a> {
         prepare_header_link(dst, <span class="kw-2">&amp;mut </span>header, link_name)<span class="question-mark">?</span>;
     }
-    <a href="../../src/tar/builder.rs.html#609">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
-    <a href="../../src/tar/builder.rs.html#409">append</a>(<a href="../../src/tar/builder.rs.html#602">dst</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#609">header</a>, <a href="../../src/tar/builder.rs.html#605">read</a>)
+    <a href="#609">header</a>.<a href="header.rs.html#699">set_cksum</a>();
+    <a href="#409">append</a>(<a href="#602">dst</a>, <span class="kw-2">&amp;</span><a href="#609">header</a>, <a href="#605">read</a>)
 }
 
 <span class="kw">fn </span>append_dir_all(
     dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
     src_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    mode: <a href="header.rs.html#30">HeaderMode</a>,
     follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(src_path.to_path_buf(), <span class="bool-val">true</span>, <span class="bool-val">false</span>)];
@@ -1321,8 +1321,8 @@
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Builder&lt;W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let _ </span>= <a class="self" href="../../src/tar/builder.rs.html#660">self</a>.<a href="../../src/tar/builder.rs.html#400">finish</a>();
+        <span class="kw">let _ </span>= <a class="self" href="#660">self</a>.<a href="#400">finish</a>();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -416,7 +416,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use crate</span>::{<a href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../../../../src/analysis/lib.rs.html#13">mir_utils</a>::<span class="kw-2">*</span>, <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>};
+</span><span class="kw">use crate</span>::{<a href="../../abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../../lib.rs.html#13">mir_utils</a>::<span class="kw-2">*</span>, <a href="../../analysis_error.rs.html#11">AnalysisError</a>};
 <span class="kw">use </span>prusti_rustc_interface::{
     <a href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>,
     middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
@@ -441,8 +441,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="comment">// ignore tcx &amp; mir
-        </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#30">f</a>.debug_struct(<span class="string">&quot;DefinitelyInitializedState&quot;</span>)
-            .field(<span class="string">&quot;def_init_places&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#30">self</a>.def_init_places)
+        </span><a href="#30">f</a>.debug_struct(<span class="string">&quot;DefinitelyInitializedState&quot;</span>)
+            .field(<span class="string">&quot;def_init_places&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#30">self</a>.def_init_places)
             .finish()
     }
 }
@@ -470,7 +470,7 @@
         //         stable_hasher.finish::&lt;Fingerprint&gt;()
         //     },
         // );
-        </span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#39">self</a>.def_init_places == <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#39">other</a>.def_init_places
+        </span><a class="self" href="#39">self</a>.def_init_places == <a href="#39">other</a>.def_init_places
     }
 }
 
@@ -479,35 +479,35 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_seq(<span class="prelude-val">Some</span>(<span class="self">self</span>.def_init_places.len()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>ordered_place_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#68">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>ordered_place_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <a class="self" href="#68">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">for </span>place <span class="kw">in </span>ordered_place_set {
             seq.serialize_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place))<span class="question-mark">?</span>;
         }
-        <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#69">seq</a>.<a href="../../../../serde/ser/trait.SerializeSeq.html">end</a>()
+        <a href="#69">seq</a>.<a href="../../../../serde/ser/trait.SerializeSeq.html">end</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_def_init_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#79">self</a>.def_init_places
+        <span class="kw-2">&amp;</span><a class="self" href="#79">self</a>.def_init_places
     }
 
     <span class="kw">pub fn </span>get_def_init_mir_places(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#83">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| <span class="kw-2">**</span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#84">place</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <a class="self" href="#83">self</a>.def_init_places.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| <span class="kw-2">**</span><a href="#84">place</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="doccomment">/// The top element of the lattice contains no places
     </span><span class="kw">pub fn </span>new_top(def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             def_init_places: FxHashSet::default(),
-            <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#88">def_id</a>,
-            <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#88">mir</a>,
-            <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#88">tcx</a>,
+            <a href="#88">def_id</a>,
+            <a href="#88">mir</a>,
+            <a href="#88">tcx</a>,
         }
     }
 
     <span class="kw">pub fn </span>is_top(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#97">self</a>.def_init_places.is_empty()
+        <a class="self" href="#97">self</a>.def_init_places.is_empty()
     }
 
     <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -533,9 +533,9 @@
 
     <span class="doccomment">/// Sets `place` as definitely initialized (see place_set/insert()
     </span><span class="kw">fn </span>set_place_initialised(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>place = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>place = <a href="#123">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#123">self</a>.<a href="#101">check_invariant</a>();
         }
 
         <span class="comment">// First, check that the place is not already marked as
@@ -548,27 +548,27 @@
             <span class="comment">// To maintain the invariant that we do not have a place and its
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
-            </span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.def_init_places
-                .retain(|<span class="kw-2">&amp;</span>current| !<a href="../../../../src/analysis/mir_utils.rs.html#103">is_prefix</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#140">current</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#124">place</a>));
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.def_init_places.insert(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#124">place</a>);
+            </span><a class="self" href="#123">self</a>.def_init_places
+                .retain(|<span class="kw-2">&amp;</span>current| !<a href="../../mir_utils.rs.html#103">is_prefix</a>(<a href="#140">current</a>, <a href="#124">place</a>));
+            <a class="self" href="#123">self</a>.def_init_places.insert(<a href="#124">place</a>);
             <span class="comment">// If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
-            </span><a href="../../../../src/analysis/mir_utils.rs.html#269-274">collapse</a>(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.tcx, <span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.def_init_places, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#124">place</a>);
+            </span><a href="../../mir_utils.rs.html#269-274">collapse</a>(<a class="self" href="#123">self</a>.mir, <a class="self" href="#123">self</a>.tcx, <span class="kw-2">&amp;mut </span><a class="self" href="#123">self</a>.def_init_places, <a href="#124">place</a>);
         }
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#123">self</a>.<a href="#101">check_invariant</a>();
         }
     }
 
     <span class="doccomment">/// Sets `place` as (possibly) uninitialised (see place_set/remove())
     </span><span class="kw">fn </span>set_place_uninitialised(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>place = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>place = <a href="#153">place</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#153">self</a>.<a href="#101">check_invariant</a>();
         }
 
-        <span class="kw">let </span>old_places = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">self</a>.def_init_places);
+        <span class="kw">let </span>old_places = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#153">self</a>.def_init_places);
         <span class="kw">for </span>old_place <span class="kw">in </span>old_places {
             <span class="kw">if </span>is_prefix(place, old_place) {
                 <span class="comment">// We are uninitializing a field of the place `old_place`.
@@ -596,22 +596,22 @@
         }
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#153">self</a>.<a href="#101">check_invariant</a>();
         }
     }
 
     <span class="doccomment">/// If the operand is move, make the place uninitialised
     /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
     </span><span class="kw">fn </span>apply_operand_effect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;, move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if let </span>mir::Operand::Move(place) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">operand</a> {
+        <span class="kw">if let </span>mir::Operand::Move(place) = <a href="#193">operand</a> {
             <span class="kw">let </span><span class="kw-2">mut </span>uninitialise = <span class="bool-val">true</span>;
             <span class="kw">if </span>!move_out_copy_types {
-                <span class="kw">let </span>ty = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#194">place</a>.ty(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.mir.local_decls, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.tcx).ty;
-                <span class="kw">let </span>param_env = <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.tcx.param_env(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.def_id);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#195">uninitialise</a> = !<a href="../../../../src/analysis/mir_utils.rs.html#319-323">is_copy</a>(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.tcx, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#197">ty</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#198">param_env</a>);
+                <span class="kw">let </span>ty = <a href="#194">place</a>.ty(<span class="kw-2">&amp;</span><a class="self" href="#193">self</a>.mir.local_decls, <a class="self" href="#193">self</a>.tcx).ty;
+                <span class="kw">let </span>param_env = <a class="self" href="#193">self</a>.tcx.param_env(<a class="self" href="#193">self</a>.def_id);
+                <a href="#195">uninitialise</a> = !<a href="../../mir_utils.rs.html#319-323">is_copy</a>(<a class="self" href="#193">self</a>.tcx, <a href="#197">ty</a>, <a href="#198">param_env</a>);
             }
             <span class="kw">if </span>uninitialise {
-                <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">set_place_uninitialised</a>(<span class="kw-2">*</span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#194">place</a>);
+                <a class="self" href="#193">self</a>.<a href="#153">set_place_uninitialised</a>(<span class="kw-2">*</span><a href="#194">place</a>);
             }
         }
     }
@@ -621,21 +621,21 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
         move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>&gt; {
-        <span class="kw">let </span>statement = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.mir[<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#210">location</a>.block].statements[<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#210">location</a>.statement_index];
-        <span class="kw">match </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#213">statement</a>.kind {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../analysis_error.rs.html#11">AnalysisError</a>&gt; {
+        <span class="kw">let </span>statement = <span class="kw-2">&amp;</span><a class="self" href="#209">self</a>.mir[<a href="#210">location</a>.block].statements[<a href="#210">location</a>.statement_index];
+        <span class="kw">match </span><a href="#213">statement</a>.kind {
             mir::StatementKind::Assign(<span class="kw">box </span>(target, <span class="kw-2">ref </span>source)) =&gt; {
-                <span class="kw">match </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#215">source</a> {
+                <span class="kw">match </span><a href="#215">source</a> {
                     mir::Rvalue::Repeat(<span class="kw-2">ref </span>operand, <span class="kw">_</span>)
                     | mir::Rvalue::Cast(<span class="kw">_</span>, <span class="kw-2">ref </span>operand, <span class="kw">_</span>)
                     | mir::Rvalue::UnaryOp(<span class="kw">_</span>, <span class="kw-2">ref </span>operand)
                     | mir::Rvalue::Use(<span class="kw-2">ref </span>operand) =&gt; {
-                        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#217">operand</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#211">move_out_copy_types</a>);
+                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#217">operand</a>, <a href="#211">move_out_copy_types</a>);
                     }
                     mir::Rvalue::BinaryOp(<span class="kw">_</span>, <span class="kw">box </span>(<span class="kw-2">ref </span>operand1, <span class="kw-2">ref </span>operand2))
                     | mir::Rvalue::CheckedBinaryOp(<span class="kw">_</span>, <span class="kw">box </span>(<span class="kw-2">ref </span>operand1, <span class="kw-2">ref </span>operand2)) =&gt; {
-                        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#223">operand1</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#211">move_out_copy_types</a>);
-                        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#223">operand2</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#211">move_out_copy_types</a>);
+                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#223">operand1</a>, <a href="#211">move_out_copy_types</a>);
+                        <a class="self" href="#209">self</a>.<a href="#193">apply_operand_effect</a>(<a href="#223">operand2</a>, <a href="#211">move_out_copy_types</a>);
                     }
                     mir::Rvalue::Aggregate(<span class="kw">_</span>, <span class="kw-2">ref </span>operands) =&gt; {
                         <span class="kw">for </span>operand <span class="kw">in </span>operands.iter() {
@@ -645,10 +645,10 @@
                     <span class="kw">_ </span>=&gt; {}
                 }
 
-                <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">set_place_initialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#215">target</a>);
+                <a class="self" href="#209">self</a>.<a href="#123">set_place_initialised</a>(<a href="#215">target</a>);
             }
             mir::StatementKind::StorageDead(local) =&gt; {
-                <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#209">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">set_place_uninitialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#238">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a class="self" href="#209">self</a>.<a href="#153">set_place_uninitialised</a>(<a href="#238">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -661,15 +661,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
         move_out_copy_types: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)&gt;, <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_state = <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)&gt;, <a href="../../analysis_error.rs.html#11">AnalysisError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>new_state = <a class="self" href="#249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>res_vec = Vec::new();
-        <span class="kw">let </span>terminator = <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir[<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#250">location</a>.block].terminator();
-        <span class="kw">match </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#255">terminator</a>.kind {
+        <span class="kw">let </span>terminator = <a class="self" href="#249">self</a>.mir[<a href="#250">location</a>.block].terminator();
+        <span class="kw">match </span><a href="#255">terminator</a>.kind {
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::SwitchInt</a> { <span class="kw-2">ref </span>discr, .. } =&gt; {
                 <span class="comment">// only operand has an effect on definitely initialized places, all successors
                 // get the same state
-                </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#257">discr</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#251">move_out_copy_types</a>);
+                </span><a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#257">discr</a>, <a href="#251">move_out_copy_types</a>);
 
                 <span class="kw">for </span>bb <span class="kw">in </span>terminator.successors() {
                     res_vec.push((bb, new_state.clone()));
@@ -680,12 +680,12 @@
                 target,
                 unwind,
             } =&gt; {
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">set_place_uninitialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#267">place</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#268">target</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>));
+                <a href="#253">new_state</a>.<a href="#153">set_place_uninitialised</a>(<a href="#267">place</a>);
+                <a href="#254">res_vec</a>.push((<a href="#268">target</a>, <a href="#253">new_state</a>));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#269">unwind</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#269">unwind</a> {
                     <span class="comment">// imprecision for error states
-                    </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#274">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.def_id, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.tcx)));
+                    </span><a href="#254">res_vec</a>.push((<a href="#274">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
                 }
             }
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::DropAndReplace</a> {
@@ -694,14 +694,14 @@
                 target,
                 unwind,
             } =&gt; {
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#153">set_place_uninitialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#280">place</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#281">value</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#251">move_out_copy_types</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">set_place_initialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#280">place</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#282">target</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>));
+                <a href="#253">new_state</a>.<a href="#153">set_place_uninitialised</a>(<a href="#280">place</a>);
+                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#281">value</a>, <a href="#251">move_out_copy_types</a>);
+                <a href="#253">new_state</a>.<a href="#123">set_place_initialised</a>(<a href="#280">place</a>);
+                <a href="#254">res_vec</a>.push((<a href="#282">target</a>, <a href="#253">new_state</a>));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#283">unwind</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#283">unwind</a> {
                     <span class="comment">// imprecision for error states
-                    </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#290">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.def_id, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.tcx)));
+                    </span><a href="#254">res_vec</a>.push((<a href="#290">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
                 }
             }
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> {
@@ -715,15 +715,15 @@
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter() {
                     new_state.apply_operand_effect(arg, move_out_copy_types);
                 }
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#296">func</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#251">move_out_copy_types</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#299">target</a> {
-                    <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#123">set_place_initialised</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#298">destination</a>);
-                    <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#307">bb</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>));
+                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#296">func</a>, <a href="#251">move_out_copy_types</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#299">target</a> {
+                    <a href="#253">new_state</a>.<a href="#123">set_place_initialised</a>(<a href="#298">destination</a>);
+                    <a href="#254">res_vec</a>.push((<a href="#307">bb</a>, <a href="#253">new_state</a>));
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#300">cleanup</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#300">cleanup</a> {
                     <span class="comment">// imprecision for error states
-                    </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#312">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.def_id, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.tcx)));
+                    </span><a href="#254">res_vec</a>.push((<a href="#312">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
                 }
             }
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Assert</a> {
@@ -732,12 +732,12 @@
                 cleanup,
                 ..
             } =&gt; {
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#318">cond</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#251">move_out_copy_types</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#319">target</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>));
+                <a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#318">cond</a>, <a href="#251">move_out_copy_types</a>);
+                <a href="#254">res_vec</a>.push((<a href="#319">target</a>, <a href="#253">new_state</a>));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#320">cleanup</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#320">cleanup</a> {
                     <span class="comment">// imprecision for error states
-                    </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#326">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.def_id, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.tcx)));
+                    </span><a href="#254">res_vec</a>.push((<a href="#326">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
                 }
             }
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Yield</a> {
@@ -747,16 +747,16 @@
                 ..
             } =&gt; {
                 <span class="comment">// TODO: resume_arg?
-                </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#193">apply_operand_effect</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#332">value</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#251">move_out_copy_types</a>);
-                <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#333">resume</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#253">new_state</a>));
+                </span><a href="#253">new_state</a>.<a href="#193">apply_operand_effect</a>(<a href="#332">value</a>, <a href="#251">move_out_copy_types</a>);
+                <a href="#254">res_vec</a>.push((<a href="#333">resume</a>, <a href="#253">new_state</a>));
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#334">drop</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="#334">drop</a> {
                     <span class="comment">// imprecision for error states
-                    </span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>.push((<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#341">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.def_id, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.mir, <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#249">self</a>.tcx)));
+                    </span><a href="#254">res_vec</a>.push((<a href="#341">bb</a>, <span class="self">Self</span>::new_top(<a class="self" href="#249">self</a>.def_id, <a class="self" href="#249">self</a>.mir, <a class="self" href="#249">self</a>.tcx)));
                 }
             }
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::InlineAsm</a> { .. } =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/analysis/analysis_error.rs.html#12">AnalysisError::UnsupportedStatement</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#250">location</a>))
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../analysis_error.rs.html#12">AnalysisError::UnsupportedStatement</a>(<a href="#250">location</a>))
             }
 
             <span class="kw">_ </span>=&gt; {
@@ -767,17 +767,17 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#254">res_vec</a>)
+        <span class="prelude-val">Ok</span>(<a href="#254">res_vec</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">AbstractState</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../abstract_interpretation/abstract_state.rs.html#45">AbstractState</a> <span class="kw">for </span>DefinitelyInitializedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>is_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if </span><span class="self">self</span>.def_init_places.len() == <span class="self">self</span>.mir.local_decls.len() {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#363">self</a>.mir
+            <a class="self" href="#363">self</a>.mir
                 .local_decls
                 .indices()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|local| <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#363">self</a>.def_init_places.contains(<span class="kw-2">&amp;</span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#368">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|local| <a class="self" href="#363">self</a>.def_init_places.contains(<span class="kw-2">&amp;</span><a href="#368">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -786,8 +786,8 @@
     <span class="doccomment">/// The lattice join intersects the two place sets
     </span><span class="kw">fn </span>join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
-            <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">other</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#375">self</a>.<a href="#101">check_invariant</a>();
+            <a href="#375">other</a>.<a href="#101">check_invariant</a>();
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>intersection = FxHashSet::default();
@@ -807,14 +807,14 @@
                 }
             };
 
-        <span class="kw">let </span>self_places = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">self</a>.def_init_places;
-        <span class="kw">let </span>other_places = <span class="kw-2">&amp;</span><a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">other</a>.def_init_places;
-        <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#383">propagate_places_fn</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#398">self_places</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#399">other_places</a>);
-        <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#383">propagate_places_fn</a>(<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#399">other_places</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#398">self_places</a>);
-        <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">self</a>.def_init_places = <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#381">intersection</a>;
+        <span class="kw">let </span>self_places = <span class="kw-2">&amp;</span><a class="self" href="#375">self</a>.def_init_places;
+        <span class="kw">let </span>other_places = <span class="kw-2">&amp;</span><a href="#375">other</a>.def_init_places;
+        <a href="#383">propagate_places_fn</a>(<a href="#398">self_places</a>, <a href="#399">other_places</a>);
+        <a href="#383">propagate_places_fn</a>(<a href="#399">other_places</a>, <a href="#398">self_places</a>);
+        <a class="self" href="#375">self</a>.def_init_places = <a href="#381">intersection</a>;
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <a class="self" href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#375">self</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#101">check_invariant</a>();
+            <a class="self" href="#375">self</a>.<a href="#101">check_invariant</a>();
         }
     }
 
@@ -823,4 +823,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

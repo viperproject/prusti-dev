@@ -209,10 +209,10 @@
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 
 <span class="kw">use </span><span class="kw">super</span>::char_data::{
-    <a href="../../src/unicode_bidi/char_data/mod.rs.html#45">is_rtl</a>,
-    BidiClass::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>},
+    <a href="char_data/mod.rs.html#45">is_rtl</a>,
+    BidiClass::{<a class="self" href="char_data/tables.rs.html#18">self</a>, <span class="kw-2">*</span>},
 };
-<span class="kw">use </span><a href="../../src/unicode_bidi/level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
+<span class="kw">use </span><a href="level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
 
 <span class="doccomment">/// Compute explicit embedding levels for one paragraph of text (X1-X8).
 ///
@@ -221,16 +221,16 @@
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;flame_it&quot;</span>, flamer::flame)]
 </span><span class="kw">pub fn </span>compute(
     text: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    para_level: <a href="../../src/unicode_bidi/level.rs.html#34">Level</a>,
-    original_classes: <span class="kw-2">&amp;</span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>],
-    levels: <span class="kw-2">&amp;mut </span>[<a href="../../src/unicode_bidi/level.rs.html#34">Level</a>],
-    processing_classes: <span class="kw-2">&amp;mut </span>[<a href="../../src/unicode_bidi/char_data/tables.rs.html#18">BidiClass</a>],
+    para_level: <a href="level.rs.html#34">Level</a>,
+    original_classes: <span class="kw-2">&amp;</span>[<a href="char_data/tables.rs.html#18">BidiClass</a>],
+    levels: <span class="kw-2">&amp;mut </span>[<a href="level.rs.html#34">Level</a>],
+    processing_classes: <span class="kw-2">&amp;mut </span>[<a href="char_data/tables.rs.html#18">BidiClass</a>],
 ) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(text.len(), original_classes.len());
 
     <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X1&gt;
     </span><span class="kw">let </span><span class="kw-2">mut </span>stack = DirectionalStatusStack::new();
-    <a href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a href="../../src/unicode_bidi/explicit.rs.html#188">push</a>(<a href="../../src/unicode_bidi/explicit.rs.html#29">para_level</a>, <a href="../../src/unicode_bidi/explicit.rs.html#171">OverrideStatus::Neutral</a>);
+    <a href="#37">stack</a>.<a href="#188">push</a>(<a href="#29">para_level</a>, <a href="#171">OverrideStatus::Neutral</a>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>overflow_isolate_count = <span class="number">0u32</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>overflow_embedding_count = <span class="number">0u32</span>;
@@ -357,8 +357,8 @@
 
 <span class="doccomment">/// Entries in the directional status stack:
 </span><span class="kw">struct </span>Status {
-    level: <a href="../../src/unicode_bidi/level.rs.html#34">Level</a>,
-    status: <a href="../../src/unicode_bidi/explicit.rs.html#170">OverrideStatus</a>,
+    level: <a href="level.rs.html#34">Level</a>,
+    status: <a href="#170">OverrideStatus</a>,
 }
 
 <span class="attribute">#[derive(PartialEq)]
@@ -370,23 +370,23 @@
 }
 
 <span class="kw">struct </span>DirectionalStatusStack {
-    vec: Vec&lt;<a href="../../src/unicode_bidi/explicit.rs.html#164">Status</a>&gt;,
+    vec: Vec&lt;<a href="#164">Status</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/unicode_bidi/explicit.rs.html#177">DirectionalStatusStack</a> {
+<span class="kw">impl </span><a href="#177">DirectionalStatusStack</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../src/unicode_bidi/explicit.rs.html#177">DirectionalStatusStack</a> {
+        <a href="#177">DirectionalStatusStack</a> {
             vec: Vec::with_capacity(Level::max_explicit_depth() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">2</span>),
         }
     }
 
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: <a href="../../src/unicode_bidi/level.rs.html#34">Level</a>, status: <a href="../../src/unicode_bidi/explicit.rs.html#170">OverrideStatus</a>) {
-        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#188">self</a>.vec.push(<a href="../../src/unicode_bidi/explicit.rs.html#164">Status</a> { <a href="../../src/unicode_bidi/explicit.rs.html#188">level</a>, <a href="../../src/unicode_bidi/explicit.rs.html#188">status</a> });
+    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: <a href="level.rs.html#34">Level</a>, status: <a href="#170">OverrideStatus</a>) {
+        <a class="self" href="#188">self</a>.vec.push(<a href="#164">Status</a> { <a href="#188">level</a>, <a href="#188">status</a> });
     }
 
-    <span class="kw">fn </span>last(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/unicode_bidi/explicit.rs.html#164">Status</a> {
-        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#192">self</a>.vec.last().unwrap()
+    <span class="kw">fn </span>last(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#164">Status</a> {
+        <a class="self" href="#192">self</a>.vec.last().unwrap()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

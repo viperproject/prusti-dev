@@ -243,8 +243,8 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use crate</span>::{<a href="../../../../src/mio/lib.rs.html#54">event</a>, <a href="../../../../src/mio/lib.rs.html#49">sys</a>, <a href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a href="../../../../src/mio/poll.rs.html#254">Registry</a>, <a href="../../../../src/mio/token.rs.html#132">Token</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#54">event</a>, <a href="../../lib.rs.html#49">sys</a>, <a href="../../interest.rs.html#17">Interest</a>, <a href="../../poll.rs.html#254">Registry</a>, <a href="../../token.rs.html#132">Token</a>};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
@@ -258,13 +258,13 @@
     inner: IoSource&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="#12">UnixStream</a> {
     <span class="doccomment">/// Connects to the socket named by `path`.
     ///
     /// This may return a `WouldBlock` in which case the socket connection
     /// cannot be completed immediately. Usually it means the backlog is full.
-    </span><span class="kw">pub fn </span>connect&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; io::Result&lt;<a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a>&gt; {
-        <a href="../../../../src/mio/sys/unix/uds/stream.rs.html#9">sys::uds::stream::connect</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#21">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).map(UnixStream::from_std)
+    </span><span class="kw">pub fn </span>connect&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; io::Result&lt;<a href="#12">UnixStream</a>&gt; {
+        <a href="../../sys/unix/uds/stream.rs.html#9">sys::uds::stream::connect</a>(<a href="#21">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).map(UnixStream::from_std)
     }
 
     <span class="doccomment">/// Creates a new `UnixStream` from a standard `net::UnixStream`.
@@ -279,34 +279,34 @@
     /// The Unix stream here will not have `connect` called on it, so it
     /// should already be connected via some other means (be it manually, or
     /// the standard library).
-    </span><span class="kw">pub fn </span>from_std(stream: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; <a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
-        <a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
-            inner: IoSource::new(<a href="../../../../src/mio/net/uds/stream.rs.html#37">stream</a>),
+    </span><span class="kw">pub fn </span>from_std(stream: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">net::UnixStream</a>) -&gt; <a href="#12">UnixStream</a> {
+        <a href="#12">UnixStream</a> {
+            inner: IoSource::new(<a href="#37">stream</a>),
         }
     }
 
     <span class="doccomment">/// Creates an unnamed pair of connected sockets.
     ///
     /// Returns two `UnixStream`s which are connected to each other.
-    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(<a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a>, <a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a>)&gt; {
-        <a href="../../../../src/mio/sys/unix/uds/stream.rs.html#29">sys::uds::stream::pair</a>().map(|(stream1, stream2)| {
-            (UnixStream::from_std(<a href="../../../../src/mio/net/uds/stream.rs.html#47">stream1</a>), UnixStream::from_std(<a href="../../../../src/mio/net/uds/stream.rs.html#47">stream2</a>))
+    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(<a href="#12">UnixStream</a>, <a href="#12">UnixStream</a>)&gt; {
+        <a href="../../sys/unix/uds/stream.rs.html#29">sys::uds::stream::pair</a>().map(|(stream1, stream2)| {
+            (UnixStream::from_std(<a href="#47">stream1</a>), UnixStream::from_std(<a href="#47">stream2</a>))
         })
     }
 
     <span class="doccomment">/// Returns the socket address of the local half of this connection.
-    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
-        <a href="../../../../src/mio/sys/unix/uds/stream.rs.html#33">sys::uds::stream::local_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/stream.rs.html#53">self</a>.inner)
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
+        <a href="../../sys/unix/uds/stream.rs.html#33">sys::uds::stream::local_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="#53">self</a>.inner)
     }
 
     <span class="doccomment">/// Returns the socket address of the remote half of this connection.
-    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
-        <a href="../../../../src/mio/sys/unix/uds/stream.rs.html#37">sys::uds::stream::peer_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/stream.rs.html#58">self</a>.inner)
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
+        <a href="../../sys/unix/uds/stream.rs.html#37">sys::uds::stream::peer_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="#58">self</a>.inner)
     }
 
     <span class="doccomment">/// Returns the value of the `SO_ERROR` option.
     </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#63">self</a>.inner.take_error()
+        <a class="self" href="#63">self</a>.inner.take_error()
     }
 
     <span class="doccomment">/// Shuts down the read, write, or both halves of this connection.
@@ -315,7 +315,7 @@
     /// specified portions to immediately return with an appropriate value
     /// (see the documentation of `Shutdown`).
     </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#72">self</a>.inner.shutdown(<a href="../../../../src/mio/net/uds/stream.rs.html#72">how</a>)
+        <a class="self" href="#72">self</a>.inner.shutdown(<a href="#72">how</a>)
     }
 
     <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events
@@ -383,110 +383,110 @@
     <span class="kw">where
         </span>F: FnOnce() -&gt; io::Result&lt;T&gt;,
     {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#137">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="../../../../src/mio/net/uds/stream.rs.html#137">f</a>())
+        <a class="self" href="#137">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="#137">f</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#146">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#147">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#146">buf</a>))
+        <a class="self" href="#146">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#147">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#146">buf</a>))
     }
 
     <span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#150">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#151">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#150">bufs</a>))
+        <a class="self" href="#150">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#151">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="#150">bufs</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#156">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#157">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#156">buf</a>))
+        <a class="self" href="#156">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#157">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#156">buf</a>))
     }
 
     <span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#160">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#161">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#160">bufs</a>))
+        <a class="self" href="#160">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#161">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="#160">bufs</a>))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#166">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#167">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#166">buf</a>))
+        <a class="self" href="#166">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#167">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#166">buf</a>))
     }
 
     <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#170">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#171">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#170">bufs</a>))
+        <a class="self" href="#170">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#171">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#170">bufs</a>))
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#174">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#175">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+        <a class="self" href="#174">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#175">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#180">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#181">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#180">buf</a>))
+        <a class="self" href="#180">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#181">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#180">buf</a>))
     }
 
     <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#184">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#185">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#184">bufs</a>))
+        <a class="self" href="#184">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#185">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#184">bufs</a>))
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#188">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/net/uds/stream.rs.html#189">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+        <a class="self" href="#188">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|inner| (<span class="kw-2">&amp;*</span><a href="#189">inner</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="../../event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>register(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#195">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#196">registry</a>, <a href="../../../../src/mio/net/uds/stream.rs.html#197">token</a>, <a href="../../../../src/mio/net/uds/stream.rs.html#198">interests</a>)
+        <a class="self" href="#195">self</a>.inner.<a href="../../event/source.rs.html#83-88">register</a>(<a href="#196">registry</a>, <a href="#197">token</a>, <a href="#198">interests</a>)
     }
 
     <span class="kw">fn </span>reregister(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#204">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#205">registry</a>, <a href="../../../../src/mio/net/uds/stream.rs.html#206">token</a>, <a href="../../../../src/mio/net/uds/stream.rs.html#207">interests</a>)
+        <a class="self" href="#204">self</a>.inner.<a href="../../event/source.rs.html#97-102">reregister</a>(<a href="#205">registry</a>, <a href="#206">token</a>, <a href="#207">interests</a>)
     }
 
-    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#212">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#212">registry</a>)
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#212">self</a>.inner.<a href="../../event/source.rs.html#111">deregister</a>(<a href="#212">registry</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#218">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#218">f</a>)
+        <a class="self" href="#218">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#218">f</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#224">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+        <a class="self" href="#224">self</a>.inner.<a href="../../io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/uds/stream.rs.html#230">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="#230">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="#12">UnixStream</a> {
     <span class="doccomment">/// Converts a `RawFd` to a `UnixStream`.
     ///
     /// # Notes
     ///
     /// The caller is responsible for ensuring that the socket is in
     /// non-blocking mode.
-    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/mio/net/uds/stream.rs.html#12">UnixStream</a> {
-        UnixStream::from_std(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a href="../../../../src/mio/net/uds/stream.rs.html#242">fd</a>))
+    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="#12">UnixStream</a> {
+        UnixStream::from_std(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a href="#242">fd</a>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

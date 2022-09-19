@@ -70,13 +70,13 @@
 </pre><pre class="rust"><code><span class="doccomment">//! git_tag_foreach support
 //! see original: &lt;https://libgit2.org/libgit2/#HEAD/group/tag/git_tag_foreach&gt;
 
-</span><span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/util.rs.html#25">util::Binding</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>};
+</span><span class="kw">use crate</span>::{<a href="lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="util.rs.html#25">util::Binding</a>, <a href="oid.rs.html#15">Oid</a>};
 <span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>};
 <span class="kw">use </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>;
 <span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>};
 
 <span class="doccomment">/// boxed callback type
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TagForeachCB&lt;<span class="lifetime">&#39;a</span>&gt; = Box&lt;<span class="kw">dyn </span>FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>&gt;;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TagForeachCB&lt;<span class="lifetime">&#39;a</span>&gt; = Box&lt;<span class="kw">dyn </span>FnMut(<a href="oid.rs.html#15">Oid</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>&gt;;
 
 <span class="doccomment">/// helper type to be able to pass callback to payload
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TagForeachData&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -91,16 +91,16 @@
     oid: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_oid.html">git_oid</a>,
     payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span>id: <a href="../../src/git2/oid.rs.html#15">Oid</a> = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/tagforeach.rs.html#22">oid</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>id: <a href="oid.rs.html#15">Oid</a> = <a href="util.rs.html#28">Binding::from_raw</a>(<a href="#22">oid</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
 
-        <span class="kw">let </span>name = CStr::from_ptr(<a href="../../src/git2/tagforeach.rs.html#21">name</a>);
-        <span class="kw">let </span>name = <a href="../../src/git2/tagforeach.rs.html#28">name</a>.to_bytes();
+        <span class="kw">let </span>name = CStr::from_ptr(<a href="#21">name</a>);
+        <span class="kw">let </span>name = <a href="#28">name</a>.to_bytes();
 
-        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/tagforeach.rs.html#23">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>TagForeachData&lt;<span class="lifetime">&#39;_</span>&gt;);
-        <span class="kw">let </span>cb = <span class="kw-2">&amp;mut </span><a href="../../src/git2/tagforeach.rs.html#31">payload</a>.cb;
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="#23">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>TagForeachData&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>cb = <span class="kw-2">&amp;mut </span><a href="#31">payload</a>.cb;
 
-        <span class="kw">let </span>res = <a href="../../src/git2/tagforeach.rs.html#32">cb</a>(<a href="../../src/git2/tagforeach.rs.html#26">id</a>, <a href="../../src/git2/tagforeach.rs.html#29">name</a>);
+        <span class="kw">let </span>res = <a href="#32">cb</a>(<a href="#26">id</a>, <a href="#29">name</a>);
 
         <span class="kw">if </span>res {
             <span class="number">0
@@ -137,4 +137,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

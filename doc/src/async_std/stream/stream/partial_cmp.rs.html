@@ -100,8 +100,8 @@
 
 <span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use </span><a href="../../../../src/async_std/stream/stream/fuse.rs.html#8-22"><span class="kw">super</span>::fuse::Fuse</a>;
-<span class="kw">use </span><a href="../../../../src/async_std/stream/stream/mod.rs.html#153"><span class="kw">crate</span>::stream::stream::StreamExt</a>;
+<span class="kw">use </span><a href="fuse.rs.html#8-22"><span class="kw">super</span>::fuse::Fuse</a>;
+<span class="kw">use </span><a href="mod.rs.html#153"><span class="kw">crate</span>::stream::stream::StreamExt</a>;
 <span class="kw">use </span><a href="../../../../async_std/stream/trait.Stream.html"><span class="kw">crate</span>::stream::Stream</a>;
 <span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../../async_std/task/enum.Poll.html">Poll</a>};
 
@@ -123,8 +123,8 @@
 <span class="kw">impl</span>&lt;L: <a href="../../../../async_std/stream/trait.Stream.html">Stream</a>, R: <a href="../../../../async_std/stream/trait.Stream.html">Stream</a>&gt; PartialCmpFuture&lt;L, R&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(l: L, r: R) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            l: <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#28">l</a>.<a href="../../../../src/async_std/stream/stream/mod.rs.html#661-663">fuse</a>(),
-            r: <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#28">r</a>.<a href="../../../../src/async_std/stream/stream/mod.rs.html#661-663">fuse</a>(),
+            l: <a href="#28">l</a>.<a href="mod.rs.html#661-663">fuse</a>(),
+            r: <a href="#28">r</a>.<a href="mod.rs.html#661-663">fuse</a>(),
             l_cache: <span class="prelude-val">None</span>,
             r_cache: <span class="prelude-val">None</span>,
         }
@@ -140,12 +140,12 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#46">self</a>.<a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#12-25">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#46">self</a>.<a href="#12-25">project</a>();
         <span class="kw">loop </span>{
             <span class="comment">// Short circuit logic
             // Stream that completes earliest can be considered Less, etc
-            </span><span class="kw">let </span>l_complete = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.l.done &amp;&amp; <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.l_cache.is_none();
-            <span class="kw">let </span>r_complete = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.r.done &amp;&amp; <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.r_cache.is_none();
+            </span><span class="kw">let </span>l_complete = <a href="#47">this</a>.l.done &amp;&amp; <a href="#47">this</a>.l_cache.is_none();
+            <span class="kw">let </span>r_complete = <a href="#47">this</a>.r.done &amp;&amp; <a href="#47">this</a>.r_cache.is_none();
 
             <span class="kw">if </span>l_complete &amp;&amp; r_complete {
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(Ordering::Equal));
@@ -158,35 +158,35 @@
             <span class="comment">// Get next value if possible and necessary
             </span><span class="kw">if </span>!this.l.done &amp;&amp; this.l_cache.is_none() {
                 <span class="kw">let </span>l_next = <a class="macro" href="../../../../async_std/task/macro.ready.html">futures_core::ready!</a>(this.l.as_mut().poll_next(cx));
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#64">l_next</a> {
-                    <span class="kw-2">*</span><a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.l_cache = <span class="prelude-val">Some</span>(<a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#65">item</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="#64">l_next</a> {
+                    <span class="kw-2">*</span><a href="#47">this</a>.l_cache = <span class="prelude-val">Some</span>(<a href="#65">item</a>);
                 }
             }
 
             <span class="kw">if </span>!this.r.done &amp;&amp; this.r_cache.is_none() {
                 <span class="kw">let </span>r_next = <a class="macro" href="../../../../async_std/task/macro.ready.html">futures_core::ready!</a>(this.r.as_mut().poll_next(cx));
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#71">r_next</a> {
-                    <span class="kw-2">*</span><a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.r_cache = <span class="prelude-val">Some</span>(<a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#72">item</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="#71">r_next</a> {
+                    <span class="kw-2">*</span><a href="#47">this</a>.r_cache = <span class="prelude-val">Some</span>(<a href="#72">item</a>);
                 }
             }
 
             <span class="comment">// Compare if both values are available.
             </span><span class="kw">if </span>this.l_cache.is_some() &amp;&amp; this.r_cache.is_some() {
-                <span class="kw">let </span>l_value = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.l_cache.as_mut().take().unwrap();
-                <span class="kw">let </span>r_value = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.r_cache.as_mut().take().unwrap();
-                <span class="kw">let </span>result = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#79">l_value</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#80">r_value</a>);
+                <span class="kw">let </span>l_value = <a href="#47">this</a>.l_cache.as_mut().take().unwrap();
+                <span class="kw">let </span>r_value = <a href="#47">this</a>.r_cache.as_mut().take().unwrap();
+                <span class="kw">let </span>result = <a href="#79">l_value</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="#80">r_value</a>);
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(Ordering::Equal) = <a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#81">result</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(Ordering::Equal) = <a href="#81">result</a> {
                     <span class="comment">// Reset cache to prepare for next comparison
-                    </span><span class="kw-2">*</span><a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.l_cache = <span class="prelude-val">None</span>;
-                    <span class="kw-2">*</span><a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#47">this</a>.r_cache = <span class="prelude-val">None</span>;
+                    </span><span class="kw-2">*</span><a href="#47">this</a>.l_cache = <span class="prelude-val">None</span>;
+                    <span class="kw-2">*</span><a href="#47">this</a>.r_cache = <span class="prelude-val">None</span>;
                 } <span class="kw">else </span>{
                     <span class="comment">// Return non equal value
-                    </span><span class="kw">return </span>Poll::Ready(<a href="../../../../src/async_std/stream/stream/partial_cmp.rs.html#81">result</a>);
+                    </span><span class="kw">return </span>Poll::Ready(<a href="#81">result</a>);
                 }
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

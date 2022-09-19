@@ -385,7 +385,7 @@
 //! Some simple policies are provided for your convenience. You may prefer to create your own
 //! types and implement the traits for them instead.
 
-</span><span class="kw">use </span><a href="../../src/buf_redux/lib.rs.html#885"><span class="kw">super</span>::Buffer</a>;
+</span><span class="kw">use </span><a href="lib.rs.html#885"><span class="kw">super</span>::Buffer</a>;
 
 <span class="doccomment">/// Flag for `ReaderPolicy` methods to signal whether or not `BufReader` should read into
 /// the buffer.
@@ -430,7 +430,7 @@
     /// If the read will ignore the buffer entirely (if the buffer is empty and the amount to be
     /// read matches or exceeds its capacity) or if `BufReader::read_into_buf()` was called to force
     /// a read into the buffer manually, this method will not be called.
-    </span><span class="kw">fn </span>before_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#20">DoRead</a> { <a href="../../src/buf_redux/policy.rs.html#20">DoRead</a>(<a href="../../src/buf_redux/policy.rs.html#58">buffer</a>.<a href="../../src/buf_redux/lib.rs.html#959">len</a>() == <span class="number">0</span>) }
+    </span><span class="kw">fn </span>before_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#20">DoRead</a> { <a href="#20">DoRead</a>(<a href="#58">buffer</a>.<a href="lib.rs.html#959">len</a>() == <span class="number">0</span>) }
 
     <span class="doccomment">/// Called after bytes are consumed from the buffer.
     ///
@@ -438,11 +438,11 @@
     /// was in excess.
     ///
     /// This is a no-op by default.
-    </span><span class="kw">fn </span>after_consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buffer: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>, _amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {}
+    </span><span class="kw">fn </span>after_consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buffer: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>, _amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {}
 }
 
 <span class="doccomment">/// Behavior of `std::io::BufReader`: the buffer will only be read into if it is empty.
-</span><span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#38">ReaderPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#35">StdPolicy</a> {}
+</span><span class="kw">impl </span><a href="#38">ReaderPolicy</a> <span class="kw">for </span><a href="#35">StdPolicy</a> {}
 
 <span class="doccomment">/// A policy for [`BufReader`](::BufReader) which ensures there is at least the given number of
 /// bytes in  the buffer, failing this only if the reader is at EOF.
@@ -480,28 +480,28 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>MinBuffered(<span class="kw">pub </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#106">MinBuffered</a> {
+<span class="kw">impl </span><a href="#106">MinBuffered</a> {
     <span class="doccomment">/// Set the number of bytes to ensure are in the buffer.
     </span><span class="kw">pub fn </span>set_min(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../src/buf_redux/policy.rs.html#110">self</a>.<span class="number">0 </span>= <a href="../../src/buf_redux/policy.rs.html#110">min</a>;
+        <a class="self" href="#110">self</a>.<span class="number">0 </span>= <a href="#110">min</a>;
     }
 }
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#38">ReaderPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#106">MinBuffered</a> {
-    <span class="kw">fn </span>before_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#20">DoRead</a> {
+<span class="kw">impl </span><a href="#38">ReaderPolicy</a> <span class="kw">for </span><a href="#106">MinBuffered</a> {
+    <span class="kw">fn </span>before_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#20">DoRead</a> {
         <span class="comment">// do nothing if we have enough data
-        </span><span class="kw">if </span>buffer.len() &gt;= <span class="self">self</span>.<span class="number">0 </span>{ <a class="macro" href="../../src/buf_redux/policy.rs.html#24-27">do_read!</a>(<span class="bool-val">false</span>) }
+        </span><span class="kw">if </span>buffer.len() &gt;= <span class="self">self</span>.<span class="number">0 </span>{ <a class="macro" href="#24-27">do_read!</a>(<span class="bool-val">false</span>) }
 
-        <span class="kw">let </span>cap = <a href="../../src/buf_redux/policy.rs.html#116">buffer</a>.<a href="../../src/buf_redux/lib.rs.html#982">capacity</a>();
+        <span class="kw">let </span>cap = <a href="#116">buffer</a>.<a href="lib.rs.html#982">capacity</a>();
 
         <span class="comment">// if there&#39;s enough room but some of it&#39;s stuck after the head
         </span><span class="kw">if </span>buffer.usable_space() &lt; <span class="self">self</span>.<span class="number">0 </span>&amp;&amp; buffer.free_space() &gt;= <span class="self">self</span>.<span class="number">0 </span>{
-            <a href="../../src/buf_redux/policy.rs.html#116">buffer</a>.<a href="../../src/buf_redux/lib.rs.html#994">make_room</a>();
+            <a href="#116">buffer</a>.<a href="lib.rs.html#994">make_room</a>();
         } <span class="kw">else if </span>cap &lt; <span class="self">self</span>.<span class="number">0 </span>{
-            <a href="../../src/buf_redux/policy.rs.html#116">buffer</a>.<a href="../../src/buf_redux/lib.rs.html#1008">reserve</a>(<a class="self" href="../../src/buf_redux/policy.rs.html#116">self</a>.<span class="number">0 </span>- <a href="../../src/buf_redux/policy.rs.html#120">cap</a>);
+            <a href="#116">buffer</a>.<a href="lib.rs.html#1008">reserve</a>(<a class="self" href="#116">self</a>.<span class="number">0 </span>- <a href="#120">cap</a>);
         }
 
-        <a href="../../src/buf_redux/policy.rs.html#20">DoRead</a>(<span class="bool-val">true</span>)
+        <a href="#20">DoRead</a>(<span class="bool-val">true</span>)
     }
 }
 
@@ -529,8 +529,8 @@
     /// the size of the buffer that will be written to the `BufWriter`.
     ///
     /// By default, flushes the buffer if the usable space is smaller than the incoming write.
-    </span><span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(<span class="kw">if </span>incoming &gt; buf.usable_space() { <a href="../../src/buf_redux/policy.rs.html#157">buf</a>.<a href="../../src/buf_redux/lib.rs.html#959">len</a>() } <span class="kw">else </span>{ <span class="number">0 </span>})
+    </span><span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#138">FlushAmt</a>(<span class="kw">if </span>incoming &gt; buf.usable_space() { <a href="#157">buf</a>.<a href="lib.rs.html#959">len</a>() } <span class="kw">else </span>{ <span class="number">0 </span>})
     }
 
     <span class="doccomment">/// Return `true` if the buffer should be flushed after reading into it.
@@ -538,27 +538,27 @@
     /// `buf` references the updated buffer after the read.
     ///
     /// Default impl is a no-op.
-    </span><span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buf: <span class="kw-2">&amp;</span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(<span class="number">0</span>)
+    </span><span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buf: <span class="kw-2">&amp;</span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#138">FlushAmt</a>(<span class="number">0</span>)
     }
 }
 
 <span class="doccomment">/// Default behavior of `std::io::BufWriter`: flush before a read into the buffer
 /// only if the incoming data is larger than the buffer&#39;s writable space.
-</span><span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#148">WriterPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#35">StdPolicy</a> {}
+</span><span class="kw">impl </span><a href="#148">WriterPolicy</a> <span class="kw">for </span><a href="#35">StdPolicy</a> {}
 
 <span class="doccomment">/// Flush the buffer if it contains at least the given number of bytes.
 </span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>FlushAtLeast(<span class="kw">pub </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#148">WriterPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#177">FlushAtLeast</a> {
-    <span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#242">ensure_capacity</a>(<a href="../../src/buf_redux/policy.rs.html#180">buf</a>, <a class="self" href="../../src/buf_redux/policy.rs.html#180">self</a>.<span class="number">0</span>);
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(<span class="kw">if </span>incoming &gt; buf.usable_space() { <a href="../../src/buf_redux/policy.rs.html#180">buf</a>.<a href="../../src/buf_redux/lib.rs.html#959">len</a>() } <span class="kw">else </span>{ <span class="number">0 </span>})
+<span class="kw">impl </span><a href="#148">WriterPolicy</a> <span class="kw">for </span><a href="#177">FlushAtLeast</a> {
+    <span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#242">ensure_capacity</a>(<a href="#180">buf</a>, <a class="self" href="#180">self</a>.<span class="number">0</span>);
+        <a href="#138">FlushAmt</a>(<span class="kw">if </span>incoming &gt; buf.usable_space() { <a href="#180">buf</a>.<a href="lib.rs.html#959">len</a>() } <span class="kw">else </span>{ <span class="number">0 </span>})
     }
 
-    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(::std::cmp::max(<a href="../../src/buf_redux/policy.rs.html#185">buf</a>.<a href="../../src/buf_redux/lib.rs.html#959">len</a>(), <a class="self" href="../../src/buf_redux/policy.rs.html#185">self</a>.<span class="number">0</span>))
+    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#138">FlushAmt</a>(::std::cmp::max(<a href="#185">buf</a>.<a href="lib.rs.html#959">len</a>(), <a class="self" href="#185">self</a>.<span class="number">0</span>))
     }
 }
 
@@ -566,26 +566,26 @@
 </span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>FlushExact(<span class="kw">pub </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#148">WriterPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#192">FlushExact</a> {
+<span class="kw">impl </span><a href="#148">WriterPolicy</a> <span class="kw">for </span><a href="#192">FlushExact</a> {
     <span class="doccomment">/// Flushes the buffer if there is not enough room to fit `incoming` bytes,
     /// but only when the buffer contains at least `self.0` bytes.
     ///
     /// Otherwise, calls [`Buffer::make_room()`](::Buffer::make_room)
-    </span><span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#242">ensure_capacity</a>(<a href="../../src/buf_redux/policy.rs.html#199">buf</a>, <a class="self" href="../../src/buf_redux/policy.rs.html#199">self</a>.<span class="number">0</span>);
+    </span><span class="kw">fn </span>before_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>, incoming: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#242">ensure_capacity</a>(<a href="#199">buf</a>, <a class="self" href="#199">self</a>.<span class="number">0</span>);
 
         <span class="comment">// don&#39;t have enough room to fit the additional bytes but we can&#39;t flush,
         // then make room for (at least some of) the incoming bytes.
         </span><span class="kw">if </span>incoming &gt; buf.usable_space() &amp;&amp; buf.len() &lt; <span class="self">self</span>.<span class="number">0 </span>{
-            <a href="../../src/buf_redux/policy.rs.html#199">buf</a>.<a href="../../src/buf_redux/lib.rs.html#994">make_room</a>();
+            <a href="#199">buf</a>.<a href="lib.rs.html#994">make_room</a>();
         }
 
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(<a class="self" href="../../src/buf_redux/policy.rs.html#199">self</a>.<span class="number">0</span>)
+        <a href="#138">FlushAmt</a>(<a class="self" href="#199">self</a>.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Flushes the given amount if possible, nothing otherwise.
-    </span><span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buf: <span class="kw-2">&amp;</span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(<a class="self" href="../../src/buf_redux/policy.rs.html#212">self</a>.<span class="number">0</span>)
+    </span><span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _buf: <span class="kw-2">&amp;</span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#138">FlushAmt</a>(<a class="self" href="#212">self</a>.<span class="number">0</span>)
     }
 }
 
@@ -595,10 +595,10 @@
 </span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>FlushOn(<span class="kw">pub </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#148">WriterPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#221">FlushOn</a> {
-    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
+<span class="kw">impl </span><a href="#148">WriterPolicy</a> <span class="kw">for </span><a href="#221">FlushOn</a> {
+    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#138">FlushAmt</a> {
         <span class="comment">// include the delimiter in the flush
-        </span><a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(::memchr::memrchr(<a class="self" href="../../src/buf_redux/policy.rs.html#224">self</a>.<span class="number">0</span>, <a href="../../src/buf_redux/policy.rs.html#224">buf</a>.<a href="../../src/buf_redux/lib.rs.html#1018">buf</a>()).map_or(<span class="number">0</span>, |n| <a href="../../src/buf_redux/policy.rs.html#226">n</a> + <span class="number">1</span>))
+        </span><a href="#138">FlushAmt</a>(::memchr::memrchr(<a class="self" href="#224">self</a>.<span class="number">0</span>, <a href="#224">buf</a>.<a href="lib.rs.html#1018">buf</a>()).map_or(<span class="number">0</span>, |n| <a href="#226">n</a> + <span class="number">1</span>))
     }
 }
 
@@ -608,17 +608,17 @@
 </span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>FlushOnNewline;
 
-<span class="kw">impl </span><a href="../../src/buf_redux/policy.rs.html#148">WriterPolicy</a> <span class="kw">for </span><a href="../../src/buf_redux/policy.rs.html#234">FlushOnNewline</a> {
-    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>) -&gt; <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a> {
-        <a href="../../src/buf_redux/policy.rs.html#138">FlushAmt</a>(::memchr::memrchr(<span class="string">b&#39;\n&#39;</span>, <a href="../../src/buf_redux/policy.rs.html#237">buf</a>.<a href="../../src/buf_redux/lib.rs.html#1018">buf</a>()).map_or(<span class="number">0</span>, |n| <a href="../../src/buf_redux/policy.rs.html#238">n</a> + <span class="number">1</span>))
+<span class="kw">impl </span><a href="#148">WriterPolicy</a> <span class="kw">for </span><a href="#234">FlushOnNewline</a> {
+    <span class="kw">fn </span>after_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="lib.rs.html#885">Buffer</a>) -&gt; <a href="#138">FlushAmt</a> {
+        <a href="#138">FlushAmt</a>(::memchr::memrchr(<span class="string">b&#39;\n&#39;</span>, <a href="#237">buf</a>.<a href="lib.rs.html#1018">buf</a>()).map_or(<span class="number">0</span>, |n| <a href="#238">n</a> + <span class="number">1</span>))
     }
 }
 
-<span class="kw">fn </span>ensure_capacity(buf: <span class="kw-2">&amp;mut </span><a href="../../src/buf_redux/lib.rs.html#885">Buffer</a>, min_cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>cap = <a href="../../src/buf_redux/policy.rs.html#242">buf</a>.<a href="../../src/buf_redux/lib.rs.html#982">capacity</a>();
+<span class="kw">fn </span>ensure_capacity(buf: <span class="kw-2">&amp;mut </span><a href="lib.rs.html#885">Buffer</a>, min_cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">let </span>cap = <a href="#242">buf</a>.<a href="lib.rs.html#982">capacity</a>();
 
     <span class="kw">if </span>cap &lt; min_cap {
-        <a href="../../src/buf_redux/policy.rs.html#242">buf</a>.<a href="../../src/buf_redux/lib.rs.html#1008">reserve</a>(<a href="../../src/buf_redux/policy.rs.html#242">min_cap</a> - <a href="../../src/buf_redux/policy.rs.html#243">cap</a>);
+        <a href="#242">buf</a>.<a href="lib.rs.html#1008">reserve</a>(<a href="#242">min_cap</a> - <a href="#243">cap</a>);
     }
 }
 
@@ -749,4 +749,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="buf_redux" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="buf_redux" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

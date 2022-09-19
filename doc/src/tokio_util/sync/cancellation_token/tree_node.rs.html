@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/sync/cancellation_token/tree_node.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree_node.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/cancellation_token/tree_node.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tree_node.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -417,13 +417,13 @@
 ///
 /// The actual data it holds is wrapped inside a mutex for synchronization.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TreeNode {
-    inner: Mutex&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>&gt;,
+    inner: Mutex&lt;<a href="#73">Inner</a>&gt;,
     waker: <a href="../../../../tokio/sync/notify/struct.Notify.html">tokio::sync::Notify</a>,
 }
-<span class="kw">impl </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a> {
+<span class="kw">impl </span><a href="#46">TreeNode</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Mutex::new(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a> {
+            inner: Mutex::new(<a href="#73">Inner</a> {
                 parent: <span class="prelude-val">None</span>,
                 parent_idx: <span class="number">0</span>,
                 children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
@@ -435,7 +435,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>notified(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tokio::sync::futures::Notified&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a class="self" href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#64">self</a>.waker.notified()
+        <a class="self" href="#64">self</a>.waker.notified()
     }
 }
 
@@ -444,28 +444,28 @@
 /// This struct exists so that the data of the node can be wrapped
 /// in a Mutex.
 </span><span class="kw">struct </span>Inner {
-    parent: <span class="prelude-ty">Option</span>&lt;Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;&gt;,
+    parent: <span class="prelude-ty">Option</span>&lt;Arc&lt;<a href="#46">TreeNode</a>&gt;&gt;,
     parent_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    children: Vec&lt;Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;&gt;,
+    children: Vec&lt;Arc&lt;<a href="#46">TreeNode</a>&gt;&gt;,
     is_cancelled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     num_handles: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
 <span class="doccomment">/// Returns whether or not the node is cancelled
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_cancelled(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#82">node</a>.inner.lock().unwrap().is_cancelled
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_cancelled(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="#82">node</a>.inner.lock().unwrap().is_cancelled
 }
 
 <span class="doccomment">/// Creates a child node
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>child_node(parent: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;) -&gt; Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_parent = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#87">parent</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>child_node(parent: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) -&gt; Arc&lt;<a href="#46">TreeNode</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_parent = <a href="#87">parent</a>.inner.lock().unwrap();
 
     <span class="comment">// Do not register as child if we are already cancelled.
     // Cancelled trees can never be uncancelled and therefore
     // need no connection to parents or children any more.
     </span><span class="kw">if </span>locked_parent.is_cancelled {
-        <span class="kw">return </span>Arc::new(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a> {
-            inner: Mutex::new(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a> {
+        <span class="kw">return </span>Arc::new(<a href="#46">TreeNode</a> {
+            inner: Mutex::new(<a href="#73">Inner</a> {
                 parent: <span class="prelude-val">None</span>,
                 parent_idx: <span class="number">0</span>,
                 children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
@@ -476,10 +476,10 @@
         });
     }
 
-    <span class="kw">let </span>child = Arc::new(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a> {
-        inner: Mutex::new(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a> {
-            parent: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#87">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            parent_idx: <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#88">locked_parent</a>.children.len(),
+    <span class="kw">let </span>child = Arc::new(<a href="#46">TreeNode</a> {
+        inner: Mutex::new(<a href="#73">Inner</a> {
+            parent: <span class="prelude-val">Some</span>(<a href="#87">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            parent_idx: <a href="#88">locked_parent</a>.children.len(),
             children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             is_cancelled: <span class="bool-val">false</span>,
             num_handles: <span class="number">1</span>,
@@ -487,15 +487,15 @@
         waker: tokio::sync::Notify::new(),
     });
 
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#88">locked_parent</a>.children.push(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#106">child</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <a href="#88">locked_parent</a>.children.push(<a href="#106">child</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#106">child</a>
+    <a href="#106">child</a>
 }
 
 <span class="doccomment">/// Disconnects the given parent from all of its children.
 ///
 /// Takes a reference to [Inner] to make sure the parent is already locked.
-</span><span class="kw">fn </span>disconnect_children(node: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>) {
+</span><span class="kw">fn </span>disconnect_children(node: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>) {
     <span class="kw">for </span>child <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>node.children) {
         <span class="kw">let </span><span class="kw-2">mut </span>locked_child = child.inner.lock().unwrap();
         locked_child.parent_idx = <span class="number">0</span>;
@@ -520,17 +520,17 @@
 ///
 /// The locked child and optionally its locked parent, if a parent exists, get passed
 /// to the `func` argument via (node, None) or (node, Some(parent)).
-</span><span class="kw">fn </span>with_locked_node_and_parent&lt;F, Ret&gt;(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;, func: F) -&gt; Ret
+</span><span class="kw">fn </span>with_locked_node_and_parent&lt;F, Ret&gt;(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;, func: F) -&gt; Ret
 <span class="kw">where
-    </span>F: FnOnce(MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>&gt;, <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>&gt;&gt;) -&gt; Ret,
+    </span>F: FnOnce(MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;, <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;&gt;) -&gt; Ret,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>potential_parent = {
-        <span class="kw">let </span>locked_node = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150">node</a>.inner.lock().unwrap();
-        <span class="kw">match </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#155">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="prelude-val">Some</span>(parent) =&gt; <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#157">parent</a>,
+        <span class="kw">let </span>locked_node = <a href="#150">node</a>.inner.lock().unwrap();
+        <span class="kw">match </span><a href="#155">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+            <span class="prelude-val">Some</span>(parent) =&gt; <a href="#157">parent</a>,
             <span class="comment">// If we locked the node and its parent is `None`, we are in a valid state
             // and can return.
-            </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150">func</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#155">locked_node</a>, <span class="prelude-val">None</span>),
+            </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#150">func</a>(<a href="#155">locked_node</a>, <span class="prelude-val">None</span>),
         }
     };
 
@@ -540,31 +540,31 @@
         // Due to invariant #2, we know that we have to lock the parent first, and then the child.
         // This is true even if the potential_parent is no longer the current parent or even its
         // sibling, as the invariant still holds.
-        </span><span class="kw">let </span>locked_parent = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#154">potential_parent</a>.inner.lock().unwrap();
-        <span class="kw">let </span>locked_node = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150">node</a>.inner.lock().unwrap();
+        </span><span class="kw">let </span>locked_parent = <a href="#154">potential_parent</a>.inner.lock().unwrap();
+        <span class="kw">let </span>locked_node = <a href="#150">node</a>.inner.lock().unwrap();
 
-        <span class="kw">let </span>actual_parent = <span class="kw">match </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#171">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="prelude-val">Some</span>(parent) =&gt; <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#174">parent</a>,
+        <span class="kw">let </span>actual_parent = <span class="kw">match </span><a href="#171">locked_node</a>.parent.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+            <span class="prelude-val">Some</span>(parent) =&gt; <a href="#174">parent</a>,
             <span class="comment">// If we locked the node and its parent is `None`, we are in a valid state
             // and can return.
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// Was the wrong parent, so unlock it before calling `func`
-                </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#170">locked_parent</a>);
-                <span class="kw">return </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150">func</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#171">locked_node</a>, <span class="prelude-val">None</span>);
+                </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#170">locked_parent</a>);
+                <span class="kw">return </span><a href="#150">func</a>(<a href="#171">locked_node</a>, <span class="prelude-val">None</span>);
             }
         };
 
         <span class="comment">// Loop until we managed to lock both the node and its parent
         </span><span class="kw">if </span>Arc::ptr_eq(<span class="kw-2">&amp;</span>actual_parent, <span class="kw-2">&amp;</span>potential_parent) {
-            <span class="kw">return </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150">func</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#171">locked_node</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#170">locked_parent</a>));
+            <span class="kw">return </span><a href="#150">func</a>(<a href="#171">locked_node</a>, <span class="prelude-val">Some</span>(<a href="#170">locked_parent</a>));
         }
 
         <span class="comment">// Drop locked_parent before reassigning to potential_parent,
         // as potential_parent is borrowed in it
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#171">locked_node</a>);
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#170">locked_parent</a>);
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#171">locked_node</a>);
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#170">locked_parent</a>);
 
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#154">potential_parent</a> = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#173">actual_parent</a>;
+        <a href="#154">potential_parent</a> = <a href="#173">actual_parent</a>;
     }
 }
 
@@ -573,10 +573,10 @@
 /// `parent` MUST have been a parent of the node when they both got locked,
 /// otherwise there is a potential for a deadlock as invariant #2 would be violated.
 ///
-/// To aquire the locks for node and parent, use [with_locked_node_and_parent].
-</span><span class="kw">fn </span>move_children_to_parent(node: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>, parent: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>) {
+/// To acquire the locks for node and parent, use [with_locked_node_and_parent].
+</span><span class="kw">fn </span>move_children_to_parent(node: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>, parent: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>) {
     <span class="comment">// Pre-allocate in the parent, for performance
-    </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#204">parent</a>.children.reserve(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#204">node</a>.children.len());
+    </span><a href="#204">parent</a>.children.reserve(<a href="#204">node</a>.children.len());
 
     <span class="kw">for </span>child <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>node.children) {
         {
@@ -591,81 +591,81 @@
 <span class="doccomment">/// Removes a child from the parent.
 ///
 /// `parent` MUST be the parent of `node`.
-/// To aquire the locks for node and parent, use [with_locked_node_and_parent].
-</span><span class="kw">fn </span>remove_child(parent: <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>, <span class="kw-2">mut </span>node: MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#73">Inner</a>&gt;) {
+/// To acquire the locks for node and parent, use [with_locked_node_and_parent].
+</span><span class="kw">fn </span>remove_child(parent: <span class="kw-2">&amp;mut </span><a href="#73">Inner</a>, <span class="kw-2">mut </span>node: MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="#73">Inner</a>&gt;) {
     <span class="comment">// Query the position from where to remove a node
-    </span><span class="kw">let </span>pos = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">node</a>.parent_idx;
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">node</a>.parent = <span class="prelude-val">None</span>;
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">node</a>.parent_idx = <span class="number">0</span>;
+    </span><span class="kw">let </span>pos = <a href="#222">node</a>.parent_idx;
+    <a href="#222">node</a>.parent = <span class="prelude-val">None</span>;
+    <a href="#222">node</a>.parent_idx = <span class="number">0</span>;
 
     <span class="comment">// Unlock node, so that only one child at a time is locked.
     // Otherwise we would violate the lock order (see &#39;deadlock safety&#39;) as we
     // don&#39;t know the creation order of the child nodes
-    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">node</a>);
+    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#222">node</a>);
 
     <span class="comment">// If `node` is the last element in the list, we don&#39;t need any swapping
     </span><span class="kw">if </span>parent.children.len() == pos + <span class="number">1 </span>{
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children.pop().unwrap();
+        <a href="#222">parent</a>.children.pop().unwrap();
     } <span class="kw">else </span>{
         <span class="comment">// If `node` is not the last element in the list, we need to
         // replace it with the last element
-        </span><span class="kw">let </span>replacement_child = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children.pop().unwrap();
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#239">replacement_child</a>.inner.lock().unwrap().parent_idx = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#224">pos</a>;
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children[<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#224">pos</a>] = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#239">replacement_child</a>;
+        </span><span class="kw">let </span>replacement_child = <a href="#222">parent</a>.children.pop().unwrap();
+        <a href="#239">replacement_child</a>.inner.lock().unwrap().parent_idx = <a href="#224">pos</a>;
+        <a href="#222">parent</a>.children[<a href="#224">pos</a>] = <a href="#239">replacement_child</a>;
     }
 
-    <span class="kw">let </span>len = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children.len();
+    <span class="kw">let </span>len = <a href="#222">parent</a>.children.len();
     <span class="kw">if </span><span class="number">4 </span>* len &lt;= parent.children.capacity() {
         <span class="comment">// equal to:
         //    parent.children.shrink_to(2 * len);
         // but shrink_to was not yet stabilized in our minimal compatible version
-        </span><span class="kw">let </span>old_children = std::mem::replace(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children, Vec::with_capacity(<span class="number">2 </span>* <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#244">len</a>));
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">parent</a>.children.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#249">old_children</a>);
+        </span><span class="kw">let </span>old_children = std::mem::replace(<span class="kw-2">&amp;mut </span><a href="#222">parent</a>.children, Vec::with_capacity(<span class="number">2 </span>* <a href="#244">len</a>));
+        <a href="#222">parent</a>.children.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#249">old_children</a>);
     }
 }
 
 <span class="doccomment">/// Increases the reference count of handles.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>increase_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#255">node</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>increase_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#255">node</a>.inner.lock().unwrap();
 
     <span class="comment">// Once no handles are left over, the node gets detached from the tree.
     // There should never be a new handle once all handles are dropped.
     </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(locked_node.num_handles &gt; <span class="number">0</span>);
 
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#256">locked_node</a>.num_handles += <span class="number">1</span>;
+    <a href="#256">locked_node</a>.num_handles += <span class="number">1</span>;
 }
 
 <span class="doccomment">/// Decreases the reference count of handles.
 ///
 /// Once no handle is left, we can remove the node from the
 /// tree and connect its parent directly to its children.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decrease_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;) {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decrease_handle_refcount(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
     <span class="kw">let </span>num_handles = {
-        <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#269">node</a>.inner.lock().unwrap();
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#271">locked_node</a>.num_handles -= <span class="number">1</span>;
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#271">locked_node</a>.num_handles
+        <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#269">node</a>.inner.lock().unwrap();
+        <a href="#271">locked_node</a>.num_handles -= <span class="number">1</span>;
+        <a href="#271">locked_node</a>.num_handles
     };
 
     <span class="kw">if </span>num_handles == <span class="number">0 </span>{
-        <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#150-152">with_locked_node_and_parent</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#269">node</a>, |<span class="kw-2">mut </span>node, parent| {
+        <a href="#150-152">with_locked_node_and_parent</a>(<a href="#269">node</a>, |<span class="kw-2">mut </span>node, parent| {
             <span class="comment">// Remove the node from the tree
-            </span><span class="kw">match </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#277">parent</a> {
+            </span><span class="kw">match </span><a href="#277">parent</a> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>parent) =&gt; {
                     <span class="comment">// As we want to remove ourselves from the tree,
                     // we have to move the children to the parent, so that
                     // they still receive the cancellation event without us.
                     // Moving them does not violate invariant #1.
-                    </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#204">move_children_to_parent</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#277">node</a>, <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#280">parent</a>);
+                    </span><a href="#204">move_children_to_parent</a>(<span class="kw-2">&amp;mut </span><a href="#277">node</a>, <span class="kw-2">&amp;mut </span><a href="#280">parent</a>);
 
                     <span class="comment">// Remove the node from the parent
-                    </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#222">remove_child</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#280">parent</a>, <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#277">node</a>);
+                    </span><a href="#222">remove_child</a>(<span class="kw-2">&amp;mut </span><a href="#280">parent</a>, <a href="#277">node</a>);
                 }
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// Due to invariant #1, we can assume that our
                     // children can no longer be cancelled through us.
                     // (as we now have neither a parent nor handles)
                     // Therefore we can disconnect them.
-                    </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#125">disconnect_children</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#277">node</a>);
+                    </span><a href="#125">disconnect_children</a>(<span class="kw-2">&amp;mut </span><a href="#277">node</a>);
                 }
             }
         });
@@ -673,8 +673,8 @@
 }
 
 <span class="doccomment">/// Cancels a node and its children.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cancel(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">TreeNode</a>&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#303">node</a>.inner.lock().unwrap();
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cancel(node: <span class="kw-2">&amp;</span>Arc&lt;<a href="#46">TreeNode</a>&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>locked_node = <a href="#303">node</a>.inner.lock().unwrap();
 
     <span class="kw">if </span>locked_node.is_cancelled {
         <span class="kw">return</span>;
@@ -739,10 +739,10 @@
     </span>}
 
     <span class="comment">// Cancel the node itself.
-    </span><a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#304">locked_node</a>.is_cancelled = <span class="bool-val">true</span>;
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#304">locked_node</a>.children = Vec::new();
-    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#304">locked_node</a>);
-    <a href="../../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#303">node</a>.waker.notify_waiters();
+    </span><a href="#304">locked_node</a>.is_cancelled = <span class="bool-val">true</span>;
+    <a href="#304">locked_node</a>.children = Vec::new();
+    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#304">locked_node</a>);
+    <a href="#303">node</a>.waker.notify_waiters();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

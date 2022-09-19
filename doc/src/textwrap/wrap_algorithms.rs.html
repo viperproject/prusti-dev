@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/wrap_algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrap_algorithms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.1/src/wrap_algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrap_algorithms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -401,7 +401,7 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
 </span><span class="kw">pub use </span>optimal_fit::{wrap_optimal_fit, OverflowError, Penalties};
 
-<span class="kw">use </span><span class="kw">crate</span>::core::{<a href="../../src/textwrap/core.rs.html#197">Fragment</a>, <a href="../../src/textwrap/core.rs.html#215">Word</a>};
+<span class="kw">use </span><span class="kw">crate</span>::core::{<a href="core.rs.html#197">Fragment</a>, <a href="core.rs.html#215">Word</a>};
 
 <span class="doccomment">/// Describes how to wrap words into lines.
 ///
@@ -468,18 +468,18 @@
     </span>Custom(<span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; <span class="kw">fn</span>(words: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;], line_widths: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;]&gt;),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../src/textwrap/wrap_algorithms.rs.html#34">WrapAlgorithm</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="#34">WrapAlgorithm</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/textwrap/wrap_algorithms.rs.html#91">self</a> </span>{
-            <a href="../../src/textwrap/wrap_algorithms.rs.html#40">WrapAlgorithm::FirstFit</a> =&gt; <a href="../../src/textwrap/wrap_algorithms.rs.html#91">f</a>.write_str(<span class="string">&quot;FirstFit&quot;</span>),
+        <span class="kw">match </span><span class="self"><a href="#91">self</a> </span>{
+            <a href="#40">WrapAlgorithm::FirstFit</a> =&gt; <a href="#91">f</a>.write_str(<span class="string">&quot;FirstFit&quot;</span>),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
             </span>WrapAlgorithm::OptimalFit(penalties) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;OptimalFit({:?})&quot;</span>, penalties),
-            <a href="../../src/textwrap/wrap_algorithms.rs.html#87">WrapAlgorithm::Custom</a>(<span class="kw">_</span>) =&gt; <a href="../../src/textwrap/wrap_algorithms.rs.html#91">f</a>.write_str(<span class="string">&quot;Custom(...)&quot;</span>),
+            <a href="#87">WrapAlgorithm::Custom</a>(<span class="kw">_</span>) =&gt; <a href="#91">f</a>.write_str(<span class="string">&quot;Custom(...)&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/textwrap/wrap_algorithms.rs.html#34">WrapAlgorithm</a> {
+<span class="kw">impl </span><a href="#34">WrapAlgorithm</a> {
     <span class="doccomment">/// Create new wrap algorithm.
     ///
     /// The best wrapping algorithm is used by default, i.e.,
@@ -488,7 +488,7 @@
     </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="attribute">#[cfg(not(feature = <span class="string">&quot;smawk&quot;</span>))]
         </span>{
-            <a href="../../src/textwrap/wrap_algorithms.rs.html#40">WrapAlgorithm::FirstFit</a>
+            <a href="#40">WrapAlgorithm::FirstFit</a>
         }
 
         <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
@@ -522,10 +522,10 @@
         // = 9_007_199_254_740_992 can be represented without loss by
         // a f64. Larger line widths will be rounded to the nearest
         // representable number.
-        </span><span class="kw">let </span>f64_line_widths = <a href="../../src/textwrap/wrap_algorithms.rs.html#138">line_widths</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|w| <span class="kw-2">*</span><a href="../../src/textwrap/wrap_algorithms.rs.html#144">w</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        </span><span class="kw">let </span>f64_line_widths = <a href="#138">line_widths</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|w| <span class="kw-2">*</span><a href="#144">w</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="kw">match </span><span class="self"><a href="../../src/textwrap/wrap_algorithms.rs.html#136">self</a> </span>{
-            <a href="../../src/textwrap/wrap_algorithms.rs.html#40">WrapAlgorithm::FirstFit</a> =&gt; <a href="../../src/textwrap/wrap_algorithms.rs.html#315-318">wrap_first_fit</a>(<a href="../../src/textwrap/wrap_algorithms.rs.html#137">words</a>, <span class="kw-2">&amp;</span><a href="../../src/textwrap/wrap_algorithms.rs.html#144">f64_line_widths</a>),
+        <span class="kw">match </span><span class="self"><a href="#136">self</a> </span>{
+            <a href="#40">WrapAlgorithm::FirstFit</a> =&gt; <a href="#315-318">wrap_first_fit</a>(<a href="#137">words</a>, <span class="kw-2">&amp;</span><a href="#144">f64_line_widths</a>),
 
             <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
             </span>WrapAlgorithm::OptimalFit(penalties) =&gt; {
@@ -534,12 +534,12 @@
                 </span>wrap_optimal_fit(words, <span class="kw-2">&amp;</span>f64_line_widths, penalties).unwrap()
             }
 
-            <a href="../../src/textwrap/wrap_algorithms.rs.html#87">WrapAlgorithm::Custom</a>(func) =&gt; <a href="../../src/textwrap/wrap_algorithms.rs.html#156">func</a>(<a href="../../src/textwrap/wrap_algorithms.rs.html#137">words</a>, <a href="../../src/textwrap/wrap_algorithms.rs.html#138">line_widths</a>),
+            <a href="#87">WrapAlgorithm::Custom</a>(func) =&gt; <a href="#156">func</a>(<a href="#137">words</a>, <a href="#138">line_widths</a>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/textwrap/wrap_algorithms.rs.html#34">WrapAlgorithm</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#34">WrapAlgorithm</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         WrapAlgorithm::new()
     }
@@ -693,12 +693,12 @@
 ///
 /// Apologies to anyone who actually knows how to build a house and
 /// knows how long each step takes :-)
-</span><span class="kw">pub fn </span>wrap_first_fit&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T: <a href="../../src/textwrap/core.rs.html#197">Fragment</a>&gt;(
+</span><span class="kw">pub fn </span>wrap_first_fit&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T: <a href="core.rs.html#197">Fragment</a>&gt;(
     fragments: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
     line_widths: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>],
 ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
     <span class="comment">// The final line width is used for all remaining lines.
-    </span><span class="kw">let </span>default_line_width = <a href="../../src/textwrap/wrap_algorithms.rs.html#317">line_widths</a>.last().copied().unwrap_or(<span class="number">0.0</span>);
+    </span><span class="kw">let </span>default_line_width = <a href="#317">line_widths</a>.last().copied().unwrap_or(<span class="number">0.0</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>lines = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0.0</span>;
@@ -715,8 +715,8 @@
         }
         width += fragment.width() + fragment.whitespace_width();
     }
-    <a href="../../src/textwrap/wrap_algorithms.rs.html#321">lines</a>.push(<span class="kw-2">&amp;</span><a href="../../src/textwrap/wrap_algorithms.rs.html#316">fragments</a>[<a href="../../src/textwrap/wrap_algorithms.rs.html#322">start</a>..]);
-    <a href="../../src/textwrap/wrap_algorithms.rs.html#321">lines</a>
+    <a href="#321">lines</a>.push(<span class="kw-2">&amp;</span><a href="#316">fragments</a>[<a href="#322">start</a>..]);
+    <a href="#321">lines</a>
 }
 
 <span class="attribute">#[cfg(test)]
@@ -761,4 +761,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

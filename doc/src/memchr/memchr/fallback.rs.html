@@ -343,7 +343,7 @@
 </span><span class="kw">const </span>USIZE_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
 
 <span class="comment">// The number of bytes to loop at in one iteration of memchr/memrchr.
-</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a>;
+</span><span class="kw">const </span>LOOP_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2 </span>* <a href="#14">USIZE_BYTES</a>;
 
 <span class="doccomment">/// Return `true` if `x` contains any zero byte.
 ///
@@ -357,10 +357,10 @@
     <span class="kw">const </span>LO_U64: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x0101010101010101</span>;
     <span class="kw">const </span>HI_U64: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">0x8080808080808080</span>;
 
-    <span class="kw">const </span>LO_USIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/memchr/memchr/fallback.rs.html#28">LO_U64</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">const </span>HI_USIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/memchr/memchr/fallback.rs.html#29">HI_U64</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">const </span>LO_USIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#28">LO_U64</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">const </span>HI_USIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#29">HI_U64</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <a href="../../../src/memchr/memchr/fallback.rs.html#27">x</a>.wrapping_sub(<a href="../../../src/memchr/memchr/fallback.rs.html#31">LO_USIZE</a>) &amp; !<a href="../../../src/memchr/memchr/fallback.rs.html#27">x</a> &amp; <a href="../../../src/memchr/memchr/fallback.rs.html#32">HI_USIZE</a> != <span class="number">0
+    <a href="#27">x</a>.wrapping_sub(<a href="#31">LO_USIZE</a>) &amp; !<a href="#27">x</a> &amp; <a href="#32">HI_USIZE</a> != <span class="number">0
 </span>}
 
 <span class="doccomment">/// Repeat the given byte into a word size number. That is, every 8 bits
@@ -369,29 +369,29 @@
 /// `01001110_01001110_01001110_01001110`.
 </span><span class="attribute">#[inline(always)]
 </span><span class="kw">fn </span>repeat_byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/memchr/memchr/fallback.rs.html#42">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) * (usize::MAX / <span class="number">255</span>)
+    (<a href="#42">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) * (usize::MAX / <span class="number">255</span>)
 }
 
 <span class="kw">pub fn </span>memchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#46">n1</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#48">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#46">n1</a>;
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../src/memchr/memchr/fallback.rs.html#17">LOOP_SIZE</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#46">haystack</a>.len());
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#46">haystack</a>.as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a>;
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#46">n1</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#48">byte</a> == <a href="#46">n1</a>;
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#17">LOOP_SIZE</a>, <a href="#46">haystack</a>.len());
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#46">haystack</a>.as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#51">start_ptr</a>;
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#46">haystack</a>.len());
+        <span class="kw">let </span>end_ptr = <a href="#51">start_ptr</a>.add(<a href="#46">haystack</a>.len());
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#55">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#48">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#51">start_ptr</a>, <a href="#55">end_ptr</a>, <a href="#52">ptr</a>, <a href="#48">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>chunk = (<a href="#52">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
         <span class="kw">if </span>contains_zero_byte(chunk ^ vn1) {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#55">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#48">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#51">start_ptr</a>, <a href="#55">end_ptr</a>, <a href="#52">ptr</a>, <a href="#48">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a> = <a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - (<a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../src/memchr/memchr/fallback.rs.html#50">align</a>));
+        <a href="#52">ptr</a> = <a href="#52">ptr</a>.add(<a href="#14">USIZE_BYTES</a> - (<a href="#51">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#50">align</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(end_ptr.sub(USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
@@ -406,33 +406,33 @@
             }
             ptr = ptr.add(LOOP_SIZE);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#51">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#55">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#52">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#48">confirm</a>)
+        <a href="#287-292">forward_search</a>(<a href="#51">start_ptr</a>, <a href="#55">end_ptr</a>, <a href="#52">ptr</a>, <a href="#48">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Like `memchr`, but searches for two bytes instead of one.
 </span><span class="kw">pub fn </span>memchr2(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#85">n1</a>);
-    <span class="kw">let </span>vn2 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#85">n2</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#88">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#85">n1</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#88">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#85">n2</a>;
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#85">haystack</a>.as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a>;
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#85">n1</a>);
+    <span class="kw">let </span>vn2 = <a href="#42">repeat_byte</a>(<a href="#85">n2</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#88">byte</a> == <a href="#85">n1</a> || <a href="#88">byte</a> == <a href="#85">n2</a>;
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#85">haystack</a>.as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#90">start_ptr</a>;
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#85">haystack</a>.len());
+        <span class="kw">let </span>end_ptr = <a href="#90">start_ptr</a>.add(<a href="#85">haystack</a>.len());
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#94">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#88">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#90">start_ptr</a>, <a href="#94">end_ptr</a>, <a href="#91">ptr</a>, <a href="#88">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
-        <span class="kw">let </span>eq1 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#99">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#86">vn1</a>);
-        <span class="kw">let </span>eq2 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#99">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#87">vn2</a>);
+        <span class="kw">let </span>chunk = (<a href="#91">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>eq1 = <a href="#27">contains_zero_byte</a>(<a href="#99">chunk</a> ^ <a href="#86">vn1</a>);
+        <span class="kw">let </span>eq2 = <a href="#27">contains_zero_byte</a>(<a href="#99">chunk</a> ^ <a href="#87">vn2</a>);
         <span class="kw">if </span>eq1 || eq2 {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#94">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#88">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#90">start_ptr</a>, <a href="#94">end_ptr</a>, <a href="#91">ptr</a>, <a href="#88">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a> = <a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - (<a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../src/memchr/memchr/fallback.rs.html#89">align</a>));
+        <a href="#91">ptr</a> = <a href="#91">ptr</a>.add(<a href="#14">USIZE_BYTES</a> - (<a href="#90">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#89">align</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(end_ptr.sub(USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">while </span>ptr &lt;= end_ptr.sub(USIZE_BYTES) {
@@ -446,35 +446,35 @@
             }
             ptr = ptr.add(USIZE_BYTES);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#90">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#94">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#91">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#88">confirm</a>)
+        <a href="#287-292">forward_search</a>(<a href="#90">start_ptr</a>, <a href="#94">end_ptr</a>, <a href="#91">ptr</a>, <a href="#88">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Like `memchr`, but searches for three bytes instead of one.
 </span><span class="kw">pub fn </span>memchr3(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#125">n1</a>);
-    <span class="kw">let </span>vn2 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#125">n2</a>);
-    <span class="kw">let </span>vn3 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#125">n3</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#129">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#125">n1</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#129">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#125">n2</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#129">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#125">n3</a>;
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#125">haystack</a>.as_ptr();
-    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a>;
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#125">n1</a>);
+    <span class="kw">let </span>vn2 = <a href="#42">repeat_byte</a>(<a href="#125">n2</a>);
+    <span class="kw">let </span>vn3 = <a href="#42">repeat_byte</a>(<a href="#125">n3</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#129">byte</a> == <a href="#125">n1</a> || <a href="#129">byte</a> == <a href="#125">n2</a> || <a href="#129">byte</a> == <a href="#125">n3</a>;
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#125">haystack</a>.as_ptr();
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#131">start_ptr</a>;
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#125">haystack</a>.len());
+        <span class="kw">let </span>end_ptr = <a href="#131">start_ptr</a>.add(<a href="#125">haystack</a>.len());
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#135">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#129">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#131">start_ptr</a>, <a href="#135">end_ptr</a>, <a href="#132">ptr</a>, <a href="#129">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
-        <span class="kw">let </span>eq1 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#140">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#126">vn1</a>);
-        <span class="kw">let </span>eq2 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#140">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#127">vn2</a>);
-        <span class="kw">let </span>eq3 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#140">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#128">vn3</a>);
+        <span class="kw">let </span>chunk = (<a href="#132">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>eq1 = <a href="#27">contains_zero_byte</a>(<a href="#140">chunk</a> ^ <a href="#126">vn1</a>);
+        <span class="kw">let </span>eq2 = <a href="#27">contains_zero_byte</a>(<a href="#140">chunk</a> ^ <a href="#127">vn2</a>);
+        <span class="kw">let </span>eq3 = <a href="#27">contains_zero_byte</a>(<a href="#140">chunk</a> ^ <a href="#128">vn3</a>);
         <span class="kw">if </span>eq1 || eq2 || eq3 {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#135">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#129">confirm</a>);
+            <span class="kw">return </span><a href="#287-292">forward_search</a>(<a href="#131">start_ptr</a>, <a href="#135">end_ptr</a>, <a href="#132">ptr</a>, <a href="#129">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a> = <a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - (<a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="../../../src/memchr/memchr/fallback.rs.html#130">align</a>));
+        <a href="#132">ptr</a> = <a href="#132">ptr</a>.add(<a href="#14">USIZE_BYTES</a> - (<a href="#131">start_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; <a href="#130">align</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(ptr &gt; start_ptr);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(end_ptr.sub(USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">while </span>ptr &lt;= end_ptr.sub(USIZE_BYTES) {
@@ -489,31 +489,31 @@
             }
             ptr = ptr.add(USIZE_BYTES);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#287-292">forward_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#131">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#135">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#132">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#129">confirm</a>)
+        <a href="#287-292">forward_search</a>(<a href="#131">start_ptr</a>, <a href="#135">end_ptr</a>, <a href="#132">ptr</a>, <a href="#129">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Return the last index matching the byte `x` in `text`.
 </span><span class="kw">pub fn </span>memrchr(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#168">n1</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#170">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#168">n1</a>;
-    <span class="kw">let </span>loop_size = cmp::min(<a href="../../../src/memchr/memchr/fallback.rs.html#17">LOOP_SIZE</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#168">haystack</a>.len());
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#168">haystack</a>.as_ptr();
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#168">n1</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#170">byte</a> == <a href="#168">n1</a>;
+    <span class="kw">let </span>loop_size = cmp::min(<a href="#17">LOOP_SIZE</a>, <a href="#168">haystack</a>.len());
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#168">haystack</a>.as_ptr();
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#173">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#168">haystack</a>.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#176">end_ptr</a>;
+        <span class="kw">let </span>end_ptr = <a href="#173">start_ptr</a>.add(<a href="#168">haystack</a>.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#176">end_ptr</a>;
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#173">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#176">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#177">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#170">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#173">start_ptr</a>, <a href="#176">end_ptr</a>, <a href="#177">ptr</a>, <a href="#170">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#177">ptr</a>.sub(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>chunk = (<a href="#177">ptr</a>.sub(<a href="#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
         <span class="kw">if </span>contains_zero_byte(chunk ^ vn1) {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#173">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#176">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#177">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#170">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#173">start_ptr</a>, <a href="#176">end_ptr</a>, <a href="#177">ptr</a>, <a href="#170">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#177">ptr</a> = (<a href="../../../src/memchr/memchr/fallback.rs.html#176">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../src/memchr/memchr/fallback.rs.html#172">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        <a href="#177">ptr</a> = (<a href="#176">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#172">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
             <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % USIZE_BYTES);
@@ -527,33 +527,33 @@
             }
             ptr = ptr.sub(loop_size);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#173">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#176">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#177">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#170">confirm</a>)
+        <a href="#306-311">reverse_search</a>(<a href="#173">start_ptr</a>, <a href="#176">end_ptr</a>, <a href="#177">ptr</a>, <a href="#170">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Like `memrchr`, but searches for two bytes instead of one.
 </span><span class="kw">pub fn </span>memrchr2(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#206">n1</a>);
-    <span class="kw">let </span>vn2 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#206">n2</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#209">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#206">n1</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#209">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#206">n2</a>;
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#206">haystack</a>.as_ptr();
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#206">n1</a>);
+    <span class="kw">let </span>vn2 = <a href="#42">repeat_byte</a>(<a href="#206">n2</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#209">byte</a> == <a href="#206">n1</a> || <a href="#209">byte</a> == <a href="#206">n2</a>;
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#206">haystack</a>.as_ptr();
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#211">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#206">haystack</a>.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#214">end_ptr</a>;
+        <span class="kw">let </span>end_ptr = <a href="#211">start_ptr</a>.add(<a href="#206">haystack</a>.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#214">end_ptr</a>;
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#211">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#214">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#215">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#209">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#211">start_ptr</a>, <a href="#214">end_ptr</a>, <a href="#215">ptr</a>, <a href="#209">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#215">ptr</a>.sub(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
-        <span class="kw">let </span>eq1 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#220">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#207">vn1</a>);
-        <span class="kw">let </span>eq2 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#220">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#208">vn2</a>);
+        <span class="kw">let </span>chunk = (<a href="#215">ptr</a>.sub(<a href="#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>eq1 = <a href="#27">contains_zero_byte</a>(<a href="#220">chunk</a> ^ <a href="#207">vn1</a>);
+        <span class="kw">let </span>eq2 = <a href="#27">contains_zero_byte</a>(<a href="#220">chunk</a> ^ <a href="#208">vn2</a>);
         <span class="kw">if </span>eq1 || eq2 {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#211">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#214">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#215">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#209">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#211">start_ptr</a>, <a href="#214">end_ptr</a>, <a href="#215">ptr</a>, <a href="#209">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#215">ptr</a> = (<a href="../../../src/memchr/memchr/fallback.rs.html#214">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../src/memchr/memchr/fallback.rs.html#210">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        <a href="#215">ptr</a> = (<a href="#214">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#210">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
         <span class="kw">while </span>ptr &gt;= start_ptr.add(USIZE_BYTES) {
             <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % USIZE_BYTES);
@@ -566,35 +566,35 @@
             }
             ptr = ptr.sub(USIZE_BYTES);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#211">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#214">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#215">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#209">confirm</a>)
+        <a href="#306-311">reverse_search</a>(<a href="#211">start_ptr</a>, <a href="#214">end_ptr</a>, <a href="#215">ptr</a>, <a href="#209">confirm</a>)
     }
 }
 
 <span class="doccomment">/// Like `memrchr`, but searches for three bytes instead of one.
 </span><span class="kw">pub fn </span>memrchr3(n1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, n3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <span class="kw">let </span>vn1 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#245">n1</a>);
-    <span class="kw">let </span>vn2 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#245">n2</a>);
-    <span class="kw">let </span>vn3 = <a href="../../../src/memchr/memchr/fallback.rs.html#42">repeat_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#245">n3</a>);
-    <span class="kw">let </span>confirm = |byte| <a href="../../../src/memchr/memchr/fallback.rs.html#249">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#245">n1</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#249">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#245">n2</a> || <a href="../../../src/memchr/memchr/fallback.rs.html#249">byte</a> == <a href="../../../src/memchr/memchr/fallback.rs.html#245">n3</a>;
-    <span class="kw">let </span>align = <a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a> - <span class="number">1</span>;
-    <span class="kw">let </span>start_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#245">haystack</a>.as_ptr();
+    <span class="kw">let </span>vn1 = <a href="#42">repeat_byte</a>(<a href="#245">n1</a>);
+    <span class="kw">let </span>vn2 = <a href="#42">repeat_byte</a>(<a href="#245">n2</a>);
+    <span class="kw">let </span>vn3 = <a href="#42">repeat_byte</a>(<a href="#245">n3</a>);
+    <span class="kw">let </span>confirm = |byte| <a href="#249">byte</a> == <a href="#245">n1</a> || <a href="#249">byte</a> == <a href="#245">n2</a> || <a href="#249">byte</a> == <a href="#245">n3</a>;
+    <span class="kw">let </span>align = <a href="#14">USIZE_BYTES</a> - <span class="number">1</span>;
+    <span class="kw">let </span>start_ptr = <a href="#245">haystack</a>.as_ptr();
 
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>end_ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#251">start_ptr</a>.add(<a href="../../../src/memchr/memchr/fallback.rs.html#245">haystack</a>.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../src/memchr/memchr/fallback.rs.html#254">end_ptr</a>;
+        <span class="kw">let </span>end_ptr = <a href="#251">start_ptr</a>.add(<a href="#245">haystack</a>.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="#254">end_ptr</a>;
         <span class="kw">if </span>haystack.len() &lt; USIZE_BYTES {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#251">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#254">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#255">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#249">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#251">start_ptr</a>, <a href="#254">end_ptr</a>, <a href="#255">ptr</a>, <a href="#249">confirm</a>);
         }
 
-        <span class="kw">let </span>chunk = (<a href="../../../src/memchr/memchr/fallback.rs.html#255">ptr</a>.sub(<a href="../../../src/memchr/memchr/fallback.rs.html#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
-        <span class="kw">let </span>eq1 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#260">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#246">vn1</a>);
-        <span class="kw">let </span>eq2 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#260">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#247">vn2</a>);
-        <span class="kw">let </span>eq3 = <a href="../../../src/memchr/memchr/fallback.rs.html#27">contains_zero_byte</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#260">chunk</a> ^ <a href="../../../src/memchr/memchr/fallback.rs.html#248">vn3</a>);
+        <span class="kw">let </span>chunk = (<a href="#255">ptr</a>.sub(<a href="#14">USIZE_BYTES</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).read_unaligned();
+        <span class="kw">let </span>eq1 = <a href="#27">contains_zero_byte</a>(<a href="#260">chunk</a> ^ <a href="#246">vn1</a>);
+        <span class="kw">let </span>eq2 = <a href="#27">contains_zero_byte</a>(<a href="#260">chunk</a> ^ <a href="#247">vn2</a>);
+        <span class="kw">let </span>eq3 = <a href="#27">contains_zero_byte</a>(<a href="#260">chunk</a> ^ <a href="#248">vn3</a>);
         <span class="kw">if </span>eq1 || eq2 || eq3 {
-            <span class="kw">return </span><a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#251">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#254">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#255">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#249">confirm</a>);
+            <span class="kw">return </span><a href="#306-311">reverse_search</a>(<a href="#251">start_ptr</a>, <a href="#254">end_ptr</a>, <a href="#255">ptr</a>, <a href="#249">confirm</a>);
         }
 
-        <a href="../../../src/memchr/memchr/fallback.rs.html#255">ptr</a> = (<a href="../../../src/memchr/memchr/fallback.rs.html#254">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="../../../src/memchr/memchr/fallback.rs.html#250">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        <a href="#255">ptr</a> = (<a href="#254">end_ptr</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> &amp; !<a href="#250">align</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
         <span class="kw">while </span>ptr &gt;= start_ptr.add(USIZE_BYTES) {
             <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % USIZE_BYTES);
@@ -608,7 +608,7 @@
             }
             ptr = ptr.sub(USIZE_BYTES);
         }
-        <a href="../../../src/memchr/memchr/fallback.rs.html#306-311">reverse_search</a>(<a href="../../../src/memchr/memchr/fallback.rs.html#251">start_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#254">end_ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#255">ptr</a>, <a href="../../../src/memchr/memchr/fallback.rs.html#249">confirm</a>)
+        <a href="#306-311">reverse_search</a>(<a href="#251">start_ptr</a>, <a href="#254">end_ptr</a>, <a href="#255">ptr</a>, <a href="#249">confirm</a>)
     }
 }
 
@@ -654,7 +654,7 @@
 /// or equal to `b`.
 </span><span class="kw">fn </span>sub(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
-    (<a href="../../../src/memchr/memchr/fallback.rs.html#326">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="../../../src/memchr/memchr/fallback.rs.html#326">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    (<a href="#326">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="#326">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/pat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/pat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -922,11 +922,14 @@
 <span id="922">922</span>
 <span id="923">923</span>
 <span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../src/syn/punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
+<span class="kw">use </span><a href="punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
 <span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
 
-<a class="macro" href="../../src/syn/macros.rs.html#59-68">ast_enum_of_structs! </a>{
+<a class="macro" href="macros.rs.html#59-68">ast_enum_of_structs! </a>{
     <span class="doccomment">/// A pattern in a local binding, function signature, match expression, or
     /// various other places.
     ///
@@ -941,22 +944,22 @@
     #[cfg_attr(not(syn_no_non_exhaustive), non_exhaustive)]
     </span><span class="kw">pub enum </span>Pat {
         <span class="doccomment">/// A box pattern: `box v`.
-        </span>Box(<a href="../../src/syn/pat.rs.html#100-110">PatBox</a>),
+        </span>Box(<a href="#100-110">PatBox</a>),
 
         <span class="doccomment">/// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.
-        </span>Ident(<a href="../../src/syn/pat.rs.html#112-127">PatIdent</a>),
+        </span>Ident(<a href="#112-127">PatIdent</a>),
 
         <span class="doccomment">/// A literal pattern: `0`.
         ///
         /// This holds an `Expr` rather than a `Lit` because negative numbers
         /// are represented as an `Expr::Unary`.
-        </span>Lit(<a href="../../src/syn/pat.rs.html#129-141">PatLit</a>),
+        </span>Lit(<a href="#129-141">PatLit</a>),
 
         <span class="doccomment">/// A macro in pattern position.
-        </span>Macro(<a href="../../src/syn/pat.rs.html#143-152">PatMacro</a>),
+        </span>Macro(<a href="#143-152">PatMacro</a>),
 
         <span class="doccomment">/// A pattern that matches any one of a set of cases.
-        </span>Or(<a href="../../src/syn/pat.rs.html#154-164">PatOr</a>),
+        </span>Or(<a href="#154-164">PatOr</a>),
 
         <span class="doccomment">/// A path pattern like `Color::Red`, optionally qualified with a
         /// self-type.
@@ -965,37 +968,37 @@
         /// constants or associated constants. Qualified path patterns like
         /// `&lt;A&gt;::B::C` and `&lt;A as Trait&gt;::B::C` can only legally refer to
         /// associated constants.
-        </span>Path(<a href="../../src/syn/pat.rs.html#166-182">PatPath</a>),
+        </span>Path(<a href="#166-182">PatPath</a>),
 
         <span class="doccomment">/// A range pattern: `1..=2`.
-        </span>Range(<a href="../../src/syn/pat.rs.html#184-195">PatRange</a>),
+        </span>Range(<a href="#184-195">PatRange</a>),
 
         <span class="doccomment">/// A reference pattern: `&amp;mut var`.
-        </span>Reference(<a href="../../src/syn/pat.rs.html#197-208">PatReference</a>),
+        </span>Reference(<a href="#197-208">PatReference</a>),
 
         <span class="doccomment">/// The dots in a tuple or slice pattern: `[0, 1, ..]`
-        </span>Rest(<a href="../../src/syn/pat.rs.html#210-219">PatRest</a>),
+        </span>Rest(<a href="#210-219">PatRest</a>),
 
         <span class="doccomment">/// A dynamically sized slice pattern: `[a, b, ref i @ .., y, z]`.
-        </span>Slice(<a href="../../src/syn/pat.rs.html#221-231">PatSlice</a>),
+        </span>Slice(<a href="#221-231">PatSlice</a>),
 
         <span class="doccomment">/// A struct or struct variant pattern: `Variant { x, y, .. }`.
-        </span>Struct(<a href="../../src/syn/pat.rs.html#233-245">PatStruct</a>),
+        </span>Struct(<a href="#233-245">PatStruct</a>),
 
         <span class="doccomment">/// A tuple pattern: `(a, b)`.
-        </span>Tuple(<a href="../../src/syn/pat.rs.html#247-257">PatTuple</a>),
+        </span>Tuple(<a href="#247-257">PatTuple</a>),
 
         <span class="doccomment">/// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.
-        </span>TupleStruct(<a href="../../src/syn/pat.rs.html#259-269">PatTupleStruct</a>),
+        </span>TupleStruct(<a href="#259-269">PatTupleStruct</a>),
 
         <span class="doccomment">/// A type ascription pattern: `foo: f64`.
-        </span>Type(<a href="../../src/syn/pat.rs.html#271-282">PatType</a>),
+        </span>Type(<a href="#271-282">PatType</a>),
 
         <span class="doccomment">/// Tokens in pattern position not interpreted by Syn.
         </span>Verbatim(<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>),
 
         <span class="doccomment">/// A pattern that matches any value: `_`.
-        </span>Wild(<a href="../../src/syn/pat.rs.html#284-293">PatWild</a>),
+        </span>Wild(<a href="#284-293">PatWild</a>),
 
         <span class="comment">// Not public API.
         //
@@ -1027,9 +1030,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatBox {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>box_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">box</span>],
-        <span class="kw">pub </span>pat: Box&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>box_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">box</span>],
+        <span class="kw">pub </span>pat: Box&lt;<a href="#5-98">Pat</a>&gt;,
     }
 }
 
@@ -1042,11 +1045,11 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatIdent {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>by_ref: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">ref</span>]&gt;,
-        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>by_ref: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">ref</span>]&gt;,
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
         <span class="kw">pub </span>ident: <a href="../../syn/struct.Ident.html">Ident</a>,
-        <span class="kw">pub </span>subpat: <span class="prelude-ty">Option</span>&lt;(<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[@], Box&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt;)&gt;,
+        <span class="kw">pub </span>subpat: <span class="prelude-ty">Option</span>&lt;(<a class="macro" href="await.rs.html#2">Token!</a>[@], Box&lt;<a href="#5-98">Pat</a>&gt;)&gt;,
     }
 }
 
@@ -1059,8 +1062,8 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatLit {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>expr: Box&lt;<a href="../../src/syn/expr.rs.html#14-250">Expr</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>expr: Box&lt;<a href="expr.rs.html#14-250">Expr</a>&gt;,
     }
 }
 
@@ -1070,8 +1073,8 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatMacro {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>mac: <a href="../../src/syn/mac.rs.html#10-22">Macro</a>,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>mac: <a href="mac.rs.html#10-22">Macro</a>,
     }
 }
 
@@ -1081,9 +1084,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatOr {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[|]&gt;,
-        <span class="kw">pub </span>cases: Punctuated&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[|]&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[|]&gt;,
+        <span class="kw">pub </span>cases: Punctuated&lt;<a href="#5-98">Pat</a>, <a class="macro" href="await.rs.html#2">Token!</a>[|]&gt;,
     }
 }
 
@@ -1099,9 +1102,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatPath {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>qself: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/path.rs.html#182-210">QSelf</a>&gt;,
-        <span class="kw">pub </span>path: <a href="../../src/syn/path.rs.html#4-14">Path</a>,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>qself: <span class="prelude-ty">Option</span>&lt;<a href="path.rs.html#182-210">QSelf</a>&gt;,
+        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
     }
 }
 
@@ -1111,10 +1114,10 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatRange {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>lo: Box&lt;<a href="../../src/syn/expr.rs.html#14-250">Expr</a>&gt;,
-        <span class="kw">pub </span>limits: <a href="../../src/syn/expr.rs.html#1061-1072">RangeLimits</a>,
-        <span class="kw">pub </span>hi: Box&lt;<a href="../../src/syn/expr.rs.html#14-250">Expr</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>lo: Box&lt;<a href="expr.rs.html#14-250">Expr</a>&gt;,
+        <span class="kw">pub </span>limits: <a href="expr.rs.html#1061-1072">RangeLimits</a>,
+        <span class="kw">pub </span>hi: Box&lt;<a href="expr.rs.html#14-250">Expr</a>&gt;,
     }
 }
 
@@ -1124,10 +1127,10 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatReference {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>and_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">&amp;</span>],
-        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
-        <span class="kw">pub </span>pat: Box&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>and_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">&amp;</span>],
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>pat: Box&lt;<a href="#5-98">Pat</a>&gt;,
     }
 }
 
@@ -1137,8 +1140,8 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatRest {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>dot2_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[..],
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>dot2_token: <a class="macro" href="await.rs.html#2">Token!</a>[..],
     }
 }
 
@@ -1148,9 +1151,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatSlice {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>bracket_token: <a href="../../src/syn/token.rs.html#756-761">token::Bracket</a>,
-        <span class="kw">pub </span>elems: Punctuated&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>bracket_token: <a href="token.rs.html#756-761">token::Bracket</a>,
+        <span class="kw">pub </span>elems: Punctuated&lt;<a href="#5-98">Pat</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
     }
 }
 
@@ -1160,11 +1163,11 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatStruct {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>path: <a href="../../src/syn/path.rs.html#4-14">Path</a>,
-        <span class="kw">pub </span>brace_token: <a href="../../src/syn/token.rs.html#756-761">token::Brace</a>,
-        <span class="kw">pub </span>fields: Punctuated&lt;<a href="../../src/syn/pat.rs.html#295-309">FieldPat</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;,
-        <span class="kw">pub </span>dot2_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[..]&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
+        <span class="kw">pub </span>brace_token: <a href="token.rs.html#756-761">token::Brace</a>,
+        <span class="kw">pub </span>fields: Punctuated&lt;<a href="#295-309">FieldPat</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>dot2_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[..]&gt;,
     }
 }
 
@@ -1174,9 +1177,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatTuple {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>paren_token: <a href="../../src/syn/token.rs.html#756-761">token::Paren</a>,
-        <span class="kw">pub </span>elems: Punctuated&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>paren_token: <a href="token.rs.html#756-761">token::Paren</a>,
+        <span class="kw">pub </span>elems: Punctuated&lt;<a href="#5-98">Pat</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
     }
 }
 
@@ -1186,9 +1189,9 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatTupleStruct {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>path: <a href="../../src/syn/path.rs.html#4-14">Path</a>,
-        <span class="kw">pub </span>pat: <a href="../../src/syn/pat.rs.html#247-257">PatTuple</a>,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
+        <span class="kw">pub </span>pat: <a href="#247-257">PatTuple</a>,
     }
 }
 
@@ -1198,10 +1201,10 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatType {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>pat: Box&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt;,
-        <span class="kw">pub </span>colon_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[:],
-        <span class="kw">pub </span>ty: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>pat: Box&lt;<a href="#5-98">Pat</a>&gt;,
+        <span class="kw">pub </span>colon_token: <a class="macro" href="await.rs.html#2">Token!</a>[:],
+        <span class="kw">pub </span>ty: Box&lt;<a href="ty.rs.html#5-89">Type</a>&gt;,
     }
 }
 
@@ -1211,8 +1214,8 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>PatWild {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>underscore_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">_</span>],
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>underscore_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">_</span>],
     }
 }
 
@@ -1225,25 +1228,25 @@
     /// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;full&quot;</span>)))]
     </span><span class="kw">pub struct </span>FieldPat {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>member: <a href="../../src/syn/expr.rs.html#844-857">Member</a>,
-        <span class="kw">pub </span>colon_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[:]&gt;,
-        <span class="kw">pub </span>pat: Box&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt;,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>member: <a href="expr.rs.html#844-857">Member</a>,
+        <span class="kw">pub </span>colon_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[:]&gt;,
+        <span class="kw">pub </span>pat: Box&lt;<a href="#5-98">Pat</a>&gt;,
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">pub mod </span>parsing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/ext.rs.html#18"><span class="kw">crate</span>::ext::IdentExt</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="../../src/syn/parse.rs.html#220">Parse</a>, <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>, <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
-    <span class="kw">use </span><a href="../../src/syn/lib.rs.html#420"><span class="kw">crate</span>::path</a>;
+    <span class="kw">use </span><a href="ext.rs.html#18"><span class="kw">crate</span>::ext::IdentExt</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#252">ParseBuffer</a>, <a href="parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span><a href="lib.rs.html#421"><span class="kw">crate</span>::path</a>;
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#5-98">Pat</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>begin = <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">let </span>lookahead = <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#788">lookahead1</a>();
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#5-98">Pat</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>begin = <a href="#320">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">let </span>lookahead = <a href="#320">input</a>.<a href="parse.rs.html#788">lookahead1</a>();
             <span class="kw">if </span>{
                 <span class="kw">let </span>ahead = input.fork();
                 ahead.parse::&lt;<span class="prelude-ty">Option</span>&lt;Ident&gt;&gt;()<span class="question-mark">?</span>.is_some()
@@ -1263,38 +1266,38 @@
                 || input.peek(<span class="macro">Token!</span>[<span class="kw">super</span>])
                 || input.peek(<span class="macro">Token!</span>[<span class="kw">crate</span>])
             {
-                <a href="../../src/syn/pat.rs.html#372">pat_path_or_macro_or_struct_or_range</a>(<a href="../../src/syn/pat.rs.html#320">input</a>)
+                <a href="#372">pat_path_or_macro_or_struct_or_range</a>(<a href="#320">input</a>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">_</span>]) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#427">pat_wild</a>).map(<a href="../../src/syn/pat.rs.html#74">Pat::Wild</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#427">pat_wild</a>).map(<a href="#74">Pat::Wild</a>)
             } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[<span class="kw">box</span>]) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#434">pat_box</a>).map(<a href="../../src/syn/pat.rs.html#20">Pat::Box</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#434">pat_box</a>).map(<a href="#20">Pat::Box</a>)
             } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[-]) || lookahead.peek(Lit) || lookahead.peek(<span class="macro">Token!</span>[<span class="kw">const</span>])
             {
-                <a href="../../src/syn/pat.rs.html#625">pat_lit_or_range</a>(<a href="../../src/syn/pat.rs.html#320">input</a>)
+                <a href="#628">pat_lit_or_range</a>(<a href="#320">input</a>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">ref</span>])
                 || lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">mut</span>])
                 || input.peek(<span class="macro">Token!</span>[<span class="self">self</span>])
                 || input.peek(Ident)
             {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#442">pat_ident</a>).map(<a href="../../src/syn/pat.rs.html#23">Pat::Ident</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#442">pat_ident</a>).map(<a href="#23">Pat::Ident</a>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#616">pat_reference</a>).map(<a href="../../src/syn/pat.rs.html#50">Pat::Reference</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#619">pat_reference</a>).map(<a href="#50">Pat::Reference</a>)
             } <span class="kw">else if </span>lookahead.peek(token::Paren) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#594">pat_tuple</a>).map(<a href="../../src/syn/pat.rs.html#62">Pat::Tuple</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#597">pat_tuple</a>).map(<a href="#62">Pat::Tuple</a>)
             } <span class="kw">else if </span>lookahead.peek(token::Bracket) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#693">pat_slice</a>).map(<a href="../../src/syn/pat.rs.html#56">Pat::Slice</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#696">pat_slice</a>).map(<a href="#56">Pat::Slice</a>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[..]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[...]) {
-                <a href="../../src/syn/pat.rs.html#578">pat_range_half_open</a>(<a href="../../src/syn/pat.rs.html#320">input</a>, <a href="../../src/syn/pat.rs.html#321">begin</a>)
+                <a href="#581">pat_range_half_open</a>(<a href="#320">input</a>, <a href="#321">begin</a>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">const</span>]) {
-                <a href="../../src/syn/pat.rs.html#320">input</a>.<a href="../../src/syn/parse.rs.html#507">call</a>(<a href="../../src/syn/pat.rs.html#715">pat_const</a>).map(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>)
+                <a href="#320">input</a>.<a href="parse.rs.html#507">call</a>(<a href="#718">pat_const</a>).map(<a href="#71">Pat::Verbatim</a>)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="../../src/syn/pat.rs.html#322">lookahead</a>.<a href="../../src/syn/lookahead.rs.html#112">error</a>())
+                <span class="prelude-val">Err</span>(<a href="#322">lookahead</a>.<a href="lookahead.rs.html#112">error</a>())
             }
         }
     }
 
-    <span class="kw">fn </span>pat_path_or_macro_or_struct_or_range(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span>begin = <a href="../../src/syn/pat.rs.html#372">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
+    <span class="kw">fn </span>pat_path_or_macro_or_struct_or_range(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span>begin = <a href="#372">input</a>.<a href="parse.rs.html#918">fork</a>();
         <span class="kw">let </span>(qself, path) = path::parsing::qpath(input, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>qself.is_none() &amp;&amp; input.peek(<span class="macro">Token!</span>[!]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[!=]) {
@@ -1309,71 +1312,71 @@
             }
 
             <span class="kw">if </span>!contains_arguments {
-                <span class="kw">let </span>bang_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[!] = input.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>bang_token: <a class="macro" href="await.rs.html#2">Token!</a>[!] = input.parse()<span class="question-mark">?</span>;
                 <span class="kw">let </span>(delimiter, tokens) = mac::parse_delimiter(input)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#32">Pat::Macro</a>(<a href="../../src/syn/pat.rs.html#143-152">PatMacro</a> {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#32">Pat::Macro</a>(<a href="#143-152">PatMacro</a> {
                     attrs: Vec::new(),
-                    mac: <a href="../../src/syn/mac.rs.html#10-22">Macro</a> {
-                        <a href="../../src/syn/pat.rs.html#374">path</a>,
-                        <a href="../../src/syn/pat.rs.html#388">bang_token</a>,
-                        <a href="../../src/syn/pat.rs.html#389">delimiter</a>,
-                        <a href="../../src/syn/pat.rs.html#389">tokens</a>,
+                    mac: <a href="mac.rs.html#10-22">Macro</a> {
+                        <a href="#374">path</a>,
+                        <a href="#388">bang_token</a>,
+                        <a href="#389">delimiter</a>,
+                        <a href="#389">tokens</a>,
                     },
                 }));
             }
         }
 
         <span class="kw">if </span>input.peek(token::Brace) {
-            <span class="kw">let </span>pat = pat_struct(input, path)<span class="question-mark">?</span>;
+            <span class="kw">let </span>pat = pat_struct(begin.fork(), input, path)<span class="question-mark">?</span>;
             <span class="kw">if </span>qself.is_some() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#373">begin</a>, <a href="../../src/syn/pat.rs.html#372">input</a>)))
+                <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#373">begin</a>, <a href="#372">input</a>)))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#59">Pat::Struct</a>(<a href="../../src/syn/pat.rs.html#403">pat</a>))
+                <span class="prelude-val">Ok</span>(<a href="#403">pat</a>)
             }
         } <span class="kw">else if </span>input.peek(token::Paren) {
             <span class="kw">let </span>pat = pat_tuple_struct(input, path)<span class="question-mark">?</span>;
             <span class="kw">if </span>qself.is_some() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#373">begin</a>, <a href="../../src/syn/pat.rs.html#372">input</a>)))
+                <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#373">begin</a>, <a href="#372">input</a>)))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#65">Pat::TupleStruct</a>(<a href="../../src/syn/pat.rs.html#410">pat</a>))
+                <span class="prelude-val">Ok</span>(<a href="#65">Pat::TupleStruct</a>(<a href="#410">pat</a>))
             }
         } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[..]) {
-            <a href="../../src/syn/pat.rs.html#554-559">pat_range</a>(<a href="../../src/syn/pat.rs.html#372">input</a>, <a href="../../src/syn/pat.rs.html#373">begin</a>, <a href="../../src/syn/pat.rs.html#374">qself</a>, <a href="../../src/syn/pat.rs.html#374">path</a>)
+            <a href="#557-562">pat_range</a>(<a href="#372">input</a>, <a href="#373">begin</a>, <a href="#374">qself</a>, <a href="#374">path</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#44">Pat::Path</a>(<a href="../../src/syn/pat.rs.html#166-182">PatPath</a> {
+            <span class="prelude-val">Ok</span>(<a href="#44">Pat::Path</a>(<a href="#166-182">PatPath</a> {
                 attrs: Vec::new(),
-                <a href="../../src/syn/pat.rs.html#374">qself</a>,
-                <a href="../../src/syn/pat.rs.html#374">path</a>,
+                <a href="#374">qself</a>,
+                <a href="#374">path</a>,
             }))
         }
     }
 
-    <span class="kw">fn </span>pat_wild(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#284-293">PatWild</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#284-293">PatWild</a> {
+    <span class="kw">fn </span>pat_wild(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#284-293">PatWild</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#284-293">PatWild</a> {
             attrs: Vec::new(),
             underscore_token: input.parse()<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn </span>pat_box(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#100-110">PatBox</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#100-110">PatBox</a> {
+    <span class="kw">fn </span>pat_box(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#100-110">PatBox</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#100-110">PatBox</a> {
             attrs: Vec::new(),
             box_token: input.parse()<span class="question-mark">?</span>,
             pat: input.parse()<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn </span>pat_ident(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#112-127">PatIdent</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#112-127">PatIdent</a> {
+    <span class="kw">fn </span>pat_ident(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#112-127">PatIdent</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#112-127">PatIdent</a> {
             attrs: Vec::new(),
             by_ref: input.parse()<span class="question-mark">?</span>,
             mutability: input.parse()<span class="question-mark">?</span>,
             ident: input.call(Ident::parse_any)<span class="question-mark">?</span>,
             subpat: {
                 <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[@]) {
-                    <span class="kw">let </span>at_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[@] = input.parse()<span class="question-mark">?</span>;
-                    <span class="kw">let </span>subpat: <a href="../../src/syn/pat.rs.html#5-98">Pat</a> = input.parse()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Some</span>((<a href="../../src/syn/pat.rs.html#450">at_token</a>, Box::new(<a href="../../src/syn/pat.rs.html#451">subpat</a>)))
+                    <span class="kw">let </span>at_token: <a class="macro" href="await.rs.html#2">Token!</a>[@] = input.parse()<span class="question-mark">?</span>;
+                    <span class="kw">let </span>subpat: <a href="#5-98">Pat</a> = input.parse()<span class="question-mark">?</span>;
+                    <span class="prelude-val">Some</span>((<a href="#450">at_token</a>, Box::new(<a href="#451">subpat</a>)))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -1381,21 +1384,31 @@
         })
     }
 
-    <span class="kw">fn </span>pat_tuple_struct(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, path: <a href="../../src/syn/path.rs.html#4-14">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#259-269">PatTupleStruct</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#259-269">PatTupleStruct</a> {
+    <span class="kw">fn </span>pat_tuple_struct(input: <a href="parse.rs.html#230">ParseStream</a>, path: <a href="path.rs.html#4-14">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#259-269">PatTupleStruct</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#259-269">PatTupleStruct</a> {
             attrs: Vec::new(),
-            <a href="../../src/syn/pat.rs.html#460">path</a>,
+            <a href="#460">path</a>,
             pat: input.call(pat_tuple)<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn </span>pat_struct(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, path: <a href="../../src/syn/path.rs.html#4-14">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#233-245">PatStruct</a>&gt; {
+    <span class="kw">fn </span>pat_struct(begin: <a href="parse.rs.html#252">ParseBuffer</a>, input: <a href="parse.rs.html#230">ParseStream</a>, path: <a href="path.rs.html#4-14">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
         <span class="kw">let </span>content;
-        <span class="kw">let </span>brace_token = <a class="macro" href="../../src/syn/group.rs.html#215-227">braced!</a>(content <span class="kw">in </span>input);
+        <span class="kw">let </span>brace_token = <a class="macro" href="group.rs.html#215-227">braced!</a>(content <span class="kw">in </span>input);
 
         <span class="kw">let </span><span class="kw-2">mut </span>fields = Punctuated::new();
-        <span class="kw">while </span>!content.is_empty() &amp;&amp; !content.peek(<span class="macro">Token!</span>[..]) {
-            <span class="kw">let </span>value = content.call(field_pat)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>dot2_token = <span class="prelude-val">None</span>;
+        <span class="kw">while </span>!content.is_empty() {
+            <span class="kw">let </span>attrs = content.call(Attribute::parse_outer)<span class="question-mark">?</span>;
+            <span class="kw">if </span>content.peek(<span class="macro">Token!</span>[..]) {
+                dot2_token = <span class="prelude-val">Some</span>(content.parse()<span class="question-mark">?</span>);
+                <span class="kw">if </span>!attrs.is_empty() {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Pat::Verbatim(verbatim::between(begin, input)));
+                }
+                <span class="kw">break</span>;
+            }
+            <span class="kw">let </span><span class="kw-2">mut </span>value = content.call(field_pat)<span class="question-mark">?</span>;
+            value.attrs = attrs;
             fields.push_value(value);
             <span class="kw">if </span>content.is_empty() {
                 <span class="kw">break</span>;
@@ -1404,120 +1417,113 @@
             fields.push_punct(punct);
         }
 
-        <span class="kw">let </span>dot2_token = <span class="kw">if </span>fields.empty_or_trailing() &amp;&amp; content.peek(<span class="macro">Token!</span>[..]) {
-            <span class="prelude-val">Some</span>(content.parse()<span class="question-mark">?</span>)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>};
-
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#233-245">PatStruct</a> {
+        <span class="prelude-val">Ok</span>(<a href="#59">Pat::Struct</a>(<a href="#233-245">PatStruct</a> {
             attrs: Vec::new(),
-            <a href="../../src/syn/pat.rs.html#468">path</a>,
-            <a href="../../src/syn/pat.rs.html#470">brace_token</a>,
-            <a href="../../src/syn/pat.rs.html#472">fields</a>,
-            <a href="../../src/syn/pat.rs.html#483">dot2_token</a>,
-        })
+            <a href="#468">path</a>,
+            <a href="#470">brace_token</a>,
+            <a href="#472">fields</a>,
+            <a href="#473">dot2_token</a>,
+        }))
     }
 
-    <span class="kw">impl </span><a href="../../src/syn/expr.rs.html#844-857">Member</a> {
+    <span class="kw">impl </span><a href="expr.rs.html#844-857">Member</a> {
         <span class="kw">fn </span>is_unnamed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/syn/pat.rs.html#499">self</a> </span>{
-                <a href="../../src/syn/expr.rs.html#853">Member::Named</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-                <a href="../../src/syn/expr.rs.html#855">Member::Unnamed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#503">self</a> </span>{
+                <a href="expr.rs.html#853">Member::Named</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                <a href="expr.rs.html#855">Member::Unnamed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             }
         }
     }
 
-    <span class="kw">fn </span>field_pat(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#295-309">FieldPat</a>&gt; {
-        <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
-        <span class="kw">let </span>boxed: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">box</span>]&gt; = input.parse()<span class="question-mark">?</span>;
-        <span class="kw">let </span>by_ref: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">ref</span>]&gt; = input.parse()<span class="question-mark">?</span>;
-        <span class="kw">let </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt; = input.parse()<span class="question-mark">?</span>;
-        <span class="kw">let </span>member: <a href="../../src/syn/expr.rs.html#844-857">Member</a> = input.parse()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>field_pat(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#295-309">FieldPat</a>&gt; {
+        <span class="kw">let </span>boxed: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">box</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>by_ref: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">ref</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>member: <a href="expr.rs.html#844-857">Member</a> = input.parse()<span class="question-mark">?</span>;
 
         <span class="kw">if </span>boxed.is_none() &amp;&amp; by_ref.is_none() &amp;&amp; mutability.is_none() &amp;&amp; input.peek(<span class="macro">Token!</span>[:])
             || member.is_unnamed()
         {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#295-309">FieldPat</a> {
-                <a href="../../src/syn/pat.rs.html#508">attrs</a>,
-                <a href="../../src/syn/pat.rs.html#512">member</a>,
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#295-309">FieldPat</a> {
+                attrs: Vec::new(),
+                <a href="#515">member</a>,
                 colon_token: input.parse()<span class="question-mark">?</span>,
                 pat: Box::new(multi_pat_with_leading_vert(input)<span class="question-mark">?</span>),
             });
         }
 
-        <span class="kw">let </span>ident = <span class="kw">match </span><a href="../../src/syn/pat.rs.html#512">member</a> {
-            <a href="../../src/syn/expr.rs.html#853">Member::Named</a>(ident) =&gt; <a href="../../src/syn/pat.rs.html#526">ident</a>,
-            <a href="../../src/syn/expr.rs.html#855">Member::Unnamed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">let </span>ident = <span class="kw">match </span><a href="#515">member</a> {
+            <a href="expr.rs.html#853">Member::Named</a>(ident) =&gt; <a href="#529">ident</a>,
+            <a href="expr.rs.html#855">Member::Unnamed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>pat = <a href="../../src/syn/pat.rs.html#23">Pat::Ident</a>(<a href="../../src/syn/pat.rs.html#112-127">PatIdent</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>pat = <a href="#23">Pat::Ident</a>(<a href="#112-127">PatIdent</a> {
             attrs: Vec::new(),
-            <a href="../../src/syn/pat.rs.html#510">by_ref</a>,
-            <a href="../../src/syn/pat.rs.html#511">mutability</a>,
-            ident: <a href="../../src/syn/pat.rs.html#525">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#513">by_ref</a>,
+            <a href="#514">mutability</a>,
+            ident: <a href="#528">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             subpat: <span class="prelude-val">None</span>,
         });
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(boxed) = <a href="../../src/syn/pat.rs.html#509">boxed</a> {
-            <a href="../../src/syn/pat.rs.html#530">pat</a> = <a href="../../src/syn/pat.rs.html#20">Pat::Box</a>(<a href="../../src/syn/pat.rs.html#100-110">PatBox</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(boxed) = <a href="#512">boxed</a> {
+            <a href="#533">pat</a> = <a href="#20">Pat::Box</a>(<a href="#100-110">PatBox</a> {
                 attrs: Vec::new(),
-                box_token: <a href="../../src/syn/pat.rs.html#538">boxed</a>,
-                pat: Box::new(<a href="../../src/syn/pat.rs.html#530">pat</a>),
+                box_token: <a href="#541">boxed</a>,
+                pat: Box::new(<a href="#533">pat</a>),
             });
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#295-309">FieldPat</a> {
-            <a href="../../src/syn/pat.rs.html#508">attrs</a>,
-            member: <a href="../../src/syn/expr.rs.html#853">Member::Named</a>(<a href="../../src/syn/pat.rs.html#525">ident</a>),
+        <span class="prelude-val">Ok</span>(<a href="#295-309">FieldPat</a> {
+            attrs: Vec::new(),
+            member: <a href="expr.rs.html#853">Member::Named</a>(<a href="#528">ident</a>),
             colon_token: <span class="prelude-val">None</span>,
-            pat: Box::new(<a href="../../src/syn/pat.rs.html#530">pat</a>),
+            pat: Box::new(<a href="#533">pat</a>),
         })
     }
 
     <span class="kw">fn </span>pat_range(
-        input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>,
-        begin: <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>,
-        qself: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/path.rs.html#182-210">QSelf</a>&gt;,
-        path: <a href="../../src/syn/path.rs.html#4-14">Path</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span>limits: <a href="../../src/syn/expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
+        input: <a href="parse.rs.html#230">ParseStream</a>,
+        begin: <a href="parse.rs.html#252">ParseBuffer</a>,
+        qself: <span class="prelude-ty">Option</span>&lt;<a href="path.rs.html#182-210">QSelf</a>&gt;,
+        path: <a href="path.rs.html#4-14">Path</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span>limits: <a href="expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span>hi = input.call(pat_lit_expr)<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(hi) = <a href="../../src/syn/pat.rs.html#561">hi</a> {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#47">Pat::Range</a>(<a href="../../src/syn/pat.rs.html#184-195">PatRange</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(hi) = <a href="#564">hi</a> {
+            <span class="prelude-val">Ok</span>(<a href="#47">Pat::Range</a>(<a href="#184-195">PatRange</a> {
                 attrs: Vec::new(),
-                lo: Box::new(<a href="../../src/syn/expr.rs.html#181">Expr::Path</a>(<a href="../../src/syn/expr.rs.html#596-610">ExprPath</a> {
+                lo: Box::new(<a href="expr.rs.html#181">Expr::Path</a>(<a href="expr.rs.html#596-610">ExprPath</a> {
                     attrs: Vec::new(),
-                    <a href="../../src/syn/pat.rs.html#557">qself</a>,
-                    <a href="../../src/syn/pat.rs.html#558">path</a>,
+                    <a href="#560">qself</a>,
+                    <a href="#561">path</a>,
                 })),
-                <a href="../../src/syn/pat.rs.html#560">limits</a>,
-                <a href="../../src/syn/pat.rs.html#562">hi</a>,
+                <a href="#563">limits</a>,
+                <a href="#565">hi</a>,
             }))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#556">begin</a>, <a href="../../src/syn/pat.rs.html#555">input</a>)))
+            <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#559">begin</a>, <a href="#558">input</a>)))
         }
     }
 
-    <span class="kw">fn </span>pat_range_half_open(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, begin: <a href="../../src/syn/parse.rs.html#252">ParseBuffer</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span>limits: <a href="../../src/syn/expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>pat_range_half_open(input: <a href="parse.rs.html#230">ParseStream</a>, begin: <a href="parse.rs.html#252">ParseBuffer</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span>limits: <a href="expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span>hi = input.call(pat_lit_expr)<span class="question-mark">?</span>;
         <span class="kw">if </span>hi.is_some() {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#578">begin</a>, <a href="../../src/syn/pat.rs.html#578">input</a>)))
+            <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#581">begin</a>, <a href="#581">input</a>)))
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="../../src/syn/pat.rs.html#579">limits</a> {
-                <a href="../../src/syn/expr.rs.html#1068">RangeLimits::HalfOpen</a>(dot2_token) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#53">Pat::Rest</a>(<a href="../../src/syn/pat.rs.html#210-219">PatRest</a> {
+            <span class="kw">match </span><a href="#582">limits</a> {
+                <a href="expr.rs.html#1068">RangeLimits::HalfOpen</a>(dot2_token) =&gt; <span class="prelude-val">Ok</span>(<a href="#53">Pat::Rest</a>(<a href="#210-219">PatRest</a> {
                     attrs: Vec::new(),
-                    <a href="../../src/syn/pat.rs.html#585">dot2_token</a>,
+                    <a href="#588">dot2_token</a>,
                 })),
-                <a href="../../src/syn/expr.rs.html#1070">RangeLimits::Closed</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/pat.rs.html#578">input</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected range upper bound&quot;</span>)),
+                <a href="expr.rs.html#1070">RangeLimits::Closed</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="#581">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected range upper bound&quot;</span>)),
             }
         }
     }
 
-    <span class="kw">fn </span>pat_tuple(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#247-257">PatTuple</a>&gt; {
+    <span class="kw">fn </span>pat_tuple(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#247-257">PatTuple</a>&gt; {
         <span class="kw">let </span>content;
-        <span class="kw">let </span>paren_token = <a class="macro" href="../../src/syn/group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
+        <span class="kw">let </span>paren_token = <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
 
         <span class="kw">let </span><span class="kw-2">mut </span>elems = Punctuated::new();
         <span class="kw">while </span>!content.is_empty() {
@@ -1530,15 +1536,15 @@
             elems.push_punct(punct);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#247-257">PatTuple</a> {
+        <span class="prelude-val">Ok</span>(<a href="#247-257">PatTuple</a> {
             attrs: Vec::new(),
-            <a href="../../src/syn/pat.rs.html#596">paren_token</a>,
-            <a href="../../src/syn/pat.rs.html#598">elems</a>,
+            <a href="#599">paren_token</a>,
+            <a href="#601">elems</a>,
         })
     }
 
-    <span class="kw">fn </span>pat_reference(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#197-208">PatReference</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#197-208">PatReference</a> {
+    <span class="kw">fn </span>pat_reference(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#197-208">PatReference</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="#197-208">PatReference</a> {
             attrs: Vec::new(),
             and_token: input.parse()<span class="question-mark">?</span>,
             mutability: input.parse()<span class="question-mark">?</span>,
@@ -1546,33 +1552,33 @@
         })
     }
 
-    <span class="kw">fn </span>pat_lit_or_range(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span>begin = <a href="../../src/syn/pat.rs.html#625">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
+    <span class="kw">fn </span>pat_lit_or_range(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span>begin = <a href="#628">input</a>.<a href="parse.rs.html#918">fork</a>();
         <span class="kw">let </span>lo = input.call(pat_lit_expr)<span class="question-mark">?</span>.unwrap();
         <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[..]) {
-            <span class="kw">let </span>limits: <a href="../../src/syn/expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>limits: <a href="expr.rs.html#1061-1072">RangeLimits</a> = input.parse()<span class="question-mark">?</span>;
             <span class="kw">let </span>hi = input.call(pat_lit_expr)<span class="question-mark">?</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(hi) = <a href="../../src/syn/pat.rs.html#630">hi</a> {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#47">Pat::Range</a>(<a href="../../src/syn/pat.rs.html#184-195">PatRange</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(hi) = <a href="#633">hi</a> {
+                <span class="prelude-val">Ok</span>(<a href="#47">Pat::Range</a>(<a href="#184-195">PatRange</a> {
                     attrs: Vec::new(),
-                    <a href="../../src/syn/pat.rs.html#627">lo</a>,
-                    <a href="../../src/syn/pat.rs.html#629">limits</a>,
-                    <a href="../../src/syn/pat.rs.html#631">hi</a>,
+                    <a href="#630">lo</a>,
+                    <a href="#632">limits</a>,
+                    <a href="#634">hi</a>,
                 }))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#626">begin</a>, <a href="../../src/syn/pat.rs.html#625">input</a>)))
+                <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#629">begin</a>, <a href="#628">input</a>)))
             }
-        } <span class="kw">else if let </span><a href="../../src/syn/expr.rs.html#220">Expr::Verbatim</a>(verbatim) = <span class="kw-2">*</span><a href="../../src/syn/pat.rs.html#627">lo</a> {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#71">Pat::Verbatim</a>(<a href="../../src/syn/pat.rs.html#641">verbatim</a>))
+        } <span class="kw">else if let </span><a href="expr.rs.html#220">Expr::Verbatim</a>(verbatim) = <span class="kw-2">*</span><a href="#630">lo</a> {
+            <span class="prelude-val">Ok</span>(<a href="#71">Pat::Verbatim</a>(<a href="#644">verbatim</a>))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#29">Pat::Lit</a>(<a href="../../src/syn/pat.rs.html#129-141">PatLit</a> {
+            <span class="prelude-val">Ok</span>(<a href="#29">Pat::Lit</a>(<a href="#129-141">PatLit</a> {
                 attrs: Vec::new(),
-                expr: <a href="../../src/syn/pat.rs.html#627">lo</a>,
+                expr: <a href="#630">lo</a>,
             }))
         }
     }
 
-    <span class="kw">fn </span>pat_lit_expr(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;<a href="../../src/syn/expr.rs.html#14-250">Expr</a>&gt;&gt;&gt; {
+    <span class="kw">fn </span>pat_lit_expr(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;<a href="expr.rs.html#14-250">Expr</a>&gt;&gt;&gt; {
         <span class="kw">if </span>input.is_empty()
             || input.peek(<span class="macro">Token!</span>[|])
             || input.peek(<span class="macro">Token!</span>[=])
@@ -1583,11 +1589,11 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let </span>neg: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[-]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>neg: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[-]&gt; = input.parse()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>lookahead = <a href="../../src/syn/pat.rs.html#651">input</a>.<a href="../../src/syn/parse.rs.html#788">lookahead1</a>();
+        <span class="kw">let </span>lookahead = <a href="#654">input</a>.<a href="parse.rs.html#788">lookahead1</a>();
         <span class="kw">let </span>expr = <span class="kw">if </span>lookahead.peek(Lit) {
-            <a href="../../src/syn/expr.rs.html#160">Expr::Lit</a>(input.parse()<span class="question-mark">?</span>)
+            <a href="expr.rs.html#160">Expr::Lit</a>(input.parse()<span class="question-mark">?</span>)
         } <span class="kw">else if </span>lookahead.peek(Ident)
             || lookahead.peek(<span class="macro">Token!</span>[::])
             || lookahead.peek(<span class="macro">Token!</span>[&lt;])
@@ -1596,27 +1602,27 @@
             || lookahead.peek(<span class="macro">Token!</span>[<span class="kw">super</span>])
             || lookahead.peek(<span class="macro">Token!</span>[<span class="kw">crate</span>])
         {
-            <a href="../../src/syn/expr.rs.html#181">Expr::Path</a>(input.parse()<span class="question-mark">?</span>)
+            <a href="expr.rs.html#181">Expr::Path</a>(input.parse()<span class="question-mark">?</span>)
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">const</span>]) {
-            <a href="../../src/syn/expr.rs.html#220">Expr::Verbatim</a>(input.call(expr::parsing::expr_const)<span class="question-mark">?</span>)
+            <a href="expr.rs.html#220">Expr::Verbatim</a>(input.call(expr::parsing::expr_const)<span class="question-mark">?</span>)
         } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/syn/pat.rs.html#664">lookahead</a>.<a href="../../src/syn/lookahead.rs.html#112">error</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#667">lookahead</a>.<a href="lookahead.rs.html#112">error</a>());
         };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Box::new(<span class="kw">if let </span><span class="prelude-val">Some</span>(neg) = <a href="../../src/syn/pat.rs.html#662">neg</a> {
-            <a href="../../src/syn/expr.rs.html#214">Expr::Unary</a>(<a href="../../src/syn/expr.rs.html#732-743">ExprUnary</a> {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Box::new(<span class="kw">if let </span><span class="prelude-val">Some</span>(neg) = <a href="#665">neg</a> {
+            <a href="expr.rs.html#214">Expr::Unary</a>(<a href="expr.rs.html#732-743">ExprUnary</a> {
                 attrs: Vec::new(),
-                op: <a href="../../src/syn/op.rs.html#79">UnOp::Neg</a>(<a href="../../src/syn/pat.rs.html#682">neg</a>),
-                expr: Box::new(<a href="../../src/syn/pat.rs.html#665">expr</a>),
+                op: <a href="op.rs.html#79">UnOp::Neg</a>(<a href="#685">neg</a>),
+                expr: Box::new(<a href="#668">expr</a>),
             })
         } <span class="kw">else </span>{
-            <a href="../../src/syn/pat.rs.html#665">expr</a>
+            <a href="#668">expr</a>
         })))
     }
 
-    <span class="kw">fn </span>pat_slice(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#221-231">PatSlice</a>&gt; {
+    <span class="kw">fn </span>pat_slice(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#221-231">PatSlice</a>&gt; {
         <span class="kw">let </span>content;
-        <span class="kw">let </span>bracket_token = <a class="macro" href="../../src/syn/group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input);
+        <span class="kw">let </span>bracket_token = <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input);
 
         <span class="kw">let </span><span class="kw-2">mut </span>elems = Punctuated::new();
         <span class="kw">while </span>!content.is_empty() {
@@ -1629,222 +1635,222 @@
             elems.push_punct(punct);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#221-231">PatSlice</a> {
+        <span class="prelude-val">Ok</span>(<a href="#221-231">PatSlice</a> {
             attrs: Vec::new(),
-            <a href="../../src/syn/pat.rs.html#695">bracket_token</a>,
-            <a href="../../src/syn/pat.rs.html#697">elems</a>,
+            <a href="#698">bracket_token</a>,
+            <a href="#700">elems</a>,
         })
     }
 
-    <span class="kw">fn </span>pat_const(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-        <span class="kw">let </span>begin = <a href="../../src/syn/pat.rs.html#715">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
+    <span class="kw">fn </span>pat_const(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+        <span class="kw">let </span>begin = <a href="#718">input</a>.<a href="parse.rs.html#918">fork</a>();
         input.parse::&lt;<span class="macro">Token!</span>[<span class="kw">const</span>]&gt;()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>content;
-        <a class="macro" href="../../src/syn/group.rs.html#215-227">braced!</a>(content <span class="kw">in </span>input);
+        <a class="macro" href="group.rs.html#215-227">braced!</a>(content <span class="kw">in </span>input);
         content.call(Attribute::parse_inner)<span class="question-mark">?</span>;
         content.call(Block::parse_within)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/pat.rs.html#716">begin</a>, <a href="../../src/syn/pat.rs.html#715">input</a>))
+        <span class="prelude-val">Ok</span>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#719">begin</a>, <a href="#718">input</a>))
     }
 
-    <span class="kw">pub fn </span>multi_pat(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <a href="../../src/syn/pat.rs.html#736">multi_pat_impl</a>(<a href="../../src/syn/pat.rs.html#727">input</a>, <span class="prelude-val">None</span>)
+    <span class="kw">pub fn </span>multi_pat(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <a href="#739">multi_pat_impl</a>(<a href="#730">input</a>, <span class="prelude-val">None</span>)
     }
 
-    <span class="kw">pub fn </span>multi_pat_with_leading_vert(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span>leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[|]&gt; = input.parse()<span class="question-mark">?</span>;
-        <a href="../../src/syn/pat.rs.html#736">multi_pat_impl</a>(<a href="../../src/syn/pat.rs.html#731">input</a>, <a href="../../src/syn/pat.rs.html#732">leading_vert</a>)
+    <span class="kw">pub fn </span>multi_pat_with_leading_vert(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span>leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[|]&gt; = input.parse()<span class="question-mark">?</span>;
+        <a href="#739">multi_pat_impl</a>(<a href="#734">input</a>, <a href="#735">leading_vert</a>)
     }
 
-    <span class="kw">fn </span>multi_pat_impl(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[|]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/pat.rs.html#5-98">Pat</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>pat: <a href="../../src/syn/pat.rs.html#5-98">Pat</a> = input.parse()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>multi_pat_impl(input: <a href="parse.rs.html#230">ParseStream</a>, leading_vert: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[|]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-98">Pat</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>pat: <a href="#5-98">Pat</a> = input.parse()<span class="question-mark">?</span>;
         <span class="kw">if </span>leading_vert.is_some()
             || input.peek(<span class="macro">Token!</span>[|]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[||]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[|=])
         {
             <span class="kw">let </span><span class="kw-2">mut </span>cases = Punctuated::new();
-            <a href="../../src/syn/pat.rs.html#741">cases</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/pat.rs.html#737">pat</a>);
+            <a href="#744">cases</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="#740">pat</a>);
             <span class="kw">while </span>input.peek(<span class="macro">Token!</span>[|]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[||]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[|=]) {
                 <span class="kw">let </span>punct = input.parse()<span class="question-mark">?</span>;
                 cases.push_punct(punct);
                 <span class="kw">let </span>pat: Pat = input.parse()<span class="question-mark">?</span>;
                 cases.push_value(pat);
             }
-            <a href="../../src/syn/pat.rs.html#737">pat</a> = <a href="../../src/syn/pat.rs.html#35">Pat::Or</a>(<a href="../../src/syn/pat.rs.html#154-164">PatOr</a> {
+            <a href="#740">pat</a> = <a href="#35">Pat::Or</a>(<a href="#154-164">PatOr</a> {
                 attrs: Vec::new(),
-                <a href="../../src/syn/pat.rs.html#736">leading_vert</a>,
-                <a href="../../src/syn/pat.rs.html#741">cases</a>,
+                <a href="#739">leading_vert</a>,
+                <a href="#744">cases</a>,
             });
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/syn/pat.rs.html#737">pat</a>)
+        <span class="prelude-val">Ok</span>(<a href="#740">pat</a>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;printing&quot;</span>)]
 </span><span class="kw">mod </span>printing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/attr.rs.html#466"><span class="kw">crate</span>::attr::FilterAttrs</a>;
+    <span class="kw">use </span><a href="attr.rs.html#466"><span class="kw">crate</span>::attr::FilterAttrs</a>;
     <span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
     <span class="kw">use </span>quote::{<a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>, <a href="../../quote/ext/trait.TokenStreamExt.html">TokenStreamExt</a>};
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#284-293">PatWild</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#284-293">PatWild</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#768">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#768">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#768">self</a>.underscore_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#768">tokens</a>);
+            <a href="#771">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#771">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#771">self</a>.underscore_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#771">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#112-127">PatIdent</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#112-127">PatIdent</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#776">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#776">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#776">self</a>.by_ref.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#776">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#776">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#776">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#776">self</a>.ident.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#776">tokens</a>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((at_token, subpat)) = <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/pat.rs.html#776">self</a>.subpat {
-                <a href="../../src/syn/pat.rs.html#781">at_token</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#776">tokens</a>);
-                <a href="../../src/syn/pat.rs.html#781">subpat</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#776">tokens</a>);
+            <a href="#779">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#779">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#779">self</a>.by_ref.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#779">tokens</a>);
+            <a class="self" href="#779">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#779">tokens</a>);
+            <a class="self" href="#779">self</a>.ident.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#779">tokens</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((at_token, subpat)) = <span class="kw-2">&amp;</span><a class="self" href="#779">self</a>.subpat {
+                <a href="#784">at_token</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#779">tokens</a>);
+                <a href="#784">subpat</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#779">tokens</a>);
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#233-245">PatStruct</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#233-245">PatStruct</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#790">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#790">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#790">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#790">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#790">self</a>.brace_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/pat.rs.html#790">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/pat.rs.html#790">self</a>.fields.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#793">tokens</a>);
+            <a href="#793">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#793">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#793">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#793">tokens</a>);
+            <a class="self" href="#793">self</a>.brace_token.<a href="token.rs.html#756-761">surround</a>(<a href="#793">tokens</a>, |tokens| {
+                <a class="self" href="#793">self</a>.fields.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#796">tokens</a>);
                 <span class="comment">// NOTE: We need a comma before the dot2 token if it is present.
                 </span><span class="kw">if </span>!<span class="self">self</span>.fields.empty_or_trailing() &amp;&amp; <span class="self">self</span>.dot2_token.is_some() {
-                    &lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;::default().<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#793">tokens</a>);
+                    &lt;<a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;::default().<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#796">tokens</a>);
                 }
-                <a class="self" href="../../src/syn/pat.rs.html#790">self</a>.dot2_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#793">tokens</a>);
+                <a class="self" href="#793">self</a>.dot2_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#796">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#259-269">PatTupleStruct</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#259-269">PatTupleStruct</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#806">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#806">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#806">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#806">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#806">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#806">tokens</a>);
+            <a href="#809">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#809">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#809">self</a>.path.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#809">tokens</a>);
+            <a class="self" href="#809">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#809">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#271-282">PatType</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#271-282">PatType</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#815">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#815">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#815">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#815">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#815">self</a>.colon_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#815">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#815">self</a>.ty.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#815">tokens</a>);
+            <a href="#818">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#818">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#818">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#818">tokens</a>);
+            <a class="self" href="#818">self</a>.colon_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#818">tokens</a>);
+            <a class="self" href="#818">self</a>.ty.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#818">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#166-182">PatPath</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#166-182">PatPath</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#825">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#825">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a href="../../src/syn/path.rs.html#838">path::printing::print_path</a>(<a href="../../src/syn/pat.rs.html#825">tokens</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/pat.rs.html#825">self</a>.qself, <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/pat.rs.html#825">self</a>.path);
+            <a href="#828">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#828">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a href="path.rs.html#822">path::printing::print_path</a>(<a href="#828">tokens</a>, <span class="kw-2">&amp;</span><a class="self" href="#828">self</a>.qself, <span class="kw-2">&amp;</span><a class="self" href="#828">self</a>.path);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#247-257">PatTuple</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#247-257">PatTuple</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#833">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#833">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#833">self</a>.paren_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/pat.rs.html#833">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/pat.rs.html#833">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#835">tokens</a>);
+            <a href="#836">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#836">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#836">self</a>.paren_token.<a href="token.rs.html#756-761">surround</a>(<a href="#836">tokens</a>, |tokens| {
+                <a class="self" href="#836">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#838">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#100-110">PatBox</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#100-110">PatBox</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#843">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#843">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#843">self</a>.box_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#843">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#843">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#843">tokens</a>);
+            <a href="#846">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#846">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#846">self</a>.box_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#846">tokens</a>);
+            <a class="self" href="#846">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#846">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#197-208">PatReference</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#197-208">PatReference</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#852">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#852">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#852">self</a>.and_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#852">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#852">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#852">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#852">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#852">tokens</a>);
+            <a href="#855">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#855">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#855">self</a>.and_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#855">tokens</a>);
+            <a class="self" href="#855">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#855">tokens</a>);
+            <a class="self" href="#855">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#855">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#210-219">PatRest</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#210-219">PatRest</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#862">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#862">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#862">self</a>.dot2_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#862">tokens</a>);
+            <a href="#865">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#865">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#865">self</a>.dot2_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#865">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#129-141">PatLit</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#129-141">PatLit</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#870">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#870">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#870">self</a>.expr.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#870">tokens</a>);
+            <a href="#873">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#873">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#873">self</a>.expr.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#873">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#184-195">PatRange</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#184-195">PatRange</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#878">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#878">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#878">self</a>.lo.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#878">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#878">self</a>.limits.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#878">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#878">self</a>.hi.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#878">tokens</a>);
+            <a href="#881">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#881">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#881">self</a>.lo.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#881">tokens</a>);
+            <a class="self" href="#881">self</a>.limits.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#881">tokens</a>);
+            <a class="self" href="#881">self</a>.hi.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#881">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#221-231">PatSlice</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#221-231">PatSlice</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#888">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#888">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#888">self</a>.bracket_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/pat.rs.html#888">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/pat.rs.html#888">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#890">tokens</a>);
+            <a href="#891">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#891">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#891">self</a>.bracket_token.<a href="token.rs.html#756-761">surround</a>(<a href="#891">tokens</a>, |tokens| {
+                <a class="self" href="#891">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#893">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#143-152">PatMacro</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#143-152">PatMacro</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#898">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#898">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#898">self</a>.mac.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#898">tokens</a>);
+            <a href="#901">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#901">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#901">self</a>.mac.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#901">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#154-164">PatOr</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#154-164">PatOr</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#906">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#906">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/pat.rs.html#906">self</a>.leading_vert.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#906">tokens</a>);
-            <a class="self" href="../../src/syn/pat.rs.html#906">self</a>.cases.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#906">tokens</a>);
+            <a href="#909">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#909">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#909">self</a>.leading_vert.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#909">tokens</a>);
+            <a class="self" href="#909">self</a>.cases.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#909">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/pat.rs.html#295-309">FieldPat</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#295-309">FieldPat</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/pat.rs.html#915">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/pat.rs.html#915">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(colon_token) = <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/pat.rs.html#915">self</a>.colon_token {
-                <a class="self" href="../../src/syn/pat.rs.html#915">self</a>.member.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#915">tokens</a>);
-                <a href="../../src/syn/pat.rs.html#917">colon_token</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#915">tokens</a>);
+            <a href="#918">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#918">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(colon_token) = <span class="kw-2">&amp;</span><a class="self" href="#918">self</a>.colon_token {
+                <a class="self" href="#918">self</a>.member.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#918">tokens</a>);
+                <a href="#920">colon_token</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#918">tokens</a>);
             }
-            <a class="self" href="../../src/syn/pat.rs.html#915">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/pat.rs.html#915">tokens</a>);
+            <a class="self" href="#918">self</a>.pat.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#918">tokens</a>);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

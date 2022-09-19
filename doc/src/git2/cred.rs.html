@@ -721,8 +721,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use </span><a href="../../url/index.html">url</a>;
 
-<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>};
+<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="config.rs.html#12">Config</a>, <a href="error.rs.html#12">Error</a>, <a href="util.rs.html#101">IntoCString</a>};
 
 <span class="doccomment">/// A structure to represent git credentials in libgit2.
 </span><span class="kw">pub struct </span>Cred {
@@ -742,28 +742,28 @@
     commands: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/git2/cred.rs.html#14">Cred</a> {
+<span class="kw">impl </span><a href="#14">Cred</a> {
     <span class="doccomment">/// Create a &quot;default&quot; credential usable for Negotiate mechanisms like NTLM
     /// or Kerberos authentication.
-    </span><span class="kw">pub fn </span>default() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>default() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_default_new(<span class="kw-2">&amp;mut </span>out));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#36">out</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_default_new(<span class="kw-2">&amp;mut </span>out));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#36">out</a>))
         }
     }
 
     <span class="doccomment">/// Create a new ssh key credential object used for querying an ssh-agent.
     ///
     /// The username specified is the username to authenticate.
-    </span><span class="kw">pub fn </span>ssh_key_from_agent(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>ssh_key_from_agent(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">let </span>username = CString::new(username)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_from_agent(<span class="kw-2">&amp;mut </span>out, username));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#48">out</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_from_agent(<span class="kw-2">&amp;mut </span>out, username));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#48">out</a>))
         }
     }
 
@@ -773,18 +773,18 @@
         publickey: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         privatekey: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
         passphrase: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>username = CString::new(username)<span class="question-mark">?</span>;
         <span class="kw">let </span>publickey = <span class="kw">crate</span>::opt_cstr(publickey)<span class="question-mark">?</span>;
         <span class="kw">let </span>privatekey = privatekey.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">let </span>passphrase = <span class="kw">crate</span>::opt_cstr(passphrase)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_new(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_new(
                 <span class="kw-2">&amp;mut </span>out, username, publickey, privatekey, passphrase
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#68">out</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#68">out</a>))
         }
     }
 
@@ -794,32 +794,32 @@
         publickey: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
         privatekey: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         passphrase: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>username = CString::new(username)<span class="question-mark">?</span>;
         <span class="kw">let </span>publickey = <span class="kw">crate</span>::opt_cstr(publickey)<span class="question-mark">?</span>;
         <span class="kw">let </span>privatekey = CString::new(privatekey)<span class="question-mark">?</span>;
         <span class="kw">let </span>passphrase = <span class="kw">crate</span>::opt_cstr(passphrase)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_memory_new(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_ssh_key_memory_new(
                 <span class="kw-2">&amp;mut </span>out, username, publickey, privatekey, passphrase
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#89">out</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#89">out</a>))
         }
     }
 
     <span class="doccomment">/// Create a new plain-text username and password credential object.
-    </span><span class="kw">pub fn </span>userpass_plaintext(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>userpass_plaintext(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>username = CString::new(username)<span class="question-mark">?</span>;
         <span class="kw">let </span>password = CString::new(password)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_userpass_plaintext_new(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_userpass_plaintext_new(
                 <span class="kw-2">&amp;mut </span>out, username, password
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#103">out</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#103">out</a>))
         }
     }
 
@@ -834,16 +834,16 @@
     ///
     /// [1]: https://www.kernel.org/pub/software/scm/git/docs/gitcredentials.html
     </span><span class="kw">pub fn </span>credential_helper(
-        config: <span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#12">Config</a>,
+        config: <span class="kw-2">&amp;</span><a href="config.rs.html#12">Config</a>,
         url: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         username: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">match </span>CredentialHelper::new(<a href="../../src/git2/cred.rs.html#124">url</a>)
-            .<a href="../../src/git2/cred.rs.html#231">config</a>(<a href="../../src/git2/cred.rs.html#123">config</a>)
-            .<a href="../../src/git2/cred.rs.html#224">username</a>(<a href="../../src/git2/cred.rs.html#125">username</a>)
-            .<a href="../../src/git2/cred.rs.html#327">execute</a>()
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">match </span>CredentialHelper::new(<a href="#124">url</a>)
+            .<a href="#231">config</a>(<a href="#123">config</a>)
+            .<a href="#224">username</a>(<a href="#125">username</a>)
+            .<a href="#327">execute</a>()
         {
-            <span class="prelude-val">Some</span>((username, password)) =&gt; Cred::userpass_plaintext(<span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#132">username</a>, <span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#132">password</a>),
+            <span class="prelude-val">Some</span>((username, password)) =&gt; Cred::userpass_plaintext(<span class="kw-2">&amp;</span><a href="#132">username</a>, <span class="kw-2">&amp;</span><a href="#132">password</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::from_str(
                 <span class="string">&quot;failed to acquire username/password \
                  from local configuration&quot;</span>,
@@ -855,149 +855,149 @@
     ///
     /// This is used with ssh authentication to query for the username if none is
     /// specified in the url.
-    </span><span class="kw">pub fn </span>username(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>username(username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#14">Cred</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>username = CString::new(username)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_cred_username_new(<span class="kw-2">&amp;mut </span>out, username));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/cred.rs.html#147">out</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_cred_username_new(<span class="kw-2">&amp;mut </span>out, username));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#147">out</a>))
         }
     }
 
     <span class="doccomment">/// Check whether a credential object contains username information.
     </span><span class="kw">pub fn </span>has_username(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ raw::git_cred_has_username(<a class="self" href="../../src/git2/cred.rs.html#155">self</a>.raw) == <span class="number">1 </span>}
+        <span class="kw">unsafe </span>{ raw::git_cred_has_username(<a class="self" href="#155">self</a>.raw) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Return the type of credentials that this object represents.
     </span><span class="kw">pub fn </span>credtype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/type.git_credtype_t.html">raw::git_credtype_t</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/git2/cred.rs.html#160">self</a>.raw).credtype }
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#160">self</a>.raw).credtype }
     }
 
     <span class="doccomment">/// Unwrap access to the underlying raw pointer, canceling the destructor
     </span><span class="kw">pub unsafe fn </span>unwrap(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a> {
-        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/git2/cred.rs.html#165">self</a>.raw, ptr::null_mut())
+        mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#165">self</a>.raw, ptr::null_mut())
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/cred.rs.html#14">Cred</a> {
+<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#14">Cred</a> {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>) -&gt; <a href="../../src/git2/cred.rs.html#14">Cred</a> {
-        <a href="../../src/git2/cred.rs.html#14">Cred</a> { <a href="../../src/git2/cred.rs.html#173">raw</a> }
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>) -&gt; <a href="#14">Cred</a> {
+        <a href="#14">Cred</a> { <a href="#173">raw</a> }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a> {
-        <a class="self" href="../../src/git2/cred.rs.html#176">self</a>.raw
+        <a class="self" href="#176">self</a>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/cred.rs.html#14">Cred</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#14">Cred</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.raw.is_null() {
             <span class="kw">unsafe </span>{
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = (<span class="kw-2">*</span><a class="self" href="../../src/git2/cred.rs.html#182">self</a>.raw).free {
-                    <a href="../../src/git2/cred.rs.html#185">f</a>(<a class="self" href="../../src/git2/cred.rs.html#182">self</a>.raw)
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = (<span class="kw-2">*</span><a class="self" href="#182">self</a>.raw).free {
+                    <a href="#185">f</a>(<a class="self" href="#182">self</a>.raw)
                 }
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/cred.rs.html#19">CredentialHelper</a> {
+<span class="kw">impl </span><a href="#19">CredentialHelper</a> {
     <span class="doccomment">/// Create a new credential helper object which will be used to probe git&#39;s
     /// local credential configuration.
     ///
     /// The url specified is the namespace on which this will query credentials.
     /// Invalid urls are currently ignored.
-    </span><span class="kw">pub fn </span>new(url: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../src/git2/cred.rs.html#19">CredentialHelper</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>ret = <a href="../../src/git2/cred.rs.html#19">CredentialHelper</a> {
+    </span><span class="kw">pub fn </span>new(url: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#19">CredentialHelper</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = <a href="#19">CredentialHelper</a> {
             protocol: <span class="prelude-val">None</span>,
             host: <span class="prelude-val">None</span>,
             port: <span class="prelude-val">None</span>,
             path: <span class="prelude-val">None</span>,
             username: <span class="prelude-val">None</span>,
-            url: <a href="../../src/git2/cred.rs.html#199">url</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            url: <a href="#199">url</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             commands: Vec::new(),
         };
 
         <span class="comment">// Parse out the (protocol, host) if one is available
-        </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(url) = url::Url::parse(<a href="../../src/git2/cred.rs.html#199">url</a>) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(url::Host::Domain(s)) = <a href="../../src/git2/cred.rs.html#211">url</a>.host() {
-                <a href="../../src/git2/cred.rs.html#200">ret</a>.host = <span class="prelude-val">Some</span>(<a href="../../src/git2/cred.rs.html#212">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(url) = url::Url::parse(<a href="#199">url</a>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(url::Host::Domain(s)) = <a href="#211">url</a>.host() {
+                <a href="#200">ret</a>.host = <span class="prelude-val">Some</span>(<a href="#212">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
-            <a href="../../src/git2/cred.rs.html#200">ret</a>.port = <a href="../../src/git2/cred.rs.html#211">url</a>.port();
-            <a href="../../src/git2/cred.rs.html#200">ret</a>.protocol = <span class="prelude-val">Some</span>(<a href="../../src/git2/cred.rs.html#211">url</a>.scheme().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a href="#200">ret</a>.port = <a href="#211">url</a>.port();
+            <a href="#200">ret</a>.protocol = <span class="prelude-val">Some</span>(<a href="#211">url</a>.scheme().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         }
-        <a href="../../src/git2/cred.rs.html#200">ret</a>
+        <a href="#200">ret</a>
     }
 
     <span class="doccomment">/// Set the username that this credential helper will query with.
     ///
     /// By default the username is `None`.
-    </span><span class="kw">pub fn </span>username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, username: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/cred.rs.html#19">CredentialHelper</a> {
-        <a class="self" href="../../src/git2/cred.rs.html#224">self</a>.username = <a href="../../src/git2/cred.rs.html#224">username</a>.map(|s| <a href="../../src/git2/cred.rs.html#225">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <span class="self"><a href="../../src/git2/cred.rs.html#224">self</a>
+    </span><span class="kw">pub fn </span>username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, username: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="#19">CredentialHelper</a> {
+        <a class="self" href="#224">self</a>.username = <a href="#224">username</a>.map(|s| <a href="#225">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <span class="self"><a href="#224">self</a>
     </span>}
 
     <span class="doccomment">/// Query the specified configuration object to discover commands to
     /// execute, usernames to query, etc.
-    </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#12">Config</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/cred.rs.html#19">CredentialHelper</a> {
+    </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="config.rs.html#12">Config</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#19">CredentialHelper</a> {
         <span class="comment">// Figure out the configured username/helper program.
         //
         // see http://git-scm.com/docs/gitcredentials.html#_configuration_options
         </span><span class="kw">if </span><span class="self">self</span>.username.is_none() {
-            <a class="self" href="../../src/git2/cred.rs.html#231">self</a>.<a href="../../src/git2/cred.rs.html#244">config_username</a>(<a href="../../src/git2/cred.rs.html#231">config</a>);
+            <a class="self" href="#231">self</a>.<a href="#244">config_username</a>(<a href="#231">config</a>);
         }
-        <a class="self" href="../../src/git2/cred.rs.html#231">self</a>.<a href="../../src/git2/cred.rs.html#257">config_helper</a>(<a href="../../src/git2/cred.rs.html#231">config</a>);
-        <a class="self" href="../../src/git2/cred.rs.html#231">self</a>.<a href="../../src/git2/cred.rs.html#269">config_use_http_path</a>(<a href="../../src/git2/cred.rs.html#231">config</a>);
-        <span class="self"><a href="../../src/git2/cred.rs.html#231">self</a>
+        <a class="self" href="#231">self</a>.<a href="#257">config_helper</a>(<a href="#231">config</a>);
+        <a class="self" href="#231">self</a>.<a href="#269">config_use_http_path</a>(<a href="#231">config</a>);
+        <span class="self"><a href="#231">self</a>
     </span>}
 
     <span class="comment">// Configure the queried username from `config`
-    </span><span class="kw">fn </span>config_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#12">Config</a>) {
-        <span class="kw">let </span>key = <a class="self" href="../../src/git2/cred.rs.html#244">self</a>.<a href="../../src/git2/cred.rs.html#310">exact_key</a>(<span class="string">&quot;username&quot;</span>);
-        <a class="self" href="../../src/git2/cred.rs.html#244">self</a>.username = <a href="../../src/git2/cred.rs.html#244">config</a>
-            .<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#245">key</a>)
+    </span><span class="kw">fn </span>config_username(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="config.rs.html#12">Config</a>) {
+        <span class="kw">let </span>key = <a class="self" href="#244">self</a>.<a href="#310">exact_key</a>(<span class="string">&quot;username&quot;</span>);
+        <a class="self" href="#244">self</a>.username = <a href="#244">config</a>
+            .<a href="config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="#245">key</a>)
             .ok()
             .or_else(|| {
-                <a class="self" href="../../src/git2/cred.rs.html#244">self</a>.<a href="../../src/git2/cred.rs.html#314">url_key</a>(<span class="string">&quot;username&quot;</span>)
-                    .and_then(|s| <a href="../../src/git2/cred.rs.html#244">config</a>.<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#251">s</a>).ok())
+                <a class="self" href="#244">self</a>.<a href="#314">url_key</a>(<span class="string">&quot;username&quot;</span>)
+                    .and_then(|s| <a href="#244">config</a>.<a href="config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="#251">s</a>).ok())
             })
-            .or_else(|| <a href="../../src/git2/cred.rs.html#244">config</a>.<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="string">&quot;credential.username&quot;</span>).ok())
+            .or_else(|| <a href="#244">config</a>.<a href="config.rs.html#235">get_string</a>(<span class="string">&quot;credential.username&quot;</span>).ok())
     }
 
     <span class="comment">// Discover all `helper` directives from `config`
-    </span><span class="kw">fn </span>config_helper(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#12">Config</a>) {
-        <span class="kw">let </span>exact = <a href="../../src/git2/cred.rs.html#257">config</a>.<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/cred.rs.html#257">self</a>.<a href="../../src/git2/cred.rs.html#310">exact_key</a>(<span class="string">&quot;helper&quot;</span>));
-        <a class="self" href="../../src/git2/cred.rs.html#257">self</a>.<a href="../../src/git2/cred.rs.html#295">add_command</a>(<a href="../../src/git2/cred.rs.html#258">exact</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#259">s</a>[..]));
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <a class="self" href="../../src/git2/cred.rs.html#257">self</a>.<a href="../../src/git2/cred.rs.html#314">url_key</a>(<span class="string">&quot;helper&quot;</span>) {
-            <span class="kw">let </span>url = <a href="../../src/git2/cred.rs.html#257">config</a>.<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#260">key</a>);
-            <a class="self" href="../../src/git2/cred.rs.html#257">self</a>.<a href="../../src/git2/cred.rs.html#295">add_command</a>(<a href="../../src/git2/cred.rs.html#261">url</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#262">s</a>[..]));
+    </span><span class="kw">fn </span>config_helper(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="config.rs.html#12">Config</a>) {
+        <span class="kw">let </span>exact = <a href="#257">config</a>.<a href="config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a class="self" href="#257">self</a>.<a href="#310">exact_key</a>(<span class="string">&quot;helper&quot;</span>));
+        <a class="self" href="#257">self</a>.<a href="#295">add_command</a>(<a href="#258">exact</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="#259">s</a>[..]));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <a class="self" href="#257">self</a>.<a href="#314">url_key</a>(<span class="string">&quot;helper&quot;</span>) {
+            <span class="kw">let </span>url = <a href="#257">config</a>.<a href="config.rs.html#235">get_string</a>(<span class="kw-2">&amp;</span><a href="#260">key</a>);
+            <a class="self" href="#257">self</a>.<a href="#295">add_command</a>(<a href="#261">url</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="#262">s</a>[..]));
         }
-        <span class="kw">let </span>global = <a href="../../src/git2/cred.rs.html#257">config</a>.<a href="../../src/git2/config.rs.html#235">get_string</a>(<span class="string">&quot;credential.helper&quot;</span>);
-        <a class="self" href="../../src/git2/cred.rs.html#257">self</a>.<a href="../../src/git2/cred.rs.html#295">add_command</a>(<a href="../../src/git2/cred.rs.html#264">global</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#265">s</a>[..]));
+        <span class="kw">let </span>global = <a href="#257">config</a>.<a href="config.rs.html#235">get_string</a>(<span class="string">&quot;credential.helper&quot;</span>);
+        <a class="self" href="#257">self</a>.<a href="#295">add_command</a>(<a href="#264">global</a>.as_ref().ok().map(|s| <span class="kw-2">&amp;</span><a href="#265">s</a>[..]));
     }
 
     <span class="comment">// Discover `useHttpPath` from `config`
-    </span><span class="kw">fn </span>config_use_http_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#12">Config</a>) {
+    </span><span class="kw">fn </span>config_use_http_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span><a href="config.rs.html#12">Config</a>) {
         <span class="kw">let </span><span class="kw-2">mut </span>use_http_path = <span class="bool-val">false</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="../../src/git2/cred.rs.html#269">config</a>.<a href="../../src/git2/config.rs.html#168">get_bool</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/cred.rs.html#269">self</a>.<a href="../../src/git2/cred.rs.html#310">exact_key</a>(<span class="string">&quot;useHttpPath&quot;</span>)).ok() {
-            <a href="../../src/git2/cred.rs.html#270">use_http_path</a> = <a href="../../src/git2/cred.rs.html#271">value</a>;
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = <span class="self"><a href="../../src/git2/cred.rs.html#269">self</a>
-            </span>.<a href="../../src/git2/cred.rs.html#314">url_key</a>(<span class="string">&quot;useHttpPath&quot;</span>)
-            .and_then(|key| <a href="../../src/git2/cred.rs.html#269">config</a>.<a href="../../src/git2/config.rs.html#168">get_bool</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/cred.rs.html#275">key</a>).ok())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#269">config</a>.<a href="config.rs.html#168">get_bool</a>(<span class="kw-2">&amp;</span><a class="self" href="#269">self</a>.<a href="#310">exact_key</a>(<span class="string">&quot;useHttpPath&quot;</span>)).ok() {
+            <a href="#270">use_http_path</a> = <a href="#271">value</a>;
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = <span class="self"><a href="#269">self</a>
+            </span>.<a href="#314">url_key</a>(<span class="string">&quot;useHttpPath&quot;</span>)
+            .and_then(|key| <a href="#269">config</a>.<a href="config.rs.html#168">get_bool</a>(<span class="kw-2">&amp;</span><a href="#275">key</a>).ok())
         {
-            <a href="../../src/git2/cred.rs.html#270">use_http_path</a> = <a href="../../src/git2/cred.rs.html#273">value</a>;
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = <a href="../../src/git2/cred.rs.html#269">config</a>.<a href="../../src/git2/config.rs.html#168">get_bool</a>(<span class="string">&quot;credential.useHttpPath&quot;</span>).ok() {
-            <a href="../../src/git2/cred.rs.html#270">use_http_path</a> = <a href="../../src/git2/cred.rs.html#278">value</a>;
+            <a href="#270">use_http_path</a> = <a href="#273">value</a>;
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = <a href="#269">config</a>.<a href="config.rs.html#168">get_bool</a>(<span class="string">&quot;credential.useHttpPath&quot;</span>).ok() {
+            <a href="#270">use_http_path</a> = <a href="#278">value</a>;
         }
 
         <span class="kw">if </span>use_http_path {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(url) = url::Url::parse(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/cred.rs.html#269">self</a>.url) {
-                <span class="kw">let </span>path = <a href="../../src/git2/cred.rs.html#283">url</a>.path();
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(url) = url::Url::parse(<span class="kw-2">&amp;</span><a class="self" href="#269">self</a>.url) {
+                <span class="kw">let </span>path = <a href="#283">url</a>.path();
                 <span class="comment">// Url::parse always includes a leading slash for rooted URLs, while git does not.
-                </span><a class="self" href="../../src/git2/cred.rs.html#269">self</a>.path = <span class="prelude-val">Some</span>(<a href="../../src/git2/cred.rs.html#284">path</a>.strip_prefix(<span class="string">&#39;/&#39;</span>).unwrap_or(<a href="../../src/git2/cred.rs.html#284">path</a>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                </span><a class="self" href="#269">self</a>.path = <span class="prelude-val">Some</span>(<a href="#284">path</a>.strip_prefix(<span class="string">&#39;/&#39;</span>).unwrap_or(<a href="#284">path</a>).<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
         }
     }
@@ -1007,17 +1007,17 @@
     // see https://www.kernel.org/pub/software/scm/git/docs/technical
     //                           /api-credentials.html#_credential_helpers
     </span><span class="kw">fn </span>add_command(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
-        <span class="kw">let </span>cmd = <span class="kw">match </span><a href="../../src/git2/cred.rs.html#295">cmd</a> {
+        <span class="kw">let </span>cmd = <span class="kw">match </span><a href="#295">cmd</a> {
             <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) | <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
-            <span class="prelude-val">Some</span>(s) =&gt; <a href="../../src/git2/cred.rs.html#298">s</a>,
+            <span class="prelude-val">Some</span>(s) =&gt; <a href="#298">s</a>,
         };
 
         <span class="kw">if </span>cmd.starts_with(<span class="string">&#39;!&#39;</span>) {
-            <a class="self" href="../../src/git2/cred.rs.html#295">self</a>.commands.push(<a href="../../src/git2/cred.rs.html#296">cmd</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="self" href="#295">self</a>.commands.push(<a href="#296">cmd</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         } <span class="kw">else if </span>cmd.contains(<span class="string">&quot;/&quot;</span>) || cmd.contains(<span class="string">&quot;\\&quot;</span>) {
-            <a class="self" href="../../src/git2/cred.rs.html#295">self</a>.commands.push(<a href="../../src/git2/cred.rs.html#296">cmd</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="self" href="#295">self</a>.commands.push(<a href="#296">cmd</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         } <span class="kw">else </span>{
-            <a class="self" href="../../src/git2/cred.rs.html#295">self</a>.commands.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;git credential-{}&quot;</span>, cmd));
+            <a class="self" href="#295">self</a>.commands.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;git credential-{}&quot;</span>, cmd));
         }
     }
 
@@ -1026,7 +1026,7 @@
     }
 
     <span class="kw">fn </span>url_key(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/cred.rs.html#314">self</a>.host, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/cred.rs.html#314">self</a>.protocol) {
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#314">self</a>.host, <span class="kw-2">&amp;</span><a class="self" href="#314">self</a>.protocol) {
             (<span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>host), <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>protocol)) =&gt; {
                 <span class="prelude-val">Some</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;credential.{}://{}.{}&quot;</span>, protocol, host, name))
             }
@@ -1039,7 +1039,7 @@
     /// All I/O errors are ignored, (to match git behavior), and this function
     /// only succeeds if both a username and a password were found
     </span><span class="kw">pub fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>username = <a class="self" href="../../src/git2/cred.rs.html#327">self</a>.username.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>username = <a class="self" href="#327">self</a>.username.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="prelude-val">None</span>;
         <span class="kw">for </span>cmd <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.commands {
             <span class="kw">let </span>(u, p) = <span class="self">self</span>.execute_cmd(cmd, <span class="kw-2">&amp;</span>username);
@@ -1054,8 +1054,8 @@
             }
         }
 
-        <span class="kw">match </span>(<a href="../../src/git2/cred.rs.html#328">username</a>, <a href="../../src/git2/cred.rs.html#329">password</a>) {
-            (<span class="prelude-val">Some</span>(u), <span class="prelude-val">Some</span>(p)) =&gt; <span class="prelude-val">Some</span>((<a href="../../src/git2/cred.rs.html#344">u</a>, <a href="../../src/git2/cred.rs.html#344">p</a>)),
+        <span class="kw">match </span>(<a href="#328">username</a>, <a href="#329">password</a>) {
+            (<span class="prelude-val">Some</span>(u), <span class="prelude-val">Some</span>(p)) =&gt; <span class="prelude-val">Some</span>((<a href="#344">u</a>, <a href="#344">p</a>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1087,28 +1087,28 @@
         // If that fails then it&#39;s up to the user to put `sh` in path and make
         // sure it works.
         </span><span class="kw">let </span><span class="kw-2">mut </span>c = Command::new(<span class="string">&quot;sh&quot;</span>);
-        <a href="../../src/git2/cred.rs.html#375">c</a>.arg(<span class="string">&quot;-c&quot;</span>)
+        <a href="#375">c</a>.arg(<span class="string">&quot;-c&quot;</span>)
             .arg(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} get&quot;</span>, cmd))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         <a class="macro" href="../../log/macro.debug.html">debug!</a>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, c);
-        <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="kw">match </span><a href="../../src/git2/cred.rs.html#375">c</a>.spawn() {
-            <span class="prelude-val">Ok</span>(p) =&gt; <a href="../../src/git2/cred.rs.html#383">p</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="kw">match </span><a href="#375">c</a>.spawn() {
+            <span class="prelude-val">Ok</span>(p) =&gt; <a href="#383">p</a>,
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <a class="macro" href="../../log/macro.debug.html">debug!</a>(<span class="string">&quot;`sh` failed to spawn: {}&quot;</span>, e);
-                <span class="kw">let </span><span class="kw-2">mut </span>parts = <a href="../../src/git2/cred.rs.html#353">cmd</a>.split_whitespace();
-                <span class="kw">let </span><span class="kw-2">mut </span>c = Command::new(<a href="../../src/git2/cred.rs.html#386">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap());
+                <span class="kw">let </span><span class="kw-2">mut </span>parts = <a href="#353">cmd</a>.split_whitespace();
+                <span class="kw">let </span><span class="kw-2">mut </span>c = Command::new(<a href="#386">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap());
                 <span class="kw">for </span>arg <span class="kw">in </span>parts {
                     c.arg(arg);
                 }
-                <a href="../../src/git2/cred.rs.html#387">c</a>.arg(<span class="string">&quot;get&quot;</span>)
+                <a href="#387">c</a>.arg(<span class="string">&quot;get&quot;</span>)
                     .stdin(Stdio::piped())
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped());
                 <a class="macro" href="../../log/macro.debug.html">debug!</a>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, c);
-                <span class="kw">match </span><a href="../../src/git2/cred.rs.html#387">c</a>.spawn() {
-                    <span class="prelude-val">Ok</span>(p) =&gt; <a href="../../src/git2/cred.rs.html#397">p</a>,
+                <span class="kw">match </span><a href="#387">c</a>.spawn() {
+                    <span class="prelude-val">Ok</span>(p) =&gt; <a href="#397">p</a>,
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <a class="macro" href="../../log/macro.debug.html">debug!</a>(<span class="string">&quot;fallback of {:?} failed with {}&quot;</span>, cmd, e);
                         <span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
@@ -1120,25 +1120,25 @@
         <span class="comment">// Ignore write errors as the command may not actually be listening for
         // stdin
         </span>{
-            <span class="kw">let </span>stdin = <a href="../../src/git2/cred.rs.html#382">p</a>.stdin.as_mut().unwrap();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="../../src/git2/cred.rs.html#352">self</a>.protocol {
-                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/git2/cred.rs.html#409">stdin</a>, <span class="string">&quot;protocol={}&quot;</span>, p);
+            <span class="kw">let </span>stdin = <a href="#382">p</a>.stdin.as_mut().unwrap();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="#352">self</a>.protocol {
+                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#409">stdin</a>, <span class="string">&quot;protocol={}&quot;</span>, p);
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="../../src/git2/cred.rs.html#352">self</a>.host {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p2) = <a class="self" href="../../src/git2/cred.rs.html#352">self</a>.port {
-                    <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/git2/cred.rs.html#409">stdin</a>, <span class="string">&quot;host={}:{}&quot;</span>, p, p2);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="#352">self</a>.host {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p2) = <a class="self" href="#352">self</a>.port {
+                    <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#409">stdin</a>, <span class="string">&quot;host={}:{}&quot;</span>, p, p2);
                 } <span class="kw">else </span>{
-                    <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/git2/cred.rs.html#409">stdin</a>, <span class="string">&quot;host={}&quot;</span>, p);
+                    <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#409">stdin</a>, <span class="string">&quot;host={}&quot;</span>, p);
                 }
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="../../src/git2/cred.rs.html#352">self</a>.path {
-                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/git2/cred.rs.html#409">stdin</a>, <span class="string">&quot;path={}&quot;</span>, p);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <a class="self" href="#352">self</a>.path {
+                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#409">stdin</a>, <span class="string">&quot;path={}&quot;</span>, p);
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <span class="kw-2">*</span><a href="../../src/git2/cred.rs.html#354">username</a> {
-                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/git2/cred.rs.html#409">stdin</a>, <span class="string">&quot;username={}&quot;</span>, p);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = <span class="kw-2">*</span><a href="#354">username</a> {
+                <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#409">stdin</a>, <span class="string">&quot;username={}&quot;</span>, p);
             }
         }
-        <span class="kw">let </span>output = <a class="macro" href="../../src/git2/cred.rs.html#356-364">my_try!</a>(p.wait_with_output());
+        <span class="kw">let </span>output = <a class="macro" href="#356-364">my_try!</a>(p.wait_with_output());
         <span class="kw">if </span>!output.status.success() {
             <a class="macro" href="../../log/macro.debug.html">debug!</a>(
                 <span class="string">&quot;credential helper failed: {}\nstdout ---\n{}\nstderr ---\n{}&quot;</span>,
@@ -1152,7 +1152,7 @@
             <span class="string">&quot;credential helper stderr ---\n{}&quot;</span>,
             String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stderr)
         );
-        <a class="self" href="../../src/git2/cred.rs.html#352">self</a>.<a href="../../src/git2/cred.rs.html#445">parse_output</a>(<a href="../../src/git2/cred.rs.html#427">output</a>.stdout)
+        <a class="self" href="#352">self</a>.<a href="#445">parse_output</a>(<a href="#427">output</a>.stdout)
     }
 
     <span class="comment">// Parse the output of a command into the username/password found
@@ -1180,7 +1180,7 @@
                 <span class="kw">_ </span>=&gt; {}
             }
         }
-        (<a href="../../src/git2/cred.rs.html#447">username</a>, <a href="../../src/git2/cred.rs.html#448">password</a>)
+        (<a href="#447">username</a>, <a href="#448">password</a>)
     }
 }
 
@@ -1427,4 +1427,4 @@ echo password=$2
     </span><span class="kw">fn </span>chmod(_path: <span class="kw-2">&amp;</span>Path) {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

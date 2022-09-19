@@ -842,7 +842,7 @@
 
 </span><span class="kw">extern crate </span>libc;
 
-<span class="kw">mod </span><a href="../../src/signal_hook_registry/half_lock.rs.html#1-232">half_lock</a>;
+<span class="kw">mod </span><a href="half_lock.rs.html#1-232">half_lock</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/enum.Entry.html">std::collections::hash_map::Entry</a>;
 <span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>};
@@ -866,7 +866,7 @@
 <span class="attribute">#[cfg(windows)]
 </span><span class="kw">use </span>libc::{SIGFPE, SIGILL, SIGSEGV};
 
-<span class="kw">use </span><a href="../../src/signal_hook_registry/half_lock.rs.html#98">half_lock::HalfLock</a>;
+<span class="kw">use </span><a href="half_lock.rs.html#98">half_lock::HalfLock</a>;
 
 <span class="comment">// These constants are not defined in the current version of libc, but it actually
 // exists in Windows CRT.
@@ -907,7 +907,7 @@
 </span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 </span><span class="kw">pub struct </span>SigId {
     signal: <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    action: <a href="../../src/signal_hook_registry/lib.rs.html#119">ActionId</a>,
+    action: <a href="#119">ActionId</a>,
 }
 
 <span class="comment">// This should be dyn Fn(...), but we want to support Rust 1.26.0 and that one doesn&#39;t allow dyn
@@ -917,13 +917,13 @@
 
 <span class="attribute">#[derive(Clone)]
 </span><span class="kw">struct </span>Slot {
-    prev: <a href="../../src/signal_hook_registry/lib.rs.html#191">Prev</a>,
+    prev: <a href="#191">Prev</a>,
     <span class="comment">// We use BTreeMap here, because we want to run the actions in the order they were inserted.
     // This works, because the ActionIds are assigned in an increasing order.
-    </span>actions: BTreeMap&lt;<a href="../../src/signal_hook_registry/lib.rs.html#119">ActionId</a>, Arc&lt;<a href="../../src/signal_hook_registry/lib.rs.html#134">Action</a>&gt;&gt;,
+    </span>actions: BTreeMap&lt;<a href="#119">ActionId</a>, Arc&lt;<a href="#134">Action</a>&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/signal_hook_registry/lib.rs.html#137">Slot</a> {
+<span class="kw">impl </span><a href="#137">Slot</a> {
     <span class="attribute">#[cfg(windows)]
     </span><span class="kw">fn </span>new(signal: libc::c_int) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span>old = <span class="kw">unsafe </span>{ libc::signal(signal, handler <span class="kw">as </span>sighandler_t) };
@@ -940,24 +940,24 @@
     </span><span class="kw">fn </span>new(signal: <a href="../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
         <span class="comment">// C data structure, expected to be zeroed out.
         </span><span class="kw">let </span><span class="kw-2">mut </span>new: <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.sigaction.html">libc::sigaction</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
-        <a href="../../src/signal_hook_registry/lib.rs.html#160">new</a>.sa_sigaction = <a href="../../src/signal_hook_registry/lib.rs.html#342">handler</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <a href="#160">new</a>.sa_sigaction = <a href="#342">handler</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="comment">// Android is broken and uses different int types than the rest (and different depending on
         // the pointer width). This converts the flags to the proper type no matter what it is on
         // the given platform.
         </span><span class="kw">let </span>flags = libc::SA_RESTART;
         <span class="attribute">#[allow(unused_assignments)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>siginfo = <a href="../../src/signal_hook_registry/lib.rs.html#165">flags</a>;
-        <a href="../../src/signal_hook_registry/lib.rs.html#167">siginfo</a> = libc::SA_SIGINFO <span class="kw">as _</span>;
-        <span class="kw">let </span>flags = <a href="../../src/signal_hook_registry/lib.rs.html#165">flags</a> | <a href="../../src/signal_hook_registry/lib.rs.html#167">siginfo</a>;
-        <a href="../../src/signal_hook_registry/lib.rs.html#160">new</a>.sa_flags = <a href="../../src/signal_hook_registry/lib.rs.html#169">flags</a> <span class="kw">as _</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>siginfo = <a href="#165">flags</a>;
+        <a href="#167">siginfo</a> = libc::SA_SIGINFO <span class="kw">as _</span>;
+        <span class="kw">let </span>flags = <a href="#165">flags</a> | <a href="#167">siginfo</a>;
+        <a href="#160">new</a>.sa_flags = <a href="#169">flags</a> <span class="kw">as _</span>;
         <span class="comment">// C data structure, expected to be zeroed out.
         </span><span class="kw">let </span><span class="kw-2">mut </span>old: <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.sigaction.html">libc::sigaction</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
         <span class="comment">// FFI ‒ pointers are valid, it doesn&#39;t take ownership.
         </span><span class="kw">if unsafe </span>{ libc::sigaction(signal, <span class="kw-2">&amp;</span>new, <span class="kw-2">&amp;mut </span>old) } != <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/signal_hook_registry/lib.rs.html#137">Slot</a> {
-            prev: <a href="../../src/signal_hook_registry/lib.rs.html#191">Prev</a> { <a href="../../src/signal_hook_registry/lib.rs.html#158">signal</a>, info: <a href="../../src/signal_hook_registry/lib.rs.html#172">old</a> },
+        <span class="prelude-val">Ok</span>(<a href="#137">Slot</a> {
+            prev: <a href="#191">Prev</a> { <a href="#158">signal</a>, info: <a href="#172">old</a> },
             actions: BTreeMap::new(),
         })
     }
@@ -965,7 +965,7 @@
 
 <span class="attribute">#[derive(Clone)]
 </span><span class="kw">struct </span>SignalData {
-    signals: HashMap&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../src/signal_hook_registry/lib.rs.html#137">Slot</a>&gt;,
+    signals: HashMap&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="#137">Slot</a>&gt;,
     next_id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
 }
 
@@ -978,7 +978,7 @@
     </span>info: <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.sigaction.html">sigaction</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/signal_hook_registry/lib.rs.html#191">Prev</a> {
+<span class="kw">impl </span><a href="#191">Prev</a> {
     <span class="attribute">#[cfg(windows)]
     </span><span class="kw">fn </span>detect(signal: c_int) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span>old = <span class="kw">unsafe </span>{ libc::signal(signal, SIG_GET) };
@@ -997,7 +997,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/signal_hook_registry/lib.rs.html#191">Prev</a> { <a href="../../src/signal_hook_registry/lib.rs.html#210">signal</a>, info: <a href="../../src/signal_hook_registry/lib.rs.html#212">old</a> })
+        <span class="prelude-val">Ok</span>(<a href="#191">Prev</a> { <a href="#210">signal</a>, info: <a href="#212">old</a> })
     }
 
     <span class="attribute">#[cfg(windows)]
@@ -1014,7 +1014,7 @@
 
     <span class="attribute">#[cfg(not(windows))]
     </span><span class="kw">unsafe fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, sig: <a href="../../libc/unix/type.c_int.html">c_int</a>, info: <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>, data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) {
-        <span class="kw">let </span>fptr = <a class="self" href="../../src/signal_hook_registry/lib.rs.html#234">self</a>.info.sa_sigaction;
+        <span class="kw">let </span>fptr = <a class="self" href="#234">self</a>.info.sa_sigaction;
         <span class="kw">if </span>fptr != <span class="number">0 </span>&amp;&amp; fptr != libc::SIG_DFL &amp;&amp; fptr != libc::SIG_IGN {
             <span class="comment">// Android is broken and uses different int types than the rest (and different
             // depending on the pointer width). This converts the flags to the proper type no
@@ -1024,15 +1024,15 @@
             // set it to the proper value (does Rust have a way to copy a type in a different
             // way?)
             </span><span class="attribute">#[allow(unused_assignments)]
-            </span><span class="kw">let </span><span class="kw-2">mut </span>siginfo = <a class="self" href="../../src/signal_hook_registry/lib.rs.html#234">self</a>.info.sa_flags;
-            <a href="../../src/signal_hook_registry/lib.rs.html#245">siginfo</a> = libc::SA_SIGINFO <span class="kw">as _</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>siginfo = <a class="self" href="#234">self</a>.info.sa_flags;
+            <a href="#245">siginfo</a> = libc::SA_SIGINFO <span class="kw">as _</span>;
             <span class="kw">if </span><span class="self">self</span>.info.sa_flags &amp; siginfo == <span class="number">0 </span>{
-                <span class="kw">let </span>action = mem::transmute::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<a href="../../libc/unix/type.c_int.html">c_int</a>)&gt;(<a href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
-                <a href="../../src/signal_hook_registry/lib.rs.html#248">action</a>(<a href="../../src/signal_hook_registry/lib.rs.html#234">sig</a>);
+                <span class="kw">let </span>action = mem::transmute::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<a href="../../libc/unix/type.c_int.html">c_int</a>)&gt;(<a href="#235">fptr</a>);
+                <a href="#248">action</a>(<a href="#234">sig</a>);
             } <span class="kw">else </span>{
                 <span class="kw">type </span>SigAction = <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<a href="../../libc/unix/type.c_int.html">c_int</a>, <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>, <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>);
-                <span class="kw">let </span>action = mem::transmute::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/signal_hook_registry/lib.rs.html#251">SigAction</a>&gt;(<a href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
-                <a href="../../src/signal_hook_registry/lib.rs.html#252">action</a>(<a href="../../src/signal_hook_registry/lib.rs.html#234">sig</a>, <a href="../../src/signal_hook_registry/lib.rs.html#234">info</a>, <a href="../../src/signal_hook_registry/lib.rs.html#234">data</a>);
+                <span class="kw">let </span>action = mem::transmute::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#251">SigAction</a>&gt;(<a href="#235">fptr</a>);
+                <a href="#252">action</a>(<a href="#234">sig</a>, <a href="#234">info</a>, <a href="#234">data</a>);
             }
         }
     }
@@ -1046,26 +1046,26 @@
 /// of signal handler. The handler assumes it has already been initialized.
 </span><span class="kw">struct </span>GlobalData {
     <span class="doccomment">/// The data structure describing what needs to be run for each signal.
-    </span>data: HalfLock&lt;<a href="../../src/signal_hook_registry/lib.rs.html#185">SignalData</a>&gt;,
+    </span>data: HalfLock&lt;<a href="#185">SignalData</a>&gt;,
 
     <span class="doccomment">/// A fallback to fight/minimize a race condition during signal initialization.
     ///
     /// See the comment inside [`register_unchecked_impl`].
-    </span>race_fallback: HalfLock&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#191">Prev</a>&gt;&gt;,
+    </span>race_fallback: HalfLock&lt;<span class="prelude-ty">Option</span>&lt;<a href="#191">Prev</a>&gt;&gt;,
 }
 
-<span class="kw">static </span><span class="kw-2">mut </span>GLOBAL_DATA: <span class="prelude-ty">Option</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#265">GlobalData</a>&gt; = <span class="prelude-val">None</span>;
+<span class="kw">static </span><span class="kw-2">mut </span>GLOBAL_DATA: <span class="prelude-ty">Option</span>&lt;<a href="#265">GlobalData</a>&gt; = <span class="prelude-val">None</span>;
 <span class="attribute">#[allow(deprecated)]
 </span><span class="kw">static </span>GLOBAL_INIT: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> = <a href="https://doc.rust-lang.org/nightly/std/sync/once/constant.ONCE_INIT.html">ONCE_INIT</a>;
 
-<span class="kw">impl </span><a href="../../src/signal_hook_registry/lib.rs.html#265">GlobalData</a> {
+<span class="kw">impl </span><a href="#265">GlobalData</a> {
     <span class="kw">fn </span>get() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <a href="../../src/signal_hook_registry/lib.rs.html#275">GLOBAL_DATA</a>.as_ref().unwrap() }
+        <span class="kw">unsafe </span>{ <a href="#275">GLOBAL_DATA</a>.as_ref().unwrap() }
     }
     <span class="kw">fn </span>ensure() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">Self </span>{
-        <a href="../../src/signal_hook_registry/lib.rs.html#277">GLOBAL_INIT</a>.call_once(|| <span class="kw">unsafe </span>{
-            <a href="../../src/signal_hook_registry/lib.rs.html#275">GLOBAL_DATA</a> = <span class="prelude-val">Some</span>(<a href="../../src/signal_hook_registry/lib.rs.html#265">GlobalData</a> {
-                data: HalfLock::new(<a href="../../src/signal_hook_registry/lib.rs.html#185">SignalData</a> {
+        <a href="#277">GLOBAL_INIT</a>.call_once(|| <span class="kw">unsafe </span>{
+            <a href="#275">GLOBAL_DATA</a> = <span class="prelude-val">Some</span>(<a href="#265">GlobalData</a> {
+                data: HalfLock::new(<a href="#185">SignalData</a> {
                     signals: HashMap::new(),
                     next_id: <span class="number">1</span>,
                 }),
@@ -1123,14 +1123,14 @@
 <span class="attribute">#[cfg(not(windows))]
 </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>handler(sig: <a href="../../libc/unix/type.c_int.html">c_int</a>, info: <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>, data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) {
     <span class="kw">let </span>globals = GlobalData::get();
-    <span class="kw">let </span>fallback = <a href="../../src/signal_hook_registry/lib.rs.html#343">globals</a>.race_fallback.<a href="../../src/signal_hook_registry/half_lock.rs.html#125">read</a>();
-    <span class="kw">let </span>sigdata = <a href="../../src/signal_hook_registry/lib.rs.html#343">globals</a>.data.<a href="../../src/signal_hook_registry/half_lock.rs.html#125">read</a>();
+    <span class="kw">let </span>fallback = <a href="#343">globals</a>.race_fallback.<a href="half_lock.rs.html#125">read</a>();
+    <span class="kw">let </span>sigdata = <a href="#343">globals</a>.data.<a href="half_lock.rs.html#125">read</a>();
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>slot) = <a href="../../src/signal_hook_registry/lib.rs.html#345">sigdata</a>.signals.get(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#342">sig</a>) {
-        <span class="kw">unsafe </span>{ <a href="../../src/signal_hook_registry/lib.rs.html#347">slot</a>.prev.<a href="../../src/signal_hook_registry/lib.rs.html#234">execute</a>(<a href="../../src/signal_hook_registry/lib.rs.html#342">sig</a>, <a href="../../src/signal_hook_registry/lib.rs.html#342">info</a>, <a href="../../src/signal_hook_registry/lib.rs.html#342">data</a>) };
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>slot) = <a href="#345">sigdata</a>.signals.get(<span class="kw-2">&amp;</span><a href="#342">sig</a>) {
+        <span class="kw">unsafe </span>{ <a href="#347">slot</a>.prev.<a href="#234">execute</a>(<a href="#342">sig</a>, <a href="#342">info</a>, <a href="#342">data</a>) };
 
-        <span class="kw">let </span>info = <span class="kw">unsafe </span>{ <a href="../../src/signal_hook_registry/lib.rs.html#342">info</a>.as_ref() };
-        <span class="kw">let </span>info = <a href="../../src/signal_hook_registry/lib.rs.html#350">info</a>.unwrap_or_else(|| {
+        <span class="kw">let </span>info = <span class="kw">unsafe </span>{ <a href="#342">info</a>.as_ref() };
+        <span class="kw">let </span>info = <a href="#350">info</a>.unwrap_or_else(|| {
             <span class="comment">// The info being null seems to be illegal according to POSIX, but has been observed on
             // some probably broken platform. We can&#39;t do anything about that, that is just broken,
             // but we are not allowed to panic in a signal handler, so we are left only with simply
@@ -1139,7 +1139,7 @@
             </span><span class="kw">unsafe </span>{
                 <span class="kw">const </span>MSG: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] =
                     <span class="string">b&quot;Platform broken, got NULL as siginfo to signal handler. Aborting&quot;</span>;
-                libc::write(<span class="number">2</span>, <a href="../../src/signal_hook_registry/lib.rs.html#358">MSG</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../src/signal_hook_registry/lib.rs.html#358">MSG</a>.len());
+                libc::write(<span class="number">2</span>, <a href="#358">MSG</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="#358">MSG</a>.len());
                 libc::abort();
             }
         });
@@ -1147,12 +1147,12 @@
         <span class="kw">for </span>action <span class="kw">in </span>slot.actions.values() {
             action(info);
         }
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>prev) = <a href="../../src/signal_hook_registry/lib.rs.html#344">fallback</a>.as_ref() {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>prev) = <a href="#344">fallback</a>.as_ref() {
         <span class="comment">// In case we get called but don&#39;t have the slot for this signal set up yet, we are under
         // the race condition. We may have the old signal handler stored in the fallback
         // temporarily.
         </span><span class="kw">if </span>prev.signal == sig {
-            <span class="kw">unsafe </span>{ <a href="../../src/signal_hook_registry/lib.rs.html#368">prev</a>.<a href="../../src/signal_hook_registry/lib.rs.html#234">execute</a>(<a href="../../src/signal_hook_registry/lib.rs.html#342">sig</a>, <a href="../../src/signal_hook_registry/lib.rs.html#342">info</a>, <a href="../../src/signal_hook_registry/lib.rs.html#342">data</a>) };
+            <span class="kw">unsafe </span>{ <a href="#368">prev</a>.<a href="#234">execute</a>(<a href="#342">sig</a>, <a href="#342">info</a>, <a href="#342">data</a>) };
         }
         <span class="comment">// else -&gt; probably should not happen, but races with other threads are possible so
         // better safe
@@ -1166,7 +1166,7 @@
 /// these signals is attempted.
 ///
 /// See [`register`].
-</span><span class="kw">pub const </span>FORBIDDEN: <span class="kw-2">&amp;</span>[<a href="../../libc/unix/type.c_int.html">c_int</a>] = <a href="../../src/signal_hook_registry/lib.rs.html#392">FORBIDDEN_IMPL</a>;
+</span><span class="kw">pub const </span>FORBIDDEN: <span class="kw-2">&amp;</span>[<a href="../../libc/unix/type.c_int.html">c_int</a>] = <a href="#392">FORBIDDEN_IMPL</a>;
 
 <span class="attribute">#[cfg(windows)]
 </span><span class="kw">const </span>FORBIDDEN_IMPL: <span class="kw-2">&amp;</span>[c_int] = <span class="kw-2">&amp;</span>[SIGILL, SIGFPE, SIGSEGV];
@@ -1273,11 +1273,11 @@
 ///     Ok(())
 /// }
 /// ```
-</span><span class="kw">pub unsafe fn </span>register&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+</span><span class="kw">pub unsafe fn </span>register&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../../src/signal_hook_registry/lib.rs.html#518-520">register_sigaction_impl</a>(<a href="../../src/signal_hook_registry/lib.rs.html#494">signal</a>, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span>| <a href="../../src/signal_hook_registry/lib.rs.html#494">action</a>())
+    <a href="#518-520">register_sigaction_impl</a>(<a href="#494">signal</a>, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span>| <a href="#494">action</a>())
 }
 
 <span class="doccomment">/// Register a signal action.
@@ -1290,14 +1290,14 @@
 ///
 /// See the details of [`register`].
 </span><span class="attribute">#[cfg(not(windows))]
-</span><span class="kw">pub unsafe fn </span>register_sigaction&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+</span><span class="kw">pub unsafe fn </span>register_sigaction&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../../src/signal_hook_registry/lib.rs.html#518-520">register_sigaction_impl</a>(<a href="../../src/signal_hook_registry/lib.rs.html#511">signal</a>, <a href="../../src/signal_hook_registry/lib.rs.html#511">action</a>)
+    <a href="#518-520">register_sigaction_impl</a>(<a href="#511">signal</a>, <a href="#511">action</a>)
 }
 
-<span class="kw">unsafe fn </span>register_sigaction_impl&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+<span class="kw">unsafe fn </span>register_sigaction_impl&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
@@ -1306,7 +1306,7 @@
         <span class="string">&quot;Attempted to register forbidden signal {}&quot;</span>,
         signal,
     );
-    <a href="../../src/signal_hook_registry/lib.rs.html#567-569">register_unchecked_impl</a>(<a href="../../src/signal_hook_registry/lib.rs.html#518">signal</a>, <a href="../../src/signal_hook_registry/lib.rs.html#518">action</a>)
+    <a href="#567-569">register_unchecked_impl</a>(<a href="#518">signal</a>, <a href="#518">action</a>)
 }
 
 <span class="doccomment">/// Register a signal action without checking for forbidden signals.
@@ -1318,11 +1318,11 @@
 /// # Safety
 ///
 /// See the details of [`register`].
-</span><span class="kw">pub unsafe fn </span>register_signal_unchecked&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+</span><span class="kw">pub unsafe fn </span>register_signal_unchecked&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../../src/signal_hook_registry/lib.rs.html#567-569">register_unchecked_impl</a>(<a href="../../src/signal_hook_registry/lib.rs.html#539">signal</a>, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span>| <a href="../../src/signal_hook_registry/lib.rs.html#539">action</a>())
+    <a href="#567-569">register_unchecked_impl</a>(<a href="#539">signal</a>, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span>| <a href="#539">action</a>())
 }
 
 <span class="doccomment">/// Register a signal action without checking for forbidden signals.
@@ -1339,27 +1339,27 @@
 ///
 /// See the details of [`register`].
 </span><span class="attribute">#[cfg(not(windows))]
-</span><span class="kw">pub unsafe fn </span>register_unchecked&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+</span><span class="kw">pub unsafe fn </span>register_unchecked&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a href="../../src/signal_hook_registry/lib.rs.html#567-569">register_unchecked_impl</a>(<a href="../../src/signal_hook_registry/lib.rs.html#560">signal</a>, <a href="../../src/signal_hook_registry/lib.rs.html#560">action</a>)
+    <a href="#567-569">register_unchecked_impl</a>(<a href="#560">signal</a>, <a href="#560">action</a>)
 }
 
-<span class="kw">unsafe fn </span>register_unchecked_impl&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+<span class="kw">unsafe fn </span>register_unchecked_impl&lt;F&gt;(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>, action: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#126">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
 <span class="kw">where
     </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>globals = GlobalData::ensure();
-    <span class="kw">let </span>action = Arc::from(<a href="../../src/signal_hook_registry/lib.rs.html#567">action</a>);
+    <span class="kw">let </span>action = Arc::from(<a href="#567">action</a>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="../../src/signal_hook_registry/lib.rs.html#571">globals</a>.data.<a href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="#571">globals</a>.data.<a href="half_lock.rs.html#194">write</a>();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#574">lock</a>);
-    <span class="kw">let </span>id = <a href="../../src/signal_hook_registry/lib.rs.html#119">ActionId</a>(<a href="../../src/signal_hook_registry/lib.rs.html#576">sigdata</a>.next_id);
-    <a href="../../src/signal_hook_registry/lib.rs.html#576">sigdata</a>.next_id += <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="#574">lock</a>);
+    <span class="kw">let </span>id = <a href="#119">ActionId</a>(<a href="#576">sigdata</a>.next_id);
+    <a href="#576">sigdata</a>.next_id += <span class="number">1</span>;
 
-    <span class="kw">match </span><a href="../../src/signal_hook_registry/lib.rs.html#576">sigdata</a>.signals.entry(<a href="../../src/signal_hook_registry/lib.rs.html#567">signal</a>) {
+    <span class="kw">match </span><a href="#576">sigdata</a>.signals.entry(<a href="#567">signal</a>) {
         Entry::Occupied(<span class="kw-2">mut </span>occupied) =&gt; {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(occupied.get_mut().actions.insert(id, action).is_none());
         }
@@ -1378,20 +1378,20 @@
             // And yes, this still leaves a short race condition when some other thread could
             // replace the signal handler and we would be calling the outdated one for a short
             // time, until we install the slot.
-            </span><a href="../../src/signal_hook_registry/lib.rs.html#571">globals</a>
+            </span><a href="#571">globals</a>
                 .race_fallback
-                .<a href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>()
-                .<a href="../../src/signal_hook_registry/half_lock.rs.html#73">store</a>(<span class="prelude-val">Some</span>(Prev::detect(signal)<span class="question-mark">?</span>));
+                .<a href="half_lock.rs.html#194">write</a>()
+                .<a href="half_lock.rs.html#73">store</a>(<span class="prelude-val">Some</span>(Prev::detect(signal)<span class="question-mark">?</span>));
 
             <span class="kw">let </span><span class="kw-2">mut </span>slot = Slot::new(signal)<span class="question-mark">?</span>;
-            <a href="../../src/signal_hook_registry/lib.rs.html#604">slot</a>.actions.insert(<a href="../../src/signal_hook_registry/lib.rs.html#577">id</a>, <a href="../../src/signal_hook_registry/lib.rs.html#572">action</a>);
-            <a href="../../src/signal_hook_registry/lib.rs.html#584">place</a>.insert(<a href="../../src/signal_hook_registry/lib.rs.html#604">slot</a>);
+            <a href="#604">slot</a>.actions.insert(<a href="#577">id</a>, <a href="#572">action</a>);
+            <a href="#584">place</a>.insert(<a href="#604">slot</a>);
         }
     }
 
-    <a href="../../src/signal_hook_registry/lib.rs.html#574">lock</a>.<a href="../../src/signal_hook_registry/half_lock.rs.html#73">store</a>(<a href="../../src/signal_hook_registry/lib.rs.html#576">sigdata</a>);
+    <a href="#574">lock</a>.<a href="half_lock.rs.html#73">store</a>(<a href="#576">sigdata</a>);
 
-    <span class="prelude-val">Ok</span>(<a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a> { <a href="../../src/signal_hook_registry/lib.rs.html#567">signal</a>, action: <a href="../../src/signal_hook_registry/lib.rs.html#577">id</a> })
+    <span class="prelude-val">Ok</span>(<a href="#126">SigId</a> { <a href="#567">signal</a>, action: <a href="#577">id</a> })
 }
 
 <span class="doccomment">/// Removes a previously installed action.
@@ -1411,18 +1411,18 @@
 /// but it is not recommended to remove termination actions during the normal runtime of
 /// application (unless the desired effect is to create something that can be terminated only by
 /// SIGKILL).
-</span><span class="kw">pub fn </span>unregister(id: <a href="../../src/signal_hook_registry/lib.rs.html#126">SigId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+</span><span class="kw">pub fn </span>unregister(id: <a href="#126">SigId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let </span>globals = GlobalData::ensure();
     <span class="kw">let </span><span class="kw-2">mut </span>replace = <span class="bool-val">false</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="../../src/signal_hook_registry/lib.rs.html#633">globals</a>.data.<a href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#635">lock</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <a href="../../src/signal_hook_registry/lib.rs.html#636">sigdata</a>.signals.get_mut(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#632">id</a>.signal) {
-        <a href="../../src/signal_hook_registry/lib.rs.html#634">replace</a> = <a href="../../src/signal_hook_registry/lib.rs.html#637">slot</a>.actions.remove(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#632">id</a>.action).is_some();
+    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="#633">globals</a>.data.<a href="half_lock.rs.html#194">write</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="#635">lock</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <a href="#636">sigdata</a>.signals.get_mut(<span class="kw-2">&amp;</span><a href="#632">id</a>.signal) {
+        <a href="#634">replace</a> = <a href="#637">slot</a>.actions.remove(<span class="kw-2">&amp;</span><a href="#632">id</a>.action).is_some();
     }
     <span class="kw">if </span>replace {
-        <a href="../../src/signal_hook_registry/lib.rs.html#635">lock</a>.<a href="../../src/signal_hook_registry/half_lock.rs.html#73">store</a>(<a href="../../src/signal_hook_registry/lib.rs.html#636">sigdata</a>);
+        <a href="#635">lock</a>.<a href="half_lock.rs.html#73">store</a>(<a href="#636">sigdata</a>);
     }
-    <a href="../../src/signal_hook_registry/lib.rs.html#634">replace</a>
+    <a href="#634">replace</a>
 }
 
 <span class="comment">// We keep this one here for strict backwards compatibility, but the API is kind of bad. One can
@@ -1436,18 +1436,18 @@
 </span><span class="kw">pub fn </span>unregister_signal(signal: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let </span>globals = GlobalData::ensure();
     <span class="kw">let </span><span class="kw-2">mut </span>replace = <span class="bool-val">false</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="../../src/signal_hook_registry/lib.rs.html#655">globals</a>.data.<a href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#657">lock</a>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <a href="../../src/signal_hook_registry/lib.rs.html#658">sigdata</a>.signals.get_mut(<span class="kw-2">&amp;</span><a href="../../src/signal_hook_registry/lib.rs.html#654">signal</a>) {
+    <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="#655">globals</a>.data.<a href="half_lock.rs.html#194">write</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>sigdata = SignalData::clone(<span class="kw-2">&amp;</span><a href="#657">lock</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <a href="#658">sigdata</a>.signals.get_mut(<span class="kw-2">&amp;</span><a href="#654">signal</a>) {
         <span class="kw">if </span>!slot.actions.is_empty() {
-            <a href="../../src/signal_hook_registry/lib.rs.html#659">slot</a>.actions.clear();
-            <a href="../../src/signal_hook_registry/lib.rs.html#656">replace</a> = <span class="bool-val">true</span>;
+            <a href="#659">slot</a>.actions.clear();
+            <a href="#656">replace</a> = <span class="bool-val">true</span>;
         }
     }
     <span class="kw">if </span>replace {
-        <a href="../../src/signal_hook_registry/lib.rs.html#657">lock</a>.<a href="../../src/signal_hook_registry/half_lock.rs.html#73">store</a>(<a href="../../src/signal_hook_registry/lib.rs.html#658">sigdata</a>);
+        <a href="#657">lock</a>.<a href="half_lock.rs.html#73">store</a>(<a href="#658">sigdata</a>);
     }
-    <a href="../../src/signal_hook_registry/lib.rs.html#656">replace</a>
+    <a href="#656">replace</a>
 }
 
 <span class="attribute">#[cfg(test)]
@@ -1563,4 +1563,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="signal_hook_registry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="signal_hook_registry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

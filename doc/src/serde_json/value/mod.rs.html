@@ -1077,8 +1077,8 @@
 //! [from_slice]: https://docs.serde.rs/serde_json/de/fn.from_slice.html
 //! [from_reader]: https://docs.serde.rs/serde_json/de/fn.from_reader.html
 
-</span><span class="kw">use </span><a href="../../../src/serde_json/error.rs.html#15"><span class="kw">crate</span>::error::Error</a>;
-<span class="kw">use </span><a href="../../../src/serde_json/lib.rs.html#412"><span class="kw">crate</span>::io</a>;
+</span><span class="kw">use </span><a href="../error.rs.html#15"><span class="kw">crate</span>::error::Error</a>;
+<span class="kw">use </span><a href="../lib.rs.html#412"><span class="kw">crate</span>::io</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 <span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
@@ -1087,10 +1087,10 @@
 <span class="kw">use </span><a href="../../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>;
 <span class="kw">use </span><a href="../../../serde/ser/trait.Serialize.html">serde::ser::Serialize</a>;
 
-<span class="kw">pub use </span><a href="../../../src/serde_json/value/index.rs.html#37"><span class="self">self</span>::index::Index</a>;
-<span class="kw">pub use </span><a href="../../../src/serde_json/value/ser.rs.html#60"><span class="self">self</span>::ser::Serializer</a>;
-<span class="kw">pub use </span><a href="../../../src/serde_json/map.rs.html#26"><span class="kw">crate</span>::map::Map</a>;
-<span class="kw">pub use </span><a href="../../../src/serde_json/number.rs.html#22"><span class="kw">crate</span>::number::Number</a>;
+<span class="kw">pub use </span><a href="index.rs.html#37"><span class="self">self</span>::index::Index</a>;
+<span class="kw">pub use </span><a href="ser.rs.html#60"><span class="self">self</span>::ser::Serializer</a>;
+<span class="kw">pub use </span><a href="../map.rs.html#26"><span class="kw">crate</span>::map::Map</a>;
+<span class="kw">pub use </span><a href="../number.rs.html#22"><span class="kw">crate</span>::number::Number</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::raw::{to_raw_value, RawValue};
@@ -1125,7 +1125,7 @@
     /// #
     /// let v = json!(12.5);
     /// ```
-    </span>Number(<a href="../../../src/serde_json/number.rs.html#22">Number</a>),
+    </span>Number(<a href="../number.rs.html#22">Number</a>),
 
     <span class="doccomment">/// Represents a JSON string.
     ///
@@ -1143,7 +1143,7 @@
     /// #
     /// let v = json!([&quot;an&quot;, &quot;array&quot;]);
     /// ```
-    </span>Array(Vec&lt;<a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;),
+    </span>Array(Vec&lt;<a href="#115">Value</a>&gt;),
 
     <span class="doccomment">/// Represents a JSON object.
     ///
@@ -1158,29 +1158,29 @@
     /// #
     /// let v = json!({ &quot;an&quot;: &quot;object&quot; });
     /// ```
-    </span>Object(Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;),
+    </span>Object(Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#115">Value</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#115">Value</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#178">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#123">Value::Null</a> =&gt; <a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>.write_str(<span class="string">&quot;Null&quot;</span>),
-            <a href="../../../src/serde_json/value/mod.rs.html#132">Value::Bool</a>(boolean) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>, <span class="string">&quot;Bool({})&quot;</span>, boolean),
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(number) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="../../../src/serde_json/value/mod.rs.html#182">number</a>, <a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>),
-            <a href="../../../src/serde_json/value/mod.rs.html#150">Value::String</a>(string) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>, <span class="string">&quot;String({:?})&quot;</span>, string),
-            <a href="../../../src/serde_json/value/mod.rs.html#159">Value::Array</a>(vec) =&gt; {
+        <span class="kw">match </span><span class="self"><a href="#178">self</a> </span>{
+            <a href="#123">Value::Null</a> =&gt; <a href="#178">formatter</a>.write_str(<span class="string">&quot;Null&quot;</span>),
+            <a href="#132">Value::Bool</a>(boolean) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#178">formatter</a>, <span class="string">&quot;Bool({})&quot;</span>, boolean),
+            <a href="#141">Value::Number</a>(number) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="#182">number</a>, <a href="#178">formatter</a>),
+            <a href="#150">Value::String</a>(string) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#178">formatter</a>, <span class="string">&quot;String({:?})&quot;</span>, string),
+            <a href="#159">Value::Array</a>(vec) =&gt; {
                 formatter.write_str(<span class="string">&quot;Array &quot;</span>)<span class="question-mark">?</span>;
-                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="../../../src/serde_json/value/mod.rs.html#184">vec</a>, <a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>)
+                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="#184">vec</a>, <a href="#178">formatter</a>)
             }
-            <a href="../../../src/serde_json/value/mod.rs.html#174">Value::Object</a>(map) =&gt; {
+            <a href="#174">Value::Object</a>(map) =&gt; {
                 formatter.write_str(<span class="string">&quot;Object &quot;</span>)<span class="question-mark">?</span>;
-                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="../../../src/serde_json/value/mod.rs.html#188">map</a>, <a href="../../../src/serde_json/value/mod.rs.html#178">formatter</a>)
+                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug::fmt</a>(<a href="#188">map</a>, <a href="#178">formatter</a>)
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#115">Value</a> {
     <span class="doccomment">/// Display a JSON value as a string.
     ///
     /// ```
@@ -1214,9 +1214,9 @@
             <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
                 <span class="comment">// Safety: the serializer below only emits valid utf8 when using
                 // the default formatter.
-                </span><span class="kw">let </span>s = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="../../../src/serde_json/value/mod.rs.html#227">buf</a>) };
-                <a class="macro" href="../../../src/serde_json/lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.inner.write_str(s).map_err(io_error));
-                <span class="prelude-val">Ok</span>(<a href="../../../src/serde_json/value/mod.rs.html#227">buf</a>.len())
+                </span><span class="kw">let </span>s = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#227">buf</a>) };
+                <a class="macro" href="../lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.inner.write_str(s).map_err(io_error));
+                <span class="prelude-val">Ok</span>(<a href="#227">buf</a>.len())
             }
 
             <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
@@ -1230,14 +1230,14 @@
             </span>io::Error::new(io::ErrorKind::Other, <span class="string">&quot;fmt error&quot;</span>)
         }
 
-        <span class="kw">let </span>alternate = <a href="../../../src/serde_json/value/mod.rs.html#221">f</a>.alternate();
-        <span class="kw">let </span><span class="kw-2">mut </span>wr = <a href="../../../src/serde_json/value/mod.rs.html#222">WriterFormatter</a> { inner: <a href="../../../src/serde_json/value/mod.rs.html#221">f</a> };
+        <span class="kw">let </span>alternate = <a href="#221">f</a>.alternate();
+        <span class="kw">let </span><span class="kw-2">mut </span>wr = <a href="#222">WriterFormatter</a> { inner: <a href="#221">f</a> };
         <span class="kw">if </span>alternate {
             <span class="comment">// {:#}
-            </span><a href="../../../src/serde_json/ser.rs.html#2168-2171"><span class="kw">super</span>::ser::to_writer_pretty</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_json/value/mod.rs.html#247">wr</a>, <a class="self" href="../../../src/serde_json/value/mod.rs.html#221">self</a>).map_err(|<span class="kw">_</span>| fmt::Error)
+            </span><a href="../ser.rs.html#2168-2171"><span class="kw">super</span>::ser::to_writer_pretty</a>(<span class="kw-2">&amp;mut </span><a href="#247">wr</a>, <a class="self" href="#221">self</a>).map_err(|<span class="kw">_</span>| fmt::Error)
         } <span class="kw">else </span>{
             <span class="comment">// {}
-            </span><a href="../../../src/serde_json/ser.rs.html#2149-2152"><span class="kw">super</span>::ser::to_writer</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_json/value/mod.rs.html#247">wr</a>, <a class="self" href="../../../src/serde_json/value/mod.rs.html#221">self</a>).map_err(|<span class="kw">_</span>| fmt::Error)
+            </span><a href="../ser.rs.html#2149-2152"><span class="kw">super</span>::ser::to_writer</a>(<span class="kw-2">&amp;mut </span><a href="#247">wr</a>, <a class="self" href="#221">self</a>).map_err(|<span class="kw">_</span>| fmt::Error)
         }
     }
 }
@@ -1246,10 +1246,10 @@
     <span class="kw">if </span>s.starts_with(<span class="string">&#39;+&#39;</span>) || (s.starts_with(<span class="string">&#39;0&#39;</span>) &amp;&amp; s.len() != <span class="number">1</span>) {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <a href="../../../src/serde_json/value/mod.rs.html#258">s</a>.parse().ok()
+    <a href="#258">s</a>.parse().ok()
 }
 
-<span class="kw">impl </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
+<span class="kw">impl </span><a href="#115">Value</a> {
     <span class="doccomment">/// Index into a JSON array or map. A string index can be used to access a
     /// value in a map, and a usize index can be used to access an element of an
     /// array.
@@ -1288,8 +1288,8 @@
     /// assert_eq!(object[&quot;D&quot;], json!(null));
     /// assert_eq!(object[0][&quot;x&quot;][&quot;y&quot;][&quot;z&quot;], json!(null));
     /// ```
-    </span><span class="kw">pub fn </span>get&lt;I: <a href="../../../src/serde_json/value/index.rs.html#37">Index</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: I) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt; {
-        <a href="../../../src/serde_json/value/mod.rs.html#304">index</a>.<a href="../../../src/serde_json/value/index.rs.html#40">index_into</a>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#304">self</a>)
+    </span><span class="kw">pub fn </span>get&lt;I: <a href="index.rs.html#37">Index</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: I) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#115">Value</a>&gt; {
+        <a href="#304">index</a>.<a href="index.rs.html#40">index_into</a>(<a class="self" href="#304">self</a>)
     }
 
     <span class="doccomment">/// Mutably index into a JSON array or map. A string index can be used to
@@ -1310,8 +1310,8 @@
     /// let mut array = json!([ &quot;A&quot;, &quot;B&quot;, &quot;C&quot; ]);
     /// *array.get_mut(2).unwrap() = json!(&quot;D&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>get_mut&lt;I: <a href="../../../src/serde_json/value/index.rs.html#37">Index</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: I) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt; {
-        <a href="../../../src/serde_json/value/mod.rs.html#326">index</a>.<a href="../../../src/serde_json/value/index.rs.html#44">index_into_mut</a>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#326">self</a>)
+    </span><span class="kw">pub fn </span>get_mut&lt;I: <a href="index.rs.html#37">Index</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: I) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#115">Value</a>&gt; {
+        <a href="#326">index</a>.<a href="index.rs.html#44">index_into_mut</a>(<a class="self" href="#326">self</a>)
     }
 
     <span class="doccomment">/// Returns true if the `Value` is an Object. Returns false otherwise.
@@ -1332,7 +1332,7 @@
     /// assert!(!obj[&quot;b&quot;].is_object());
     /// ```
     </span><span class="kw">pub fn </span>is_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/serde_json/value/mod.rs.html#347">self</a>.<a href="../../../src/serde_json/value/mod.rs.html#365">as_object</a>().is_some()
+        <a class="self" href="#347">self</a>.<a href="#365">as_object</a>().is_some()
     }
 
     <span class="doccomment">/// If the `Value` is an Object, returns the associated Map. Returns None
@@ -1349,9 +1349,9 @@
     /// // The array `[&quot;an&quot;, &quot;array&quot;]` is not an object.
     /// assert_eq!(v[&quot;b&quot;].as_object(), None);
     /// ```
-    </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#365">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#174">Value::Object</a>(map) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#367">map</a>),
+    </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#115">Value</a>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="#365">self</a> </span>{
+            <a href="#174">Value::Object</a>(map) =&gt; <span class="prelude-val">Some</span>(<a href="#367">map</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1367,9 +1367,9 @@
     /// v[&quot;a&quot;].as_object_mut().unwrap().clear();
     /// assert_eq!(v, json!({ &quot;a&quot;: {} }));
     /// ```
-    </span><span class="kw">pub fn </span>as_object_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#383">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#174">Value::Object</a>(map) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#385">map</a>),
+    </span><span class="kw">pub fn </span>as_object_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#115">Value</a>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="#383">self</a> </span>{
+            <a href="#174">Value::Object</a>(map) =&gt; <span class="prelude-val">Some</span>(<a href="#385">map</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1391,7 +1391,7 @@
     /// assert!(!obj[&quot;b&quot;].is_array());
     /// ```
     </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/serde_json/value/mod.rs.html#406">self</a>.<a href="../../../src/serde_json/value/mod.rs.html#424">as_array</a>().is_some()
+        <a class="self" href="#406">self</a>.<a href="#424">as_array</a>().is_some()
     }
 
     <span class="doccomment">/// If the `Value` is an Array, returns the associated vector. Returns None
@@ -1408,9 +1408,9 @@
     /// // The object `{&quot;an&quot;: &quot;object&quot;}` is not an array.
     /// assert_eq!(v[&quot;b&quot;].as_array(), None);
     /// ```
-    </span><span class="kw">pub fn </span>as_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#424">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#159">Value::Array</a>(array) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#426">array</a>),
+    </span><span class="kw">pub fn </span>as_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;<a href="#115">Value</a>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="#424">self</a> </span>{
+            <a href="#159">Value::Array</a>(array) =&gt; <span class="prelude-val">Some</span>(<a href="#426">array</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1426,9 +1426,9 @@
     /// v[&quot;a&quot;].as_array_mut().unwrap().clear();
     /// assert_eq!(v, json!({ &quot;a&quot;: [] }));
     /// ```
-    </span><span class="kw">pub fn </span>as_array_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt;&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#442">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#159">Value::Array</a>(list) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#444">list</a>),
+    </span><span class="kw">pub fn </span>as_array_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="#115">Value</a>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="#442">self</a> </span>{
+            <a href="#159">Value::Array</a>(list) =&gt; <span class="prelude-val">Some</span>(<a href="#444">list</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1449,7 +1449,7 @@
     /// assert!(!v[&quot;b&quot;].is_string());
     /// ```
     </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/serde_json/value/mod.rs.html#464">self</a>.<a href="../../../src/serde_json/value/mod.rs.html#491">as_str</a>().is_some()
+        <a class="self" href="#464">self</a>.<a href="#491">as_str</a>().is_some()
     }
 
     <span class="doccomment">/// If the `Value` is a String, returns the associated str. Returns None
@@ -1476,8 +1476,8 @@
     /// println!(&quot;The value is: {}&quot;, v[&quot;a&quot;].as_str().unwrap());
     /// ```
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#491">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#150">Value::String</a>(s) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#493">s</a>),
+        <span class="kw">match </span><span class="self"><a href="#491">self</a> </span>{
+            <a href="#150">Value::String</a>(s) =&gt; <span class="prelude-val">Some</span>(<a href="#493">s</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1495,8 +1495,8 @@
     /// assert!(!v[&quot;b&quot;].is_number());
     /// ```
     </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#510">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#510">self</a> </span>{
+            <a href="#141">Value::Number</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1522,8 +1522,8 @@
     /// assert!(!v[&quot;c&quot;].is_i64());
     /// ```
     </span><span class="kw">pub fn </span>is_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#537">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#539">n</a>.<a href="../../../src/serde_json/number.rs.html#97">is_i64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#537">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#539">n</a>.<a href="../number.rs.html#97">is_i64</a>(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1547,8 +1547,8 @@
     /// assert!(!v[&quot;c&quot;].is_u64());
     /// ```
     </span><span class="kw">pub fn </span>is_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#562">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#564">n</a>.<a href="../../../src/serde_json/number.rs.html#127">is_u64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#562">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#564">n</a>.<a href="../number.rs.html#127">is_u64</a>(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1573,8 +1573,8 @@
     /// assert!(!v[&quot;c&quot;].is_f64());
     /// ```
     </span><span class="kw">pub fn </span>is_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#588">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#590">n</a>.<a href="../../../src/serde_json/number.rs.html#157">is_f64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#588">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#590">n</a>.<a href="../number.rs.html#157">is_f64</a>(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1593,8 +1593,8 @@
     /// assert_eq!(v[&quot;c&quot;].as_i64(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#608">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#610">n</a>.<a href="../../../src/serde_json/number.rs.html#188">as_i64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#608">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#610">n</a>.<a href="../number.rs.html#188">as_i64</a>(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1612,8 +1612,8 @@
     /// assert_eq!(v[&quot;c&quot;].as_u64(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#627">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#629">n</a>.<a href="../../../src/serde_json/number.rs.html#218">as_u64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#627">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#629">n</a>.<a href="../number.rs.html#218">as_u64</a>(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1631,8 +1631,8 @@
     /// assert_eq!(v[&quot;c&quot;].as_f64(), Some(-64.0));
     /// ```
     </span><span class="kw">pub fn </span>as_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#646">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#648">n</a>.<a href="../../../src/serde_json/number.rs.html#240">as_f64</a>(),
+        <span class="kw">match </span><span class="self"><a href="#646">self</a> </span>{
+            <a href="#141">Value::Number</a>(n) =&gt; <a href="#648">n</a>.<a href="../number.rs.html#240">as_f64</a>(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1653,7 +1653,7 @@
     /// assert!(!v[&quot;b&quot;].is_boolean());
     /// ```
     </span><span class="kw">pub fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/serde_json/value/mod.rs.html#668">self</a>.<a href="../../../src/serde_json/value/mod.rs.html#685">as_bool</a>().is_some()
+        <a class="self" href="#668">self</a>.<a href="#685">as_bool</a>().is_some()
     }
 
     <span class="doccomment">/// If the `Value` is a Boolean, returns the associated bool. Returns None
@@ -1670,8 +1670,8 @@
     /// assert_eq!(v[&quot;b&quot;].as_bool(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_bool(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#685">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#132">Value::Bool</a>(b) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/serde_json/value/mod.rs.html#687">b</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#685">self</a> </span>{
+            <a href="#132">Value::Bool</a>(b) =&gt; <span class="prelude-val">Some</span>(<a href="#687">b</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1692,7 +1692,7 @@
     /// assert!(!v[&quot;b&quot;].is_null());
     /// ```
     </span><span class="kw">pub fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/serde_json/value/mod.rs.html#707">self</a>.<a href="../../../src/serde_json/value/mod.rs.html#723">as_null</a>().is_some()
+        <a class="self" href="#707">self</a>.<a href="#723">as_null</a>().is_some()
     }
 
     <span class="doccomment">/// If the `Value` is a Null, returns (). Returns None otherwise.
@@ -1708,8 +1708,8 @@
     /// assert_eq!(v[&quot;b&quot;].as_null(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/serde_json/value/mod.rs.html#723">self</a> </span>{
-            <a href="../../../src/serde_json/value/mod.rs.html#123">Value::Null</a> =&gt; <span class="prelude-val">Some</span>(()),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#723">self</a> </span>{
+            <a href="#123">Value::Null</a> =&gt; <span class="prelude-val">Some</span>(()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1740,20 +1740,20 @@
     /// assert_eq!(data.pointer(&quot;/x/y/1&quot;).unwrap(), &amp;json!(&quot;zz&quot;));
     /// assert_eq!(data.pointer(&quot;/a/b/c&quot;), None);
     /// ```
-    </span><span class="kw">pub fn </span>pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, pointer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, pointer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#115">Value</a>&gt; {
         <span class="kw">if </span>pointer.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#756">self</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a class="self" href="#756">self</a>);
         }
         <span class="kw">if </span>!pointer.starts_with(<span class="string">&#39;/&#39;</span>) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a href="../../../src/serde_json/value/mod.rs.html#756">pointer</a>
+        <a href="#756">pointer</a>
             .split(<span class="string">&#39;/&#39;</span>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="../../../src/serde_json/value/mod.rs.html#766">x</a>.replace(<span class="string">&quot;~1&quot;</span>, <span class="string">&quot;/&quot;</span>).replace(<span class="string">&quot;~0&quot;</span>, <span class="string">&quot;~&quot;</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#756">self</a>, |target, token| <span class="kw">match </span><a href="../../../src/serde_json/value/mod.rs.html#767">target</a> {
-                <a href="../../../src/serde_json/value/mod.rs.html#174">Value::Object</a>(map) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#768">map</a>.<a href="../../../src/serde_json/map.rs.html#70-73">get</a>(<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#767">token</a>),
-                <a href="../../../src/serde_json/value/mod.rs.html#159">Value::Array</a>(list) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#258">parse_index</a>(<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#767">token</a>).and_then(|x| <a href="../../../src/serde_json/value/mod.rs.html#769">list</a>.get(<a href="../../../src/serde_json/value/mod.rs.html#769">x</a>)),
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#766">x</a>.replace(<span class="string">&quot;~1&quot;</span>, <span class="string">&quot;/&quot;</span>).replace(<span class="string">&quot;~0&quot;</span>, <span class="string">&quot;~&quot;</span>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(<a class="self" href="#756">self</a>, |target, token| <span class="kw">match </span><a href="#767">target</a> {
+                <a href="#174">Value::Object</a>(map) =&gt; <a href="#768">map</a>.<a href="../map.rs.html#70-73">get</a>(<span class="kw-2">&amp;</span><a href="#767">token</a>),
+                <a href="#159">Value::Array</a>(list) =&gt; <a href="#258">parse_index</a>(<span class="kw-2">&amp;</span><a href="#767">token</a>).and_then(|x| <a href="#769">list</a>.get(<a href="#769">x</a>)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             })
     }
@@ -1795,20 +1795,20 @@
     ///     assert_eq!(value.pointer(&quot;/x&quot;).unwrap(), &amp;Value::Null);
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>pointer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>&gt; {
+    </span><span class="kw">pub fn </span>pointer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#115">Value</a>&gt; {
         <span class="kw">if </span>pointer.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#811">self</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a class="self" href="#811">self</a>);
         }
         <span class="kw">if </span>!pointer.starts_with(<span class="string">&#39;/&#39;</span>) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a href="../../../src/serde_json/value/mod.rs.html#811">pointer</a>
+        <a href="#811">pointer</a>
             .split(<span class="string">&#39;/&#39;</span>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="../../../src/serde_json/value/mod.rs.html#821">x</a>.replace(<span class="string">&quot;~1&quot;</span>, <span class="string">&quot;/&quot;</span>).replace(<span class="string">&quot;~0&quot;</span>, <span class="string">&quot;~&quot;</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(<a class="self" href="../../../src/serde_json/value/mod.rs.html#811">self</a>, |target, token| <span class="kw">match </span><a href="../../../src/serde_json/value/mod.rs.html#822">target</a> {
-                <a href="../../../src/serde_json/value/mod.rs.html#174">Value::Object</a>(map) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#823">map</a>.<a href="../../../src/serde_json/map.rs.html#96-99">get_mut</a>(<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#822">token</a>),
-                <a href="../../../src/serde_json/value/mod.rs.html#159">Value::Array</a>(list) =&gt; <a href="../../../src/serde_json/value/mod.rs.html#258">parse_index</a>(<span class="kw-2">&amp;</span><a href="../../../src/serde_json/value/mod.rs.html#822">token</a>).and_then(<span class="kw">move </span>|x| <a href="../../../src/serde_json/value/mod.rs.html#824">list</a>.get_mut(<a href="../../../src/serde_json/value/mod.rs.html#824">x</a>)),
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#821">x</a>.replace(<span class="string">&quot;~1&quot;</span>, <span class="string">&quot;/&quot;</span>).replace(<span class="string">&quot;~0&quot;</span>, <span class="string">&quot;~&quot;</span>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_fold</a>(<a class="self" href="#811">self</a>, |target, token| <span class="kw">match </span><a href="#822">target</a> {
+                <a href="#174">Value::Object</a>(map) =&gt; <a href="#823">map</a>.<a href="../map.rs.html#96-99">get_mut</a>(<span class="kw-2">&amp;</span><a href="#822">token</a>),
+                <a href="#159">Value::Array</a>(list) =&gt; <a href="#258">parse_index</a>(<span class="kw-2">&amp;</span><a href="#822">token</a>).and_then(<span class="kw">move </span>|x| <a href="#824">list</a>.get_mut(<a href="#824">x</a>)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             })
     }
@@ -1822,8 +1822,8 @@
     /// assert_eq!(v[&quot;x&quot;].take(), json!(&quot;y&quot;));
     /// assert_eq!(v, json!({ &quot;x&quot;: null }));
     /// ```
-    </span><span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
-        mem::replace(<a class="self" href="../../../src/serde_json/value/mod.rs.html#838">self</a>, <a href="../../../src/serde_json/value/mod.rs.html#123">Value::Null</a>)
+    </span><span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#115">Value</a> {
+        mem::replace(<a class="self" href="#838">self</a>, <a href="#123">Value::Null</a>)
     }
 }
 
@@ -1856,17 +1856,17 @@
 /// #
 /// # try_main().unwrap()
 /// ```
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a> {
-        <a href="../../../src/serde_json/value/mod.rs.html#123">Value::Null</a>
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#115">Value</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#115">Value</a> {
+        <a href="#123">Value::Null</a>
     }
 }
 
-<span class="kw">mod </span><a href="../../../src/serde_json/value/de.rs.html#1-1386">de</a>;
-<span class="kw">mod </span><a href="../../../src/serde_json/value/from.rs.html#1-282">from</a>;
-<span class="kw">mod </span><a href="../../../src/serde_json/value/index.rs.html#1-258">index</a>;
-<span class="kw">mod </span><a href="../../../src/serde_json/value/partial_eq.rs.html#1-95">partial_eq</a>;
-<span class="kw">mod </span><a href="../../../src/serde_json/value/ser.rs.html#1-1025">ser</a>;
+<span class="kw">mod </span><a href="de.rs.html#1-1386">de</a>;
+<span class="kw">mod </span><a href="from.rs.html#1-282">from</a>;
+<span class="kw">mod </span><a href="index.rs.html#1-258">index</a>;
+<span class="kw">mod </span><a href="partial_eq.rs.html#1-95">partial_eq</a>;
+<span class="kw">mod </span><a href="ser.rs.html#1-1025">ser</a>;
 
 <span class="doccomment">/// Convert a `T` into `serde_json::Value` which is an enum that can represent
 /// any valid JSON data.
@@ -1924,11 +1924,11 @@
 /// ```
 </span><span class="comment">// Taking by value is more friendly to iterator adapters, option and result
 // consumers, etc. See https://github.com/serde-rs/json/pull/149.
-</span><span class="kw">pub fn </span>to_value&lt;T&gt;(value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>, <a href="../../../src/serde_json/error.rs.html#15">Error</a>&gt;
+</span><span class="kw">pub fn </span>to_value&lt;T&gt;(value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#115">Value</a>, <a href="../error.rs.html#15">Error</a>&gt;
 <span class="kw">where
     </span>T: <a href="../../../serde/ser/trait.Serialize.html">Serialize</a>,
 {
-    <a href="../../../src/serde_json/value/mod.rs.html#940">value</a>.<a href="../../../serde/ser/trait.Serialize.html">serialize</a>(<a href="../../../src/serde_json/value/ser.rs.html#60">Serializer</a>)
+    <a href="#940">value</a>.<a href="../../../serde/ser/trait.Serialize.html">serialize</a>(<a href="ser.rs.html#60">Serializer</a>)
 }
 
 <span class="doccomment">/// Interpret a `serde_json::Value` as an instance of type `T`.
@@ -1966,11 +1966,11 @@
 /// is wrong with the data, for example required struct fields are missing from
 /// the JSON map or some number is too big to fit in the expected primitive
 /// type.
-</span><span class="kw">pub fn </span>from_value&lt;T&gt;(value: <a href="../../../src/serde_json/value/mod.rs.html#115">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../src/serde_json/error.rs.html#15">Error</a>&gt;
+</span><span class="kw">pub fn </span>from_value&lt;T&gt;(value: <a href="#115">Value</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../error.rs.html#15">Error</a>&gt;
 <span class="kw">where
     </span>T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>,
 {
-    T::deserialize(<a href="../../../src/serde_json/value/mod.rs.html#982">value</a>)
+    T::deserialize(<a href="#982">value</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

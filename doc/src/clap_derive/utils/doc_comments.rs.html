@@ -112,20 +112,20 @@
 //! #[derive(Parser)] works in terms of &quot;paragraphs&quot;. Paragraph is a sequence of
 //! non-empty adjacent lines, delimited by sequences of blank (whitespace only) lines.
 
-</span><span class="kw">use </span><a href="../../../src/clap_derive/attrs.rs.html#1124"><span class="kw">crate</span>::attrs::Method</a>;
+</span><span class="kw">use </span><a href="../attrs.rs.html#1124"><span class="kw">crate</span>::attrs::Method</a>;
 
 <span class="kw">use </span>quote::{<a href="../../../quote/macro.format_ident.html">format_ident</a>, <a href="../../../quote/macro.quote.html">quote</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
 
-<span class="kw">pub fn </span>process_doc_comment(lines: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, preprocess: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Vec&lt;<a href="../../../src/clap_derive/attrs.rs.html#1124">Method</a>&gt; {
+<span class="kw">pub fn </span>process_doc_comment(lines: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, preprocess: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Vec&lt;<a href="../attrs.rs.html#1124">Method</a>&gt; {
     <span class="comment">// multiline comments (`/** ... */`) may have LFs (`\n`) in them,
     // we need to split so we could handle the lines correctly
     //
     // we also need to remove leading and trailing blank lines
-    </span><span class="kw">let </span><span class="kw-2">mut </span>lines: Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#11">lines</a>
+    </span><span class="kw">let </span><span class="kw-2">mut </span>lines: Vec&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; = <a href="#11">lines</a>
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip_while</a>(|s| <a href="../../../src/clap_derive/utils/doc_comments.rs.html#101">is_blank</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#18">s</a>))
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|s| <a href="../../../src/clap_derive/utils/doc_comments.rs.html#19">s</a>.split(<span class="string">&#39;\n&#39;</span>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip_while</a>(|s| <a href="#101">is_blank</a>(<a href="#18">s</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|s| <a href="#19">s</a>.split(<span class="string">&#39;\n&#39;</span>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="bool-val">true</span>) = lines.last().map(|s| is_blank(s)) {
@@ -146,16 +146,16 @@
     <span class="kw">let </span>short_name = <a class="macro" href="../../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;{}&quot;</span>, name);
     <span class="kw">let </span>long_name = <a class="macro" href="../../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;long_{}&quot;</span>, name);
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(first_blank) = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| <a href="../../../src/clap_derive/utils/doc_comments.rs.html#101">is_blank</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#40">s</a>)) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(first_blank) = <a href="#16">lines</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| <a href="#101">is_blank</a>(<a href="#40">s</a>)) {
         <span class="kw">let </span>(short, long) = <span class="kw">if </span>preprocess {
-            <span class="kw">let </span>paragraphs = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#71">split_paragraphs</a>(<span class="kw-2">&amp;</span><a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>);
-            <span class="kw">let </span>short = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#42">paragraphs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>long = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#42">paragraphs</a>.join(<span class="string">&quot;\n\n&quot;</span>);
-            (<a href="../../../src/clap_derive/utils/doc_comments.rs.html#94">remove_period</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#43">short</a>), <a href="../../../src/clap_derive/utils/doc_comments.rs.html#44">long</a>)
+            <span class="kw">let </span>paragraphs = <a href="#71">split_paragraphs</a>(<span class="kw-2">&amp;</span><a href="#16">lines</a>);
+            <span class="kw">let </span>short = <a href="#42">paragraphs</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>long = <a href="#42">paragraphs</a>.join(<span class="string">&quot;\n\n&quot;</span>);
+            (<a href="#94">remove_period</a>(<a href="#43">short</a>), <a href="#44">long</a>)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>short = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>[..<a href="../../../src/clap_derive/utils/doc_comments.rs.html#40">first_blank</a>].join(<span class="string">&quot;\n&quot;</span>);
-            <span class="kw">let </span>long = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>.join(<span class="string">&quot;\n&quot;</span>);
-            (<a href="../../../src/clap_derive/utils/doc_comments.rs.html#47">short</a>, <a href="../../../src/clap_derive/utils/doc_comments.rs.html#48">long</a>)
+            <span class="kw">let </span>short = <a href="#16">lines</a>[..<a href="#40">first_blank</a>].join(<span class="string">&quot;\n&quot;</span>);
+            <span class="kw">let </span>long = <a href="#16">lines</a>.join(<span class="string">&quot;\n&quot;</span>);
+            (<a href="#47">short</a>, <a href="#48">long</a>)
         };
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
@@ -164,10 +164,10 @@
         ]
     } <span class="kw">else </span>{
         <span class="kw">let </span>short = <span class="kw">if </span>preprocess {
-            <span class="kw">let </span>s = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#105">merge_lines</a>(<span class="kw-2">&amp;</span><a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>);
-            <a href="../../../src/clap_derive/utils/doc_comments.rs.html#94">remove_period</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#58">s</a>)
+            <span class="kw">let </span>s = <a href="#105">merge_lines</a>(<span class="kw-2">&amp;</span><a href="#16">lines</a>);
+            <a href="#94">remove_period</a>(<a href="#58">s</a>)
         } <span class="kw">else </span>{
-            <a href="../../../src/clap_derive/utils/doc_comments.rs.html#16">lines</a>.join(<span class="string">&quot;\n&quot;</span>)
+            <a href="#16">lines</a>.join(<span class="string">&quot;\n&quot;</span>)
         };
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
@@ -180,19 +180,19 @@
 <span class="kw">fn </span>split_paragraphs(lines: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>last_line = <span class="number">0</span>;
     iter::from_fn(|| {
-        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a href="../../../src/clap_derive/utils/doc_comments.rs.html#71">lines</a>[<a href="../../../src/clap_derive/utils/doc_comments.rs.html#72">last_line</a>..];
-        <span class="kw">let </span>start = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#74">slice</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| !<a href="../../../src/clap_derive/utils/doc_comments.rs.html#101">is_blank</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#75">s</a>)).unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a href="#71">lines</a>[<a href="#72">last_line</a>..];
+        <span class="kw">let </span>start = <a href="#74">slice</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| !<a href="#101">is_blank</a>(<a href="#75">s</a>)).unwrap_or(<span class="number">0</span>);
 
-        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a href="../../../src/clap_derive/utils/doc_comments.rs.html#74">slice</a>[<a href="../../../src/clap_derive/utils/doc_comments.rs.html#75">start</a>..];
-        <span class="kw">let </span>len = <a href="../../../src/clap_derive/utils/doc_comments.rs.html#77">slice</a>
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a href="#74">slice</a>[<a href="#75">start</a>..];
+        <span class="kw">let </span>len = <a href="#77">slice</a>
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| <a href="../../../src/clap_derive/utils/doc_comments.rs.html#101">is_blank</a>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#80">s</a>))
-            .unwrap_or(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#77">slice</a>.len());
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|s| <a href="#101">is_blank</a>(<a href="#80">s</a>))
+            .unwrap_or(<a href="#77">slice</a>.len());
 
-        <a href="../../../src/clap_derive/utils/doc_comments.rs.html#72">last_line</a> += <a href="../../../src/clap_derive/utils/doc_comments.rs.html#75">start</a> + <a href="../../../src/clap_derive/utils/doc_comments.rs.html#78">len</a>;
+        <a href="#72">last_line</a> += <a href="#75">start</a> + <a href="#78">len</a>;
 
         <span class="kw">if </span>len != <span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(<a href="../../../src/clap_derive/utils/doc_comments.rs.html#105">merge_lines</a>(<span class="kw-2">&amp;</span><a href="../../../src/clap_derive/utils/doc_comments.rs.html#77">slice</a>[..<a href="../../../src/clap_derive/utils/doc_comments.rs.html#78">len</a>]))
+            <span class="prelude-val">Some</span>(<a href="#105">merge_lines</a>(<span class="kw-2">&amp;</span><a href="#77">slice</a>[..<a href="#78">len</a>]))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -202,17 +202,17 @@
 
 <span class="kw">fn </span>remove_period(<span class="kw-2">mut </span>s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">if </span>s.ends_with(<span class="string">&#39;.&#39;</span>) &amp;&amp; !s.ends_with(<span class="string">&quot;..&quot;</span>) {
-        <a href="../../../src/clap_derive/utils/doc_comments.rs.html#94">s</a>.pop();
+        <a href="#94">s</a>.pop();
     }
-    <a href="../../../src/clap_derive/utils/doc_comments.rs.html#94">s</a>
+    <a href="#94">s</a>
 }
 
 <span class="kw">fn </span>is_blank(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/clap_derive/utils/doc_comments.rs.html#101">s</a>.trim().is_empty()
+    <a href="#101">s</a>.trim().is_empty()
 }
 
 <span class="kw">fn </span>merge_lines(lines: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="../../../src/clap_derive/utils/doc_comments.rs.html#105">lines</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="../../../src/clap_derive/utils/doc_comments.rs.html#106">s</a>.trim()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>)
+    <a href="#105">lines</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#106">s</a>.trim()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

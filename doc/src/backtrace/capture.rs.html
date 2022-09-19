@@ -553,8 +553,8 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/backtrace/print.rs.html#27"><span class="kw">crate</span>::PrintFmt</a>;
-<span class="kw">use crate</span>::{<a href="../../src/backtrace/symbolize/mod.rs.html#61">resolve</a>, <a href="../../src/backtrace/symbolize/mod.rs.html#103">resolve_frame</a>, <a href="../../src/backtrace/backtrace/mod.rs.html#51">trace</a>, <a href="../../src/backtrace/print.rs.html#17">BacktraceFmt</a>, <a href="../../src/backtrace/symbolize/mod.rs.html#190">Symbol</a>, <a href="../../src/backtrace/symbolize/mod.rs.html#318">SymbolName</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="print.rs.html#27"><span class="kw">crate</span>::PrintFmt</a>;
+<span class="kw">use crate</span>::{<a href="symbolize/mod.rs.html#61">resolve</a>, <a href="symbolize/mod.rs.html#103">resolve_frame</a>, <a href="backtrace/mod.rs.html#51">trace</a>, <a href="print.rs.html#17">BacktraceFmt</a>, <a href="symbolize/mod.rs.html#190">Symbol</a>, <a href="symbolize/mod.rs.html#318">SymbolName</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">std::ffi::c_void</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
@@ -580,7 +580,7 @@
 #[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(Deserialize, Serialize))]
 </span><span class="kw">pub struct </span>Backtrace {
     <span class="comment">// Frames here are listed from top-to-bottom of the stack
-    </span>frames: Vec&lt;<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>&gt;,
+    </span>frames: Vec&lt;<a href="#49">BacktraceFrame</a>&gt;,
     <span class="comment">// The index we believe is the actual start of the backtrace, omitting
     // frames like `Backtrace::new` and `backtrace::trace`.
     </span>actual_start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
@@ -588,7 +588,7 @@
 
 <span class="kw">fn </span>_assert_send_sync() {
     <span class="kw">fn </span>_assert&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;() {}
-    _assert::&lt;<a href="../../src/backtrace/capture.rs.html#26">Backtrace</a>&gt;();
+    _assert::&lt;<a href="#26">Backtrace</a>&gt;();
 }
 
 <span class="doccomment">/// Captured version of a frame in a backtrace.
@@ -602,13 +602,13 @@
 /// enabled, and the `std` feature is enabled by default.
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>BacktraceFrame {
-    frame: <a href="../../src/backtrace/capture.rs.html#55">Frame</a>,
-    symbols: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="../../src/backtrace/capture.rs.html#103">BacktraceSymbol</a>&gt;&gt;,
+    frame: <a href="#55">Frame</a>,
+    symbols: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="#103">BacktraceSymbol</a>&gt;&gt;,
 }
 
 <span class="attribute">#[derive(Clone)]
 </span><span class="kw">enum </span>Frame {
-    Raw(<a href="../../src/backtrace/backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>),
+    Raw(<a href="backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>),
     <span class="attribute">#[allow(dead_code)]
     </span>Deserialized {
         ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
@@ -617,28 +617,28 @@
     },
 }
 
-<span class="kw">impl </span><a href="../../src/backtrace/capture.rs.html#55">Frame</a> {
+<span class="kw">impl </span><a href="#55">Frame</a> {
     <span class="kw">fn </span>ip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/backtrace/capture.rs.html#66">self</a> </span>{
-            <a href="../../src/backtrace/capture.rs.html#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="../../src/backtrace/capture.rs.html#68">f</a>.<a href="../../src/backtrace/backtrace/mod.rs.html#89">ip</a>(),
-            <a href="../../src/backtrace/capture.rs.html#58">Frame::Deserialized</a> { ip, .. } =&gt; <a href="../../src/backtrace/capture.rs.html#69">ip</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#66">self</a> </span>{
+            <a href="#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="#68">f</a>.<a href="backtrace/mod.rs.html#89">ip</a>(),
+            <a href="#58">Frame::Deserialized</a> { ip, .. } =&gt; <a href="#69">ip</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
         }
     }
 
     <span class="kw">fn </span>symbol_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/backtrace/capture.rs.html#73">self</a> </span>{
-            <a href="../../src/backtrace/capture.rs.html#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="../../src/backtrace/capture.rs.html#75">f</a>.<a href="../../src/backtrace/backtrace/mod.rs.html#109">symbol_address</a>(),
-            <a href="../../src/backtrace/capture.rs.html#58">Frame::Deserialized</a> { symbol_address, .. } =&gt; <a href="../../src/backtrace/capture.rs.html#76">symbol_address</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#73">self</a> </span>{
+            <a href="#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="#75">f</a>.<a href="backtrace/mod.rs.html#109">symbol_address</a>(),
+            <a href="#58">Frame::Deserialized</a> { symbol_address, .. } =&gt; <a href="#76">symbol_address</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
         }
     }
 
     <span class="kw">fn </span>module_base_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/backtrace/capture.rs.html#80">self</a> </span>{
-            <a href="../../src/backtrace/capture.rs.html#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="../../src/backtrace/capture.rs.html#82">f</a>.<a href="../../src/backtrace/backtrace/mod.rs.html#114">module_base_address</a>(),
-            <a href="../../src/backtrace/capture.rs.html#58">Frame::Deserialized</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#80">self</a> </span>{
+            <a href="#56">Frame::Raw</a>(<span class="kw-2">ref </span>f) =&gt; <a href="#82">f</a>.<a href="backtrace/mod.rs.html#114">module_base_address</a>(),
+            <a href="#58">Frame::Deserialized</a> {
                 module_base_address,
                 ..
-            } =&gt; <a href="../../src/backtrace/capture.rs.html#84">module_base_address</a>.map(|addr| <a href="../../src/backtrace/capture.rs.html#86">addr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>),
+            } =&gt; <a href="#84">module_base_address</a>.map(|addr| <a href="#86">addr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>),
         }
     }
 }
@@ -663,7 +663,7 @@
     colno: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+<span class="kw">impl </span><a href="#26">Backtrace</a> {
     <span class="doccomment">/// Captures a backtrace at the callsite of this function, returning an
     /// owned representation.
     ///
@@ -691,10 +691,10 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="attribute">#[inline(never)] </span><span class="comment">// want to make sure there&#39;s a frame here to remove
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#26">Backtrace</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>bt = <span class="self">Self</span>::create(<span class="self">Self</span>::new <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a href="../../src/backtrace/capture.rs.html#140">bt</a>.<a href="../../src/backtrace/capture.rs.html#218">resolve</a>();
-        <a href="../../src/backtrace/capture.rs.html#140">bt</a>
+        <a href="#140">bt</a>.<a href="#218">resolve</a>();
+        <a href="#140">bt</a>
     }
 
     <span class="doccomment">/// Similar to `new` except that this does not resolve any symbols, this
@@ -721,28 +721,28 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="attribute">#[inline(never)] </span><span class="comment">// want to make sure there&#39;s a frame here to remove
-    </span><span class="kw">pub fn </span>new_unresolved() -&gt; <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+    </span><span class="kw">pub fn </span>new_unresolved() -&gt; <a href="#26">Backtrace</a> {
         <span class="self">Self</span>::create(<span class="self">Self</span>::new_unresolved <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
-    <span class="kw">fn </span>create(ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+    <span class="kw">fn </span>create(ip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#26">Backtrace</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>frames = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>actual_start_index = <span class="prelude-val">None</span>;
-        <a href="../../src/backtrace/backtrace/mod.rs.html#51">trace</a>(|frame| {
-            <a href="../../src/backtrace/capture.rs.html#174">frames</a>.push(<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
-                frame: <a href="../../src/backtrace/capture.rs.html#56">Frame::Raw</a>(<a href="../../src/backtrace/capture.rs.html#176">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <a href="backtrace/mod.rs.html#51">trace</a>(|frame| {
+            <a href="#174">frames</a>.push(<a href="#49">BacktraceFrame</a> {
+                frame: <a href="#56">Frame::Raw</a>(<a href="#176">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                 symbols: <span class="prelude-val">None</span>,
             });
 
             <span class="kw">if </span>frame.symbol_address() <span class="kw">as </span>usize == ip &amp;&amp; actual_start_index.is_none() {
-                <a href="../../src/backtrace/capture.rs.html#175">actual_start_index</a> = <span class="prelude-val">Some</span>(<a href="../../src/backtrace/capture.rs.html#174">frames</a>.len());
+                <a href="#175">actual_start_index</a> = <span class="prelude-val">Some</span>(<a href="#174">frames</a>.len());
             }
             <span class="bool-val">true
         </span>});
 
-        <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
-            <a href="../../src/backtrace/capture.rs.html#174">frames</a>,
-            actual_start_index: <a href="../../src/backtrace/capture.rs.html#175">actual_start_index</a>.unwrap_or(<span class="number">0</span>),
+        <a href="#26">Backtrace</a> {
+            <a href="#174">frames</a>,
+            actual_start_index: <a href="#175">actual_start_index</a>.unwrap_or(<span class="number">0</span>),
         }
     }
 
@@ -756,8 +756,8 @@
     ///
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
-    </span><span class="kw">pub fn </span>frames(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#204">self</a>.frames[<a class="self" href="../../src/backtrace/capture.rs.html#204">self</a>.actual_start_index..]
+    </span><span class="kw">pub fn </span>frames(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#49">BacktraceFrame</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="#204">self</a>.frames[<a class="self" href="#204">self</a>.actual_start_index..]
     }
 
     <span class="doccomment">/// If this backtrace was created from `new_unresolved` then this function
@@ -795,31 +795,31 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;Vec&lt;<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>&gt;&gt; <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
-    <span class="kw">fn </span>from(frames: Vec&lt;<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
-            <a href="../../src/backtrace/capture.rs.html#244">frames</a>,
+<span class="kw">impl </span>From&lt;Vec&lt;<a href="#49">BacktraceFrame</a>&gt;&gt; <span class="kw">for </span><a href="#26">Backtrace</a> {
+    <span class="kw">fn </span>from(frames: Vec&lt;<a href="#49">BacktraceFrame</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="#26">Backtrace</a> {
+            <a href="#244">frames</a>,
             actual_start_index: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../src/backtrace/backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>&gt; <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
-    <span class="kw">fn </span>from(frame: <a href="../../src/backtrace/backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>) -&gt; <a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
-        <a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
-            frame: <a href="../../src/backtrace/capture.rs.html#56">Frame::Raw</a>(<a href="../../src/backtrace/capture.rs.html#253">frame</a>),
+<span class="kw">impl </span>From&lt;<a href="backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>&gt; <span class="kw">for </span><a href="#49">BacktraceFrame</a> {
+    <span class="kw">fn </span>from(frame: <a href="backtrace/mod.rs.html#76"><span class="kw">crate</span>::Frame</a>) -&gt; <a href="#49">BacktraceFrame</a> {
+        <a href="#49">BacktraceFrame</a> {
+            frame: <a href="#56">Frame::Raw</a>(<a href="#253">frame</a>),
             symbols: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span>Into&lt;Vec&lt;<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>&gt;&gt; <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; Vec&lt;<a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#262">self</a>.frames
+<span class="kw">impl </span>Into&lt;Vec&lt;<a href="#49">BacktraceFrame</a>&gt;&gt; <span class="kw">for </span><a href="#26">Backtrace</a> {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; Vec&lt;<a href="#49">BacktraceFrame</a>&gt; {
+        <a class="self" href="#262">self</a>.frames
     }
 }
 
-<span class="kw">impl </span><a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
+<span class="kw">impl </span><a href="#49">BacktraceFrame</a> {
     <span class="doccomment">/// Same as `Frame::ip`
     ///
     /// # Required features
@@ -827,7 +827,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>ip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <a class="self" href="../../src/backtrace/capture.rs.html#274">self</a>.frame.<a href="../../src/backtrace/capture.rs.html#66">ip</a>() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
+        <a class="self" href="#274">self</a>.frame.<a href="#66">ip</a>() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
     }
 
     <span class="doccomment">/// Same as `Frame::symbol_address`
@@ -837,7 +837,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>symbol_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
-        <a class="self" href="../../src/backtrace/capture.rs.html#284">self</a>.frame.<a href="../../src/backtrace/capture.rs.html#73">symbol_address</a>() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
+        <a class="self" href="#284">self</a>.frame.<a href="#73">symbol_address</a>() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
     }
 
     <span class="doccomment">/// Same as `Frame::module_base_address`
@@ -847,9 +847,9 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>module_base_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#294">self</a>.frame
-            .<a href="../../src/backtrace/capture.rs.html#80">module_base_address</a>()
-            .map(|addr| <a href="../../src/backtrace/capture.rs.html#297">addr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>)
+        <a class="self" href="#294">self</a>.frame
+            .<a href="#80">module_base_address</a>()
+            .map(|addr| <a href="#297">addr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>)
     }
 
     <span class="doccomment">/// Returns the list of symbols that this frame corresponds to.
@@ -866,12 +866,12 @@
     ///
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
-    </span><span class="kw">pub fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../src/backtrace/capture.rs.html#103">BacktraceSymbol</a>] {
-        <a class="self" href="../../src/backtrace/capture.rs.html#314">self</a>.symbols.as_ref().map(|s| <span class="kw-2">&amp;</span><a href="../../src/backtrace/capture.rs.html#315">s</a>[..]).unwrap_or(<span class="kw-2">&amp;</span>[])
+    </span><span class="kw">pub fn </span>symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#103">BacktraceSymbol</a>] {
+        <a class="self" href="#314">self</a>.symbols.as_ref().map(|s| <span class="kw-2">&amp;</span><a href="#315">s</a>[..]).unwrap_or(<span class="kw-2">&amp;</span>[])
     }
 }
 
-<span class="kw">impl </span><a href="../../src/backtrace/capture.rs.html#103">BacktraceSymbol</a> {
+<span class="kw">impl </span><a href="#103">BacktraceSymbol</a> {
     <span class="doccomment">/// Same as `Symbol::name`
     ///
     /// # Required features
@@ -879,7 +879,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SymbolName&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#326">self</a>.name.as_ref().map(|s| SymbolName::new(<a href="../../src/backtrace/capture.rs.html#327">s</a>))
+        <a class="self" href="#326">self</a>.name.as_ref().map(|s| SymbolName::new(<a href="#327">s</a>))
     }
 
     <span class="doccomment">/// Same as `Symbol::addr`
@@ -889,7 +889,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#336">self</a>.addr.map(|s| <a href="../../src/backtrace/capture.rs.html#337">s</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>)
+        <a class="self" href="#336">self</a>.addr.map(|s| <a href="#337">s</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>)
     }
 
     <span class="doccomment">/// Same as `Symbol::filename`
@@ -899,7 +899,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#346">self</a>.filename.as_ref().map(|p| <span class="kw-2">&amp;**</span><a href="../../src/backtrace/capture.rs.html#347">p</a>)
+        <a class="self" href="#346">self</a>.filename.as_ref().map(|p| <span class="kw-2">&amp;**</span><a href="#347">p</a>)
     }
 
     <span class="doccomment">/// Same as `Symbol::lineno`
@@ -909,7 +909,7 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>lineno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#356">self</a>.lineno
+        <a class="self" href="#356">self</a>.lineno
     }
 
     <span class="doccomment">/// Same as `Symbol::colno`
@@ -919,17 +919,17 @@
     /// This function requires the `std` feature of the `backtrace` crate to be
     /// enabled, and the `std` feature is enabled by default.
     </span><span class="kw">pub fn </span>colno(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <a class="self" href="../../src/backtrace/capture.rs.html#366">self</a>.colno
+        <a class="self" href="#366">self</a>.colno
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#26">Backtrace</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>full = <a href="../../src/backtrace/capture.rs.html#372">fmt</a>.alternate();
+        <span class="kw">let </span>full = <a href="#372">fmt</a>.alternate();
         <span class="kw">let </span>(frames, style) = <span class="kw">if </span>full {
-            (<span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#372">self</a>.frames[..], <a href="../../src/backtrace/print.rs.html#31">PrintFmt::Full</a>)
+            (<span class="kw-2">&amp;</span><a class="self" href="#372">self</a>.frames[..], <a href="print.rs.html#31">PrintFmt::Full</a>)
         } <span class="kw">else </span>{
-            (<span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#372">self</a>.frames[<a class="self" href="../../src/backtrace/capture.rs.html#372">self</a>.actual_start_index..], <a href="../../src/backtrace/print.rs.html#29">PrintFmt::Short</a>)
+            (<span class="kw-2">&amp;</span><a class="self" href="#372">self</a>.frames[<a class="self" href="#372">self</a>.actual_start_index..], <a href="print.rs.html#29">PrintFmt::Short</a>)
         };
 
         <span class="comment">// When printing paths we try to strip the cwd if it exists, otherwise
@@ -939,18 +939,18 @@
         </span><span class="kw">let </span>cwd = std::env::current_dir();
         <span class="kw">let </span><span class="kw-2">mut </span>print_path =
             <span class="kw">move </span>|fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, path: <span class="kw">crate</span>::BytesOrWideString&lt;<span class="lifetime">&#39;_</span>&gt;| {
-                <span class="kw">let </span>path = <a href="../../src/backtrace/capture.rs.html#386">path</a>.<a href="../../src/backtrace/types.rs.html#48">into_path_buf</a>();
+                <span class="kw">let </span>path = <a href="#386">path</a>.<a href="types.rs.html#48">into_path_buf</a>();
                 <span class="kw">if </span>!full {
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(cwd) = <span class="kw-2">&amp;</span><a href="../../src/backtrace/capture.rs.html#384">cwd</a> {
-                        <span class="kw">if let </span><span class="prelude-val">Ok</span>(suffix) = <a href="../../src/backtrace/capture.rs.html#387">path</a>.strip_prefix(<a href="../../src/backtrace/capture.rs.html#389">cwd</a>) {
-                            <span class="kw">return </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a href="../../src/backtrace/capture.rs.html#390">suffix</a>.display(), <a href="../../src/backtrace/capture.rs.html#386">fmt</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(cwd) = <span class="kw-2">&amp;</span><a href="#384">cwd</a> {
+                        <span class="kw">if let </span><span class="prelude-val">Ok</span>(suffix) = <a href="#387">path</a>.strip_prefix(<a href="#389">cwd</a>) {
+                            <span class="kw">return </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a href="#390">suffix</a>.display(), <a href="#386">fmt</a>);
                         }
                     }
                 }
-                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a href="../../src/backtrace/capture.rs.html#387">path</a>.display(), <a href="../../src/backtrace/capture.rs.html#386">fmt</a>)
+                <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a href="#387">path</a>.display(), <a href="#386">fmt</a>)
             };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>f = BacktraceFmt::new(<a href="../../src/backtrace/capture.rs.html#372">fmt</a>, <a href="../../src/backtrace/capture.rs.html#374">style</a>, <span class="kw-2">&amp;mut </span><a href="../../src/backtrace/capture.rs.html#385">print_path</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = BacktraceFmt::new(<a href="#372">fmt</a>, <a href="#374">style</a>, <span class="kw-2">&amp;mut </span><a href="#385">print_path</a>);
         f.add_context()<span class="question-mark">?</span>;
         <span class="kw">for </span>frame <span class="kw">in </span>frames {
             f.frame().backtrace_frame(frame)<span class="question-mark">?</span>;
@@ -960,29 +960,29 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../src/backtrace/capture.rs.html#26">Backtrace</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#26">Backtrace</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#26">Backtrace</a> {
         Backtrace::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#49">BacktraceFrame</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#49">BacktraceFrame</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/backtrace/capture.rs.html#415">fmt</a>.debug_struct(<span class="string">&quot;BacktraceFrame&quot;</span>)
-            .field(<span class="string">&quot;ip&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#415">self</a>.<a href="../../src/backtrace/capture.rs.html#274">ip</a>())
-            .field(<span class="string">&quot;symbol_address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#415">self</a>.<a href="../../src/backtrace/capture.rs.html#284">symbol_address</a>())
+        <a href="#415">fmt</a>.debug_struct(<span class="string">&quot;BacktraceFrame&quot;</span>)
+            .field(<span class="string">&quot;ip&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#415">self</a>.<a href="#274">ip</a>())
+            .field(<span class="string">&quot;symbol_address&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#415">self</a>.<a href="#284">symbol_address</a>())
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/backtrace/capture.rs.html#103">BacktraceSymbol</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#103">BacktraceSymbol</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/backtrace/capture.rs.html#424">fmt</a>.debug_struct(<span class="string">&quot;BacktraceSymbol&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#424">self</a>.<a href="../../src/backtrace/capture.rs.html#326">name</a>())
-            .field(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#424">self</a>.<a href="../../src/backtrace/capture.rs.html#336">addr</a>())
-            .field(<span class="string">&quot;filename&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#424">self</a>.<a href="../../src/backtrace/capture.rs.html#346">filename</a>())
-            .field(<span class="string">&quot;lineno&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#424">self</a>.<a href="../../src/backtrace/capture.rs.html#356">lineno</a>())
-            .field(<span class="string">&quot;colno&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/backtrace/capture.rs.html#424">self</a>.<a href="../../src/backtrace/capture.rs.html#366">colno</a>())
+        <a href="#424">fmt</a>.debug_struct(<span class="string">&quot;BacktraceSymbol&quot;</span>)
+            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#424">self</a>.<a href="#326">name</a>())
+            .field(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#424">self</a>.<a href="#336">addr</a>())
+            .field(<span class="string">&quot;filename&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#424">self</a>.<a href="#346">filename</a>())
+            .field(<span class="string">&quot;lineno&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#424">self</a>.<a href="#356">lineno</a>())
+            .field(<span class="string">&quot;colno&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#424">self</a>.<a href="#366">colno</a>())
             .finish()
     }
 }
@@ -1109,4 +1109,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

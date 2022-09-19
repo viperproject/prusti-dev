@@ -179,18 +179,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    <a href="../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../../../src/analysis/analysis_error.rs.html#18">analysis_error::AnalysisError::NoStateAfterSuccessor</a>,
-    <a href="../../../src/analysis/pointwise_state.rs.html#12">PointwiseState</a>,
+    <a href="abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../analysis_error.rs.html#18">analysis_error::AnalysisError::NoStateAfterSuccessor</a>,
+    <a href="../pointwise_state.rs.html#12">PointwiseState</a>,
 };
-<span class="kw">pub use crate</span>::{<a href="../../../src/analysis/lib.rs.html#12">domains</a>::<span class="kw-2">*</span>, <a href="../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>};
+<span class="kw">pub use crate</span>::{<a href="../lib.rs.html#12">domains</a>::<span class="kw-2">*</span>, <a href="../analysis_error.rs.html#11">AnalysisError</a>};
 <span class="kw">use </span>prusti_rustc_interface::{<a href="../../../rustc_hash/type.FxHashMap.html">data_structures::fx::FxHashMap</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">span::def_id::DefId</a>};
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">collections::BTreeSet</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">iter::FromIterator</a>};
 
-<span class="kw">pub type </span>AnalysisResult&lt;T&gt; = std::result::Result&lt;T, <a href="../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>&gt;;
+<span class="kw">pub type </span>AnalysisResult&lt;T&gt; = std::result::Result&lt;T, <a href="../analysis_error.rs.html#11">AnalysisError</a>&gt;;
 
 <span class="doccomment">/// Trait to be used to define an abstract-interpreation-based static analysis of a MIR body.
 </span><span class="kw">pub trait </span>FixpointEngine&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; {
-    <span class="kw">type </span>State: <a href="../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">AbstractState</a>;
+    <span class="kw">type </span>State: <a href="abstract_state.rs.html#45">AbstractState</a>;
 
     <span class="doccomment">/// Return the DefId of the MIR body to be analyzed.
     </span><span class="kw">fn </span>def_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>;
@@ -234,14 +234,14 @@
     /// in program order until a fixed point is reached (i.e. by abstract interpretation).
     </span><span class="comment">// TODO: add tracing like in initialization.rs?
     </span><span class="kw">fn </span>run_fwd_analysis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnalysisResult&lt;PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, <span class="self">Self</span>::State&gt;&gt; {
-        <span class="kw">let </span>mir = <a class="self" href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#62">self</a>.<a href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#25">body</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>p_state = PointwiseState::new(<a href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#63">mir</a>);
+        <span class="kw">let </span>mir = <a class="self" href="#62">self</a>.<a href="#25">body</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>p_state = PointwiseState::new(<a href="#63">mir</a>);
         <span class="comment">// use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         </span><span class="kw">let </span><span class="kw-2">mut </span>work_set: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; =
-            BTreeSet::from_iter(<a href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#63">mir</a>.basic_blocks.indices());
+            BTreeSet::from_iter(<a href="#63">mir</a>.basic_blocks.indices());
 
         <span class="kw">let </span><span class="kw-2">mut </span>counters: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; =
-            FxHashMap::with_capacity_and_hasher(<a href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#63">mir</a>.basic_blocks.len(), <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>());
+            FxHashMap::with_capacity_and_hasher(<a href="#63">mir</a>.basic_blocks.len(), <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>());
 
         <span class="comment">//&#39;block_loop:
         // extract the bb with the minimal index -&gt; hopefully better performance
@@ -343,8 +343,8 @@
                 }
             }
         }
-        AnalysisResult::Ok(<a href="../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#64">p_state</a>)
+        AnalysisResult::Ok(<a href="#64">p_state</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

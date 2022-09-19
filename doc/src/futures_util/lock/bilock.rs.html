@@ -340,9 +340,9 @@
     /// Similarly, reuniting the lock and extracting the inner value is only
     /// possible when `T` is `Unpin`.
     </span><span class="kw">pub fn </span>new(t: T) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
-        <span class="kw">let </span>arc = Arc::new(<a href="../../../src/futures_util/lock/bilock.rs.html#43">Inner</a> { state: AtomicUsize::new(<span class="number">0</span>), value: <span class="prelude-val">Some</span>(UnsafeCell::new(<a href="../../../src/futures_util/lock/bilock.rs.html#63">t</a>)) });
+        <span class="kw">let </span>arc = Arc::new(<a href="#43">Inner</a> { state: AtomicUsize::new(<span class="number">0</span>), value: <span class="prelude-val">Some</span>(UnsafeCell::new(<a href="#63">t</a>)) });
 
-        (<span class="self">Self </span>{ arc: <a href="../../../src/futures_util/lock/bilock.rs.html#64">arc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() }, <span class="self">Self </span>{ <a href="../../../src/futures_util/lock/bilock.rs.html#64">arc</a> })
+        (<span class="self">Self </span>{ arc: <a href="#64">arc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() }, <span class="self">Self </span>{ <a href="#64">arc</a> })
     }
 
     <span class="doccomment">/// Attempt to acquire this lock, returning `Pending` if it can&#39;t be
@@ -366,9 +366,9 @@
     </span><span class="kw">pub fn </span>poll_lock(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;BiLockGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>waker = <span class="prelude-val">None</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#87">self</a>.arc.state.swap(<span class="number">1</span>, SeqCst) {
+            <span class="kw">match </span><a class="self" href="#87">self</a>.arc.state.swap(<span class="number">1</span>, SeqCst) {
                 <span class="comment">// Woohoo, we grabbed the lock!
-                </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(<a href="../../../src/futures_util/lock/bilock.rs.html#223">BiLockGuard</a> { bilock: <span class="self"><a href="../../../src/futures_util/lock/bilock.rs.html#87">self</a> </span>}),
+                </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(<a href="#223">BiLockGuard</a> { bilock: <span class="self"><a href="#87">self</a> </span>}),
 
                 <span class="comment">// Oops, someone else has locked the lock
                 </span><span class="number">1 </span>=&gt; {}
@@ -376,17 +376,17 @@
                 <span class="comment">// A task was previously blocked on this lock, likely our task,
                 // so we need to update that task.
                 </span>n =&gt; <span class="kw">unsafe </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>prev = Box::from_raw(<a href="../../../src/futures_util/lock/bilock.rs.html#99">n</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>);
-                    <span class="kw-2">*</span><a href="../../../src/futures_util/lock/bilock.rs.html#100">prev</a> = <a href="../../../src/futures_util/lock/bilock.rs.html#87">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <a href="../../../src/futures_util/lock/bilock.rs.html#88">waker</a> = <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/lock/bilock.rs.html#100">prev</a>);
+                    <span class="kw">let </span><span class="kw-2">mut </span>prev = Box::from_raw(<a href="#99">n</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>);
+                    <span class="kw-2">*</span><a href="#100">prev</a> = <a href="#87">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <a href="#88">waker</a> = <span class="prelude-val">Some</span>(<a href="#100">prev</a>);
                 },
             }
 
             <span class="comment">// type ascription for safety&#39;s sake!
-            </span><span class="kw">let </span>me: Box&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; = <a href="../../../src/futures_util/lock/bilock.rs.html#88">waker</a>.take().unwrap_or_else(|| Box::new(<a href="../../../src/futures_util/lock/bilock.rs.html#87">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-            <span class="kw">let </span>me = Box::into_raw(<a href="../../../src/futures_util/lock/bilock.rs.html#107">me</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            </span><span class="kw">let </span>me: Box&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; = <a href="#88">waker</a>.take().unwrap_or_else(|| Box::new(<a href="#87">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            <span class="kw">let </span>me = Box::into_raw(<a href="#107">me</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-            <span class="kw">match </span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#87">self</a>.arc.state.compare_exchange(<span class="number">1</span>, <a href="../../../src/futures_util/lock/bilock.rs.html#108">me</a>, SeqCst, SeqCst) {
+            <span class="kw">match </span><a class="self" href="#87">self</a>.arc.state.compare_exchange(<span class="number">1</span>, <a href="#108">me</a>, SeqCst, SeqCst) {
                 <span class="comment">// The lock is still locked, but we&#39;ve now parked ourselves, so
                 // just report that we&#39;re scheduled to receive a notification.
                 </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Pending,
@@ -395,7 +395,7 @@
                 // and before the compare_exchange. Deallocate what we just
                 // allocated and go through the loop again.
                 </span><span class="prelude-val">Err</span>(<span class="number">0</span>) =&gt; <span class="kw">unsafe </span>{
-                    <a href="../../../src/futures_util/lock/bilock.rs.html#88">waker</a> = <span class="prelude-val">Some</span>(Box::from_raw(<a href="../../../src/futures_util/lock/bilock.rs.html#108">me</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>));
+                    <a href="#88">waker</a> = <span class="prelude-val">Some</span>(Box::from_raw(<a href="#108">me</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>));
                 },
 
                 <span class="comment">// The top of this loop set the previous state to 1, so if we
@@ -432,18 +432,18 @@
         </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
         <span class="kw">if </span>Arc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.arc, <span class="kw-2">&amp;</span>other.arc) {
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/futures_util/lock/bilock.rs.html#151">other</a>);
-            <span class="kw">let </span>inner = Arc::try_unwrap(<a class="self" href="../../../src/futures_util/lock/bilock.rs.html#151">self</a>.arc)
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#151">other</a>);
+            <span class="kw">let </span>inner = Arc::try_unwrap(<a class="self" href="#151">self</a>.arc)
                 .ok()
                 .expect(<span class="string">&quot;futures: try_unwrap failed in BiLock&lt;T&gt;::reunite&quot;</span>);
-            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <a href="../../../src/futures_util/lock/bilock.rs.html#157">inner</a>.<a href="../../../src/futures_util/lock/bilock.rs.html#185">into_value</a>() })
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <a href="#157">inner</a>.<a href="#185">into_value</a>() })
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/futures_util/lock/bilock.rs.html#199">ReuniteError</a>(<a class="self" href="../../../src/futures_util/lock/bilock.rs.html#151">self</a>, <a href="../../../src/futures_util/lock/bilock.rs.html#151">other</a>))
+            <span class="prelude-val">Err</span>(<a href="#199">ReuniteError</a>(<a class="self" href="#151">self</a>, <a href="#151">other</a>))
         }
     }
 
     <span class="kw">fn </span>unlock(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">match </span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#166">self</a>.arc.state.swap(<span class="number">0</span>, SeqCst) {
+        <span class="kw">match </span><a class="self" href="#166">self</a>.arc.state.swap(<span class="number">0</span>, SeqCst) {
             <span class="comment">// we&#39;ve locked the lock, shouldn&#39;t be possible for us to see an
             // unlocked lock.
             </span><span class="number">0 </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid unlocked state&quot;</span>),
@@ -454,7 +454,7 @@
             <span class="comment">// Another task has parked themselves on this lock, let&#39;s wake them
             // up as its now their turn.
             </span>n =&gt; <span class="kw">unsafe </span>{
-                Box::from_raw(<a href="../../../src/futures_util/lock/bilock.rs.html#177">n</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>).wake();
+                Box::from_raw(<a href="#177">n</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>).wake();
             },
         }
     }
@@ -462,7 +462,7 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; Inner&lt;T&gt; {
     <span class="kw">unsafe fn </span>into_value(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../../src/futures_util/lock/bilock.rs.html#185">self</a>.value.take().unwrap().into_inner()
+        <a class="self" href="#185">self</a>.value.take().unwrap().into_inner()
     }
 }
 
@@ -479,13 +479,13 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReuniteError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_util/lock/bilock.rs.html#202">f</a>.debug_tuple(<span class="string">&quot;ReuniteError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).finish()
+        <a href="#202">f</a>.debug_tuple(<span class="string">&quot;ReuniteError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>ReuniteError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_util/lock/bilock.rs.html#208">f</a>, <span class="string">&quot;tried to reunite two BiLocks that don&#39;t form a pair&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#208">f</a>, <span class="string">&quot;tried to reunite two BiLocks that don&#39;t form a pair&quot;</span>)
     }
 }
 
@@ -509,13 +509,13 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>BiLockGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#232">self</a>.bilock.arc.value.as_ref().unwrap().get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#232">self</a>.bilock.arc.value.as_ref().unwrap().get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>BiLockGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#238">self</a>.bilock.arc.value.as_ref().unwrap().get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#238">self</a>.bilock.arc.value.as_ref().unwrap().get() }
     }
 }
 
@@ -524,13 +524,13 @@
     </span><span class="kw">pub fn </span>as_pin_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
         <span class="comment">// Safety: we never allow moving a !Unpin value out of a bilock, nor
         // allow mutable access to it
-        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/futures_util/lock/bilock.rs.html#245">self</a>.bilock.arc.value.as_ref().unwrap().get()) }
+        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="kw-2">&amp;mut *</span><a class="self" href="#245">self</a>.bilock.arc.value.as_ref().unwrap().get()) }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>BiLockGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/futures_util/lock/bilock.rs.html#253">self</a>.bilock.<a href="../../../src/futures_util/lock/bilock.rs.html#166">unlock</a>();
+        <a class="self" href="#253">self</a>.bilock.<a href="#166">unlock</a>();
     }
 }
 
@@ -557,4 +557,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -156,8 +156,8 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/h2/codec/mod.rs.html#24"><span class="kw">crate</span>::codec::Codec</a>;
-<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../../../src/h2/lib.rs.html#116">self</a>, <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../codec/mod.rs.html#24"><span class="kw">crate</span>::codec::Codec</a>;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../lib.rs.html#116">self</a>, <a href="../frame/reason.rs.html#19">Reason</a>, <a href="../frame/stream_id.rs.html#14">StreamId</a>};
 
 <span class="kw">use </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -170,11 +170,11 @@
     <span class="doccomment">/// Whether the connection should close now, or wait until idle.
     </span>close_now: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// Records if we&#39;ve sent any GOAWAY before.
-    </span>going_away: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/proto/go_away.rs.html#34">GoingAway</a>&gt;,
+    </span>going_away: <span class="prelude-ty">Option</span>&lt;<a href="#34">GoingAway</a>&gt;,
     <span class="doccomment">/// Whether the user started the GOAWAY by calling `abrupt_shutdown`.
     </span>is_user_initiated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// A GOAWAY frame that must be buffered in the Codec immediately.
-    </span>pending: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
+    </span>pending: <span class="prelude-ty">Option</span>&lt;<a href="../frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
 }
 
 <span class="doccomment">/// Keeps a memory of any GOAWAY frames we&#39;ve sent before.
@@ -193,15 +193,15 @@
     <span class="doccomment">/// Stores the highest stream ID of a GOAWAY that has been sent.
     ///
     /// It&#39;s illegal to send a subsequent GOAWAY with a higher ID.
-    </span>last_processed_id: <a href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>,
+    </span>last_processed_id: <a href="../frame/stream_id.rs.html#14">StreamId</a>,
 
     <span class="doccomment">/// Records the error code of any GOAWAY frame sent.
-    </span>reason: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>,
+    </span>reason: <a href="../frame/reason.rs.html#19">Reason</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a> {
+<span class="kw">impl </span><a href="#11">GoAway</a> {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a> {
+        <a href="#11">GoAway</a> {
             close_now: <span class="bool-val">false</span>,
             going_away: <span class="prelude-val">None</span>,
             is_user_initiated: <span class="bool-val">false</span>,
@@ -212,8 +212,8 @@
     <span class="doccomment">/// Enqueue a GOAWAY frame to be written.
     ///
     /// The connection is expected to continue to run until idle.
-    </span><span class="kw">pub fn </span>go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>going_away) = <a class="self" href="../../../src/h2/proto/go_away.rs.html#57">self</a>.going_away {
+    </span><span class="kw">pub fn </span>go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../frame/go_away.rs.html#8">frame::GoAway</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>going_away) = <a class="self" href="#57">self</a>.going_away {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
                 f.last_stream_id() &lt;= going_away.last_processed_id,
                 <span class="string">&quot;GOAWAY stream IDs shouldn&#39;t be higher; \
@@ -223,56 +223,56 @@
             );
         }
 
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#57">self</a>.going_away = <span class="prelude-val">Some</span>(<a href="../../../src/h2/proto/go_away.rs.html#34">GoingAway</a> {
-            last_processed_id: <a href="../../../src/h2/proto/go_away.rs.html#57">f</a>.<a href="../../../src/h2/frame/go_away.rs.html#24">last_stream_id</a>(),
-            reason: <a href="../../../src/h2/proto/go_away.rs.html#57">f</a>.<a href="../../../src/h2/frame/go_away.rs.html#28">reason</a>(),
+        <a class="self" href="#57">self</a>.going_away = <span class="prelude-val">Some</span>(<a href="#34">GoingAway</a> {
+            last_processed_id: <a href="#57">f</a>.<a href="../frame/go_away.rs.html#24">last_stream_id</a>(),
+            reason: <a href="#57">f</a>.<a href="../frame/go_away.rs.html#28">reason</a>(),
         });
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#57">self</a>.pending = <span class="prelude-val">Some</span>(<a href="../../../src/h2/proto/go_away.rs.html#57">f</a>);
+        <a class="self" href="#57">self</a>.pending = <span class="prelude-val">Some</span>(<a href="#57">f</a>);
     }
 
-    <span class="kw">pub fn </span>go_away_now(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>) {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#75">self</a>.close_now = <span class="bool-val">true</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>going_away) = <a class="self" href="../../../src/h2/proto/go_away.rs.html#75">self</a>.going_away {
+    <span class="kw">pub fn </span>go_away_now(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../frame/go_away.rs.html#8">frame::GoAway</a>) {
+        <a class="self" href="#75">self</a>.close_now = <span class="bool-val">true</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>going_away) = <a class="self" href="#75">self</a>.going_away {
             <span class="comment">// Prevent sending the same GOAWAY twice.
             </span><span class="kw">if </span>going_away.last_processed_id == f.last_stream_id() &amp;&amp; going_away.reason == f.reason()
             {
                 <span class="kw">return</span>;
             }
         }
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#75">self</a>.<a href="../../../src/h2/proto/go_away.rs.html#57">go_away</a>(<a href="../../../src/h2/proto/go_away.rs.html#75">f</a>);
+        <a class="self" href="#75">self</a>.<a href="#57">go_away</a>(<a href="#75">f</a>);
     }
 
-    <span class="kw">pub fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>) {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#87">self</a>.is_user_initiated = <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#87">self</a>.<a href="../../../src/h2/proto/go_away.rs.html#75">go_away_now</a>(<a href="../../../src/h2/proto/go_away.rs.html#87">f</a>);
+    <span class="kw">pub fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <a href="../frame/go_away.rs.html#8">frame::GoAway</a>) {
+        <a class="self" href="#87">self</a>.is_user_initiated = <span class="bool-val">true</span>;
+        <a class="self" href="#87">self</a>.<a href="#75">go_away_now</a>(<a href="#87">f</a>);
     }
 
     <span class="doccomment">/// Return if a GOAWAY has ever been scheduled.
     </span><span class="kw">pub fn </span>is_going_away(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#93">self</a>.going_away.is_some()
+        <a class="self" href="#93">self</a>.going_away.is_some()
     }
 
     <span class="kw">pub fn </span>is_user_initiated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#97">self</a>.is_user_initiated
+        <a class="self" href="#97">self</a>.is_user_initiated
     }
 
     <span class="doccomment">/// Returns the going away info, if any.
-    </span><span class="kw">pub fn </span>going_away(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/h2/proto/go_away.rs.html#34">GoingAway</a>&gt; {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#102">self</a>.going_away.as_ref()
+    </span><span class="kw">pub fn </span>going_away(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#34">GoingAway</a>&gt; {
+        <a class="self" href="#102">self</a>.going_away.as_ref()
     }
 
     <span class="doccomment">/// Returns if the connection should close now, or wait until idle.
     </span><span class="kw">pub fn </span>should_close_now(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#107">self</a>.pending.is_none() &amp;&amp; <a class="self" href="../../../src/h2/proto/go_away.rs.html#107">self</a>.close_now
+        <a class="self" href="#107">self</a>.pending.is_none() &amp;&amp; <a class="self" href="#107">self</a>.close_now
     }
 
     <span class="doccomment">/// Returns if the connection should be closed when idle.
     </span><span class="kw">pub fn </span>should_close_on_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="../../../src/h2/proto/go_away.rs.html#112">self</a>.close_now
-            &amp;&amp; <span class="self"><a href="../../../src/h2/proto/go_away.rs.html#112">self</a>
+        !<a class="self" href="#112">self</a>.close_now
+            &amp;&amp; <span class="self"><a href="#112">self</a>
                 </span>.going_away
                 .as_ref()
-                .map(|g| <a href="../../../src/h2/proto/go_away.rs.html#117">g</a>.last_processed_id != StreamId::MAX)
+                .map(|g| <a href="#117">g</a>.last_processed_id != StreamId::MAX)
                 .unwrap_or(<span class="bool-val">false</span>)
     }
 
@@ -283,24 +283,24 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
         dst: <span class="kw-2">&amp;mut </span>Codec&lt;T, B&gt;,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;io::Result&lt;<a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>&gt;&gt;&gt;
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;io::Result&lt;<a href="../frame/reason.rs.html#19">Reason</a>&gt;&gt;&gt;
     <span class="kw">where
         </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = <a class="self" href="../../../src/h2/proto/go_away.rs.html#125">self</a>.pending.take() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = <a class="self" href="#125">self</a>.pending.take() {
             <span class="kw">if </span>!dst.poll_ready(cx)<span class="question-mark">?</span>.is_ready() {
-                <a class="self" href="../../../src/h2/proto/go_away.rs.html#125">self</a>.pending = <span class="prelude-val">Some</span>(<a href="../../../src/h2/proto/go_away.rs.html#133">frame</a>);
+                <a class="self" href="#125">self</a>.pending = <span class="prelude-val">Some</span>(<a href="#133">frame</a>);
                 <span class="kw">return </span>Poll::Pending;
             }
 
-            <span class="kw">let </span>reason = <a href="../../../src/h2/proto/go_away.rs.html#133">frame</a>.<a href="../../../src/h2/frame/go_away.rs.html#28">reason</a>();
-            <a href="../../../src/h2/proto/go_away.rs.html#127">dst</a>.<a href="../../../src/h2/codec/mod.rs.html#140">buffer</a>(<a href="../../../src/h2/proto/go_away.rs.html#133">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).expect(<span class="string">&quot;invalid GOAWAY frame&quot;</span>);
+            <span class="kw">let </span>reason = <a href="#133">frame</a>.<a href="../frame/go_away.rs.html#28">reason</a>();
+            <a href="#127">dst</a>.<a href="../codec/mod.rs.html#140">buffer</a>(<a href="#133">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).expect(<span class="string">&quot;invalid GOAWAY frame&quot;</span>);
 
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/h2/proto/go_away.rs.html#139">reason</a>)));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#139">reason</a>)));
         } <span class="kw">else if </span><span class="self">self</span>.should_close_now() {
-            <span class="kw">return match </span><a class="self" href="../../../src/h2/proto/go_away.rs.html#125">self</a>.<a href="../../../src/h2/proto/go_away.rs.html#102">going_away</a>().map(|going_away| <a href="../../../src/h2/proto/go_away.rs.html#144">going_away</a>.reason) {
-                <span class="prelude-val">Some</span>(reason) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/h2/proto/go_away.rs.html#145">reason</a>))),
+            <span class="kw">return match </span><a class="self" href="#125">self</a>.<a href="#102">going_away</a>().map(|going_away| <a href="#144">going_away</a>.reason) {
+                <span class="prelude-val">Some</span>(reason) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#145">reason</a>))),
                 <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
             };
         }
@@ -309,10 +309,10 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/h2/proto/go_away.rs.html#34">GoingAway</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reason(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a> {
-        <a class="self" href="../../../src/h2/proto/go_away.rs.html#155">self</a>.reason
+<span class="kw">impl </span><a href="#34">GoingAway</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reason(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../frame/reason.rs.html#19">Reason</a> {
+        <a class="self" href="#155">self</a>.reason
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

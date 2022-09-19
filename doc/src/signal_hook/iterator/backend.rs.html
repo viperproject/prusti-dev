@@ -518,8 +518,8 @@
 
 <span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>};
 
-<span class="kw">use </span><a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120"><span class="kw">super</span>::exfiltrator::Exfiltrator</a>;
-<span class="kw">use </span><span class="kw">crate</span>::low_level::pipe::{<a class="self" href="../../../src/signal_hook/low_level/mod.rs.html#14">self</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>};
+<span class="kw">use </span><a href="exfiltrator/mod.rs.html#120"><span class="kw">super</span>::exfiltrator::Exfiltrator</a>;
+<span class="kw">use </span><span class="kw">crate</span>::low_level::pipe::{<a class="self" href="../low_level/mod.rs.html#14">self</a>, <a href="../low_level/pipe.rs.html#85">WakeMethod</a>};
 <span class="kw">use </span><a href="../../../signal_hook/struct.SigId.html"><span class="kw">crate</span>::SigId</a>;
 
 <span class="doccomment">/// Maximal signal number we support.
@@ -529,9 +529,9 @@
     <span class="kw">fn </span>wake_readers(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="../../../src/signal_hook/iterator/backend.rs.html#38">SelfPipeWrite</a> <span class="kw">for </span>W {
+<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="#38">SelfPipeWrite</a> <span class="kw">for </span>W {
     <span class="kw">fn </span>wake_readers(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe::wake</a>(<a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#43">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a>);
+        <a href="../low_level/pipe.rs.html#129">pipe::wake</a>(<a class="self" href="#43">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../low_level/pipe.rs.html#86">WakeMethod::Send</a>);
     }
 }
 
@@ -541,36 +541,36 @@
     registered_signal_ids: Mutex&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>&gt;&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/signal_hook/iterator/backend.rs.html#49">DeliveryState</a> {
+<span class="kw">impl </span><a href="#49">DeliveryState</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>ids = (<span class="number">0</span>..<a href="../../../src/signal_hook/iterator/backend.rs.html#36">MAX_SIGNUM</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <span class="prelude-val">None</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>ids = (<span class="number">0</span>..<a href="#36">MAX_SIGNUM</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <span class="prelude-val">None</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="self">Self </span>{
             closed: AtomicBool::new(<span class="bool-val">false</span>),
-            registered_signal_ids: Mutex::new(<a href="../../../src/signal_hook/iterator/backend.rs.html#56">ids</a>),
+            registered_signal_ids: Mutex::new(<a href="#56">ids</a>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/signal_hook/iterator/backend.rs.html#49">DeliveryState</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#49">DeliveryState</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>lock = <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#65">self</a>.registered_signal_ids.lock().unwrap();
+        <span class="kw">let </span>lock = <a class="self" href="#65">self</a>.registered_signal_ids.lock().unwrap();
         <span class="kw">for </span>id <span class="kw">in </span>lock.iter().filter_map(|s| <span class="kw-2">*</span>s) {
             <span class="kw">crate</span>::low_level::unregister(id);
         }
     }
 }
 
-<span class="kw">struct </span>PendingSignals&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
+<span class="kw">struct </span>PendingSignals&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
     exfiltrator: E,
-    slots: [E::Storage; <a href="../../../src/signal_hook/iterator/backend.rs.html#36">MAX_SIGNUM</a>],
+    slots: [E::Storage; <a href="#36">MAX_SIGNUM</a>],
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; PendingSignals&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; PendingSignals&lt;E&gt; {
     <span class="kw">fn </span>new(exfiltrator: E) -&gt; <span class="self">Self </span>{
         <span class="comment">// Unfortunately, Default is not implemented for long arrays :-(
         //
         // Note that if the default impl panics, the already existing instances are leaked.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>slots = MaybeUninit::&lt;[E::Storage; <a href="../../../src/signal_hook/iterator/backend.rs.html#36">MAX_SIGNUM</a>]&gt;::uninit();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>slots = MaybeUninit::&lt;[E::Storage; <a href="#36">MAX_SIGNUM</a>]&gt;::uninit();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..MAX_SIGNUM {
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>slot: <span class="kw-2">*mut </span>E::Storage = slots.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
@@ -580,8 +580,8 @@
         }
 
         <span class="self">Self </span>{
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#79">exfiltrator</a>,
-            slots: <span class="kw">unsafe </span>{ <a href="../../../src/signal_hook/iterator/backend.rs.html#83">slots</a>.assume_init() },
+            <a href="#79">exfiltrator</a>,
+            slots: <span class="kw">unsafe </span>{ <a href="#83">slots</a>.assume_init() },
         }
     }
 }
@@ -590,26 +590,26 @@
 </span><span class="kw">trait </span>AddSignal: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
     <span class="kw">fn </span>add_signal(
         <span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;,
-        write: Arc&lt;<span class="kw">dyn </span><a href="../../../src/signal_hook/iterator/backend.rs.html#38">SelfPipeWrite</a>&gt;,
+        write: Arc&lt;<span class="kw">dyn </span><a href="#38">SelfPipeWrite</a>&gt;,
         signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;;
 }
 
 <span class="comment">// Implemented manually because 1.36.0 doesn&#39;t yet support Debug for [X; BIG_NUMBER].
-</span><span class="kw">impl</span>&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>PendingSignals&lt;E&gt; {
+</span><span class="kw">impl</span>&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>PendingSignals&lt;E&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">FmtResult</a> {
-        <a href="../../../src/signal_hook/iterator/backend.rs.html#110">fmt</a>.debug_struct(<span class="string">&quot;PendingSignals&quot;</span>)
-            .field(<span class="string">&quot;exfiltrator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#110">self</a>.exfiltrator)
+        <a href="#110">fmt</a>.debug_struct(<span class="string">&quot;PendingSignals&quot;</span>)
+            .field(<span class="string">&quot;exfiltrator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#110">self</a>.exfiltrator)
             <span class="comment">// While the array does not, the slice does implement Debug
-            </span>.field(<span class="string">&quot;slots&quot;</span>, &amp;&amp;<a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#110">self</a>.slots[..])
+            </span>.field(<span class="string">&quot;slots&quot;</span>, &amp;&amp;<a class="self" href="#110">self</a>.slots[..])
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="../../../src/signal_hook/iterator/backend.rs.html#100">AddSignal</a> <span class="kw">for </span>PendingSignals&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="#100">AddSignal</a> <span class="kw">for </span>PendingSignals&lt;E&gt; {
     <span class="kw">fn </span>add_signal(
         <span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;,
-        write: Arc&lt;<span class="kw">dyn </span><a href="../../../src/signal_hook/iterator/backend.rs.html#38">SelfPipeWrite</a>&gt;,
+        write: Arc&lt;<span class="kw">dyn </span><a href="#38">SelfPipeWrite</a>&gt;,
         signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(signal &gt;= <span class="number">0</span>);
@@ -624,16 +624,16 @@
             signal,
             <span class="self">self</span>.exfiltrator,
         );
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#121">self</a>.exfiltrator.<a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#106">init</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#121">self</a>.slots[<a href="../../../src/signal_hook/iterator/backend.rs.html#123">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>], <a href="../../../src/signal_hook/iterator/backend.rs.html#123">signal</a>);
+        <a class="self" href="#121">self</a>.exfiltrator.<a href="exfiltrator/mod.rs.html#106">init</a>(<span class="kw-2">&amp;</span><a class="self" href="#121">self</a>.slots[<a href="#123">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>], <a href="#123">signal</a>);
 
         <span class="kw">let </span>action = <span class="kw">move </span>|act: <span class="kw-2">&amp;</span><span class="kw">_</span>| {
-            <span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#121">self</a>.slots[<a href="../../../src/signal_hook/iterator/backend.rs.html#123">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-            <span class="kw">let </span>ex = <span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#121">self</a>.exfiltrator;
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#141">ex</a>.<a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#76">store</a>(<a href="../../../src/signal_hook/iterator/backend.rs.html#140">slot</a>, <a href="../../../src/signal_hook/iterator/backend.rs.html#123">signal</a>, <a href="../../../src/signal_hook/iterator/backend.rs.html#139">act</a>);
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#122">write</a>.<a href="../../../src/signal_hook/iterator/backend.rs.html#39">wake_readers</a>();
+            <span class="kw">let </span>slot = <span class="kw-2">&amp;</span><a class="self" href="#121">self</a>.slots[<a href="#123">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+            <span class="kw">let </span>ex = <span class="kw-2">&amp;</span><a class="self" href="#121">self</a>.exfiltrator;
+            <a href="#141">ex</a>.<a href="exfiltrator/mod.rs.html#76">store</a>(<a href="#140">slot</a>, <a href="#123">signal</a>, <a href="#139">act</a>);
+            <a href="#122">write</a>.<a href="#39">wake_readers</a>();
         };
         <span class="kw">let </span>id = <span class="kw">unsafe </span>{ signal_hook_registry::register_sigaction(signal, action) }<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../src/signal_hook/iterator/backend.rs.html#145">id</a>)
+        <span class="prelude-val">Ok</span>(<a href="#145">id</a>)
     }
 }
 
@@ -646,19 +646,19 @@
 /// multiple threads.
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Handle {
-    pending: Arc&lt;<span class="kw">dyn </span><a href="../../../src/signal_hook/iterator/backend.rs.html#100">AddSignal</a>&gt;,
-    write: Arc&lt;<span class="kw">dyn </span><a href="../../../src/signal_hook/iterator/backend.rs.html#38">SelfPipeWrite</a>&gt;,
-    delivery_state: Arc&lt;<a href="../../../src/signal_hook/iterator/backend.rs.html#49">DeliveryState</a>&gt;,
+    pending: Arc&lt;<span class="kw">dyn </span><a href="#100">AddSignal</a>&gt;,
+    write: Arc&lt;<span class="kw">dyn </span><a href="#38">SelfPipeWrite</a>&gt;,
+    delivery_state: Arc&lt;<a href="#49">DeliveryState</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/signal_hook/iterator/backend.rs.html#158">Handle</a> {
-    <span class="kw">fn </span>new&lt;W&gt;(write: W, pending: Arc&lt;<span class="kw">dyn </span><a href="../../../src/signal_hook/iterator/backend.rs.html#100">AddSignal</a>&gt;) -&gt; <span class="self">Self
+<span class="kw">impl </span><a href="#158">Handle</a> {
+    <span class="kw">fn </span>new&lt;W&gt;(write: W, pending: Arc&lt;<span class="kw">dyn </span><a href="#100">AddSignal</a>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>W: <span class="lifetime">&#39;static </span>+ <a href="../../../src/signal_hook/iterator/backend.rs.html#38">SelfPipeWrite</a>,
+        </span>W: <span class="lifetime">&#39;static </span>+ <a href="#38">SelfPipeWrite</a>,
     {
         <span class="self">Self </span>{
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#165">pending</a>,
-            write: Arc::new(<a href="../../../src/signal_hook/iterator/backend.rs.html#165">write</a>),
+            <a href="#165">pending</a>,
+            write: Arc::new(<a href="#165">write</a>),
             delivery_state: Arc::new(DeliveryState::new()),
         }
     }
@@ -680,7 +680,7 @@
     /// * If the relevant [`Exfiltrator`] does not support this particular signal. The default
     ///   [`SignalOnly`] one supports all signals.
     </span><span class="kw">pub fn </span>add_signal(<span class="kw-2">&amp;</span><span class="self">self</span>, signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#192">self</a>.delivery_state.registered_signal_ids.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#192">self</a>.delivery_state.registered_signal_ids.lock().unwrap();
         <span class="comment">// Already registered, ignoring
         </span><span class="kw">if </span>lock[signal <span class="kw">as </span>usize].is_some() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -688,7 +688,7 @@
 
         <span class="kw">let </span>id = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.pending).add_signal(Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.write), signal)<span class="question-mark">?</span>;
 
-        <a href="../../../src/signal_hook/iterator/backend.rs.html#193">lock</a>[<a href="../../../src/signal_hook/iterator/backend.rs.html#192">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="prelude-val">Some</span>(<a href="../../../src/signal_hook/iterator/backend.rs.html#199">id</a>);
+        <a href="#193">lock</a>[<a href="#192">signal</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="prelude-val">Some</span>(<a href="#199">id</a>);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -707,15 +707,15 @@
     ///
     /// The goal is to be able to shut down any background thread that handles only the signals.
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#219">self</a>.delivery_state.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#219">self</a>.write.<a href="../../../src/signal_hook/iterator/backend.rs.html#39">wake_readers</a>();
+        <a class="self" href="#219">self</a>.delivery_state.closed.store(<span class="bool-val">true</span>, Ordering::SeqCst);
+        <a class="self" href="#219">self</a>.write.<a href="#39">wake_readers</a>();
     }
 
     <span class="doccomment">/// Is it closed?
     ///
     /// See [`close`][Handle::close].
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#227">self</a>.delivery_state.closed.load(Ordering::SeqCst)
+        <a class="self" href="#227">self</a>.delivery_state.closed.load(Ordering::SeqCst)
     }
 }
 
@@ -724,13 +724,13 @@
 /// [`with_pipe`][SignalDelivery::with_pipe] method for requirements
 /// for the IO type.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SignalDelivery&lt;R, E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
+</span><span class="kw">pub struct </span>SignalDelivery&lt;R, E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
     read: R,
-    handle: <a href="../../../src/signal_hook/iterator/backend.rs.html#158">Handle</a>,
+    handle: <a href="#158">Handle</a>,
     pending: Arc&lt;PendingSignals&lt;E&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;R, E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; SignalDelivery&lt;R, E&gt;
+<span class="kw">impl</span>&lt;R, E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; SignalDelivery&lt;R, E&gt;
 <span class="kw">where
     </span>R: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
 {
@@ -756,18 +756,18 @@
         S: Borrow&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;,
         W: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
     {
-        <span class="kw">let </span>pending = Arc::new(PendingSignals::new(<a href="../../../src/signal_hook/iterator/backend.rs.html#263">exfiltrator</a>));
-        <span class="kw">let </span>pending_add_signal = Arc::clone(<span class="kw-2">&amp;</span><a href="../../../src/signal_hook/iterator/backend.rs.html#269">pending</a>);
-        <span class="kw">let </span>handle = Handle::new(<a href="../../../src/signal_hook/iterator/backend.rs.html#263">write</a>, <a href="../../../src/signal_hook/iterator/backend.rs.html#270">pending_add_signal</a>);
+        <span class="kw">let </span>pending = Arc::new(PendingSignals::new(<a href="#263">exfiltrator</a>));
+        <span class="kw">let </span>pending_add_signal = Arc::clone(<span class="kw-2">&amp;</span><a href="#269">pending</a>);
+        <span class="kw">let </span>handle = Handle::new(<a href="#263">write</a>, <a href="#270">pending_add_signal</a>);
         <span class="kw">let </span>me = <span class="self">Self </span>{
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#263">read</a>,
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#271">handle</a>,
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#269">pending</a>,
+            <a href="#263">read</a>,
+            <a href="#271">handle</a>,
+            <a href="#269">pending</a>,
         };
         <span class="kw">for </span>sig <span class="kw">in </span>signals {
             me.handle.add_signal(<span class="kw-2">*</span>sig.borrow())<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a href="../../../src/signal_hook/iterator/backend.rs.html#272">me</a>)
+        <span class="prelude-val">Ok</span>(<a href="#272">me</a>)
     }
 
     <span class="doccomment">/// Get a reference to the read end of the self pipe
@@ -778,7 +778,7 @@
     /// ready for reading you can then call [`pending`][SignalDelivery::pending]
     /// to get the arrived signals.
     </span><span class="kw">pub fn </span>get_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#290">self</a>.read
+        <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.read
     }
 
     <span class="doccomment">/// Get a mutable reference to the read end of the self pipe
@@ -786,13 +786,13 @@
     /// See the [`get_read`][SignalDelivery::get_read] method for some additional
     /// information.
     </span><span class="kw">pub fn </span>get_read_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#298">self</a>.read
+        <span class="kw-2">&amp;mut </span><a class="self" href="#298">self</a>.read
     }
 
     <span class="doccomment">/// Drains all data from the internal self-pipe. This method will never block.
     </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">const </span>SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0u8</span>; <a href="../../../src/signal_hook/iterator/backend.rs.html#304">SIZE</a>];
+        <span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0u8</span>; <a href="#304">SIZE</a>];
 
         <span class="kw">unsafe </span>{
             <span class="comment">// Draining the data in the self pipe. We ignore all errors on purpose. This
@@ -819,8 +819,8 @@
     /// This method returns immediately (does not block) and may produce an empty iterator if
     /// there are no signals ready.
     </span><span class="kw">pub fn </span>pending(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pending&lt;E&gt; {
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#331">self</a>.<a href="../../../src/signal_hook/iterator/backend.rs.html#303">flush</a>();
-        Pending::new(Arc::clone(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#331">self</a>.pending))
+        <a class="self" href="#331">self</a>.<a href="#303">flush</a>();
+        Pending::new(Arc::clone(<span class="kw-2">&amp;</span><a class="self" href="#331">self</a>.pending))
     }
 
     <span class="doccomment">/// Checks the reading end of the self pipe for available signals.
@@ -840,10 +840,10 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">match </span><a href="../../../src/signal_hook/iterator/backend.rs.html#345">has_signals</a>(<a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#345">self</a>.<a href="../../../src/signal_hook/iterator/backend.rs.html#298">get_read_mut</a>()) {
+        <span class="kw">match </span><a href="#345">has_signals</a>(<a class="self" href="#345">self</a>.<a href="#298">get_read_mut</a>()) {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#345">self</a>.<a href="../../../src/signal_hook/iterator/backend.rs.html#331">pending</a>())),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/signal_hook/iterator/backend.rs.html#356">err</a>),
+            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="#345">self</a>.<a href="#331">pending</a>())),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#356">err</a>),
         }
     }
 
@@ -851,8 +851,8 @@
     ///
     /// This can be used to add further signals or close the whole
     /// signal delivery mechanism.
-    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/signal_hook/iterator/backend.rs.html#158">Handle</a> {
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#364">self</a>.handle.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#158">Handle</a> {
+        <a class="self" href="#364">self</a>.handle.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
@@ -860,21 +860,21 @@
 ///
 /// This is returned by the [`pending`][SignalDelivery::pending] method.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Pending&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
+</span><span class="kw">pub struct </span>Pending&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
     pending: Arc&lt;PendingSignals&lt;E&gt;&gt;,
     position: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; Pending&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; Pending&lt;E&gt; {
     <span class="kw">fn </span>new(pending: Arc&lt;PendingSignals&lt;E&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="../../../src/signal_hook/iterator/backend.rs.html#379">pending</a>,
+            <a href="#379">pending</a>,
             position: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Pending&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Pending&lt;E&gt; {
     <span class="kw">type </span>Item = E::Output;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;E::Output&gt; {
@@ -906,12 +906,12 @@
 }
 
 <span class="doccomment">/// An infinite iterator of received signals.
-</span><span class="kw">pub struct </span>SignalIterator&lt;SD, E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
+</span><span class="kw">pub struct </span>SignalIterator&lt;SD, E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; {
     signals: SD,
     iter: Pending&lt;E&gt;,
 }
 
-<span class="kw">impl</span>&lt;SD, E: <a href="../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; SignalIterator&lt;SD, E&gt; {
+<span class="kw">impl</span>&lt;SD, E: <a href="exfiltrator/mod.rs.html#120">Exfiltrator</a>&gt; SignalIterator&lt;SD, E&gt; {
     <span class="doccomment">/// Create a new infinite iterator for signals registered with the passed
     /// in [`SignalDelivery`] instance.
     </span><span class="kw">pub fn </span>new&lt;R&gt;(<span class="kw-2">mut </span>signals: SD) -&gt; <span class="self">Self
@@ -919,8 +919,8 @@
         </span>SD: BorrowMut&lt;SignalDelivery&lt;R, E&gt;&gt;,
         R: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
     {
-        <span class="kw">let </span>iter = <a href="../../../src/signal_hook/iterator/backend.rs.html#427">signals</a>.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>().<a href="../../../src/signal_hook/iterator/backend.rs.html#331">pending</a>();
-        <span class="self">Self </span>{ <a href="../../../src/signal_hook/iterator/backend.rs.html#427">signals</a>, <a href="../../../src/signal_hook/iterator/backend.rs.html#432">iter</a> }
+        <span class="kw">let </span>iter = <a href="#427">signals</a>.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>().<a href="#331">pending</a>();
+        <span class="self">Self </span>{ <a href="#427">signals</a>, <a href="#432">iter</a> }
     }
 
     <span class="doccomment">/// Return a signal if there is one or tell the caller that there is none at the moment.
@@ -955,19 +955,19 @@
             }
         }
 
-        <a href="../../../src/signal_hook/iterator/backend.rs.html#413">PollResult::Closed</a>
+        <a href="#413">PollResult::Closed</a>
     }
 
     <span class="doccomment">/// Get a shareable [`Handle`] for this instance.
     ///
     /// This can be used to add further signals or terminate the whole
     /// signal iteration using the [`close`][Handle::close] method.
-    </span><span class="kw">pub fn </span>handle&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/signal_hook/iterator/backend.rs.html#158">Handle</a>
+    </span><span class="kw">pub fn </span>handle&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#158">Handle</a>
     <span class="kw">where
         </span>SD: Borrow&lt;SignalDelivery&lt;R, E&gt;&gt;,
         R: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
     {
-        <a class="self" href="../../../src/signal_hook/iterator/backend.rs.html#475">self</a>.signals.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().<a href="../../../src/signal_hook/iterator/backend.rs.html#364">handle</a>()
+        <a class="self" href="#475">self</a>.signals.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().<a href="#364">handle</a>()
     }
 }
 
@@ -979,4 +979,4 @@
 /// instance.
 </span><span class="kw">pub type </span>RefSignalIterator&lt;<span class="lifetime">&#39;a</span>, R, E&gt; = SignalIterator&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SignalDelivery&lt;R, E&gt;, E&gt;;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -62,7 +62,7 @@
 
 <span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use </span><a href="../../../../src/async_std/stream/double_ended_stream/mod.rs.html#27"><span class="kw">crate</span>::stream::DoubleEndedStream</a>;
+<span class="kw">use </span><a href="mod.rs.html#27"><span class="kw">crate</span>::stream::DoubleEndedStream</a>;
 
 <a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
     <span class="attribute">#[doc(hidden)]
@@ -77,40 +77,40 @@
 
 <span class="kw">impl</span>&lt;S, F, T&gt; TryRFoldFuture&lt;S, F, T&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: S, init: T, f: F) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#9-18">TryRFoldFuture</a> {
-            <a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#21">stream</a>,
-            <a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#21">f</a>,
-            acc: <span class="prelude-val">Some</span>(<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#21">init</a>),
+        <a href="#9-18">TryRFoldFuture</a> {
+            <a href="#21">stream</a>,
+            <a href="#21">f</a>,
+            acc: <span class="prelude-val">Some</span>(<a href="#21">init</a>),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;S, F, T, E&gt; <a href="../../../../async_std/future/trait.Future.html">Future</a> <span class="kw">for </span>TryRFoldFuture&lt;S, F, T&gt;
 <span class="kw">where
-    </span>S: <a href="../../../../src/async_std/stream/double_ended_stream/mod.rs.html#27">DoubleEndedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    </span>S: <a href="mod.rs.html#27">DoubleEndedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     F: FnMut(T, S::Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#37">self</a>.<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#9-18">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#37">self</a>.<a href="#9-18">project</a>();
         <span class="kw">loop </span>{
             <span class="kw">let </span>next = <a class="macro" href="../../../../async_std/task/macro.ready.html">futures_core::ready!</a>(this.stream.as_mut().poll_next_back(cx));
 
-            <span class="kw">match </span><a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#40">next</a> {
+            <span class="kw">match </span><a href="#40">next</a> {
                 <span class="prelude-val">Some</span>(v) =&gt; {
-                    <span class="kw">let </span>old = <a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#38">this</a>.acc.take().unwrap();
-                    <span class="kw">let </span>new = (<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#38">this</a>.f)(<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#44">old</a>, <a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#43">v</a>);
+                    <span class="kw">let </span>old = <a href="#38">this</a>.acc.take().unwrap();
+                    <span class="kw">let </span>new = (<a href="#38">this</a>.f)(<a href="#44">old</a>, <a href="#43">v</a>);
 
-                    <span class="kw">match </span><a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#45">new</a> {
-                        <span class="prelude-val">Ok</span>(o) =&gt; <span class="kw-2">*</span><a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#38">this</a>.acc = <span class="prelude-val">Some</span>(<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#48">o</a>),
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#49">e</a>)),
+                    <span class="kw">match </span><a href="#45">new</a> {
+                        <span class="prelude-val">Ok</span>(o) =&gt; <span class="kw-2">*</span><a href="#38">this</a>.acc = <span class="prelude-val">Some</span>(<a href="#48">o</a>),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#49">e</a>)),
                     }
                 }
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/async_std/stream/double_ended_stream/try_rfold.rs.html#38">this</a>.acc.take().unwrap())),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#38">this</a>.acc.take().unwrap())),
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

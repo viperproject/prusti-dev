@@ -80,7 +80,7 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../src/prusti_interface/environment/mir_utils/slice_or_array_ref.rs.html#3">SliceOrArrayRef</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/tuple_items_for_ty.rs.html#3">TupleItemsForTy</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="slice_or_array_ref.rs.html#3">SliceOrArrayRef</a>, <a href="tuple_items_for_ty.rs.html#3">TupleItemsForTy</a>};
 <span class="kw">use </span>prusti_rustc_interface::{
     index::vec::Idx,
     middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>},
@@ -116,29 +116,29 @@
         tcx: ty::TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; Vec&lt;mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw">let </span>(lhs, rhs) = <span class="kw">match </span><a class="self" href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#33">self</a>.kind {
-            mir::StatementKind::Assign(<span class="kw">box </span>(lhs, rhs)) =&gt; (<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#38">lhs</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#38">rhs</a>),
+        <span class="kw">let </span>(lhs, rhs) = <span class="kw">match </span><a class="self" href="#33">self</a>.kind {
+            mir::StatementKind::Assign(<span class="kw">box </span>(lhs, rhs)) =&gt; (<a href="#38">lhs</a>, <a href="#38">rhs</a>),
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>],
         };
 
-        <span class="kw">let </span>atomic_assignments = <span class="kw">match </span><a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#37">rhs</a> {
+        <span class="kw">let </span>atomic_assignments = <span class="kw">match </span><a href="#37">rhs</a> {
             mir::Rvalue::Aggregate(<span class="kw">box </span>kind, operands) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
                     kind,
                     mir::AggregateKind::Tuple,
                     <span class="string">&quot;The only supported aggregates are tuples.&quot;
                 </span>);
-                <span class="kw">let </span>local = <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#37">lhs</a>.as_local().unwrap();
-                <span class="kw">let </span>items_ty = <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#35">mir</a>.local_decls[<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#49">local</a>].ty.<a href="../../../../src/prusti_interface/environment/mir_utils/tuple_items_for_ty.rs.html#6">tuple_items</a>().unwrap();
-                <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#43">operands</a>
+                <span class="kw">let </span>local = <a href="#37">lhs</a>.as_local().unwrap();
+                <span class="kw">let </span>items_ty = <a href="#35">mir</a>.local_decls[<a href="#49">local</a>].ty.<a href="tuple_items_for_ty.rs.html#6">tuple_items</a>().unwrap();
+                <a href="#43">operands</a>
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#50">items_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#50">items_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, (rhs, ty))| {
-                        <span class="kw">let </span>field = mir::Field::new(<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#55">i</a>);
-                        <span class="kw">let </span>lhs = <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#34">tcx</a>.mk_place_field(<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#49">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#56">field</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#55">ty</a>);
-                        <span class="kw">let </span>rhs = mir::Rvalue::Use(<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#55">rhs</a>);
-                        (<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#57">lhs</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#58">rhs</a>)
+                        <span class="kw">let </span>field = mir::Field::new(<a href="#55">i</a>);
+                        <span class="kw">let </span>lhs = <a href="#34">tcx</a>.mk_place_field(<a href="#49">local</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#56">field</a>, <a href="#55">ty</a>);
+                        <span class="kw">let </span>rhs = mir::Rvalue::Use(<a href="#55">rhs</a>);
+                        (<a href="#57">lhs</a>, <a href="#58">rhs</a>)
                     })
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
             }
@@ -148,19 +148,19 @@
                 mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
                 <span class="kw">_</span>,
                 cast_ty,
-            ) <span class="kw">if </span><a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#68">cast_ty</a>.<a href="../../../../src/prusti_interface/environment/mir_utils/slice_or_array_ref.rs.html#4">is_slice_ref</a>() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(lhs, rhs)],
+            ) <span class="kw">if </span><a href="#68">cast_ty</a>.<a href="slice_or_array_ref.rs.html#4">is_slice_ref</a>() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(lhs, rhs)],
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Rvalue {:?} is not supported&quot;</span>, rhs),
         };
 
-        <span class="kw">let </span>source_info = <a class="self" href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#33">self</a>.source_info;
-        <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#42">atomic_assignments</a>
+        <span class="kw">let </span>source_info = <a class="self" href="#33">self</a>.source_info;
+        <a href="#42">atomic_assignments</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(lhs, rhs)| {
-                <span class="kw">let </span>kind = mir::StatementKind::Assign(<span class="kw">box </span>(<a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#76">lhs</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#76">rhs</a>));
-                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Statement.html">mir::Statement</a> { <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#73">source_info</a>, <a href="../../../../src/prusti_interface/environment/mir_utils/split_aggregate_assignment.rs.html#77">kind</a> }
+                <span class="kw">let </span>kind = mir::StatementKind::Assign(<span class="kw">box </span>(<a href="#76">lhs</a>, <a href="#76">rhs</a>));
+                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Statement.html">mir::Statement</a> { <a href="#73">source_info</a>, <a href="#77">kind</a> }
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

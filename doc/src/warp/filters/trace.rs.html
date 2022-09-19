@@ -315,16 +315,16 @@
 //! [`Spans`]: https://docs.rs/tracing/latest/tracing/#spans
 </span><span class="kw">use </span><a href="../../../tracing/span/struct.Span.html">tracing::Span</a>;
 
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 
 <span class="kw">use </span>http::{<a class="self" href="../../../http/index.html">self</a>, <a href="../../../http/header/index.html">header</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use </span><a href="../../../src/warp/reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
-<span class="kw">use </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
-<span class="kw">use </span><a href="../../../src/warp/route.rs.html#31"><span class="kw">crate</span>::route::Route</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/wrap.rs.html#3">WrapSealed</a>};
+<span class="kw">use </span><a href="../reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
+<span class="kw">use </span><a href="../reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use </span><a href="../route.rs.html#31"><span class="kw">crate</span>::route::Route</a>;
 
-<span class="kw">use </span><a href="../../../src/warp/filters/trace.rs.html#232"><span class="self">self</span>::internal::WithTrace</a>;
+<span class="kw">use </span><a href="#232"><span class="self">self</span>::internal::WithTrace</a>;
 
 <span class="doccomment">/// Create a wrapping filter that instruments every request with a `tracing`
 /// [`Span`] at the [`INFO`] level, containing a summary of the request.
@@ -346,7 +346,7 @@
 /// [`DEBUG`]: https://docs.rs/tracing/0.1.16/tracing/struct.Level.html#associatedconstant.DEBUG
 </span><span class="kw">pub fn </span>request() -&gt; Trace&lt;<span class="kw">impl </span>Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../tracing/span/struct.Span.html">Span</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; {
     <span class="kw">use </span>tracing::field::{display, Empty};
-    <a href="../../../src/warp/filters/trace.rs.html#91-93">trace</a>(|info: Info&lt;<span class="lifetime">&#39;_</span>&gt;| {
+    <a href="#91-93">trace</a>(|info: Info&lt;<span class="lifetime">&#39;_</span>&gt;| {
         <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.info_span.html">tracing::info_span!</a>(
             <span class="string">&quot;request&quot;</span>,
             remote.addr = Empty,
@@ -357,17 +357,17 @@
         );
 
         <span class="comment">// Record optional fields.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(remote_addr) = <a href="../../../src/warp/filters/trace.rs.html#44">info</a>.<a href="../../../src/warp/filters/trace.rs.html#161">remote_addr</a>() {
-            <a href="../../../src/warp/filters/trace.rs.html#45">span</a>.record(<span class="string">&quot;remote.addr&quot;</span>, <span class="kw-2">&amp;</span>display(<a href="../../../src/warp/filters/trace.rs.html#55">remote_addr</a>));
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(remote_addr) = <a href="#44">info</a>.<a href="#161">remote_addr</a>() {
+            <a href="#45">span</a>.record(<span class="string">&quot;remote.addr&quot;</span>, <span class="kw-2">&amp;</span>display(<a href="#55">remote_addr</a>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(referer) = <a href="../../../src/warp/filters/trace.rs.html#44">info</a>.<a href="../../../src/warp/filters/trace.rs.html#181">referer</a>() {
-            <a href="../../../src/warp/filters/trace.rs.html#45">span</a>.record(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span>display(<a href="../../../src/warp/filters/trace.rs.html#59">referer</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(referer) = <a href="#44">info</a>.<a href="#181">referer</a>() {
+            <a href="#45">span</a>.record(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span>display(<a href="#59">referer</a>));
         }
 
         <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(parent: <span class="kw-2">&amp;</span>span, <span class="string">&quot;received request&quot;</span>);
 
-        <a href="../../../src/warp/filters/trace.rs.html#45">span</a>
+        <a href="#45">span</a>
     })
 }
 
@@ -397,7 +397,7 @@
 <span class="kw">where
     </span>F: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../tracing/span/struct.Span.html">Span</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-    <a href="../../../src/warp/filters/trace.rs.html#132">Trace</a> { <a href="../../../src/warp/filters/trace.rs.html#91">func</a> }
+    <a href="#132">Trace</a> { <a href="#91">func</a> }
 }
 
 <span class="doccomment">/// Create a wrapping filter that instruments every request with a `tracing`
@@ -425,7 +425,7 @@
 /// [`Span`]: https://docs.rs/tracing/latest/tracing/#spans
 /// [`DEBUG`]: https://docs.rs/tracing/0.1.16/tracing/struct.Level.html#associatedconstant.DEBUG
 </span><span class="kw">pub fn </span>named(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Trace&lt;<span class="kw">impl </span>Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../tracing/span/struct.Span.html">Span</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>&gt; {
-    <a href="../../../src/warp/filters/trace.rs.html#91-93">trace</a>(<span class="kw">move </span>|<span class="kw">_</span>| <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;{}&quot;</span>, name,))
+    <a href="#91-93">trace</a>(<span class="kw">move </span>|<span class="kw">_</span>| <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;{}&quot;</span>, name,))
 }
 
 <span class="doccomment">/// Decorates a [`Filter`](crate::Filter) to create a [`tracing`] [span] for
@@ -441,94 +441,94 @@
 <span class="doccomment">/// Information about the request/response that can be used to prepare log lines.
 </span><span class="attribute">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Info&lt;<span class="lifetime">&#39;a</span>&gt; {
-    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/warp/route.rs.html#31">Route</a>,
+    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../route.rs.html#31">Route</a>,
 }
 
 <span class="kw">impl</span>&lt;FN, F&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>Trace&lt;FN&gt;
 <span class="kw">where
     </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../tracing/span/struct.Span.html">Span</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
-    F::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+    F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    F::Extract: <a href="../reply.rs.html#228">Reply</a>,
+    F::Error: <a href="../reject.rs.html#613">IsReject</a>,
 {
     <span class="kw">type </span>Wrapped = WithTrace&lt;FN, F&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <a href="../../../src/warp/filters/trace.rs.html#232">WithTrace</a> {
-            <a href="../../../src/warp/filters/trace.rs.html#151">filter</a>,
-            trace: <a class="self" href="../../../src/warp/filters/trace.rs.html#151">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#232">WithTrace</a> {
+            <a href="#151">filter</a>,
+            trace: <a class="self" href="#151">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Info&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// View the remote `SocketAddr` of the request.
-    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#161">self</a>.route.<a href="../../../src/warp/route.rs.html#126">remote_addr</a>()
+    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#161">self</a>.route.<a href="../route.rs.html#126">remote_addr</a>()
     }
 
     <span class="doccomment">/// View the `http::Method` of the request.
     </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/method/struct.Method.html">http::Method</a> {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#166">self</a>.route.<a href="../../../src/warp/route.rs.html#61">method</a>()
+        <a class="self" href="#166">self</a>.route.<a href="../route.rs.html#61">method</a>()
     }
 
     <span class="doccomment">/// View the URI path of the request.
     </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#171">self</a>.route.<a href="../../../src/warp/route.rs.html#90">full_path</a>()
+        <a class="self" href="#171">self</a>.route.<a href="../route.rs.html#90">full_path</a>()
     }
 
     <span class="doccomment">/// View the `http::Version` of the request.
     </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http/version/struct.Version.html">http::Version</a> {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#176">self</a>.route.<a href="../../../src/warp/route.rs.html#69">version</a>()
+        <a class="self" href="#176">self</a>.route.<a href="../route.rs.html#69">version</a>()
     }
 
     <span class="doccomment">/// View the referer of the request.
     </span><span class="kw">pub fn </span>referer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#181">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#181">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::REFERER)
-            .and_then(|v| <a href="../../../src/warp/filters/trace.rs.html#185">v</a>.to_str().ok())
+            .and_then(|v| <a href="#185">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// View the user agent of the request.
     </span><span class="kw">pub fn </span>user_agent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#189">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#189">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::USER_AGENT)
-            .and_then(|v| <a href="../../../src/warp/filters/trace.rs.html#193">v</a>.to_str().ok())
+            .and_then(|v| <a href="#193">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// View the host of the request
     </span><span class="kw">pub fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#197">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#197">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::HOST)
-            .and_then(|v| <a href="../../../src/warp/filters/trace.rs.html#201">v</a>.to_str().ok())
+            .and_then(|v| <a href="#201">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// View the request headers.
     </span><span class="kw">pub fn </span>request_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a> {
-        <a class="self" href="../../../src/warp/filters/trace.rs.html#205">self</a>.route.<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#205">self</a>.route.<a href="../route.rs.html#65">headers</a>()
     }
 }
 
 <span class="kw">mod </span>internal {
     <span class="kw">use </span>futures_util::{future::Inspect, future::MapOk, <a href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
 
-    <span class="kw">use super</span>::{<a href="../../../src/warp/filters/trace.rs.html#138">Info</a>, <a href="../../../src/warp/filters/trace.rs.html#132">Trace</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>};
-    <span class="kw">use </span><a href="../../../src/warp/reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
-    <span class="kw">use </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
-    <span class="kw">use </span><a href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a>;
-    <span class="kw">use </span><a href="../../../src/warp/lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+    <span class="kw">use super</span>::{<a href="#138">Info</a>, <a href="#132">Trace</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/mod.rs.html#39">FilterBase</a>, <a href="../filter/mod.rs.html#70">Internal</a>};
+    <span class="kw">use </span><a href="../reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
+    <span class="kw">use </span><a href="../reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+    <span class="kw">use </span><a href="../reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a>;
+    <span class="kw">use </span><a href="../lib.rs.html#97"><span class="kw">crate</span>::route</a>;
 
     <span class="attribute">#[allow(missing_debug_implementations)]
-    </span><span class="kw">pub struct </span>Traced(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="../../../src/warp/reply.rs.html#55">Response</a>);
+    </span><span class="kw">pub struct </span>Traced(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="../reply.rs.html#55">Response</a>);
 
-    <span class="kw">impl </span><a href="../../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="../../../src/warp/filters/trace.rs.html#221">Traced</a> {
+    <span class="kw">impl </span><a href="../reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="#221">Traced</a> {
         <span class="attribute">#[inline]
-        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../../src/warp/reply.rs.html#55">Response</a> {
-            <a class="self" href="../../../src/warp/filters/trace.rs.html#225">self</a>.<span class="number">0
+        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../reply.rs.html#55">Response</a> {
+            <a class="self" href="#225">self</a>.<span class="number">0
         </span>}
     }
 
@@ -542,12 +542,12 @@
     <span class="kw">use </span>tracing::instrument::{<a href="../../../tracing/instrument/trait.Instrument.html">Instrument</a>, <a href="../../../tracing/instrument/struct.Instrumented.html">Instrumented</a>};
     <span class="kw">use </span><a href="../../../tracing/span/struct.Span.html">tracing::Span</a>;
 
-    <span class="kw">fn </span>finished_logger&lt;E: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>&gt;(reply: <span class="kw-2">&amp;</span><span class="prelude-ty">Result</span>&lt;(<a href="../../../src/warp/filters/trace.rs.html#221">Traced</a>,), E&gt;) {
-        <span class="kw">match </span><a href="../../../src/warp/filters/trace.rs.html#240">reply</a> {
-            <span class="prelude-val">Ok</span>((<a href="../../../src/warp/filters/trace.rs.html#221">Traced</a>(resp),)) =&gt; {
+    <span class="kw">fn </span>finished_logger&lt;E: <a href="../reject.rs.html#613">IsReject</a>&gt;(reply: <span class="kw-2">&amp;</span><span class="prelude-ty">Result</span>&lt;(<a href="#221">Traced</a>,), E&gt;) {
+        <span class="kw">match </span><a href="#240">reply</a> {
+            <span class="prelude-val">Ok</span>((<a href="#221">Traced</a>(resp),)) =&gt; {
                 <a class="macro" href="../../../tracing/tracing/macro.info.html">tracing::info!</a>(target: <span class="string">&quot;warp::filters::trace&quot;</span>, status = resp.status().as_u16(), <span class="string">&quot;finished processing with success&quot;</span>);
             }
-            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="../../../src/warp/filters/trace.rs.html#245">e</a>.<a href="../../../src/warp/reject.rs.html#614">status</a>().is_server_error() =&gt; {
+            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="#245">e</a>.<a href="../reject.rs.html#614">status</a>().is_server_error() =&gt; {
                 <a class="macro" href="../../../tracing/tracing/macro.error.html">tracing::error!</a>(
                     target: <span class="string">&quot;warp::filters::trace&quot;</span>,
                     status = e.status().as_u16(),
@@ -555,7 +555,7 @@
                     <span class="string">&quot;unable to process request (internal error)&quot;
                 </span>);
             }
-            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="../../../src/warp/filters/trace.rs.html#253">e</a>.<a href="../../../src/warp/reject.rs.html#614">status</a>().is_client_error() =&gt; {
+            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="#253">e</a>.<a href="../reject.rs.html#614">status</a>().is_client_error() =&gt; {
                 <a class="macro" href="../../../tracing/tracing/macro.warn.html">tracing::warn!</a>(
                     target: <span class="string">&quot;warp::filters::trace&quot;</span>,
                     status = e.status().as_u16(),
@@ -575,18 +575,18 @@
         }
     }
 
-    <span class="kw">fn </span>convert_reply&lt;R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>&gt;(reply: R) -&gt; (<a href="../../../src/warp/filters/trace.rs.html#221">Traced</a>,) {
-        (<a href="../../../src/warp/filters/trace.rs.html#221">Traced</a>(<a href="../../../src/warp/filters/trace.rs.html#273">reply</a>.<a href="../../../src/warp/reply.rs.html#232">into_response</a>()),)
+    <span class="kw">fn </span>convert_reply&lt;R: <a href="../reply.rs.html#228">Reply</a>&gt;(reply: R) -&gt; (<a href="#221">Traced</a>,) {
+        (<a href="#221">Traced</a>(<a href="#273">reply</a>.<a href="../reply.rs.html#232">into_response</a>()),)
     }
 
-    <span class="kw">impl</span>&lt;FN, F&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>WithTrace&lt;FN, F&gt;
+    <span class="kw">impl</span>&lt;FN, F&gt; <a href="../filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>WithTrace&lt;FN, F&gt;
     <span class="kw">where
         </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../../tracing/span/struct.Span.html">Span</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
-        F::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+        F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        F::Extract: <a href="../reply.rs.html#228">Reply</a>,
+        F::Error: <a href="../reject.rs.html#613">IsReject</a>,
     {
-        <span class="kw">type </span>Extract = (<a href="../../../src/warp/filters/trace.rs.html#221">Traced</a>,);
+        <span class="kw">type </span>Extract = (<a href="#221">Traced</a>,);
         <span class="kw">type </span>Error = F::Error;
         <span class="kw">type </span>Future = Instrumented&lt;
             Inspect&lt;
@@ -595,18 +595,18 @@
             &gt;,
         &gt;;
 
-        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
-            <span class="kw">let </span>span = <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| (<a class="self" href="../../../src/warp/filters/trace.rs.html#293">self</a>.trace.func)(<a href="../../../src/warp/filters/trace.rs.html#138">Info</a> { <a href="../../../src/warp/filters/trace.rs.html#294">route</a> }));
-            <span class="kw">let </span>_entered = <a href="../../../src/warp/filters/trace.rs.html#294">span</a>.enter();
+        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+            <span class="kw">let </span>span = <a href="../route.rs.html#23-25">route::with</a>(|route| (<a class="self" href="#293">self</a>.trace.func)(<a href="#138">Info</a> { <a href="#294">route</a> }));
+            <span class="kw">let </span>_entered = <a href="#294">span</a>.enter();
 
             <a class="macro" href="../../../tracing/tracing/macro.info.html">tracing::info!</a>(target: <span class="string">&quot;warp::filters::trace&quot;</span>, <span class="string">&quot;processing request&quot;</span>);
-            <a class="self" href="../../../src/warp/filters/trace.rs.html#293">self</a>.filter
-                .<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>)
-                .<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_ok</a>(<a href="../../../src/warp/filters/trace.rs.html#273">convert_reply</a> <span class="kw">as fn</span>(F::Extract) -&gt; <span class="self">Self</span>::Extract)
-                .<a href="../../../futures_util/future/future/trait.FutureExt.html">inspect</a>(<a href="../../../src/warp/filters/trace.rs.html#240">finished_logger</a> <span class="kw">as fn</span>(<span class="kw-2">&amp;</span><span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Extract, F::Error&gt;))
-                .<a href="../../../tracing/instrument/trait.Instrument.html">instrument</a>(<a href="../../../src/warp/filters/trace.rs.html#294">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <a class="self" href="#293">self</a>.filter
+                .<a href="../filter/mod.rs.html#44">filter</a>(<a href="../filter/mod.rs.html#70">Internal</a>)
+                .<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_ok</a>(<a href="#273">convert_reply</a> <span class="kw">as fn</span>(F::Extract) -&gt; <span class="self">Self</span>::Extract)
+                .<a href="../../../futures_util/future/future/trait.FutureExt.html">inspect</a>(<a href="#240">finished_logger</a> <span class="kw">as fn</span>(<span class="kw-2">&amp;</span><span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Extract, F::Error&gt;))
+                .<a href="../../../tracing/instrument/trait.Instrument.html">instrument</a>(<a href="#294">span</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

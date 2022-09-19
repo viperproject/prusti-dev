@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/runtime/task/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -129,8 +129,8 @@
 <span id="129">129</span>
 <span id="130">130</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#14"><span class="kw">crate</span>::runtime::task::harness::Harness</a>;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>};
+<span class="kw">use </span><a href="harness.rs.html#14"><span class="kw">crate</span>::runtime::task::harness::Harness</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="core.rs.html#59">Header</a>, <a href="mod.rs.html#249">Schedule</a>};
 
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
@@ -140,15 +140,15 @@
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>WakerRef&lt;<span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;static</span>&gt; {
     waker: ManuallyDrop&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
-    _p: PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, S)&gt;,
+    _p: PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="core.rs.html#59">Header</a>, S)&gt;,
 }
 
-<span class="doccomment">/// Returns a `WakerRef` which avoids having to pre-emptively increase the
+<span class="doccomment">/// Returns a `WakerRef` which avoids having to preemptively increase the
 /// refcount if there is no need to do so.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref&lt;T, S&gt;(header: <span class="kw-2">&amp;</span>NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref&lt;T, S&gt;(header: <span class="kw-2">&amp;</span>NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>, S&gt;
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
     <span class="comment">// `Waker::will_wake` uses the VTABLE pointer as part of the check. This
     // means that `will_wake` will always return false when using the current
@@ -158,10 +158,10 @@
     // point and not an *owned* waker, we must ensure that `drop` is never
     // called on this waker instance. This is done by wrapping it with
     // `ManuallyDrop` and then never calling drop.
-    </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ ManuallyDrop::new(Waker::from_raw(raw_waker::&lt;T, S&gt;(<span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/waker.rs.html#18">header</a>))) };
+    </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ ManuallyDrop::new(Waker::from_raw(raw_waker::&lt;T, S&gt;(<span class="kw-2">*</span><a href="#18">header</a>))) };
 
-    <a href="../../../../src/tokio/runtime/task/waker.rs.html#11">WakerRef</a> {
-        <a href="../../../../src/tokio/runtime/task/waker.rs.html#31">waker</a>,
+    <a href="#11">WakerRef</a> {
+        <a href="#31">waker</a>,
         _p: PhantomData,
     }
 }
@@ -170,7 +170,7 @@
     <span class="kw">type </span>Target = <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/waker.rs.html#42">self</a>.waker
+        <span class="kw-2">&amp;</span><a class="self" href="#42">self</a>.waker
     }
 }
 
@@ -200,63 +200,63 @@
 <span class="kw">unsafe fn </span>clone_waker&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
-    <span class="kw">let </span>header = <a href="../../../../src/tokio/runtime/task/waker.rs.html#70">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>;
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="../../../../src/tokio/runtime/task/waker.rs.html#70">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="../../../../src/tokio/runtime/task/waker.rs.html#76">ptr</a>);
-    <a class="macro" href="../../../../src/tokio/runtime/task/waker.rs.html#62-67">trace!</a>(harness, <span class="string">&quot;waker.clone&quot;</span>);
-    (<span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/waker.rs.html#75">header</a>).state.<a href="../../../../src/tokio/runtime/task/state.rs.html#414">ref_inc</a>();
-    raw_waker::&lt;T, S&gt;(<a href="../../../../src/tokio/runtime/task/waker.rs.html#76">ptr</a>)
+    <span class="kw">let </span>header = <a href="#70">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="core.rs.html#59">Header</a>;
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#70">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
+    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#76">ptr</a>);
+    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.clone&quot;</span>);
+    (<span class="kw-2">*</span><a href="#75">header</a>).state.<a href="state.rs.html#414">ref_inc</a>();
+    raw_waker::&lt;T, S&gt;(<a href="#76">ptr</a>)
 }
 
 <span class="kw">unsafe fn </span>drop_waker&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="../../../../src/tokio/runtime/task/waker.rs.html#83">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="../../../../src/tokio/runtime/task/waker.rs.html#88">ptr</a>);
-    <a class="macro" href="../../../../src/tokio/runtime/task/waker.rs.html#62-67">trace!</a>(harness, <span class="string">&quot;waker.drop&quot;</span>);
-    <a href="../../../../src/tokio/runtime/task/waker.rs.html#89">harness</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#83">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
+    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#88">ptr</a>);
+    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.drop&quot;</span>);
+    <a href="#89">harness</a>.<a href="harness.rs.html#284">drop_reference</a>();
 }
 
 <span class="kw">unsafe fn </span>wake_by_val&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="../../../../src/tokio/runtime/task/waker.rs.html#94">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="../../../../src/tokio/runtime/task/waker.rs.html#99">ptr</a>);
-    <a class="macro" href="../../../../src/tokio/runtime/task/waker.rs.html#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake&quot;</span>);
-    <a href="../../../../src/tokio/runtime/task/waker.rs.html#100">harness</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#237">wake_by_val</a>();
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#94">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
+    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#99">ptr</a>);
+    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake&quot;</span>);
+    <a href="#100">harness</a>.<a href="harness.rs.html#237">wake_by_val</a>();
 }
 
 <span class="comment">// Wake without consuming the waker
 </span><span class="kw">unsafe fn </span>wake_by_ref&lt;T, S&gt;(ptr: <span class="kw-2">*const </span>())
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
-    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="../../../../src/tokio/runtime/task/waker.rs.html#106">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>);
-    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="../../../../src/tokio/runtime/task/waker.rs.html#111">ptr</a>);
-    <a class="macro" href="../../../../src/tokio/runtime/task/waker.rs.html#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake_by_ref&quot;</span>);
-    <a href="../../../../src/tokio/runtime/task/waker.rs.html#112">harness</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#267">wake_by_ref</a>();
+    <span class="kw">let </span>ptr = NonNull::new_unchecked(<a href="#106">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="core.rs.html#59">Header</a>);
+    <span class="kw">let </span>harness = Harness::&lt;T, S&gt;::from_raw(<a href="#111">ptr</a>);
+    <a class="macro" href="#62-67">trace!</a>(harness, <span class="string">&quot;waker.wake_by_ref&quot;</span>);
+    <a href="#112">harness</a>.<a href="harness.rs.html#267">wake_by_ref</a>();
 }
 
-<span class="kw">fn </span>raw_waker&lt;T, S&gt;(header: NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>
+<span class="kw">fn </span>raw_waker&lt;T, S&gt;(header: NonNull&lt;<a href="core.rs.html#59">Header</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>
 <span class="kw">where
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    S: <a href="mod.rs.html#249">Schedule</a>,
 {
-    <span class="kw">let </span>ptr = <a href="../../../../src/tokio/runtime/task/waker.rs.html#117">header</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>();
+    <span class="kw">let </span>ptr = <a href="#117">header</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>();
     <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>RawWakerVTable::new(
         clone_waker::&lt;T, S&gt;,
         wake_by_val::&lt;T, S&gt;,
         wake_by_ref::&lt;T, S&gt;,
         drop_waker::&lt;T, S&gt;,
     );
-    RawWaker::new(<a href="../../../../src/tokio/runtime/task/waker.rs.html#122">ptr</a>, <a href="../../../../src/tokio/runtime/task/waker.rs.html#123">vtable</a>)
+    RawWaker::new(<a href="#122">ptr</a>, <a href="#123">vtable</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

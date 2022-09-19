@@ -69,7 +69,7 @@
 <span class="kw">use </span><a href="../../../../async_std/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use </span><a href="../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use </span><a href="../../../../src/async_std/future/into_future.rs.html#35"><span class="kw">crate</span>::future::IntoFuture</a>;
+<span class="kw">use </span><a href="../into_future.rs.html#35"><span class="kw">crate</span>::future::IntoFuture</a>;
 <span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../async_std/task/macro.ready.html">ready</a>, <a href="../../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../../async_std/task/enum.Poll.html">Poll</a>};
 
 <a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
@@ -99,8 +99,8 @@
 
 <span class="kw">impl</span>&lt;Fut1, Fut2&gt; FlattenFuture&lt;Fut1, Fut2&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(fut1: Fut1) -&gt; FlattenFuture&lt;Fut1, Fut2&gt; {
-        <a href="../../../../src/async_std/future/future/flatten.rs.html#8-15">FlattenFuture</a> {
-            state: <a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">State::First</a> { <a href="../../../../src/async_std/future/future/flatten.rs.html#34">fut1</a> },
+        <a href="#8-15">FlattenFuture</a> {
+            state: <a href="#17-31">State::First</a> { <a href="#34">fut1</a> },
         }
     }
 }
@@ -108,27 +108,27 @@
 <span class="kw">impl</span>&lt;Fut1&gt; <a href="../../../../async_std/future/trait.Future.html">Future</a> <span class="kw">for </span>FlattenFuture&lt;Fut1, &lt;Fut1::Output <span class="kw">as </span>IntoFuture&gt;::Future&gt;
 <span class="kw">where
     </span>Fut1: <a href="../../../../async_std/future/trait.Future.html">Future</a>,
-    Fut1::Output: <a href="../../../../src/async_std/future/into_future.rs.html#35">IntoFuture</a>,
+    Fut1::Output: <a href="../into_future.rs.html#35">IntoFuture</a>,
 {
     <span class="kw">type </span>Output = &lt;Fut1::Output <span class="kw">as </span>IntoFuture&gt;::Output;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../../../src/async_std/future/future/flatten.rs.html#48">self</a>.<a href="../../../../src/async_std/future/future/flatten.rs.html#8-15">project</a>().state;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#48">self</a>.<a href="#8-15">project</a>().state;
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../../src/async_std/future/future/flatten.rs.html#49">state</a>.as_mut().<a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">project</a>() {
-                <a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">StateProj::First</a> { fut1 } =&gt; {
-                    <span class="kw">let </span>fut2 = <a class="macro" href="../../../../async_std/task/macro.ready.html">ready!</a>(fut1.poll(cx)).<a href="../../../../src/async_std/future/into_future.rs.html#43">into_future</a>();
-                    <a href="../../../../src/async_std/future/future/flatten.rs.html#49">state</a>.set(<a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">State::Second</a> { <a href="../../../../src/async_std/future/future/flatten.rs.html#53">fut2</a> });
+            <span class="kw">match </span><a href="#49">state</a>.as_mut().<a href="#17-31">project</a>() {
+                <a href="#17-31">StateProj::First</a> { fut1 } =&gt; {
+                    <span class="kw">let </span>fut2 = <a class="macro" href="../../../../async_std/task/macro.ready.html">ready!</a>(fut1.poll(cx)).<a href="../into_future.rs.html#43">into_future</a>();
+                    <a href="#49">state</a>.set(<a href="#17-31">State::Second</a> { <a href="#53">fut2</a> });
                 }
-                <a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">StateProj::Second</a> { fut2 } =&gt; {
+                <a href="#17-31">StateProj::Second</a> { fut2 } =&gt; {
                     <span class="kw">let </span>v = <a class="macro" href="../../../../async_std/task/macro.ready.html">ready!</a>(fut2.poll(cx));
-                    <a href="../../../../src/async_std/future/future/flatten.rs.html#49">state</a>.set(<a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">State::Empty</a>);
-                    <span class="kw">return </span>Poll::Ready(<a href="../../../../src/async_std/future/future/flatten.rs.html#57">v</a>);
+                    <a href="#49">state</a>.set(<a href="#17-31">State::Empty</a>);
+                    <span class="kw">return </span>Poll::Ready(<a href="#57">v</a>);
                 }
-                <a href="../../../../src/async_std/future/future/flatten.rs.html#17-31">StateProj::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled a completed future&quot;</span>),
+                <a href="#17-31">StateProj::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled a completed future&quot;</span>),
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

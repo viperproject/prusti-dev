@@ -452,10 +452,10 @@
 
 <span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.error.html">error</a>};
 
-<span class="kw">use crate</span>::{<a href="../../../../src/jni/lib.rs.html#201">errors</a>::<span class="kw-2">*</span>, <a href="../../../../src/jni/lib.rs.html#191">sys</a>, <a href="../../../../src/jni/wrapper/jnienv.rs.html#79">JNIEnv</a>};
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#201">errors</a>::<span class="kw-2">*</span>, <a href="../../lib.rs.html#191">sys</a>, <a href="../jnienv.rs.html#79">JNIEnv</a>};
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;invocation&quot;</span>)]
-</span><span class="kw">use </span><a href="../../../../src/jni/wrapper/java_vm/init_args.rs.html#121"><span class="kw">crate</span>::InitArgs</a>;
+</span><span class="kw">use </span><a href="init_args.rs.html#121"><span class="kw">crate</span>::InitArgs</a>;
 
 <span class="doccomment">/// The Java VM, providing [Invocation API][invocation-api] support.
 ///
@@ -577,10 +577,10 @@
 </span><span class="attribute">#[repr(transparent)]
 </span><span class="kw">pub struct </span>JavaVM(<span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a>);
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#134">JavaVM</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#134">JavaVM</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#134">JavaVM</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#134">JavaVM</a> {}
 
-<span class="kw">impl </span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#134">JavaVM</a> {
+<span class="kw">impl </span><a href="#134">JavaVM</a> {
     <span class="doccomment">/// Launch a new JavaVM using the provided init args.
     ///
     /// Unlike original JNI API, the main thread (the thread from which this method is called) will
@@ -590,7 +590,7 @@
     /// *This API requires &quot;invocation&quot; feature to be enabled,
     /// see [&quot;Launching JVM from Rust&quot;](struct.JavaVM.html#launching-jvm-from-rust).*
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;invocation&quot;</span>)]
-    </span><span class="kw">pub fn </span>new(args: <a href="../../../../src/jni/wrapper/java_vm/init_args.rs.html#121">InitArgs</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(args: <a href="init_args.rs.html#121">InitArgs</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_void.html">std::os::raw::c_void</a>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>ptr: <span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a> = ::std::ptr::null_mut();
@@ -604,9 +604,9 @@
             ))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>vm = <span class="self">Self</span>::from_raw(ptr)<span class="question-mark">?</span>;
-            <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#102-107">java_vm_unchecked!</a>(vm.<span class="number">0</span>, DetachCurrentThread);
+            <a class="macro" href="../macros.rs.html#102-107">java_vm_unchecked!</a>(vm.<span class="number">0</span>, DetachCurrentThread);
 
-            <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#162">vm</a>)
+            <span class="prelude-val">Ok</span>(<a href="#162">vm</a>)
         }
     }
 
@@ -616,13 +616,13 @@
     ///
     /// Expects a valid pointer retrieved from the `JNI_CreateJavaVM` JNI function. Only does null check.
     </span><span class="kw">pub unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#26-34">non_null!</a>(ptr, <span class="string">&quot;from_raw ptr argument&quot;</span>);
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#134">JavaVM</a>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#174">ptr</a>))
+        <a class="macro" href="../macros.rs.html#26-34">non_null!</a>(ptr, <span class="string">&quot;from_raw ptr argument&quot;</span>);
+        <span class="prelude-val">Ok</span>(<a href="#134">JavaVM</a>(<a href="#174">ptr</a>))
     }
 
     <span class="doccomment">/// Returns underlying `sys::JavaVM` interface.
     </span><span class="kw">pub fn </span>get_java_vm_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a> {
-        <a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#180">self</a>.<span class="number">0
+        <a class="self" href="#180">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Attaches the current thread to the JVM. Calling this for a thread that is already attached
@@ -635,10 +635,10 @@
     ///
     /// [block]: https://docs.oracle.com/en/java/javase/12/docs/specs/jni/invocation.html#unloading-the-vm
     /// [attach-as-daemon]: struct.JavaVM.html#method.attach_current_thread_as_daemon
-    </span><span class="kw">pub fn </span>attach_current_thread_permanently(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/jni/wrapper/jnienv.rs.html#79">JNIEnv</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#194">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#266">get_env</a>() {
-            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#196">env</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#194">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#277">attach_current_thread_impl</a>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#344">ThreadType::Normal</a>),
+    </span><span class="kw">pub fn </span>attach_current_thread_permanently(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../jnienv.rs.html#79">JNIEnv</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#194">self</a>.<a href="#266">get_env</a>() {
+            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(<a href="#196">env</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="#194">self</a>.<a href="#277">attach_current_thread_impl</a>(<a href="#344">ThreadType::Normal</a>),
         }
     }
 
@@ -655,12 +655,12 @@
     ///
     /// [block]: https://docs.oracle.com/en/java/javase/12/docs/specs/jni/invocation.html#unloading-the-vm
     /// [attach-as-daemon]: struct.JavaVM.html#method.attach_current_thread_as_daemon
-    </span><span class="kw">pub fn </span>attach_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#302">AttachGuard</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#214">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#266">get_env</a>() {
-            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(AttachGuard::new_nested(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#216">env</a>)),
+    </span><span class="kw">pub fn </span>attach_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#302">AttachGuard</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#214">self</a>.<a href="#266">get_env</a>() {
+            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(AttachGuard::new_nested(<a href="#216">env</a>)),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>env = <span class="self">self</span>.attach_current_thread_impl(ThreadType::Normal)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(AttachGuard::new(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#218">env</a>))
+                <span class="prelude-val">Ok</span>(AttachGuard::new(<a href="#218">env</a>))
             }
         }
     }
@@ -690,10 +690,10 @@
     /// that is already attached is a no-op, and will not change its status to a daemon thread.
     ///
     /// The thread will detach itself automatically when it exits.
-    </span><span class="kw">pub fn </span>attach_current_thread_as_daemon(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/jni/wrapper/jnienv.rs.html#79">JNIEnv</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#249">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#266">get_env</a>() {
-            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#251">env</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#249">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#277">attach_current_thread_impl</a>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#345">ThreadType::Daemon</a>),
+    </span><span class="kw">pub fn </span>attach_current_thread_as_daemon(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../jnienv.rs.html#79">JNIEnv</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#249">self</a>.<a href="#266">get_env</a>() {
+            <span class="prelude-val">Ok</span>(env) =&gt; <span class="prelude-val">Ok</span>(<a href="#251">env</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="#249">self</a>.<a href="#277">attach_current_thread_impl</a>(<a href="#345">ThreadType::Daemon</a>),
         }
     }
 
@@ -701,25 +701,25 @@
     ///
     /// This method is provided mostly for diagnostic purposes.
     </span><span class="kw">pub fn </span>threads_attached(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#297">ATTACHED_THREADS</a>.load(Ordering::SeqCst)
+        <a href="#297">ATTACHED_THREADS</a>.load(Ordering::SeqCst)
     }
 
     <span class="doccomment">/// Get the `JNIEnv` associated with the current thread, or
     /// `ErrorKind::Detached`
     /// if the current thread is not attached to the java VM.
-    </span><span class="kw">pub fn </span>get_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/jni/wrapper/jnienv.rs.html#79">JNIEnv</a>&gt; {
+    </span><span class="kw">pub fn </span>get_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../jnienv.rs.html#79">JNIEnv</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ptr = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>res = <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#102-107">java_vm_unchecked!</a>(<span class="self">self</span>.<span class="number">0</span>, GetEnv, <span class="kw-2">&amp;mut </span>ptr, sys::JNI_VERSION_1_1);
+            <span class="kw">let </span>res = <a class="macro" href="../macros.rs.html#102-107">java_vm_unchecked!</a>(<span class="self">self</span>.<span class="number">0</span>, GetEnv, <span class="kw-2">&amp;mut </span>ptr, sys::JNI_VERSION_1_1);
             jni_error_code_to_result(res)<span class="question-mark">?</span>;
 
-            JNIEnv::from_raw(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#267">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
+            JNIEnv::from_raw(<a href="#267">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
         }
     }
 
     <span class="doccomment">/// Creates `InternalAttachGuard` and attaches current thread.
-    </span><span class="kw">fn </span>attach_current_thread_impl(<span class="kw-2">&amp;</span><span class="self">self</span>, thread_type: <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#343">ThreadType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/jni/wrapper/jnienv.rs.html#79">JNIEnv</a>&gt; {
-        <span class="kw">let </span>guard = InternalAttachGuard::new(<a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#277">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#180">get_java_vm_pointer</a>());
+    </span><span class="kw">fn </span>attach_current_thread_impl(<span class="kw-2">&amp;</span><span class="self">self</span>, thread_type: <a href="#343">ThreadType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../jnienv.rs.html#79">JNIEnv</a>&gt; {
+        <span class="kw">let </span>guard = InternalAttachGuard::new(<a class="self" href="#277">self</a>.<a href="#180">get_java_vm_pointer</a>());
         <span class="kw">let </span>env_ptr = <span class="kw">unsafe </span>{
             <span class="kw">if </span>thread_type == ThreadType::Daemon {
                 guard.attach_current_thread_as_daemon()<span class="question-mark">?
@@ -728,9 +728,9 @@
             </span>}
         };
 
-        InternalAttachGuard::fill_tls(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#278">guard</a>);
+        InternalAttachGuard::fill_tls(<a href="#278">guard</a>);
 
-        <span class="kw">unsafe </span>{ JNIEnv::from_raw(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#279">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>) }
+        <span class="kw">unsafe </span>{ JNIEnv::from_raw(<a href="#279">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>) }
     }
 }
 
@@ -752,7 +752,7 @@
     <span class="doccomment">/// AttachGuard created with this method will detach current thread on drop
     </span><span class="kw">fn </span>new(env: JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#309">env</a>,
+            <a href="#309">env</a>,
             should_detach: <span class="bool-val">true</span>,
         }
     }
@@ -761,7 +761,7 @@
     /// the case for nested attaches.
     </span><span class="kw">fn </span>new_nested(env: JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#318">env</a>,
+            <a href="#318">env</a>,
             should_detach: <span class="bool-val">false</span>,
         }
     }
@@ -771,7 +771,7 @@
     <span class="kw">type </span>Target = JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#329">self</a>.env
+        <span class="kw-2">&amp;</span><a class="self" href="#329">self</a>.env
     }
 }
 
@@ -794,29 +794,29 @@
     java_vm: <span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#349">InternalAttachGuard</a> {
+<span class="kw">impl </span><a href="#349">InternalAttachGuard</a> {
     <span class="kw">fn </span>new(java_vm: <span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JavaVM.html">sys::JavaVM</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#354">java_vm</a> }
+        <span class="self">Self </span>{ <a href="#354">java_vm</a> }
     }
 
     <span class="doccomment">/// Stores guard in thread local storage.
-    </span><span class="kw">fn </span>fill_tls(guard: <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#349">InternalAttachGuard</a>) {
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#293-295">THREAD_ATTACH_GUARD</a>.with(<span class="kw">move </span>|f| {
-            <span class="kw-2">*</span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#360">f</a>.borrow_mut() = <span class="prelude-val">Some</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#359">guard</a>);
+    </span><span class="kw">fn </span>fill_tls(guard: <a href="#349">InternalAttachGuard</a>) {
+        <a href="#293-295">THREAD_ATTACH_GUARD</a>.with(<span class="kw">move </span>|f| {
+            <span class="kw-2">*</span><a href="#360">f</a>.borrow_mut() = <span class="prelude-val">Some</span>(<a href="#359">guard</a>);
         });
     }
 
     <span class="doccomment">/// Clears thread local storage, dropping the InternalAttachGuard and causing detach of
     /// the current thread.
     </span><span class="kw">fn </span>clear_tls() {
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#293-295">THREAD_ATTACH_GUARD</a>.with(<span class="kw">move </span>|f| {
-            <span class="kw-2">*</span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#368">f</a>.borrow_mut() = <span class="prelude-val">None</span>;
+        <a href="#293-295">THREAD_ATTACH_GUARD</a>.with(<span class="kw">move </span>|f| {
+            <span class="kw-2">*</span><a href="#368">f</a>.borrow_mut() = <span class="prelude-val">None</span>;
         });
     }
 
     <span class="kw">unsafe fn </span>attach_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>env_ptr = ptr::null_mut();
-        <span class="kw">let </span>res = <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#102-107">java_vm_unchecked!</a>(
+        <span class="kw">let </span>res = <a class="macro" href="../macros.rs.html#102-107">java_vm_unchecked!</a>(
             <span class="self">self</span>.java_vm,
             AttachCurrentThread,
             <span class="kw-2">&amp;mut </span>env_ptr,
@@ -824,7 +824,7 @@
         );
         jni_error_code_to_result(res)<span class="question-mark">?</span>;
 
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#297">ATTACHED_THREADS</a>.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
+        <a href="#297">ATTACHED_THREADS</a>.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
 
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;Attached thread {} ({:?}). {} threads attached&quot;</span>,
@@ -833,12 +833,12 @@
             ATTACHED_THREADS.load(Ordering::SeqCst)
         );
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#374">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
+        <span class="prelude-val">Ok</span>(<a href="#374">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
     }
 
     <span class="kw">unsafe fn </span>attach_current_thread_as_daemon(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>env_ptr = ptr::null_mut();
-        <span class="kw">let </span>res = <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#102-107">java_vm_unchecked!</a>(
+        <span class="kw">let </span>res = <a class="macro" href="../macros.rs.html#102-107">java_vm_unchecked!</a>(
             <span class="self">self</span>.java_vm,
             AttachCurrentThreadAsDaemon,
             <span class="kw-2">&amp;mut </span>env_ptr,
@@ -846,7 +846,7 @@
         );
         jni_error_code_to_result(res)<span class="question-mark">?</span>;
 
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#297">ATTACHED_THREADS</a>.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
+        <a href="#297">ATTACHED_THREADS</a>.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
 
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;Attached daemon thread {} ({:?}). {} threads attached&quot;</span>,
@@ -855,14 +855,14 @@
             ATTACHED_THREADS.load(Ordering::SeqCst)
         );
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#396">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
+        <span class="prelude-val">Ok</span>(<a href="#396">env_ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../jni/sys/type.JNIEnv.html">sys::JNIEnv</a>)
     }
 
     <span class="kw">fn </span>detach(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../../../src/jni/wrapper/macros.rs.html#102-107">java_vm_unchecked!</a>(<span class="self">self</span>.java_vm, DetachCurrentThread);
+            <a class="macro" href="../macros.rs.html#102-107">java_vm_unchecked!</a>(<span class="self">self</span>.java_vm, DetachCurrentThread);
         }
-        <a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#297">ATTACHED_THREADS</a>.fetch_sub(<span class="number">1</span>, Ordering::SeqCst);
+        <a href="#297">ATTACHED_THREADS</a>.fetch_sub(<span class="number">1</span>, Ordering::SeqCst);
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;Detached thread {} ({:?}). {} threads remain attached&quot;</span>,
             current().name().unwrap_or_default(),
@@ -874,9 +874,9 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#349">InternalAttachGuard</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#349">InternalAttachGuard</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a class="self" href="../../../../src/jni/wrapper/java_vm/vm.rs.html#434">self</a>.<a href="../../../../src/jni/wrapper/java_vm/vm.rs.html#417">detach</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a class="self" href="#434">self</a>.<a href="#417">detach</a>() {
             <a class="macro" href="../../../../log/macro.error.html">error!</a>(
                 <span class="string">&quot;Error detaching current thread: {:#?}\nThread {} id={:?}&quot;</span>,
                 e,
@@ -887,4 +887,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="jni" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="jni" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

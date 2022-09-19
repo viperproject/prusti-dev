@@ -185,15 +185,15 @@
 <span id="185">185</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#112">pe</a>, <a href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../mod.rs.html#64">Error</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#112">pe</a>, <a href="../../endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE};
 
-<span class="kw">use super</span>::{<a href="../../../../src/object/read/pe/export.rs.html#84">ExportTable</a>, <a href="../../../../src/object/read/pe/import.rs.html#11">ImportTable</a>, <a href="../../../../src/object/read/pe/relocation.rs.html#9">RelocationBlockIterator</a>, <a href="../../../../src/object/read/pe/resource.rs.html#8">ResourceDirectory</a>, <a href="../../../../src/object/read/coff/section.rs.html#16">SectionTable</a>};
+<span class="kw">use super</span>::{<a href="export.rs.html#84">ExportTable</a>, <a href="import.rs.html#11">ImportTable</a>, <a href="relocation.rs.html#9">RelocationBlockIterator</a>, <a href="resource.rs.html#8">ResourceDirectory</a>, <a href="../coff/section.rs.html#16">SectionTable</a>};
 
 <span class="doccomment">/// The table of data directories in a PE file.
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>DataDirectories&lt;<span class="lifetime">&#39;data</span>&gt; {
-    entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../../../src/object/pe.rs.html#374">pe::ImageDataDirectory</a>],
+    entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>],
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; DataDirectories&lt;<span class="lifetime">&#39;data</span>&gt; {
@@ -207,23 +207,23 @@
         <span class="kw">let </span>entries = data
             .read_slice_at(<span class="number">0</span>, number <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid PE number of RVA and sizes&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/pe/data_directory.rs.html#10">DataDirectories</a> { <a href="../../../../src/object/read/pe/data_directory.rs.html#22">entries</a> })
+        <span class="prelude-val">Ok</span>(<a href="#10">DataDirectories</a> { <a href="#22">entries</a> })
     }
 
     <span class="doccomment">/// The number of data directories.
     </span><span class="attribute">#[allow(clippy::len_without_is_empty)]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#30">self</a>.entries.len()
+        <a class="self" href="#30">self</a>.entries.len()
     }
 
     <span class="doccomment">/// Iterator over the data directories.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../../../src/object/pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
-        <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#35">self</a>.entries.iter()
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
+        <a class="self" href="#35">self</a>.entries.iter()
     }
 
     <span class="doccomment">/// Iterator which gives the directories as well as their index (one of the IMAGE_DIRECTORY_ENTRY_* constants).
-    </span><span class="kw">pub fn </span>enumerate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../../../src/object/pe.rs.html#374">pe::ImageDataDirectory</a>&gt;&gt; {
-        <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#40">self</a>.entries.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
+    </span><span class="kw">pub fn </span>enumerate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt;&gt; {
+        <a class="self" href="#40">self</a>.entries.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
     }
 
     <span class="doccomment">/// Returns the data directory at the given index.
@@ -232,10 +232,10 @@
     ///
     /// Returns `None` if the index is larger than the table size,
     /// or if the entry at the index has a zero virtual address.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
-        <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#50">self</a>.entries
-            .get(<a href="../../../../src/object/read/pe/data_directory.rs.html#50">index</a>)
-            .filter(|d| <a href="../../../../src/object/read/pe/data_directory.rs.html#53">d</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) != <span class="number">0</span>)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#374">pe::ImageDataDirectory</a>&gt; {
+        <a class="self" href="#50">self</a>.entries
+            .get(<a href="#50">index</a>)
+            .filter(|d| <a href="#53">d</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) != <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the unparsed export directory.
@@ -245,13 +245,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#1808">pe::ImageExportDirectory</a>&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#60">self</a>.<a href="../../../../src/object/read/pe/data_directory.rs.html#50">get</a>(<a href="../../../../src/object/pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="../../../../src/object/read/pe/data_directory.rs.html#65">data_dir</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../pe.rs.html#1808">pe::ImageExportDirectory</a>&gt;&gt; {
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#60">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#65">data_dir</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>export_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        ExportTable::parse_directory(<a href="../../../../src/object/read/pe/data_directory.rs.html#68">export_data</a>).map(<span class="prelude-val">Some</span>)
+        ExportTable::parse_directory(<a href="#68">export_data</a>).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Returns the partially parsed export directory.
@@ -262,13 +262,13 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ExportTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#76">self</a>.<a href="../../../../src/object/read/pe/data_directory.rs.html#50">get</a>(<a href="../../../../src/object/pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="../../../../src/object/read/pe/data_directory.rs.html#81">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#76">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#561">pe::IMAGE_DIRECTORY_ENTRY_EXPORT</a>) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#81">data_dir</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>export_va = <a href="../../../../src/object/read/pe/data_directory.rs.html#80">data_dir</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>export_va = <a href="#80">data_dir</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
         <span class="kw">let </span>export_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        ExportTable::parse(<a href="../../../../src/object/read/pe/data_directory.rs.html#85">export_data</a>, <a href="../../../../src/object/read/pe/data_directory.rs.html#84">export_va</a>).map(<span class="prelude-val">Some</span>)
+        ExportTable::parse(<a href="#85">export_data</a>, <a href="#84">export_va</a>).map(<span class="prelude-val">Some</span>)
     }
 
     <span class="doccomment">/// Returns the partially parsed import directory.
@@ -279,15 +279,15 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ImportTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#93">self</a>.<a href="../../../../src/object/read/pe/data_directory.rs.html#50">get</a>(<a href="../../../../src/object/pe.rs.html#563">pe::IMAGE_DIRECTORY_ENTRY_IMPORT</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="../../../../src/object/read/pe/data_directory.rs.html#98">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#93">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#563">pe::IMAGE_DIRECTORY_ENTRY_IMPORT</a>) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#98">data_dir</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>import_va = <a href="../../../../src/object/read/pe/data_directory.rs.html#97">data_dir</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>import_va = <a href="#97">data_dir</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
         <span class="kw">let </span>(section_data, section_va) = sections
             .pe_data_containing(data, import_va)
             .read_error(<span class="string">&quot;Invalid import data dir virtual address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ImportTable::new(<a href="../../../../src/object/read/pe/data_directory.rs.html#102">section_data</a>, <a href="../../../../src/object/read/pe/data_directory.rs.html#102">section_va</a>, <a href="../../../../src/object/read/pe/data_directory.rs.html#101">import_va</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ImportTable::new(<a href="#102">section_data</a>, <a href="#102">section_va</a>, <a href="#101">import_va</a>)))
     }
 
     <span class="doccomment">/// Returns the blocks in the base relocation directory.
@@ -298,12 +298,12 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RelocationBlockIterator&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#112">self</a>.<a href="../../../../src/object/read/pe/data_directory.rs.html#50">get</a>(<a href="../../../../src/object/pe.rs.html#571">pe::IMAGE_DIRECTORY_ENTRY_BASERELOC</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="../../../../src/object/read/pe/data_directory.rs.html#117">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#112">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#571">pe::IMAGE_DIRECTORY_ENTRY_BASERELOC</a>) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#117">data_dir</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>reloc_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(RelocationBlockIterator::new(<a href="../../../../src/object/read/pe/data_directory.rs.html#120">reloc_data</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(RelocationBlockIterator::new(<a href="#120">reloc_data</a>)))
     }
 
     <span class="doccomment">/// Returns the resource directory.
@@ -314,19 +314,19 @@
         data: R,
         sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#128">self</a>.<a href="../../../../src/object/read/pe/data_directory.rs.html#50">get</a>(<a href="../../../../src/object/pe.rs.html#565">pe::IMAGE_DIRECTORY_ENTRY_RESOURCE</a>) {
-            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="../../../../src/object/read/pe/data_directory.rs.html#133">data_dir</a>,
+        <span class="kw">let </span>data_dir = <span class="kw">match </span><a class="self" href="#128">self</a>.<a href="#50">get</a>(<a href="../../pe.rs.html#565">pe::IMAGE_DIRECTORY_ENTRY_RESOURCE</a>) {
+            <span class="prelude-val">Some</span>(data_dir) =&gt; <a href="#133">data_dir</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
         <span class="kw">let </span>rsrc_data = data_dir.data(data, sections)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ResourceDirectory::new(<a href="../../../../src/object/read/pe/data_directory.rs.html#136">rsrc_data</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ResourceDirectory::new(<a href="#136">rsrc_data</a>)))
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/object/pe.rs.html#374">pe::ImageDataDirectory</a> {
+<span class="kw">impl </span><a href="../../pe.rs.html#374">pe::ImageDataDirectory</a> {
     <span class="doccomment">/// Return the virtual address range of this directory entry.
     </span><span class="kw">pub fn </span>address_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        (<a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#143">self</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>), <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#143">self</a>.size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>))
+        (<a class="self" href="#143">self</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>), <a class="self" href="#143">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>))
     }
 
     <span class="doccomment">/// Return the file offset and size of this directory entry.
@@ -341,11 +341,11 @@
         <span class="kw">let </span>(offset, section_size) = sections
             .pe_file_range_at(<span class="self">self</span>.virtual_address.get(LE))
             .read_error(<span class="string">&quot;Invalid data dir virtual address&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>size = <a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#155">self</a>.size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>size = <a class="self" href="#155">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>);
         <span class="kw">if </span>size &gt; section_size {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>));
         }
-        <span class="prelude-val">Ok</span>((<a href="../../../../src/object/read/pe/data_directory.rs.html#156">offset</a>, <a href="../../../../src/object/read/pe/data_directory.rs.html#159">size</a>))
+        <span class="prelude-val">Ok</span>((<a href="#156">offset</a>, <a href="#159">size</a>))
     }
 
     <span class="doccomment">/// Get the data referenced by this directory entry.
@@ -364,9 +364,9 @@
         sections
             .pe_data_at(data, <span class="self">self</span>.virtual_address.get(LE))
             .read_error(<span class="string">&quot;Invalid data dir virtual address&quot;</span>)<span class="question-mark">?
-            </span>.get(..<a class="self" href="../../../../src/object/read/pe/data_directory.rs.html#175">self</a>.size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>)
+            </span>.get(..<a class="self" href="#175">self</a>.size.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid data dir size&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

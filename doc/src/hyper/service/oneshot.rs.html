@@ -76,14 +76,14 @@
 </span><span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use </span><a href="../../../hyper/service/trait.Service.html">tower_service::Service</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>oneshot&lt;S, Req&gt;(svc: S, req: Req) -&gt; Oneshot&lt;S, Req&gt;
 <span class="kw">where
     </span>S: Service&lt;Req&gt;,
 {
-    <a href="../../../src/hyper/service/oneshot.rs.html#17-26">Oneshot</a> {
-        state: <a href="../../../src/hyper/service/oneshot.rs.html#28-42">State::NotReady</a> { <a href="../../../src/hyper/service/oneshot.rs.html#8">svc</a>, <a href="../../../src/hyper/service/oneshot.rs.html#8">req</a> },
+    <a href="#17-26">Oneshot</a> {
+        state: <a href="#28-42">State::NotReady</a> { <a href="#8">svc</a>, <a href="#8">req</a> },
     }
 }
 
@@ -121,23 +121,23 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;S::Response, S::Error&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/hyper/service/oneshot.rs.html#50">self</a>.<a href="../../../src/hyper/service/oneshot.rs.html#17-26">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="#50">self</a>.<a href="#17-26">project</a>();
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/hyper/service/oneshot.rs.html#51">me</a>.state.as_mut().<a href="../../../src/hyper/service/oneshot.rs.html#28-42">project</a>() {
-                <a href="../../../src/hyper/service/oneshot.rs.html#28-42">StateProj::NotReady</a> { <span class="kw-2">ref mut </span>svc, .. } =&gt; {
+            <span class="kw">match </span><a href="#51">me</a>.state.as_mut().<a href="#28-42">project</a>() {
+                <a href="#28-42">StateProj::NotReady</a> { <span class="kw-2">ref mut </span>svc, .. } =&gt; {
                     <span class="macro">ready!</span>(svc.poll_ready(cx))<span class="question-mark">?</span>;
                     <span class="comment">// fallthrough out of the match&#39;s borrow
                 </span>}
-                <a href="../../../src/hyper/service/oneshot.rs.html#28-42">StateProj::Called</a> { fut } =&gt; {
-                    <span class="kw">return </span><a href="../../../src/hyper/service/oneshot.rs.html#59">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/service/oneshot.rs.html#50">cx</a>);
+                <a href="#28-42">StateProj::Called</a> { fut } =&gt; {
+                    <span class="kw">return </span><a href="#59">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#50">cx</a>);
                 }
-                <a href="../../../src/hyper/service/oneshot.rs.html#28-42">StateProj::Tmp</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <a href="#28-42">StateProj::Tmp</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             }
 
-            <span class="kw">match </span><a href="../../../src/hyper/service/oneshot.rs.html#51">me</a>.state.as_mut().<a href="../../../src/hyper/service/oneshot.rs.html#28-42">project_replace</a>(<a href="../../../src/hyper/service/oneshot.rs.html#28-42">State::Tmp</a>) {
-                <a href="../../../src/hyper/service/oneshot.rs.html#28-42">StateProjOwn::NotReady</a> { <span class="kw-2">mut </span>svc, req } =&gt; {
-                    <a href="../../../src/hyper/service/oneshot.rs.html#51">me</a>.state.set(<a href="../../../src/hyper/service/oneshot.rs.html#28-42">State::Called</a> { fut: <a href="../../../src/hyper/service/oneshot.rs.html#66">svc</a>.<a href="../../../hyper/service/trait.Service.html">call</a>(<a href="../../../src/hyper/service/oneshot.rs.html#66">req</a>) });
+            <span class="kw">match </span><a href="#51">me</a>.state.as_mut().<a href="#28-42">project_replace</a>(<a href="#28-42">State::Tmp</a>) {
+                <a href="#28-42">StateProjOwn::NotReady</a> { <span class="kw-2">mut </span>svc, req } =&gt; {
+                    <a href="#51">me</a>.state.set(<a href="#28-42">State::Called</a> { fut: <a href="#66">svc</a>.<a href="../../../hyper/service/trait.Service.html">call</a>(<a href="#66">req</a>) });
                 }
                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             }
@@ -145,4 +145,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

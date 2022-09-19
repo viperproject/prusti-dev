@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/driver/wheel/level.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>level.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../tokio/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/time/driver/wheel/level.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>level.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../tokio/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -274,9 +274,9 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../src/tokio/time/driver/entry.rs.html#318"><span class="kw">crate</span>::time::driver::TimerHandle</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../entry.rs.html#318"><span class="kw">crate</span>::time::driver::TimerHandle</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::time::driver::{<a href="../../../../../src/tokio/time/driver/entry.rs.html#322">EntryList</a>, <a href="../../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>};
+<span class="kw">use </span><span class="kw">crate</span>::time::driver::{<a href="../entry.rs.html#322">EntryList</a>, <a href="../entry.rs.html#330">TimerShared</a>};
 
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">ptr::NonNull</a>};
 
@@ -294,7 +294,7 @@
     </span>occupied: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 
     <span class="doccomment">/// Slots. We access these via the EntryInner `current_list` as well, so this needs to be an UnsafeCell.
-    </span>slot: [<a href="../../../../../src/tokio/time/driver/entry.rs.html#322">EntryList</a>; <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#40">LEVEL_MULT</a>],
+    </span>slot: [<a href="../entry.rs.html#322">EntryList</a>; <a href="#40">LEVEL_MULT</a>],
 }
 
 <span class="doccomment">/// Indicates when a slot must be processed next.
@@ -315,8 +315,8 @@
 /// Being a power of 2 is very important.
 </span><span class="kw">const </span>LEVEL_MULT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">64</span>;
 
-<span class="kw">impl </span><a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#8">Level</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(level: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#8">Level</a> {
+<span class="kw">impl </span><a href="#8">Level</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(level: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#8">Level</a> {
         <span class="comment">// A value has to be Copy in order to use syntax like:
         //     let stack = Stack::default();
         //     ...
@@ -331,98 +331,98 @@
         // invoke the constructor for each array element.
         </span><span class="kw">let </span>ctor = EntryList::default;
 
-        <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#8">Level</a> {
-            <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#43">level</a>,
+        <a href="#8">Level</a> {
+            <a href="#43">level</a>,
             occupied: <span class="number">0</span>,
             slot: [
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
-                <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
+                <a href="#56">ctor</a>(),
             ],
         }
     }
 
     <span class="doccomment">/// Finds the slot that needs to be processed next and returns the slot and
     /// `Instant` at which this slot must be processed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, now: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#26">Expiration</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, now: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#26">Expiration</a>&gt; {
         <span class="comment">// Use the `occupied` bit field to get the index of the next slot that
         // needs to be processed.
-        </span><span class="kw">let </span>slot = <span class="kw">match </span><a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">self</a>.<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#192">next_occupied_slot</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">now</a>) {
-            <span class="prelude-val">Some</span>(slot) =&gt; <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#136">slot</a>,
+        </span><span class="kw">let </span>slot = <span class="kw">match </span><a class="self" href="#132">self</a>.<a href="#192">next_occupied_slot</a>(<a href="#132">now</a>) {
+            <span class="prelude-val">Some</span>(slot) =&gt; <a href="#136">slot</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
         <span class="comment">// From the slot index, calculate the `Instant` at which it needs to be
         // processed. This value *must* be in the future with respect to `now`.
 
-        </span><span class="kw">let </span>level_range = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#250">level_range</a>(<a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">self</a>.level);
-        <span class="kw">let </span>slot_range = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#246">slot_range</a>(<a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">self</a>.level);
+        </span><span class="kw">let </span>level_range = <a href="#250">level_range</a>(<a class="self" href="#132">self</a>.level);
+        <span class="kw">let </span>slot_range = <a href="#246">slot_range</a>(<a class="self" href="#132">self</a>.level);
 
         <span class="comment">// Compute the start date of the current level by masking the low bits
         // of `now` (`level_range` is a power of 2).
-        </span><span class="kw">let </span>level_start = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">now</a> &amp; !(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#143">level_range</a> - <span class="number">1</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>deadline = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#148">level_start</a> + <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#135">slot</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#144">slot_range</a>;
+        </span><span class="kw">let </span>level_start = <a href="#132">now</a> &amp; !(<a href="#143">level_range</a> - <span class="number">1</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>deadline = <a href="#148">level_start</a> + <a href="#135">slot</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="#144">slot_range</a>;
 
         <span class="kw">if </span>deadline &lt;= now {
             <span class="comment">// A timer is in a slot &quot;prior&quot; to the current time. This can occur
@@ -443,7 +443,7 @@
             // therefore means we&#39;re actually looking at a slot in the future.
             </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="self">self</span>.level, <span class="kw">super</span>::NUM_LEVELS - <span class="number">1</span>);
 
-            <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#149">deadline</a> += <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#143">level_range</a>;
+            <a href="#149">deadline</a> += <a href="#143">level_range</a>;
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
@@ -458,10 +458,10 @@
             <span class="self">self</span>.occupied
         );
 
-        <span class="prelude-val">Some</span>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#26">Expiration</a> {
-            level: <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#132">self</a>.level,
-            <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#135">slot</a>,
-            <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#149">deadline</a>,
+        <span class="prelude-val">Some</span>(<a href="#26">Expiration</a> {
+            level: <a class="self" href="#132">self</a>.level,
+            <a href="#135">slot</a>,
+            <a href="#149">deadline</a>,
         })
     }
 
@@ -471,65 +471,65 @@
         }
 
         <span class="comment">// Get the slot for now using Maths
-        </span><span class="kw">let </span>now_slot = (<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#192">now</a> / <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#246">slot_range</a>(<a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#192">self</a>.level)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>occupied = <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#192">self</a>.occupied.rotate_right(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#198">now_slot</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-        <span class="kw">let </span>zeros = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#199">occupied</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span>slot = (<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#200">zeros</a> + <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#198">now_slot</a>) % <span class="number">64</span>;
+        </span><span class="kw">let </span>now_slot = (<a href="#192">now</a> / <a href="#246">slot_range</a>(<a class="self" href="#192">self</a>.level)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>occupied = <a class="self" href="#192">self</a>.occupied.rotate_right(<a href="#198">now_slot</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+        <span class="kw">let </span>zeros = <a href="#199">occupied</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>slot = (<a href="#200">zeros</a> + <a href="#198">now_slot</a>) % <span class="number">64</span>;
 
-        <span class="prelude-val">Some</span>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#201">slot</a>)
+        <span class="prelude-val">Some</span>(<a href="#201">slot</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>add_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="../../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a>) {
-        <span class="kw">let </span>slot = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#255">slot_for</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#206">item</a>.<a href="../../../../../src/tokio/time/driver/entry.rs.html#565">cached_when</a>(), <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#206">self</a>.level);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>add_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="../entry.rs.html#318">TimerHandle</a>) {
+        <span class="kw">let </span>slot = <a href="#255">slot_for</a>(<a href="#206">item</a>.<a href="../entry.rs.html#572">cached_when</a>(), <a class="self" href="#206">self</a>.level);
 
-        <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#206">self</a>.slot[<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#207">slot</a>].<a href="../../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#206">item</a>);
+        <a class="self" href="#206">self</a>.slot[<a href="#207">slot</a>].<a href="../../../util/linked_list.rs.html#126">push_front</a>(<a href="#206">item</a>);
 
-        <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#206">self</a>.occupied |= <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#242">occupied_bit</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#207">slot</a>);
+        <a class="self" href="#206">self</a>.occupied |= <a href="#242">occupied_bit</a>(<a href="#207">slot</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>remove_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: NonNull&lt;<a href="../../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>&gt;) {
-        <span class="kw">let </span>slot = <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#255">slot_for</a>(<span class="kw">unsafe </span>{ <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#214">item</a>.as_ref().<a href="../../../../../src/tokio/time/driver/entry.rs.html#352">cached_when</a>() }, <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#214">self</a>.level);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>remove_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: NonNull&lt;<a href="../entry.rs.html#330">TimerShared</a>&gt;) {
+        <span class="kw">let </span>slot = <a href="#255">slot_for</a>(<span class="kw">unsafe </span>{ <a href="#214">item</a>.as_ref().<a href="../entry.rs.html#360">cached_when</a>() }, <a class="self" href="#214">self</a>.level);
 
-        <span class="kw">unsafe </span>{ <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#214">self</a>.slot[<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#215">slot</a>].<a href="../../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#214">item</a>) };
+        <span class="kw">unsafe </span>{ <a class="self" href="#214">self</a>.slot[<a href="#215">slot</a>].<a href="../../../util/linked_list.rs.html#183">remove</a>(<a href="#214">item</a>) };
         <span class="kw">if </span><span class="self">self</span>.slot[slot].is_empty() {
             <span class="comment">// The bit is currently set
             </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.occupied &amp; occupied_bit(slot) != <span class="number">0</span>);
 
             <span class="comment">// Unset the bit
-            </span><a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#214">self</a>.occupied ^= <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#242">occupied_bit</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#215">slot</a>);
+            </span><a class="self" href="#214">self</a>.occupied ^= <a href="#242">occupied_bit</a>(<a href="#215">slot</a>);
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_slot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../src/tokio/time/driver/entry.rs.html#322">EntryList</a> {
-        <a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#227">self</a>.occupied &amp;= !<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#242">occupied_bit</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#227">slot</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_slot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../entry.rs.html#322">EntryList</a> {
+        <a class="self" href="#227">self</a>.occupied &amp;= !<a href="#242">occupied_bit</a>(<a href="#227">slot</a>);
 
-        std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#227">self</a>.slot[<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#227">slot</a>])
+        std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#227">self</a>.slot[<a href="#227">slot</a>])
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#8">Level</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#8">Level</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#235">fmt</a>.debug_struct(<span class="string">&quot;Level&quot;</span>)
-            .field(<span class="string">&quot;occupied&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/tokio/time/driver/wheel/level.rs.html#235">self</a>.occupied)
+        <a href="#235">fmt</a>.debug_struct(<span class="string">&quot;Level&quot;</span>)
+            .field(<span class="string">&quot;occupied&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#235">self</a>.occupied)
             .finish()
     }
 }
 
 <span class="kw">fn </span>occupied_bit(slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="number">1 </span>&lt;&lt; <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#242">slot</a>
+    <span class="number">1 </span>&lt;&lt; <a href="#242">slot</a>
 }
 
 <span class="kw">fn </span>slot_range(level: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#40">LEVEL_MULT</a>.pow(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#246">level</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+    <a href="#40">LEVEL_MULT</a>.pow(<a href="#246">level</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
 }
 
 <span class="kw">fn </span>level_range(level: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#40">LEVEL_MULT</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#246">slot_range</a>(<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#250">level</a>)
+    <a href="#40">LEVEL_MULT</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="#246">slot_range</a>(<a href="#250">level</a>)
 }
 
 <span class="doccomment">/// Converts a duration (milliseconds) and a level to a slot position.
 </span><span class="kw">fn </span>slot_for(duration: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, level: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    ((<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#255">duration</a> &gt;&gt; (<a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#255">level</a> * <span class="number">6</span>)) % <a href="../../../../../src/tokio/time/driver/wheel/level.rs.html#40">LEVEL_MULT</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    ((<a href="#255">duration</a> &gt;&gt; (<a href="#255">level</a> * <span class="number">6</span>)) % <a href="#40">LEVEL_MULT</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
 <span class="attribute">#[cfg(all(test, not(loom)))]
@@ -551,4 +551,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

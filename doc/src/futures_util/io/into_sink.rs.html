@@ -110,7 +110,7 @@
 
 <span class="kw">impl</span>&lt;W: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, Item: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; IntoSink&lt;W, Item&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(writer: W) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../src/futures_util/io/into_sink.rs.html#30">writer</a>, buffer: <span class="prelude-val">None </span>}
+        <span class="self">Self </span>{ <a href="#30">writer</a>, buffer: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// If we have an outstanding block in `buffer` attempt to push it into the writer, does _not_
@@ -119,19 +119,19 @@
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/io/into_sink.rs.html#37">self</a>.<a href="../../../src/futures_util/io/into_sink.rs.html#15-27">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#37">self</a>.<a href="#15-27">project</a>();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(buffer) = <a href="../../../src/futures_util/io/into_sink.rs.html#40">this</a>.buffer {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(buffer) = <a href="#40">this</a>.buffer {
             <span class="kw">loop </span>{
-                <span class="kw">let </span>bytes = <a href="../../../src/futures_util/io/into_sink.rs.html#42">buffer</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+                <span class="kw">let </span>bytes = <a href="#42">buffer</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
                 <span class="kw">let </span>written = <span class="macro">ready!</span>(this.writer.as_mut().poll_write(cx, <span class="kw-2">&amp;</span>bytes[buffer.offset..]))<span class="question-mark">?</span>;
-                <a href="../../../src/futures_util/io/into_sink.rs.html#42">buffer</a>.offset += <a href="../../../src/futures_util/io/into_sink.rs.html#45">written</a>;
+                <a href="#42">buffer</a>.offset += <a href="#45">written</a>;
                 <span class="kw">if </span>buffer.offset == bytes.len() {
                     <span class="kw">break</span>;
                 }
             }
         }
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/into_sink.rs.html#40">this</a>.buffer = <span class="prelude-val">None</span>;
+        <span class="kw-2">*</span><a href="#40">this</a>.buffer = <span class="prelude-val">None</span>;
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -146,7 +146,7 @@
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.buffer.is_none());
-        <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/io/into_sink.rs.html#65">self</a>.<a href="../../../src/futures_util/io/into_sink.rs.html#15-27">project</a>().buffer = <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/io/into_sink.rs.html#10">Block</a> { offset: <span class="number">0</span>, bytes: <a href="../../../src/futures_util/io/into_sink.rs.html#65">item</a> });
+        <span class="kw-2">*</span><a class="self" href="#65">self</a>.<a href="#15-27">project</a>().buffer = <span class="prelude-val">Some</span>(<a href="#10">Block</a> { offset: <span class="number">0</span>, bytes: <a href="#65">item</a> });
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -163,4 +163,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

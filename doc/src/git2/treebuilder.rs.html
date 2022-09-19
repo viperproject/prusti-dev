@@ -229,46 +229,46 @@
 
 <span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../src/git2/util.rs.html#25">Binding</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>};
-<span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/lib.rs.html#712">tree</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/tree.rs.html#24">TreeEntry</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="util.rs.html#25">Binding</a>, <a href="util.rs.html#101">IntoCString</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="lib.rs.html#712">tree</a>, <a href="error.rs.html#12">Error</a>, <a href="oid.rs.html#15">Oid</a>, <a href="repo.rs.html#108">Repository</a>, <a href="tree.rs.html#24">TreeEntry</a>};
 
 <span class="doccomment">/// Constructor for in-memory trees
 </span><span class="kw">pub struct </span>TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_treebuilder.html">raw::git_treebuilder</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="doccomment">/// Clear all the entries in the builder
-    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_clear(<span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_clear(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Get the number of entries
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_treebuilder_entrycount(<a class="self" href="../../src/git2/treebuilder.rs.html#25">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ raw::git_treebuilder_entrycount(<a class="self" href="#25">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Return `true` if there is no entry
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/git2/treebuilder.rs.html#30">self</a>.<a href="../../src/git2/treebuilder.rs.html#25">len</a>() == <span class="number">0
+        <a class="self" href="#30">self</a>.<a href="#25">len</a>() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Get en entry from the builder from its filename
-    </span><span class="kw">pub fn </span>get&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    </span><span class="kw">pub fn </span>get&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, <a href="error.rs.html#12">Error</a>&gt;
     <span class="kw">where
-        </span>P: <a href="../../src/git2/util.rs.html#101">IntoCString</a>,
+        </span>P: <a href="util.rs.html#101">IntoCString</a>,
     {
         <span class="kw">let </span>filename = filename.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ret = raw::git_treebuilder_get(<a class="self" href="../../src/git2/treebuilder.rs.html#35">self</a>.raw, <a href="../../src/git2/treebuilder.rs.html#39">filename</a>.as_ptr());
+            <span class="kw">let </span>ret = raw::git_treebuilder_get(<a class="self" href="#35">self</a>.raw, <a href="#39">filename</a>.as_ptr());
             <span class="kw">if </span>ret.is_null() {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/git2/tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="../../src/git2/treebuilder.rs.html#41">ret</a>)))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="#41">ret</a>)))
             }
         }
     }
@@ -280,33 +280,33 @@
     ///
     /// The mode given must be one of 0o040000, 0o100644, 0o100755, 0o120000 or
     /// 0o160000 currently.
-    </span><span class="kw">pub fn </span>insert&lt;P: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(
+    </span><span class="kw">pub fn </span>insert&lt;P: <a href="util.rs.html#101">IntoCString</a>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         filename: P,
-        oid: <a href="../../src/git2/oid.rs.html#15">Oid</a>,
+        oid: <a href="oid.rs.html#15">Oid</a>,
         filemode: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>filename = filename.into_c_string()<span class="question-mark">?</span>;
-        <span class="kw">let </span>filemode = <a href="../../src/git2/treebuilder.rs.html#61">filemode</a> <span class="kw">as </span>raw::git_filemode_t;
+        <span class="kw">let </span>filemode = <a href="#61">filemode</a> <span class="kw">as </span>raw::git_filemode_t;
 
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_insert(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_insert(
                 <span class="kw-2">&amp;mut </span>ret,
                 <span class="self">self</span>.raw,
                 filename,
                 oid.raw(),
                 filemode
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="../../src/git2/treebuilder.rs.html#66">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="#66">ret</a>))
         }
     }
 
     <span class="doccomment">/// Remove an entry from the builder by its filename
-    </span><span class="kw">pub fn </span>remove&lt;P: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>remove&lt;P: <a href="util.rs.html#101">IntoCString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>filename = filename.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_remove(<span class="self">self</span>.raw, filename));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_remove(<span class="self">self</span>.raw, filename));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -315,29 +315,29 @@
     ///
     /// Values for which the filter returns `true` will be kept.  Note
     /// that this behavior is different from the libgit2 C interface.
-    </span><span class="kw">pub fn </span>filter&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>filter: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    </span><span class="kw">pub fn </span>filter&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>filter: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>cb: <span class="kw-2">&amp;mut </span>FilterCb&lt;<span class="lifetime">&#39;_</span>&gt; = <span class="kw-2">&amp;mut </span><a href="../../src/git2/treebuilder.rs.html#92">filter</a>;
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut </span><a href="../../src/git2/treebuilder.rs.html#96">cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-        <span class="kw">let </span>cb: raw::git_treebuilder_filter_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/treebuilder.rs.html#121">filter_cb</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>cb: <span class="kw-2">&amp;mut </span>FilterCb&lt;<span class="lifetime">&#39;_</span>&gt; = <span class="kw-2">&amp;mut </span><a href="#92">filter</a>;
+        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut </span><a href="#96">cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="kw">let </span>cb: raw::git_treebuilder_filter_cb = <span class="prelude-val">Some</span>(<a href="#121">filter_cb</a>);
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_filter(<span class="self">self</span>.raw, cb, ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>));
-            <a href="../../src/git2/panic.rs.html#24">panic::check</a>();
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_filter(<span class="self">self</span>.raw, cb, ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>));
+            <a href="panic.rs.html#24">panic::check</a>();
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Write the contents of the TreeBuilder as a Tree object and
     /// return its Oid
-    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="oid.rs.html#15">Oid</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
             id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_write(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw()));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/treebuilder.rs.html#109">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_treebuilder_write(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw()));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="#109">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
         }
     }
 }
@@ -345,14 +345,14 @@
 <span class="kw">type </span>FilterCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>TreeEntry&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>filter_cb(entry: <span class="kw-2">*const </span><a href="../../libgit2_sys/enum.git_tree_entry.html">raw::git_tree_entry</a>, payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let </span>ret = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+    <span class="kw">let </span>ret = <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
         <span class="comment">// There&#39;s no way to return early from git_treebuilder_filter.
         </span><span class="kw">if </span>panic::panicked() {
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>entry = <a href="../../src/git2/tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="../../src/git2/treebuilder.rs.html#121">entry</a>);
-            <span class="kw">let </span>payload = <a href="../../src/git2/treebuilder.rs.html#121">payload</a> <span class="kw">as </span><span class="kw-2">*mut &amp;mut </span>FilterCb&lt;<span class="lifetime">&#39;_</span>&gt;;
-            (<span class="kw-2">*</span><a href="../../src/git2/treebuilder.rs.html#128">payload</a>)(<span class="kw-2">&amp;</span><a href="../../src/git2/treebuilder.rs.html#127">entry</a>)
+            <span class="kw">let </span>entry = <a href="tree.rs.html#274">tree::entry_from_raw_const</a>(<a href="#121">entry</a>);
+            <span class="kw">let </span>payload = <a href="#121">payload</a> <span class="kw">as </span><span class="kw-2">*mut &amp;mut </span>FilterCb&lt;<span class="lifetime">&#39;_</span>&gt;;
+            (<span class="kw-2">*</span><a href="#128">payload</a>)(<span class="kw-2">&amp;</span><a href="#127">entry</a>)
         }
     });
     <span class="kw">if </span>ret == <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
@@ -362,23 +362,23 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_treebuilder.html">raw::git_treebuilder</a>;
 
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_treebuilder.html">raw::git_treebuilder</a>) -&gt; TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="../../src/git2/treebuilder.rs.html#10">TreeBuilder</a> {
-            <a href="../../src/git2/treebuilder.rs.html#142">raw</a>,
+        <a href="#10">TreeBuilder</a> {
+            <a href="#142">raw</a>,
             _marker: marker::PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_treebuilder.html">raw::git_treebuilder</a> {
-        <a class="self" href="../../src/git2/treebuilder.rs.html#148">self</a>.raw
+        <a class="self" href="#148">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>TreeBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_treebuilder_free(<a class="self" href="../../src/git2/treebuilder.rs.html#154">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_treebuilder_free(<a class="self" href="#154">self</a>.raw) }
     }
 }
 
@@ -451,4 +451,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

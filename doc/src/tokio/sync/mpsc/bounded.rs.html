@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/bounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/sync/mpsc/bounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1198,12 +1198,121 @@
 <span id="1198">1198</span>
 <span id="1199">1199</span>
 <span id="1200">1200</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<span class="self"><a href="../../../../src/tokio/sync/mod.rs.html#451">self</a> </span><span class="kw">as </span>semaphore, <a href="../../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
-<span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/mod.rs.html#95"><span class="kw">crate</span>::sync::mpsc::chan</a>;
-<span class="kw">use </span><span class="kw">crate</span>::sync::mpsc::error::{<a href="../../../../src/tokio/sync/mpsc/error.rs.html#8">SendError</a>, <a href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a>, <a href="../../../../src/tokio/sync/mpsc/error.rs.html#23">TrySendError</a>};
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
+<span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<span class="self"><a href="../mod.rs.html#451">self</a> </span><span class="kw">as </span>semaphore, <a href="../batch_semaphore.rs.html#53">TryAcquireError</a>};
+<span class="kw">use </span><a href="mod.rs.html#95"><span class="kw">crate</span>::sync::mpsc::chan</a>;
+<span class="kw">use </span><span class="kw">crate</span>::sync::mpsc::error::{<a href="error.rs.html#8">SendError</a>, <a href="error.rs.html#58">TryRecvError</a>, <a href="error.rs.html#23">TrySendError</a>};
 
 <span class="macro">cfg_time! </span>{
-    <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/error.rs.html#101"><span class="kw">crate</span>::sync::mpsc::error::SendTimeoutError</a>;
+    <span class="kw">use </span><a href="error.rs.html#101"><span class="kw">crate</span>::sync::mpsc::error::SendTimeoutError</a>;
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html"><span class="kw">crate</span>::time::Duration</a>;
 }
 
@@ -1219,7 +1328,41 @@
 ///
 /// [`PollSender`]: https://docs.rs/tokio-util/0.6/tokio_util/sync/struct.PollSender.html
 </span><span class="kw">pub struct </span>Sender&lt;T&gt; {
-    chan: chan::Tx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;,
+    chan: chan::Tx&lt;T, <a href="#157">Semaphore</a>&gt;,
+}
+
+<span class="doccomment">/// A sender that does not prevent the channel from being closed.
+///
+/// If all [`Sender`] instances of a channel were dropped and only `WeakSender`
+/// instances remain, the channel is closed.
+///
+/// In order to send messages, the `WeakSender` needs to be upgraded using
+/// [`WeakSender::upgrade`], which returns `Option&lt;Sender&gt;`. It returns `None`
+/// if all `Sender`s have been dropped, and otherwise it returns a `Sender`.
+///
+/// [`Sender`]: Sender
+/// [`WeakSender::upgrade`]: WeakSender::upgrade
+///
+/// #Examples
+///
+/// ```
+/// use tokio::sync::mpsc::channel;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let (tx, _rx) = channel::&lt;i32&gt;(15);
+///     let tx_weak = tx.downgrade();
+///   
+///     // Upgrading will succeed because `tx` still exists.
+///     assert!(tx_weak.upgrade().is_some());
+///   
+///     // If we drop `tx`, then it will fail.
+///     drop(tx);
+///     assert!(tx_weak.clone().upgrade().is_none());
+/// }
+/// ```
+</span><span class="kw">pub struct </span>WeakSender&lt;T&gt; {
+    chan: Arc&lt;chan::Chan&lt;T, <a href="#157">Semaphore</a>&gt;&gt;,
 }
 
 <span class="doccomment">/// Permits to send one value into the channel.
@@ -1230,7 +1373,7 @@
 /// [`Sender::reserve()`]: Sender::reserve
 /// [`Sender::try_reserve()`]: Sender::try_reserve
 </span><span class="kw">pub struct </span>Permit&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    chan: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>chan::Tx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;,
+    chan: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>chan::Tx&lt;T, <a href="#157">Semaphore</a>&gt;,
 }
 
 <span class="doccomment">/// Owned permit to send one value into the channel.
@@ -1246,7 +1389,7 @@
 /// [`Sender::reserve_owned()`]: Sender::reserve_owned
 /// [`Sender::try_reserve_owned()`]: Sender::try_reserve_owned
 </span><span class="kw">pub struct </span>OwnedPermit&lt;T&gt; {
-    chan: <span class="prelude-ty">Option</span>&lt;chan::Tx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;&gt;,
+    chan: <span class="prelude-ty">Option</span>&lt;chan::Tx&lt;T, <a href="#157">Semaphore</a>&gt;&gt;,
 }
 
 <span class="doccomment">/// Receives values from the associated `Sender`.
@@ -1258,7 +1401,7 @@
 /// [`ReceiverStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.ReceiverStream.html
 </span><span class="kw">pub struct </span>Receiver&lt;T&gt; {
     <span class="doccomment">/// The channel receiver.
-    </span>chan: chan::Rx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;,
+    </span>chan: chan::Rx&lt;T, <a href="#157">Semaphore</a>&gt;,
 }
 
 <span class="doccomment">/// Creates a bounded mpsc channel for communicating between asynchronous tasks
@@ -1308,22 +1451,22 @@
 </span><span class="attribute">#[track_caller]
 </span><span class="kw">pub fn </span>channel&lt;T&gt;(buffer: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buffer &gt; <span class="number">0</span>, <span class="string">&quot;mpsc bounded channel requires buffer &gt; 0&quot;</span>);
-    <span class="kw">let </span>semaphore = (semaphore::Semaphore::new(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#109">buffer</a>), <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#109">buffer</a>);
-    <span class="kw">let </span>(tx, rx) = <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#107">chan::channel</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#111">semaphore</a>);
+    <span class="kw">let </span>semaphore = (semaphore::Semaphore::new(<a href="#144">buffer</a>), <a href="#144">buffer</a>);
+    <span class="kw">let </span>(tx, rx) = <a href="chan.rs.html#108">chan::channel</a>(<a href="#146">semaphore</a>);
 
-    <span class="kw">let </span>tx = Sender::new(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#112">tx</a>);
-    <span class="kw">let </span>rx = Receiver::new(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#112">rx</a>);
+    <span class="kw">let </span>tx = Sender::new(<a href="#147">tx</a>);
+    <span class="kw">let </span>rx = Receiver::new(<a href="#147">rx</a>);
 
-    (<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#114">tx</a>, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#115">rx</a>)
+    (<a href="#149">tx</a>, <a href="#150">rx</a>)
 }
 
 <span class="doccomment">/// Channel semaphore is a tuple of the semaphore implementation and a `usize`
 /// representing the channel bound.
-</span><span class="kw">type </span>Semaphore = (<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+</span><span class="kw">type </span>Semaphore = (<a href="../batch_semaphore.rs.html#36">semaphore::Semaphore</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
 <span class="kw">impl</span>&lt;T&gt; Receiver&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(chan: chan::Rx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;) -&gt; Receiver&lt;T&gt; {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#59">Receiver</a> { <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#125">chan</a> }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(chan: chan::Rx&lt;T, <a href="#157">Semaphore</a>&gt;) -&gt; Receiver&lt;T&gt; {
+        <a href="#94">Receiver</a> { <a href="#160">chan</a> }
     }
 
     <span class="doccomment">/// Receives the next value for this receiver.
@@ -1428,8 +1571,8 @@
     ///     assert_eq!(Err(TryRecvError::Disconnected), rx.try_recv());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a>&gt; {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#231">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">try_recv</a>()
+    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="error.rs.html#58">TryRecvError</a>&gt; {
+        <a class="self" href="#266">self</a>.chan.<a href="chan.rs.html#296">try_recv</a>()
     }
 
     <span class="doccomment">/// Blocking receive to call outside of asynchronous contexts.
@@ -1485,7 +1628,7 @@
     </span><span class="attribute">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
     </span><span class="kw">pub fn </span>blocking_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a href="../../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#287">self</a>.<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#186">recv</a>())
+        <a href="../../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#322">self</a>.<a href="#221">recv</a>())
     }
 
     <span class="doccomment">/// Closes the receiving half of a channel without dropping it.
@@ -1529,7 +1672,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#331">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">close</a>();
+        <a class="self" href="#366">self</a>.chan.<a href="chan.rs.html#228">close</a>();
     }
 
     <span class="doccomment">/// Polls to receive the next message on this channel.
@@ -1554,14 +1697,14 @@
     /// guarantee that the next call will succeed — it could fail with another
     /// spurious failure.
     </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#356">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">recv</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#356">cx</a>)
+        <a class="self" href="#391">self</a>.chan.<a href="chan.rs.html#244">recv</a>(<a href="#391">cx</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#362">fmt</a>.debug_struct(<span class="string">&quot;Receiver&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#362">self</a>.chan)
+        <a href="#397">fmt</a>.debug_struct(<span class="string">&quot;Receiver&quot;</span>)
+            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#397">self</a>.chan)
             .finish()
     }
 }
@@ -1569,8 +1712,8 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Receiver&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; Sender&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(chan: chan::Tx&lt;T, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#122">Semaphore</a>&gt;) -&gt; Sender&lt;T&gt; {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a> { <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#372">chan</a> }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(chan: chan::Tx&lt;T, <a href="#157">Semaphore</a>&gt;) -&gt; Sender&lt;T&gt; {
+        <a href="#22">Sender</a> { <a href="#407">chan</a> }
     }
 
     <span class="doccomment">/// Sends a value, waiting until there is capacity.
@@ -1737,14 +1880,14 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_send(<span class="kw-2">&amp;</span><span class="self">self</span>, message: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#539">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+        <span class="kw">match </span><a class="self" href="#574">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>().<span class="number">0</span>.<a href="../batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#30">TrySendError::Closed</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#539">message</a>)),
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#26">TrySendError::Full</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#539">message</a>)),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#30">TrySendError::Closed</a>(<a href="#574">message</a>)),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#26">TrySendError::Full</a>(<a href="#574">message</a>)),
         }
 
         <span class="comment">// Send the message
-        </span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#539">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">send</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#539">message</a>);
+        </span><a class="self" href="#574">self</a>.chan.<a href="chan.rs.html#162">send</a>(<a href="#574">message</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1855,7 +1998,7 @@
     </span><span class="attribute">#[track_caller]
     #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
     </span><span class="kw">pub fn </span>blocking_send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
-        <a href="../../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#657">self</a>.<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#431">send</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#657">value</a>))
+        <a href="../../future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="#692">self</a>.<a href="#466">send</a>(<a href="#692">value</a>))
     }
 
     <span class="doccomment">/// Checks if the channel has been closed. This happens when the
@@ -1877,7 +2020,7 @@
     /// assert!(tx2.is_closed());
     /// ```
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#679">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#153">is_closed</a>()
+        <a class="self" href="#714">self</a>.chan.<a href="chan.rs.html#178">is_closed</a>()
     }
 
     <span class="doccomment">/// Waits for channel capacity. Once capacity to send one message is
@@ -2067,13 +2210,13 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Permit&lt;<span class="lifetime">&#39;_</span>, T&gt;, TrySendError&lt;()&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#869">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+        <span class="kw">match </span><a class="self" href="#904">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>().<span class="number">0</span>.<a href="../batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#30">TrySendError::Closed</a>(())),
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#26">TrySendError::Full</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#30">TrySendError::Closed</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#26">TrySendError::Full</a>(())),
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#32">Permit</a> { chan: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#869">self</a>.chan })
+        <span class="prelude-val">Ok</span>(<a href="#67">Permit</a> { chan: <span class="kw-2">&amp;</span><a class="self" href="#904">self</a>.chan })
     }
 
     <span class="doccomment">/// Tries to acquire a slot in the channel without waiting for the slot to become
@@ -2132,14 +2275,14 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_reserve_owned(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedPermit&lt;T&gt;, TrySendError&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#934">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+        <span class="kw">match </span><a class="self" href="#969">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>().<span class="number">0</span>.<a href="../batch_semaphore.rs.html#244">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#30">TrySendError::Closed</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#934">self</a>)),
-            <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/error.rs.html#26">TrySendError::Full</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#934">self</a>)),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#30">TrySendError::Closed</a>(<a class="self" href="#969">self</a>)),
+            <span class="prelude-val">Err</span>(<a href="../batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#26">TrySendError::Full</a>(<a class="self" href="#969">self</a>)),
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#48">OwnedPermit</a> {
-            chan: <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#934">self</a>.chan),
+        <span class="prelude-val">Ok</span>(<a href="#83">OwnedPermit</a> {
+            chan: <span class="prelude-val">Some</span>(<a class="self" href="#969">self</a>.chan),
         })
     }
 
@@ -2156,13 +2299,15 @@
     /// assert!(!tx3.same_channel(&amp;tx2));
     /// ```
     </span><span class="kw">pub fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#958">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">same_channel</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#958">other</a>.chan)
+        <a class="self" href="#993">self</a>.chan.<a href="chan.rs.html#172">same_channel</a>(<span class="kw-2">&amp;</span><a href="#993">other</a>.chan)
     }
 
     <span class="doccomment">/// Returns the current capacity of the channel.
     ///
     /// The capacity goes down when sending a value by calling [`send`] or by reserving capacity
     /// with [`reserve`]. The capacity goes up when values are received by the [`Receiver`].
+    /// This is distinct from [`max_capacity`], which always returns buffer capacity initially
+    /// specified when calling [`channel`]
     ///
     /// # Examples
     ///
@@ -2188,24 +2333,95 @@
     ///
     /// [`send`]: Sender::send
     /// [`reserve`]: Sender::reserve
+    /// [`channel`]: channel
+    /// [`max_capacity`]: Sender::max_capacity
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#991">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#194">available_permits</a>()
+        <a class="self" href="#1030">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>().<span class="number">0</span>.<a href="../batch_semaphore.rs.html#202">available_permits</a>()
     }
+
+    <span class="doccomment">/// Converts the `Sender` to a [`WeakSender`] that does not count
+    /// towards RAII semantics, i.e. if all `Sender` instances of the
+    /// channel were dropped and only `WeakSender` instances remain,
+    /// the channel is closed.
+    </span><span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WeakSender&lt;T&gt; {
+        <a href="#56">WeakSender</a> {
+            chan: <a class="self" href="#1038">self</a>.chan.<a href="chan.rs.html#133">downgrade</a>(),
+        }
+    }
+
+    <span class="doccomment">/// Returns the maximum buffer capacity of the channel.
+    ///
+    /// The maximum capacity is the buffer capacity initially specified when calling
+    /// [`channel`]. This is distinct from [`capacity`], which returns the *current*
+    /// available buffer capacity: as messages are sent and received, the
+    /// value returned by [`capacity`] will go up or down, whereas the value
+    /// returned by `max_capacity` will remain constant.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::mpsc;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, _rx) = mpsc::channel::&lt;()&gt;(5);
+    ///      
+    ///     // both max capacity and capacity are the same at first
+    ///     assert_eq!(tx.max_capacity(), 5);
+    ///     assert_eq!(tx.capacity(), 5);
+    ///
+    ///     // Making a reservation doesn&#39;t change the max capacity.
+    ///     let permit = tx.reserve().await.unwrap();
+    ///     assert_eq!(tx.max_capacity(), 5);
+    ///     // but drops the capacity by one
+    ///     assert_eq!(tx.capacity(), 4);
+    /// }
+    /// ```
+    ///
+    /// [`channel`]: channel
+    /// [`max_capacity`]: Sender::max_capacity
+    /// [`capacity`]: Sender::capacity
+    </span><span class="kw">pub fn </span>max_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="#1076">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>().<span class="number">1
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a> {
-            chan: <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#997">self</a>.chan.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#22">Sender</a> {
+            chan: <a class="self" href="#1082">self</a>.chan.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1005">fmt</a>.debug_struct(<span class="string">&quot;Sender&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1005">self</a>.chan)
+        <a href="#1090">fmt</a>.debug_struct(<span class="string">&quot;Sender&quot;</span>)
+            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1090">self</a>.chan)
             .finish()
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>WeakSender&lt;T&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a href="#56">WeakSender</a> {
+            chan: <a class="self" href="#1098">self</a>.chan.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; WeakSender&lt;T&gt; {
+    <span class="doccomment">/// Tries to convert a WeakSender into a [`Sender`]. This will return `Some`
+    /// if there are other `Sender` instances alive and the channel wasn&#39;t
+    /// previously dropped, otherwise `None` is returned.
+    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sender&lt;T&gt;&gt; {
+        chan::Tx::upgrade(<a class="self" href="#1109">self</a>.chan.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).map(Sender::new)
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WeakSender&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="#1115">fmt</a>.debug_struct(<span class="string">&quot;WeakSender&quot;</span>).finish()
     }
 }
 
@@ -2247,34 +2463,34 @@
     </span><span class="kw">pub fn </span>send(<span class="self">self</span>, value: T) {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1047">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">send</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1047">value</a>);
+        <a class="self" href="#1155">self</a>.chan.<a href="chan.rs.html#162">send</a>(<a href="#1155">value</a>);
 
         <span class="comment">// Avoid the drop logic
-        </span>mem::forget(<a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1047">self</a>);
+        </span>mem::forget(<a class="self" href="#1155">self</a>);
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Permit&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">chan::Semaphore</a>;
+        <span class="kw">use </span><a href="chan.rs.html#40">chan::Semaphore</a>;
 
-        <span class="kw">let </span>semaphore = <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1058">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>();
+        <span class="kw">let </span>semaphore = <a class="self" href="#1166">self</a>.chan.<a href="chan.rs.html#157">semaphore</a>();
 
         <span class="comment">// Add the permit back to the semaphore
-        </span><a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1061">semaphore</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#42">add_permit</a>();
+        </span><a href="#1169">semaphore</a>.<a href="chan.rs.html#43">add_permit</a>();
 
         <span class="comment">// If this is the last sender for this channel, wake the receiver so
         // that it can be notified that the channel is closed.
         </span><span class="kw">if </span>semaphore.is_closed() &amp;&amp; semaphore.is_idle() {
-            <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1058">self</a>.chan.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">wake_rx</a>();
+            <a class="self" href="#1166">self</a>.chan.<a href="chan.rs.html#167">wake_rx</a>();
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Permit&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1075">fmt</a>.debug_struct(<span class="string">&quot;Permit&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1075">self</a>.chan)
+        <a href="#1183">fmt</a>.debug_struct(<span class="string">&quot;Permit&quot;</span>)
+            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1183">self</a>.chan)
             .finish()
     }
 }
@@ -2317,12 +2533,12 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>send(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; Sender&lt;T&gt; {
-        <span class="kw">let </span>chan = <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1119">self</a>.chan.take().unwrap_or_else(|| {
+        <span class="kw">let </span>chan = <a class="self" href="#1227">self</a>.chan.take().unwrap_or_else(|| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;OwnedPermit channel is only taken when the permit is moved&quot;</span>)
         });
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1120">chan</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">send</a>(<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1119">value</a>);
+        <a href="#1228">chan</a>.<a href="chan.rs.html#162">send</a>(<a href="#1227">value</a>);
 
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a> { <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1120">chan</a> }
+        <a href="#22">Sender</a> { <a href="#1228">chan</a> }
     }
 
     <span class="doccomment">/// Releases the reserved capacity *without* sending a message, returning the
@@ -2356,34 +2572,34 @@
     ///
     /// [`Sender`]: Sender
     </span><span class="kw">pub fn </span>release(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Sender&lt;T&gt; {
-        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">chan::Semaphore</a>;
+        <span class="kw">use </span><a href="chan.rs.html#40">chan::Semaphore</a>;
 
-        <span class="kw">let </span>chan = <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1158">self</a>.chan.take().unwrap_or_else(|| {
+        <span class="kw">let </span>chan = <a class="self" href="#1266">self</a>.chan.take().unwrap_or_else(|| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;OwnedPermit channel is only taken when the permit is moved&quot;</span>)
         });
 
         <span class="comment">// Add the permit back to the semaphore
-        </span><a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1161">chan</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#42">add_permit</a>();
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a> { <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1161">chan</a> }
+        </span><a href="#1269">chan</a>.<a href="chan.rs.html#157">semaphore</a>().<a href="chan.rs.html#43">add_permit</a>();
+        <a href="#22">Sender</a> { <a href="#1269">chan</a> }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OwnedPermit&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">chan::Semaphore</a>;
+        <span class="kw">use </span><a href="chan.rs.html#40">chan::Semaphore</a>;
 
         <span class="comment">// Are we still holding onto the sender?
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(chan) = <a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1172">self</a>.chan.take() {
-            <span class="kw">let </span>semaphore = <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1176">chan</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>();
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(chan) = <a class="self" href="#1280">self</a>.chan.take() {
+            <span class="kw">let </span>semaphore = <a href="#1284">chan</a>.<a href="chan.rs.html#157">semaphore</a>();
 
             <span class="comment">// Add the permit back to the semaphore
-            </span><a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1177">semaphore</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#42">add_permit</a>();
+            </span><a href="#1285">semaphore</a>.<a href="chan.rs.html#43">add_permit</a>();
 
             <span class="comment">// If this `OwnedPermit` is holding the last sender for this
             // channel, wake the receiver so that it can be notified that the
             // channel is closed.
             </span><span class="kw">if </span>semaphore.is_closed() &amp;&amp; semaphore.is_idle() {
-                <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1176">chan</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">wake_rx</a>();
+                <a href="#1284">chan</a>.<a href="chan.rs.html#167">wake_rx</a>();
             }
         }
 
@@ -2393,10 +2609,10 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>OwnedPermit&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1195">fmt</a>.debug_struct(<span class="string">&quot;OwnedPermit&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1195">self</a>.chan)
+        <a href="#1303">fmt</a>.debug_struct(<span class="string">&quot;OwnedPermit&quot;</span>)
+            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1303">self</a>.chan)
             .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

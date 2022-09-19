@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.10/src/stream_ext/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -105,7 +105,7 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio_stream/stream_ext/fuse.rs.html#7-14"><span class="kw">crate</span>::stream_ext::Fuse</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="fuse.rs.html#7-14"><span class="kw">crate</span>::stream_ext::Fuse</a>;
 <span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
 <span class="kw">use </span>tokio::time::{<a href="../../../tokio/time/instant/struct.Instant.html">Instant</a>, <a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>};
 
@@ -136,39 +136,39 @@
 
 <span class="kw">impl</span>&lt;S: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>&gt; Timeout&lt;S&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: S, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>next = Instant::now() + <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#31">duration</a>;
-        <span class="kw">let </span>deadline = tokio::time::sleep_until(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#32">next</a>);
+        <span class="kw">let </span>next = Instant::now() + <a href="#31">duration</a>;
+        <span class="kw">let </span>deadline = tokio::time::sleep_until(<a href="#32">next</a>);
 
-        <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#12-24">Timeout</a> {
-            stream: Fuse::new(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#31">stream</a>),
-            <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#33">deadline</a>,
-            <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#31">duration</a>,
+        <a href="#12-24">Timeout</a> {
+            stream: Fuse::new(<a href="#31">stream</a>),
+            <a href="#33">deadline</a>,
+            <a href="#31">duration</a>,
             poll_deadline: <span class="bool-val">true</span>,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;S: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Timeout&lt;S&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;S::Item, <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a>&gt;;
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;S::Item, <a href="#28">Elapsed</a>&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio_stream/stream_ext/timeout.rs.html#47">self</a>.<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#12-24">project</a>();
+        <span class="kw">let </span>me = <a class="self" href="#47">self</a>.<a href="#12-24">project</a>();
 
-        <span class="kw">match </span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#48">me</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#47">cx</a>) {
+        <span class="kw">match </span><a href="#48">me</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="#47">cx</a>) {
             Poll::Ready(v) =&gt; {
                 <span class="kw">if </span>v.is_some() {
-                    <span class="kw">let </span>next = Instant::now() + <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#48">me</a>.duration;
-                    <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#48">me</a>.deadline.reset(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#53">next</a>);
-                    <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#48">me</a>.poll_deadline = <span class="bool-val">true</span>;
+                    <span class="kw">let </span>next = Instant::now() + <span class="kw-2">*</span><a href="#48">me</a>.duration;
+                    <a href="#48">me</a>.deadline.reset(<a href="#53">next</a>);
+                    <span class="kw-2">*</span><a href="#48">me</a>.poll_deadline = <span class="bool-val">true</span>;
                 }
-                <span class="kw">return </span>Poll::Ready(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#51">v</a>.map(<span class="prelude-val">Ok</span>));
+                <span class="kw">return </span>Poll::Ready(<a href="#51">v</a>.map(<span class="prelude-val">Ok</span>));
             }
             Poll::Pending =&gt; {}
         };
 
         <span class="kw">if </span><span class="kw-2">*</span>me.poll_deadline {
-            <a class="macro" href="../../../src/tokio_stream/macros.rs.html#61-68">ready!</a>(me.deadline.poll(cx));
-            <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#48">me</a>.poll_deadline = <span class="bool-val">false</span>;
+            <a class="macro" href="../macros.rs.html#61-68">ready!</a>(me.deadline.poll(cx));
+            <span class="kw-2">*</span><a href="#48">me</a>.poll_deadline = <span class="bool-val">false</span>;
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(Elapsed::new())));
         }
 
@@ -176,7 +176,7 @@
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>(lower, upper) = <a class="self" href="../../../src/tokio_stream/stream_ext/timeout.rs.html#71">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="#71">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
 
         <span class="comment">// The timeout stream may insert an error before and after each message
         // from the underlying stream, but no more than one error between each
@@ -187,30 +187,30 @@
             value<span class="question-mark">?</span>.checked_mul(<span class="number">2</span>)<span class="question-mark">?</span>.checked_add(<span class="number">1</span>)
         }
 
-        (<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#72">lower</a>, <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#79">twice_plus_one</a>(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#72">upper</a>))
+        (<a href="#72">lower</a>, <a href="#79">twice_plus_one</a>(<a href="#72">upper</a>))
     }
 }
 
 <span class="comment">// ===== impl Elapsed =====
 
-</span><span class="kw">impl </span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a> {
+</span><span class="kw">impl </span><a href="#28">Elapsed</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a>(())
+        <a href="#28">Elapsed</a>(())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#28">Elapsed</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="string">&quot;deadline has elapsed&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#96">fmt</a>)
+        <span class="string">&quot;deadline has elapsed&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#96">fmt</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#28">Elapsed</a> {}
 
-<span class="kw">impl </span>From&lt;<a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a> {
-    <span class="kw">fn </span>from(_err: <a href="../../../src/tokio_stream/stream_ext/timeout.rs.html#28">Elapsed</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a> {
+<span class="kw">impl </span>From&lt;<a href="#28">Elapsed</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a> {
+    <span class="kw">fn </span>from(_err: <a href="#28">Elapsed</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a> {
         std::io::ErrorKind::TimedOut.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

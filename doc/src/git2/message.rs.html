@@ -349,30 +349,30 @@
 
 <span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>};
 
-<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>};
+<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="buf.rs.html#13">Buf</a>, <a href="error.rs.html#12">Error</a>, <a href="util.rs.html#101">IntoCString</a>};
 
 <span class="doccomment">/// Clean up a message, removing extraneous whitespace, and ensure that the
 /// message ends with a newline. If `comment_char` is `Some`, also remove comment
 /// lines starting with that character.
-</span><span class="kw">pub fn </span>message_prettify&lt;T: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(
+</span><span class="kw">pub fn </span>message_prettify&lt;T: <a href="util.rs.html#101">IntoCString</a>&gt;(
     message: T,
     comment_char: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-    <a href="../../src/git2/message.rs.html#21">_message_prettify</a>(message.into_c_string()<span class="question-mark">?</span>, <a href="../../src/git2/message.rs.html#16">comment_char</a>)
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    <a href="#21">_message_prettify</a>(message.into_c_string()<span class="question-mark">?</span>, <a href="#16">comment_char</a>)
 }
 
-<span class="kw">fn </span>_message_prettify(message: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>, comment_char: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+<span class="kw">fn </span>_message_prettify(message: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>, comment_char: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="error.rs.html#12">Error</a>&gt; {
     <span class="kw">let </span>ret = Buf::new();
     <span class="kw">unsafe </span>{
-        <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_message_prettify(
+        <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_message_prettify(
             ret.raw(),
             message,
             comment_char.is_some() <span class="kw">as </span>c_int,
             comment_char.unwrap_or(<span class="number">0</span>) <span class="kw">as </span>c_char
         ));
     }
-    <span class="prelude-val">Ok</span>(<a href="../../src/git2/message.rs.html#22">ret</a>.<a href="../../src/git2/buf.rs.html#39">as_str</a>().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+    <span class="prelude-val">Ok</span>(<a href="#22">ret</a>.<a href="buf.rs.html#39">as_str</a>().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
 }
 
 <span class="doccomment">/// The default comment character for `message_prettify` (&#39;#&#39;)
@@ -381,8 +381,8 @@
 <span class="doccomment">/// Get the trailers for the given message.
 ///
 /// Use this function when you are dealing with a UTF-8-encoded message.
-</span><span class="kw">pub fn </span>message_trailers_strs(message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/message.rs.html#64">MessageTrailersStrs</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-    <a href="../../src/git2/message.rs.html#53">_message_trailers</a>(message.into_c_string()<span class="question-mark">?</span>).map(|res| <a href="../../src/git2/message.rs.html#64">MessageTrailersStrs</a>(<a href="../../src/git2/message.rs.html#41">res</a>))
+</span><span class="kw">pub fn </span>message_trailers_strs(message: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#64">MessageTrailersStrs</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    <a href="#53">_message_trailers</a>(message.into_c_string()<span class="question-mark">?</span>).map(|res| <a href="#64">MessageTrailersStrs</a>(<a href="#41">res</a>))
 }
 
 <span class="doccomment">/// Get the trailers for the given message.
@@ -390,51 +390,51 @@
 /// Use this function when the message might not be UTF-8-encoded,
 /// or if you want to handle the returned trailer key–value pairs
 /// as bytes.
-</span><span class="kw">pub fn </span>message_trailers_bytes&lt;S: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(message: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/message.rs.html#84">MessageTrailersBytes</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-    <a href="../../src/git2/message.rs.html#53">_message_trailers</a>(message.into_c_string()<span class="question-mark">?</span>).map(|res| <a href="../../src/git2/message.rs.html#84">MessageTrailersBytes</a>(<a href="../../src/git2/message.rs.html#50">res</a>))
+</span><span class="kw">pub fn </span>message_trailers_bytes&lt;S: <a href="util.rs.html#101">IntoCString</a>&gt;(message: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#84">MessageTrailersBytes</a>, <a href="error.rs.html#12">Error</a>&gt; {
+    <a href="#53">_message_trailers</a>(message.into_c_string()<span class="question-mark">?</span>).map(|res| <a href="#84">MessageTrailersBytes</a>(<a href="#50">res</a>))
 }
 
-<span class="kw">fn </span>_message_trailers(message: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/message.rs.html#97">MessageTrailers</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+<span class="kw">fn </span>_message_trailers(message: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#97">MessageTrailers</a>, <a href="error.rs.html#12">Error</a>&gt; {
     <span class="kw">let </span>ret = MessageTrailers::new();
     <span class="kw">unsafe </span>{
-        <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_message_trailers(ret.raw(), message));
+        <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_message_trailers(ret.raw(), message));
     }
-    <span class="prelude-val">Ok</span>(<a href="../../src/git2/message.rs.html#54">ret</a>)
+    <span class="prelude-val">Ok</span>(<a href="#54">ret</a>)
 }
 
 <span class="doccomment">/// Collection of UTF-8-encoded trailers.
 ///
 /// Use `iter()` to get access to the values.
-</span><span class="kw">pub struct </span>MessageTrailersStrs(<a href="../../src/git2/message.rs.html#97">MessageTrailers</a>);
+</span><span class="kw">pub struct </span>MessageTrailersStrs(<a href="#97">MessageTrailers</a>);
 
-<span class="kw">impl </span><a href="../../src/git2/message.rs.html#64">MessageTrailersStrs</a> {
+<span class="kw">impl </span><a href="#64">MessageTrailersStrs</a> {
     <span class="doccomment">/// Create a borrowed iterator.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MessageTrailersStrsIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../src/git2/message.rs.html#157">MessageTrailersStrsIterator</a>(<a class="self" href="../../src/git2/message.rs.html#68">self</a>.<span class="number">0</span>.<a href="../../src/git2/message.rs.html#112">iter</a>())
+        <a href="#157">MessageTrailersStrsIterator</a>(<a class="self" href="#68">self</a>.<span class="number">0</span>.<a href="#112">iter</a>())
     }
     <span class="doccomment">/// The number of trailer key–value pairs.
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/git2/message.rs.html#72">self</a>.<span class="number">0</span>.<a href="../../src/git2/message.rs.html#121">len</a>()
+        <a class="self" href="#72">self</a>.<span class="number">0</span>.<a href="#121">len</a>()
     }
     <span class="doccomment">/// Convert to the “bytes” variant.
-    </span><span class="kw">pub fn </span>to_bytes(<span class="self">self</span>) -&gt; <a href="../../src/git2/message.rs.html#84">MessageTrailersBytes</a> {
-        <a href="../../src/git2/message.rs.html#84">MessageTrailersBytes</a>(<a class="self" href="../../src/git2/message.rs.html#76">self</a>.<span class="number">0</span>)
+    </span><span class="kw">pub fn </span>to_bytes(<span class="self">self</span>) -&gt; <a href="#84">MessageTrailersBytes</a> {
+        <a href="#84">MessageTrailersBytes</a>(<a class="self" href="#76">self</a>.<span class="number">0</span>)
     }
 }
 
 <span class="doccomment">/// Collection of unencoded (bytes) trailers.
 ///
 /// Use `iter()` to get access to the values.
-</span><span class="kw">pub struct </span>MessageTrailersBytes(<a href="../../src/git2/message.rs.html#97">MessageTrailers</a>);
+</span><span class="kw">pub struct </span>MessageTrailersBytes(<a href="#97">MessageTrailers</a>);
 
-<span class="kw">impl </span><a href="../../src/git2/message.rs.html#84">MessageTrailersBytes</a> {
+<span class="kw">impl </span><a href="#84">MessageTrailersBytes</a> {
     <span class="doccomment">/// Create a borrowed iterator.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MessageTrailersBytesIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../src/git2/message.rs.html#199">MessageTrailersBytesIterator</a>(<a class="self" href="../../src/git2/message.rs.html#88">self</a>.<span class="number">0</span>.<a href="../../src/git2/message.rs.html#112">iter</a>())
+        <a href="#199">MessageTrailersBytesIterator</a>(<a class="self" href="#88">self</a>.<span class="number">0</span>.<a href="#112">iter</a>())
     }
     <span class="doccomment">/// The number of trailer key–value pairs.
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/git2/message.rs.html#92">self</a>.<span class="number">0</span>.<a href="../../src/git2/message.rs.html#121">len</a>()
+        <a class="self" href="#92">self</a>.<span class="number">0</span>.<a href="#121">len</a>()
     }
 }
 
@@ -442,11 +442,11 @@
     raw: <a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="../../src/git2/message.rs.html#97">MessageTrailers</a> {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+<span class="kw">impl </span><a href="#97">MessageTrailers</a> {
+    <span class="kw">fn </span>new() -&gt; <a href="#97">MessageTrailers</a> {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">unsafe </span>{
-            <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a> {
+            <a href="util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a> {
                 trailers: ptr::null_mut(),
                 count: <span class="number">0</span>,
                 _trailer_block: ptr::null_mut(),
@@ -454,46 +454,46 @@
         }
     }
     <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MessageTrailersIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../src/git2/message.rs.html#144">MessageTrailersIterator</a> {
-            trailers: <a class="self" href="../../src/git2/message.rs.html#112">self</a>,
+        <a href="#144">MessageTrailersIterator</a> {
+            trailers: <a class="self" href="#112">self</a>,
             range: <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a> {
                 start: <span class="number">0</span>,
-                end: <a class="self" href="../../src/git2/message.rs.html#112">self</a>.raw.count,
+                end: <a class="self" href="#112">self</a>.raw.count,
             },
         }
     }
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/git2/message.rs.html#121">self</a>.raw.count
+        <a class="self" href="#121">self</a>.raw.count
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#97">MessageTrailers</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            raw::git_message_trailer_array_free(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/git2/message.rs.html#127">self</a>.raw);
+            raw::git_message_trailer_array_free(<span class="kw-2">&amp;mut </span><a class="self" href="#127">self</a>.raw);
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a> {
+<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#97">MessageTrailers</a> {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a>) -&gt; <a href="../../src/git2/message.rs.html#97">MessageTrailers</a> {
-        <a href="../../src/git2/message.rs.html#97">MessageTrailers</a> { raw: <span class="kw-2">*</span><a href="../../src/git2/message.rs.html#136">raw</a> }
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a>) -&gt; <a href="#97">MessageTrailers</a> {
+        <a href="#97">MessageTrailers</a> { raw: <span class="kw-2">*</span><a href="#136">raw</a> }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_message_trailer_array.html">raw::git_message_trailer_array</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/message.rs.html#139">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
+        <span class="kw-2">&amp;</span><a class="self" href="#139">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
     </span>}
 }
 
 <span class="kw">struct </span>MessageTrailersIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
-    trailers: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a>,
+    trailers: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#97">MessageTrailers</a>,
     range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
-<span class="kw">fn </span>to_raw_tuple(trailers: <span class="kw-2">&amp;</span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) {
+<span class="kw">fn </span>to_raw_tuple(trailers: <span class="kw-2">&amp;</span><a href="#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>addr = <a href="../../src/git2/message.rs.html#149">trailers</a>.raw.trailers.wrapping_add(<a href="../../src/git2/message.rs.html#149">index</a>);
-        ((<span class="kw-2">*</span><a href="../../src/git2/message.rs.html#151">addr</a>).key, (<span class="kw-2">*</span><a href="../../src/git2/message.rs.html#151">addr</a>).value)
+        <span class="kw">let </span>addr = <a href="#149">trailers</a>.raw.trailers.wrapping_add(<a href="#149">index</a>);
+        ((<span class="kw-2">*</span><a href="#151">addr</a>).key, (<span class="kw-2">*</span><a href="#151">addr</a>).value)
     }
 }
 
@@ -504,38 +504,38 @@
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;pair </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;pair </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/git2/message.rs.html#162">self</a>.<span class="number">0
+        <a class="self" href="#162">self</a>.<span class="number">0
             </span>.range
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|index| <a href="../../src/git2/message.rs.html#189">to_str_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/message.rs.html#162">self</a>.<span class="number">0</span>.trailers, <a href="../../src/git2/message.rs.html#166">index</a>))
+            .map(|index| <a href="#189">to_str_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="#162">self</a>.<span class="number">0</span>.trailers, <a href="#166">index</a>))
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/message.rs.html#169">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#169">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>MessageTrailersStrsIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/git2/message.rs.html#175">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+        <a class="self" href="#175">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>MessageTrailersStrsIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/git2/message.rs.html#181">self</a>.<span class="number">0
+        <a class="self" href="#181">self</a>.<span class="number">0
             </span>.range
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-            .map(|index| <a href="../../src/git2/message.rs.html#189">to_str_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/message.rs.html#181">self</a>.<span class="number">0</span>.trailers, <a href="../../src/git2/message.rs.html#185">index</a>))
+            .map(|index| <a href="#189">to_str_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="#181">self</a>.<span class="number">0</span>.trailers, <a href="#185">index</a>))
     }
 }
 
-<span class="kw">fn </span>to_str_tuple(trailers: <span class="kw-2">&amp;</span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+<span class="kw">fn </span>to_str_tuple(trailers: <span class="kw-2">&amp;</span><a href="#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>(rkey, rvalue) = <a href="../../src/git2/message.rs.html#149">to_raw_tuple</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/message.rs.html#189">trailers</a>, <a href="../../src/git2/message.rs.html#189">index</a>);
-        <span class="kw">let </span>key = CStr::from_ptr(<a href="../../src/git2/message.rs.html#191">rkey</a>).to_str().unwrap();
-        <span class="kw">let </span>value = CStr::from_ptr(<a href="../../src/git2/message.rs.html#191">rvalue</a>).to_str().unwrap();
-        (<a href="../../src/git2/message.rs.html#192">key</a>, <a href="../../src/git2/message.rs.html#193">value</a>)
+        <span class="kw">let </span>(rkey, rvalue) = <a href="#149">to_raw_tuple</a>(<span class="kw-2">&amp;</span><a href="#189">trailers</a>, <a href="#189">index</a>);
+        <span class="kw">let </span>key = CStr::from_ptr(<a href="#191">rkey</a>).to_str().unwrap();
+        <span class="kw">let </span>value = CStr::from_ptr(<a href="#191">rvalue</a>).to_str().unwrap();
+        (<a href="#192">key</a>, <a href="#193">value</a>)
     }
 }
 
@@ -546,38 +546,38 @@
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;pair </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;pair </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/git2/message.rs.html#204">self</a>.<span class="number">0
+        <a class="self" href="#204">self</a>.<span class="number">0
             </span>.range
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .map(|index| <a href="../../src/git2/message.rs.html#231">to_bytes_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/message.rs.html#204">self</a>.<span class="number">0</span>.trailers, <a href="../../src/git2/message.rs.html#208">index</a>))
+            .map(|index| <a href="#231">to_bytes_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="#204">self</a>.<span class="number">0</span>.trailers, <a href="#208">index</a>))
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/message.rs.html#211">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#211">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>MessageTrailersBytesIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/git2/message.rs.html#217">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
+        <a class="self" href="#217">self</a>.<span class="number">0</span>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>()
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>MessageTrailersBytesIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../src/git2/message.rs.html#223">self</a>.<span class="number">0
+        <a class="self" href="#223">self</a>.<span class="number">0
             </span>.range
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-            .map(|index| <a href="../../src/git2/message.rs.html#231">to_bytes_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/message.rs.html#223">self</a>.<span class="number">0</span>.trailers, <a href="../../src/git2/message.rs.html#227">index</a>))
+            .map(|index| <a href="#231">to_bytes_tuple</a>(<span class="kw-2">&amp;</span><a class="self" href="#223">self</a>.<span class="number">0</span>.trailers, <a href="#227">index</a>))
     }
 }
 
-<span class="kw">fn </span>to_bytes_tuple(trailers: <span class="kw-2">&amp;</span><a href="../../src/git2/message.rs.html#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+<span class="kw">fn </span>to_bytes_tuple(trailers: <span class="kw-2">&amp;</span><a href="#97">MessageTrailers</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>(rkey, rvalue) = <a href="../../src/git2/message.rs.html#149">to_raw_tuple</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/message.rs.html#231">trailers</a>, <a href="../../src/git2/message.rs.html#231">index</a>);
-        <span class="kw">let </span>key = CStr::from_ptr(<a href="../../src/git2/message.rs.html#233">rkey</a>).to_bytes();
-        <span class="kw">let </span>value = CStr::from_ptr(<a href="../../src/git2/message.rs.html#233">rvalue</a>).to_bytes();
-        (<a href="../../src/git2/message.rs.html#234">key</a>, <a href="../../src/git2/message.rs.html#235">value</a>)
+        <span class="kw">let </span>(rkey, rvalue) = <a href="#149">to_raw_tuple</a>(<span class="kw-2">&amp;</span><a href="#231">trailers</a>, <a href="#231">index</a>);
+        <span class="kw">let </span>key = CStr::from_ptr(<a href="#233">rkey</a>).to_bytes();
+        <span class="kw">let </span>value = CStr::from_ptr(<a href="#233">rvalue</a>).to_bytes();
+        (<a href="#234">key</a>, <a href="#235">value</a>)
     }
 }
 
@@ -687,4 +687,4 @@ Signed-off-by: Lieutenant \xe2\x28\xa1prout
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

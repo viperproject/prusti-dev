@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1062,9 +1062,9 @@
 
 <span class="kw">use </span>memchr::{<a href="../../memchr/memchr/fn.memchr.html">memchr</a>, <a href="../../memchr/memchr/fn.memchr2.html">memchr2</a>, <a href="../../memchr/memchr/fn.memchr3.html">memchr3</a>};
 
-<span class="kw">use </span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
-<span class="kw">use </span><a href="../../src/aho_corasick/lib.rs.html#211"><span class="kw">crate</span>::packed</a>;
-<span class="kw">use </span><a href="../../src/aho_corasick/lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+<span class="kw">use </span><a href="ahocorasick.rs.html#2041"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
+<span class="kw">use </span><a href="lib.rs.html#211"><span class="kw">crate</span>::packed</a>;
+<span class="kw">use </span><a href="lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
 
 <span class="doccomment">/// A candidate is the result of running a prefilter on a haystack at a
 /// particular position. The result is either no match, a confirmed match or
@@ -1083,20 +1083,20 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>Candidate {
     <span class="prelude-val">None</span>,
-    Match(<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>),
+    Match(<a href="lib.rs.html#239">Match</a>),
     PossibleStartOfMatch(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
+<span class="kw">impl </span><a href="#27">Candidate</a> {
     <span class="doccomment">/// Convert this candidate into an option. This is useful when callers
     /// do not distinguish between true positives and false positives (i.e.,
     /// the caller must always confirm the match in order to update some other
     /// state).
     </span><span class="kw">pub fn </span>into_option(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../src/aho_corasick/prefilter.rs.html#38">self</a> </span>{
-            <a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="../../src/aho_corasick/prefilter.rs.html#29">Candidate::Match</a>(<span class="kw-2">ref </span>m) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/prefilter.rs.html#41">m</a>.<a href="../../src/aho_corasick/lib.rs.html#268">start</a>()),
-            <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>(start) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/prefilter.rs.html#42">start</a>),
+        <span class="kw">match </span><span class="self"><a href="#38">self</a> </span>{
+            <a href="#28">Candidate::None</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#29">Candidate::Match</a>(<span class="kw-2">ref </span>m) =&gt; <span class="prelude-val">Some</span>(<a href="#41">m</a>.<a href="lib.rs.html#268">start</a>()),
+            <a href="#30">Candidate::PossibleStartOfMatch</a>(start) =&gt; <span class="prelude-val">Some</span>(<a href="#42">start</a>),
         }
     }
 }
@@ -1114,14 +1114,14 @@
     /// in the given haystack after or at the given position.
     </span><span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a>;
+    ) -&gt; <a href="#27">Candidate</a>;
 
     <span class="doccomment">/// A method for cloning a prefilter, to work-around the fact that Clone
     /// is not object-safe.
-    </span><span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;;
+    </span><span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt;;
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by this prefilter, in
     /// units of bytes.
@@ -1150,50 +1150,50 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, P: <a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>P {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, P: <a href="#50-51">Prefilter</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#50-51">Prefilter</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>P {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#99">self</a>).<a href="../../src/aho_corasick/prefilter.rs.html#58-63">next_candidate</a>(<a href="../../src/aho_corasick/prefilter.rs.html#100">state</a>, <a href="../../src/aho_corasick/prefilter.rs.html#101">haystack</a>, <a href="../../src/aho_corasick/prefilter.rs.html#102">at</a>)
+    ) -&gt; <a href="#27">Candidate</a> {
+        (<span class="kw-2">**</span><a class="self" href="#99">self</a>).<a href="#58-63">next_candidate</a>(<a href="#100">state</a>, <a href="#101">haystack</a>, <a href="#102">at</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        (<span class="kw-2">**</span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#107">self</a>).<a href="../../src/aho_corasick/prefilter.rs.html#67">clone_prefilter</a>()
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        (<span class="kw-2">**</span><a class="self" href="#107">self</a>).<a href="#67">clone_prefilter</a>()
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#111">self</a>).<a href="../../src/aho_corasick/prefilter.rs.html#71">heap_bytes</a>()
+        (<span class="kw-2">**</span><a class="self" href="#111">self</a>).<a href="#71">heap_bytes</a>()
     }
 
     <span class="kw">fn </span>reports_false_positives(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#115">self</a>).<a href="../../src/aho_corasick/prefilter.rs.html#80">reports_false_positives</a>()
+        (<span class="kw-2">**</span><a class="self" href="#115">self</a>).<a href="#80">reports_false_positives</a>()
     }
 }
 
 <span class="doccomment">/// A convenience object for representing any type that implements Prefilter
 /// and is cloneable.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>PrefilterObj(Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;);
+</span><span class="kw">pub struct </span>PrefilterObj(Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt;);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#123">PrefilterObj</a> {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#126">self</a>.<span class="number">0</span>.<a href="../../src/aho_corasick/prefilter.rs.html#67">clone_prefilter</a>())
+        <a href="#123">PrefilterObj</a>(<a class="self" href="#126">self</a>.<span class="number">0</span>.<a href="#67">clone_prefilter</a>())
     }
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a> {
+<span class="kw">impl </span><a href="#123">PrefilterObj</a> {
     <span class="doccomment">/// Create a new prefilter object.
-    </span><span class="kw">pub fn </span>new&lt;T: <a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> + <span class="lifetime">&#39;static</span>&gt;(t: T) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>(Box::new(<a href="../../src/aho_corasick/prefilter.rs.html#133">t</a>))
+    </span><span class="kw">pub fn </span>new&lt;T: <a href="#50-51">Prefilter</a> + <span class="lifetime">&#39;static</span>&gt;(t: T) -&gt; <a href="#123">PrefilterObj</a> {
+        <a href="#123">PrefilterObj</a>(Box::new(<a href="#133">t</a>))
     }
 
     <span class="doccomment">/// Return the underlying prefilter trait object.
-    </span><span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> {
-        <span class="kw-2">&amp;*</span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#138">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="#50-51">Prefilter</a> {
+        <span class="kw-2">&amp;*</span><a class="self" href="#138">self</a>.<span class="number">0
     </span>}
 }
 
@@ -1235,7 +1235,7 @@
     </span>last_scan_at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a> {
+<span class="kw">impl </span><a href="#151">PrefilterState</a> {
     <span class="doccomment">/// The minimum number of skip attempts to try before considering whether
     /// a prefilter is effective or not.
     </span><span class="kw">const </span>MIN_SKIPS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">40</span>;
@@ -1249,19 +1249,19 @@
     </span><span class="kw">const </span>MIN_AVG_FACTOR: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
 
     <span class="doccomment">/// Create a fresh prefilter state.
-    </span><span class="kw">pub fn </span>new(max_match_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a> {
+    </span><span class="kw">pub fn </span>new(max_match_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#151">PrefilterState</a> {
+        <a href="#151">PrefilterState</a> {
             skips: <span class="number">0</span>,
             skipped: <span class="number">0</span>,
-            <a href="../../src/aho_corasick/prefilter.rs.html#195">max_match_len</a>,
+            <a href="#195">max_match_len</a>,
             inert: <span class="bool-val">false</span>,
             last_scan_at: <span class="number">0</span>,
         }
     }
 
     <span class="doccomment">/// Create a prefilter state that always disables the prefilter.
-    </span><span class="kw">pub fn </span>disabled() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a> {
+    </span><span class="kw">pub fn </span>disabled() -&gt; <a href="#151">PrefilterState</a> {
+        <a href="#151">PrefilterState</a> {
             skips: <span class="number">0</span>,
             skipped: <span class="number">0</span>,
             max_match_len: <span class="number">0</span>,
@@ -1274,8 +1274,8 @@
     /// invocation of the prefilter.
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>update_skipped_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skipped: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#219">self</a>.skips += <span class="number">1</span>;
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#219">self</a>.skipped += <a href="../../src/aho_corasick/prefilter.rs.html#219">skipped</a>;
+        <a class="self" href="#219">self</a>.skips += <span class="number">1</span>;
+        <a class="self" href="#219">self</a>.skipped += <a href="#219">skipped</a>;
     }
 
     <span class="doccomment">/// Updates the position at which the last scan stopped. This may be
@@ -1291,7 +1291,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>update_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">if </span>at &gt; <span class="self">self</span>.last_scan_at {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#235">self</a>.last_scan_at = <a href="../../src/aho_corasick/prefilter.rs.html#235">at</a>;
+            <a class="self" href="#235">self</a>.last_scan_at = <a href="#235">at</a>;
         }
     }
 
@@ -1312,13 +1312,13 @@
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="kw">let </span>min_avg = PrefilterState::MIN_AVG_FACTOR * <a class="self" href="../../src/aho_corasick/prefilter.rs.html#247">self</a>.max_match_len;
+        <span class="kw">let </span>min_avg = PrefilterState::MIN_AVG_FACTOR * <a class="self" href="#247">self</a>.max_match_len;
         <span class="kw">if </span><span class="self">self</span>.skipped &gt;= min_avg * <span class="self">self</span>.skips {
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
         <span class="comment">// We&#39;re inert.
-        </span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#247">self</a>.inert = <span class="bool-val">true</span>;
+        </span><a class="self" href="#247">self</a>.inert = <span class="bool-val">true</span>;
         <span class="bool-val">false
     </span>}
 }
@@ -1330,42 +1330,42 @@
 </span><span class="kw">pub struct </span>Builder {
     count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ascii_case_insensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    start_bytes: <a href="../../src/aho_corasick/prefilter.rs.html#810">StartBytesBuilder</a>,
-    rare_bytes: <a href="../../src/aho_corasick/prefilter.rs.html#393">RareBytesBuilder</a>,
-    packed: <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/packed/api.rs.html#226">packed::Builder</a>&gt;,
+    start_bytes: <a href="#810">StartBytesBuilder</a>,
+    rare_bytes: <a href="#393">RareBytesBuilder</a>,
+    packed: <span class="prelude-ty">Option</span>&lt;<a href="packed/api.rs.html#226">packed::Builder</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#273">Builder</a> {
+<span class="kw">impl </span><a href="#273">Builder</a> {
     <span class="doccomment">/// Create a new builder for constructing the best possible prefilter.
-    </span><span class="kw">pub fn </span>new(kind: <a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a>) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#273">Builder</a> {
-        <span class="kw">let </span>pbuilder = <a href="../../src/aho_corasick/prefilter.rs.html#283">kind</a>
-            .<a href="../../src/aho_corasick/ahocorasick.rs.html#2112">as_packed</a>()
-            .map(|kind| packed::Config::new().<a href="../../src/aho_corasick/packed/api.rs.html#139">match_kind</a>(<a href="../../src/aho_corasick/prefilter.rs.html#286">kind</a>).<a href="../../src/aho_corasick/packed/api.rs.html#134">builder</a>());
-        <a href="../../src/aho_corasick/prefilter.rs.html#273">Builder</a> {
+    </span><span class="kw">pub fn </span>new(kind: <a href="ahocorasick.rs.html#2041">MatchKind</a>) -&gt; <a href="#273">Builder</a> {
+        <span class="kw">let </span>pbuilder = <a href="#283">kind</a>
+            .<a href="ahocorasick.rs.html#2107">as_packed</a>()
+            .map(|kind| packed::Config::new().<a href="packed/api.rs.html#139">match_kind</a>(<a href="#286">kind</a>).<a href="packed/api.rs.html#134">builder</a>());
+        <a href="#273">Builder</a> {
             count: <span class="number">0</span>,
             ascii_case_insensitive: <span class="bool-val">false</span>,
             start_bytes: StartBytesBuilder::new(),
             rare_bytes: RareBytesBuilder::new(),
-            packed: <a href="../../src/aho_corasick/prefilter.rs.html#284">pbuilder</a>,
+            packed: <a href="#284">pbuilder</a>,
         }
     }
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this
     /// builder will be interpreted without respect to ASCII case.
-    </span><span class="kw">pub fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#273">Builder</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#298">self</a>.ascii_case_insensitive = <a href="../../src/aho_corasick/prefilter.rs.html#298">yes</a>;
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#298">self</a>.start_bytes = <a class="self" href="../../src/aho_corasick/prefilter.rs.html#298">self</a>.start_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#836">ascii_case_insensitive</a>(<a href="../../src/aho_corasick/prefilter.rs.html#298">yes</a>);
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#298">self</a>.rare_bytes = <a class="self" href="../../src/aho_corasick/prefilter.rs.html#298">self</a>.rare_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#539">ascii_case_insensitive</a>(<a href="../../src/aho_corasick/prefilter.rs.html#298">yes</a>);
-        <span class="self"><a href="../../src/aho_corasick/prefilter.rs.html#298">self</a>
+    </span><span class="kw">pub fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#273">Builder</a> {
+        <a class="self" href="#298">self</a>.ascii_case_insensitive = <a href="#298">yes</a>;
+        <a class="self" href="#298">self</a>.start_bytes = <a class="self" href="#298">self</a>.start_bytes.<a href="#836">ascii_case_insensitive</a>(<a href="#298">yes</a>);
+        <a class="self" href="#298">self</a>.rare_bytes = <a class="self" href="#298">self</a>.rare_bytes.<a href="#539">ascii_case_insensitive</a>(<a href="#298">yes</a>);
+        <span class="self"><a href="#298">self</a>
     </span>}
 
     <span class="doccomment">/// Return a prefilter suitable for quickly finding potential matches.
     ///
     /// All patterns added to an Aho-Corasick automaton should be added to this
     /// builder before attempting to construct the prefilter.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>&gt; {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#123">PrefilterObj</a>&gt; {
         <span class="comment">// match (self.start_bytes.build(), self.rare_bytes.build()) {
-        </span><span class="kw">match </span>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.start_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#846">build</a>(), <a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.rare_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#549">build</a>()) {
+        </span><span class="kw">match </span>(<a class="self" href="#309">self</a>.start_bytes.<a href="#846">build</a>(), <a class="self" href="#309">self</a>.rare_bytes.<a href="#549">build</a>()) {
             <span class="comment">// If we could build both start and rare prefilters, then there are
             // a few cases in which we&#39;d want to use the start-byte prefilter
             // over the rare-byte prefilter, since the former has lower
@@ -1375,7 +1375,7 @@
                 // of bytes than the rare-byte prefilter, then it&#39;s probably
                 // faster.
                 </span><span class="kw">let </span>has_fewer_bytes =
-                    <a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.start_bytes.count &lt; <a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.rare_bytes.count;
+                    <a class="self" href="#309">self</a>.start_bytes.count &lt; <a class="self" href="#309">self</a>.rare_bytes.count;
                 <span class="comment">// Otherwise, if the combined frequency rank of the detected
                 // bytes in the start-byte prefilter is &quot;close&quot; to the combined
                 // frequency rank of the rare-byte prefilter, then we pick
@@ -1384,31 +1384,31 @@
                 // rare-byte prefilter has higher constant costs, so we tend to
                 // prefer the start-byte prefilter when we can.
                 </span><span class="kw">let </span>has_rarer_bytes =
-                    <a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.start_bytes.rank_sum &lt;= <a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.rare_bytes.rank_sum + <span class="number">50</span>;
+                    <a class="self" href="#309">self</a>.start_bytes.rank_sum &lt;= <a class="self" href="#309">self</a>.rare_bytes.rank_sum + <span class="number">50</span>;
                 <span class="kw">if </span>has_fewer_bytes || has_rarer_bytes {
-                    <a href="../../src/aho_corasick/prefilter.rs.html#316">prestart</a>
+                    <a href="#316">prestart</a>
                 } <span class="kw">else </span>{
-                    <a href="../../src/aho_corasick/prefilter.rs.html#316">prerare</a>
+                    <a href="#316">prerare</a>
                 }
             }
-            (prestart @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <a href="../../src/aho_corasick/prefilter.rs.html#337">prestart</a>,
-            (<span class="prelude-val">None</span>, prerare @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <a href="../../src/aho_corasick/prefilter.rs.html#338">prerare</a>,
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="kw">if </span><a class="self" href="../../src/aho_corasick/prefilter.rs.html#309">self</a>.ascii_case_insensitive =&gt; <span class="prelude-val">None</span>,
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="self"><a href="../../src/aho_corasick/prefilter.rs.html#309">self</a>
+            (prestart @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <a href="#337">prestart</a>,
+            (<span class="prelude-val">None</span>, prerare @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <a href="#338">prerare</a>,
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="kw">if </span><a class="self" href="#309">self</a>.ascii_case_insensitive =&gt; <span class="prelude-val">None</span>,
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="self"><a href="#309">self</a>
                 </span>.packed
                 .as_ref()
-                .and_then(|b| <a href="../../src/aho_corasick/prefilter.rs.html#343">b</a>.<a href="../../src/aho_corasick/packed/api.rs.html#247">build</a>())
-                .map(|s| PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#362">Packed</a>(<a href="../../src/aho_corasick/prefilter.rs.html#344">s</a>))),
+                .and_then(|b| <a href="#343">b</a>.<a href="packed/api.rs.html#247">build</a>())
+                .map(|s| PrefilterObj::new(<a href="#362">Packed</a>(<a href="#344">s</a>))),
         }
     }
 
     <span class="doccomment">/// Add a literal string to this prefilter builder.
     </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#349">self</a>.count += <span class="number">1</span>;
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#349">self</a>.start_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#887">add</a>(<a href="../../src/aho_corasick/prefilter.rs.html#349">bytes</a>);
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#349">self</a>.rare_bytes.<a href="../../src/aho_corasick/prefilter.rs.html#585">add</a>(<a href="../../src/aho_corasick/prefilter.rs.html#349">bytes</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>pbuilder) = <a class="self" href="../../src/aho_corasick/prefilter.rs.html#349">self</a>.packed {
-            <a href="../../src/aho_corasick/prefilter.rs.html#353">pbuilder</a>.<a href="../../src/aho_corasick/packed/api.rs.html#297">add</a>(<a href="../../src/aho_corasick/prefilter.rs.html#349">bytes</a>);
+        <a class="self" href="#349">self</a>.count += <span class="number">1</span>;
+        <a class="self" href="#349">self</a>.start_bytes.<a href="#887">add</a>(<a href="#349">bytes</a>);
+        <a class="self" href="#349">self</a>.rare_bytes.<a href="#585">add</a>(<a href="#349">bytes</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>pbuilder) = <a class="self" href="#349">self</a>.packed {
+            <a href="#353">pbuilder</a>.<a href="packed/api.rs.html#291">add</a>(<a href="#349">bytes</a>);
         }
     }
 }
@@ -1416,24 +1416,24 @@
 <span class="doccomment">/// A type that wraps a packed searcher and implements the `Prefilter`
 /// interface.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">struct </span>Packed(<a href="../../src/aho_corasick/packed/api.rs.html#379">packed::Searcher</a>);
+</span><span class="kw">struct </span>Packed(<a href="packed/api.rs.html#373">packed::Searcher</a>);
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#362">Packed</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#362">Packed</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        _state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#366">self</a>.<span class="number">0</span>.<a href="../../src/aho_corasick/packed/api.rs.html#489-493">find_at</a>(<a href="../../src/aho_corasick/prefilter.rs.html#368">haystack</a>, <a href="../../src/aho_corasick/prefilter.rs.html#369">at</a>).map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#29">Candidate::Match</a>)
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a class="self" href="#366">self</a>.<span class="number">0</span>.<a href="packed/api.rs.html#482-486">find_at</a>(<a href="#368">haystack</a>, <a href="#369">at</a>).map_or(<a href="#28">Candidate::None</a>, <a href="#29">Candidate::Match</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#374">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#374">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#378">self</a>.<span class="number">0</span>.<a href="../../src/aho_corasick/packed/api.rs.html#579">heap_bytes</a>()
+        <a class="self" href="#378">self</a>.<span class="number">0</span>.<a href="packed/api.rs.html#572">heap_bytes</a>()
     }
 
     <span class="kw">fn </span>reports_false_positives(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -1452,14 +1452,14 @@
     /// not.
     </span>ascii_case_insensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// A set of rare bytes, indexed by byte value.
-    </span>rare_set: <a href="../../src/aho_corasick/prefilter.rs.html#419">ByteSet</a>,
+    </span>rare_set: <a href="#419">ByteSet</a>,
     <span class="doccomment">/// A set of byte offsets associated with bytes in a pattern. An entry
     /// corresponds to a particular bytes (its index) and is only non-zero if
     /// the byte occurred at an offset greater than 0 in at least one pattern.
     ///
     /// If a byte&#39;s offset is not representable in 8 bits, then the rare bytes
     /// prefilter becomes inert.
-    </span>byte_offsets: <a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a>,
+    </span>byte_offsets: <a href="#451">RareByteOffsets</a>,
     <span class="doccomment">/// Whether this is available as a prefilter or not. This can be set to
     /// false during construction if a condition is seen that invalidates the
     /// use of the rare-byte prefilter.
@@ -1475,23 +1475,23 @@
 </span><span class="attribute">#[derive(Clone, Copy)]
 </span><span class="kw">struct </span>ByteSet([<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>]);
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#419">ByteSet</a> {
-    <span class="kw">fn </span>empty() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#419">ByteSet</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#419">ByteSet</a>([<span class="bool-val">false</span>; <span class="number">256</span>])
+<span class="kw">impl </span><a href="#419">ByteSet</a> {
+    <span class="kw">fn </span>empty() -&gt; <a href="#419">ByteSet</a> {
+        <a href="#419">ByteSet</a>([<span class="bool-val">false</span>; <span class="number">256</span>])
     }
 
     <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>new = !<a class="self" href="../../src/aho_corasick/prefilter.rs.html#426">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#432">contains</a>(<a href="../../src/aho_corasick/prefilter.rs.html#426">b</a>);
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#426">self</a>.<span class="number">0</span>[<a href="../../src/aho_corasick/prefilter.rs.html#426">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
-        <a href="../../src/aho_corasick/prefilter.rs.html#427">new</a>
+        <span class="kw">let </span>new = !<a class="self" href="#426">self</a>.<a href="#432">contains</a>(<a href="#426">b</a>);
+        <a class="self" href="#426">self</a>.<span class="number">0</span>[<a href="#426">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+        <a href="#427">new</a>
     }
 
     <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#432">self</a>.<span class="number">0</span>[<a href="../../src/aho_corasick/prefilter.rs.html#432">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+        <a class="self" href="#432">self</a>.<span class="number">0</span>[<a href="#432">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#419">ByteSet</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#419">ByteSet</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>bytes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
@@ -1499,7 +1499,7 @@
                 bytes.push(b);
             }
         }
-        <a href="../../src/aho_corasick/prefilter.rs.html#438">f</a>.debug_struct(<span class="string">&quot;ByteSet&quot;</span>).field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#439">bytes</a>).finish()
+        <a href="#438">f</a>.debug_struct(<span class="string">&quot;ByteSet&quot;</span>).field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><a href="#439">bytes</a>).finish()
     }
 }
 
@@ -1508,26 +1508,26 @@
 </span><span class="kw">struct </span>RareByteOffsets {
     <span class="doccomment">/// Each entry corresponds to the maximum offset of the corresponding
     /// byte across all patterns seen.
-    </span>set: [<a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a>; <span class="number">256</span>],
+    </span>set: [<a href="#488">RareByteOffset</a>; <span class="number">256</span>],
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a> {
+<span class="kw">impl </span><a href="#451">RareByteOffsets</a> {
     <span class="doccomment">/// Create a new empty set of rare byte offsets.
-    </span><span class="kw">pub fn </span>empty() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a> { set: [RareByteOffset::default(); <span class="number">256</span>] }
+    </span><span class="kw">pub fn </span>empty() -&gt; <a href="#451">RareByteOffsets</a> {
+        <a href="#451">RareByteOffsets</a> { set: [RareByteOffset::default(); <span class="number">256</span>] }
     }
 
     <span class="doccomment">/// Add the given offset for the given byte to this set. If the offset is
     /// greater than the existing offset, then it overwrites the previous
     /// value and returns false. If there is no previous value set, then this
     /// sets it and returns true.
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, off: <a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a>) {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#467">self</a>.set[<a href="../../src/aho_corasick/prefilter.rs.html#467">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max =
-            cmp::max(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#467">self</a>.set[<a href="../../src/aho_corasick/prefilter.rs.html#467">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max, <a href="../../src/aho_corasick/prefilter.rs.html#467">off</a>.max);
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, off: <a href="#488">RareByteOffset</a>) {
+        <a class="self" href="#467">self</a>.set[<a href="#467">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max =
+            cmp::max(<a class="self" href="#467">self</a>.set[<a href="#467">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max, <a href="#467">off</a>.max);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#451">RareByteOffsets</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>offsets = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span>off <span class="kw">in </span><span class="self">self</span>.set.iter() {
@@ -1535,7 +1535,7 @@
                 offsets.push(off);
             }
         }
-        <a href="../../src/aho_corasick/prefilter.rs.html#474">f</a>.debug_struct(<span class="string">&quot;RareByteOffsets&quot;</span>).field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#475">offsets</a>).finish()
+        <a href="#474">f</a>.debug_struct(<span class="string">&quot;RareByteOffsets&quot;</span>).field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><a href="#475">offsets</a>).finish()
     }
 }
 
@@ -1559,29 +1559,29 @@
     </span>max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a> { max: <span class="number">0 </span>}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#488">RareByteOffset</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#488">RareByteOffset</a> {
+        <a href="#488">RareByteOffset</a> { max: <span class="number">0 </span>}
     }
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a> {
+<span class="kw">impl </span><a href="#488">RareByteOffset</a> {
     <span class="doccomment">/// Create a new rare byte offset. If the given offset is too big, then
     /// None is returned. In that case, callers should render the rare bytes
     /// prefilter inert.
-    </span><span class="kw">fn </span>new(max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a>&gt; {
+    </span><span class="kw">fn </span>new(max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#488">RareByteOffset</a>&gt; {
         <span class="kw">if </span>max &gt; u8::MAX <span class="kw">as </span>usize {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a> { max: <a href="../../src/aho_corasick/prefilter.rs.html#515">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> })
+            <span class="prelude-val">Some</span>(<a href="#488">RareByteOffset</a> { max: <a href="#515">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> })
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#393">RareBytesBuilder</a> {
+<span class="kw">impl </span><a href="#393">RareBytesBuilder</a> {
     <span class="doccomment">/// Create a new builder for constructing a rare byte prefilter.
-    </span><span class="kw">fn </span>new() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#393">RareBytesBuilder</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#393">RareBytesBuilder</a> {
+    </span><span class="kw">fn </span>new() -&gt; <a href="#393">RareBytesBuilder</a> {
+        <a href="#393">RareBytesBuilder</a> {
             ascii_case_insensitive: <span class="bool-val">false</span>,
             rare_set: ByteSet::empty(),
             byte_offsets: RareByteOffsets::empty(),
@@ -1593,9 +1593,9 @@
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this
     /// builder will be interpreted without respect to ASCII case.
-    </span><span class="kw">fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#393">RareBytesBuilder</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#539">self</a>.ascii_case_insensitive = <a href="../../src/aho_corasick/prefilter.rs.html#539">yes</a>;
-        <span class="self"><a href="../../src/aho_corasick/prefilter.rs.html#539">self</a>
+    </span><span class="kw">fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#393">RareBytesBuilder</a> {
+        <a class="self" href="#539">self</a>.ascii_case_insensitive = <a href="#539">yes</a>;
+        <span class="self"><a href="#539">self</a>
     </span>}
 
     <span class="doccomment">/// Build the rare bytes prefilter.
@@ -1603,7 +1603,7 @@
     /// If there are more than 3 distinct starting bytes, or if heuristics
     /// otherwise determine that this prefilter should not be used, then `None`
     /// is returned.
-    </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>&gt; {
+    </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#123">PrefilterObj</a>&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.available || <span class="self">self</span>.count &gt; <span class="number">3 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -1614,22 +1614,22 @@
                 len += <span class="number">1</span>;
             }
         }
-        <span class="kw">match </span><a href="../../src/aho_corasick/prefilter.rs.html#553">len</a> {
+        <span class="kw">match </span><a href="#553">len</a> {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#661">RareBytesOne</a> {
-                byte1: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">0</span>],
-                offset: <a class="self" href="../../src/aho_corasick/prefilter.rs.html#549">self</a>.byte_offsets.set[<a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#661">RareBytesOne</a> {
+                byte1: <a href="#553">bytes</a>[<span class="number">0</span>],
+                offset: <a class="self" href="#549">self</a>.byte_offsets.set[<a href="#553">bytes</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
             })),
-            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#720">RareBytesTwo</a> {
-                offsets: <a class="self" href="../../src/aho_corasick/prefilter.rs.html#549">self</a>.byte_offsets,
-                byte1: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">0</span>],
-                byte2: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">1</span>],
+            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#720">RareBytesTwo</a> {
+                offsets: <a class="self" href="#549">self</a>.byte_offsets,
+                byte1: <a href="#553">bytes</a>[<span class="number">0</span>],
+                byte2: <a href="#553">bytes</a>[<span class="number">1</span>],
             })),
-            <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#759">RareBytesThree</a> {
-                offsets: <a class="self" href="../../src/aho_corasick/prefilter.rs.html#549">self</a>.byte_offsets,
-                byte1: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">0</span>],
-                byte2: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">1</span>],
-                byte3: <a href="../../src/aho_corasick/prefilter.rs.html#553">bytes</a>[<span class="number">2</span>],
+            <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#759">RareBytesThree</a> {
+                offsets: <a class="self" href="#549">self</a>.byte_offsets,
+                byte1: <a href="#553">bytes</a>[<span class="number">0</span>],
+                byte2: <a href="#553">bytes</a>[<span class="number">1</span>],
+                byte3: <a href="#553">bytes</a>[<span class="number">2</span>],
             })),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
@@ -1647,18 +1647,18 @@
         <span class="comment">// If we&#39;ve already blown our budget, then don&#39;t waste time looking
         // for more rare bytes.
         </span><span class="kw">if </span><span class="self">self</span>.count &gt; <span class="number">3 </span>{
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#585">self</a>.available = <span class="bool-val">false</span>;
+            <a class="self" href="#585">self</a>.available = <span class="bool-val">false</span>;
             <span class="kw">return</span>;
         }
         <span class="comment">// If the pattern is too long, then our offset table is bunk, so
         // give up.
         </span><span class="kw">if </span>bytes.len() &gt;= <span class="number">256 </span>{
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#585">self</a>.available = <span class="bool-val">false</span>;
+            <a class="self" href="#585">self</a>.available = <span class="bool-val">false</span>;
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>rarest = <span class="kw">match </span><a href="../../src/aho_corasick/prefilter.rs.html#585">bytes</a>.get(<span class="number">0</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>rarest = <span class="kw">match </span><a href="#585">bytes</a>.get(<span class="number">0</span>) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; (<a href="../../src/aho_corasick/prefilter.rs.html#604">b</a>, <a href="../../src/aho_corasick/prefilter.rs.html#1034">freq_rank</a>(<a href="../../src/aho_corasick/prefilter.rs.html#604">b</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) =&gt; (<a href="#604">b</a>, <a href="#1034">freq_rank</a>(<a href="#604">b</a>)),
         };
         <span class="comment">// The idea here is to look for the rarest byte in each pattern, and
         // add that to our set. As a special exception, if we see a byte that
@@ -1685,30 +1685,30 @@
             }
         }
         <span class="kw">if </span>!found {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#585">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#644">add_rare_byte</a>(<a href="../../src/aho_corasick/prefilter.rs.html#602">rarest</a>.<span class="number">0</span>);
+            <a class="self" href="#585">self</a>.<a href="#644">add_rare_byte</a>(<a href="#602">rarest</a>.<span class="number">0</span>);
         }
     }
 
     <span class="kw">fn </span>set_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
         <span class="comment">// This unwrap is OK because pos is never bigger than our max.
-        </span><span class="kw">let </span>offset = RareByteOffset::new(<a href="../../src/aho_corasick/prefilter.rs.html#635">pos</a>).unwrap();
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#635">self</a>.byte_offsets.<a href="../../src/aho_corasick/prefilter.rs.html#467">set</a>(<a href="../../src/aho_corasick/prefilter.rs.html#635">byte</a>, <a href="../../src/aho_corasick/prefilter.rs.html#637">offset</a>);
+        </span><span class="kw">let </span>offset = RareByteOffset::new(<a href="#635">pos</a>).unwrap();
+        <a class="self" href="#635">self</a>.byte_offsets.<a href="#467">set</a>(<a href="#635">byte</a>, <a href="#637">offset</a>);
         <span class="kw">if </span><span class="self">self</span>.ascii_case_insensitive {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#635">self</a>.byte_offsets.<a href="../../src/aho_corasick/prefilter.rs.html#467">set</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1022">opposite_ascii_case</a>(<a href="../../src/aho_corasick/prefilter.rs.html#635">byte</a>), <a href="../../src/aho_corasick/prefilter.rs.html#637">offset</a>);
+            <a class="self" href="#635">self</a>.byte_offsets.<a href="#467">set</a>(<a href="#1022">opposite_ascii_case</a>(<a href="#635">byte</a>), <a href="#637">offset</a>);
         }
     }
 
     <span class="kw">fn </span>add_rare_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#644">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#651">add_one_rare_byte</a>(<a href="../../src/aho_corasick/prefilter.rs.html#644">byte</a>);
+        <a class="self" href="#644">self</a>.<a href="#651">add_one_rare_byte</a>(<a href="#644">byte</a>);
         <span class="kw">if </span><span class="self">self</span>.ascii_case_insensitive {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#644">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#651">add_one_rare_byte</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1022">opposite_ascii_case</a>(<a href="../../src/aho_corasick/prefilter.rs.html#644">byte</a>));
+            <a class="self" href="#644">self</a>.<a href="#651">add_one_rare_byte</a>(<a href="#1022">opposite_ascii_case</a>(<a href="#644">byte</a>));
         }
     }
 
     <span class="kw">fn </span>add_one_rare_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
         <span class="kw">if </span><span class="self">self</span>.rare_set.insert(byte) {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#651">self</a>.count += <span class="number">1</span>;
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#651">self</a>.rank_sum += <a href="../../src/aho_corasick/prefilter.rs.html#1034">freq_rank</a>(<a href="../../src/aho_corasick/prefilter.rs.html#651">byte</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+            <a class="self" href="#651">self</a>.count += <span class="number">1</span>;
+            <a class="self" href="#651">self</a>.rank_sum += <a href="#1034">freq_rank</a>(<a href="#651">byte</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
         }
     }
 }
@@ -1717,27 +1717,27 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesOne {
     byte1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    offset: <a href="../../src/aho_corasick/prefilter.rs.html#488">RareByteOffset</a>,
+    offset: <a href="#488">RareByteOffset</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#661">RareBytesOne</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#661">RareBytesOne</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#668">self</a>.byte1, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#670">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#671">at</a>..])
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="#668">self</a>.byte1, <span class="kw-2">&amp;</span><a href="#670">haystack</a>[<a href="#671">at</a>..])
             .map(|i| {
-                <span class="kw">let </span>pos = <a href="../../src/aho_corasick/prefilter.rs.html#671">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#674">i</a>;
-                <a href="../../src/aho_corasick/prefilter.rs.html#669">state</a>.last_scan_at = <a href="../../src/aho_corasick/prefilter.rs.html#675">pos</a>;
-                cmp::max(<a href="../../src/aho_corasick/prefilter.rs.html#671">at</a>, <a href="../../src/aho_corasick/prefilter.rs.html#675">pos</a>.saturating_sub(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#668">self</a>.offset.max <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+                <span class="kw">let </span>pos = <a href="#671">at</a> + <a href="#674">i</a>;
+                <a href="#669">state</a>.last_scan_at = <a href="#675">pos</a>;
+                cmp::max(<a href="#671">at</a>, <a href="#675">pos</a>.saturating_sub(<a class="self" href="#668">self</a>.offset.max <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
             })
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#682">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#682">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -1775,30 +1775,30 @@
 <span class="doccomment">/// A prefilter for scanning for two &quot;rare&quot; bytes.
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesTwo {
-    offsets: <a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a>,
+    offsets: <a href="#451">RareByteOffsets</a>,
     byte1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     byte2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#720">RareBytesTwo</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#720">RareBytesTwo</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#728">self</a>.byte1, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#728">self</a>.byte2, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#730">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#731">at</a>..])
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="#728">self</a>.byte1, <a class="self" href="#728">self</a>.byte2, <span class="kw-2">&amp;</span><a href="#730">haystack</a>[<a href="#731">at</a>..])
             .map(|i| {
-                <span class="kw">let </span>pos = <a href="../../src/aho_corasick/prefilter.rs.html#731">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#734">i</a>;
-                <a href="../../src/aho_corasick/prefilter.rs.html#729">state</a>.<a href="../../src/aho_corasick/prefilter.rs.html#235">update_at</a>(<a href="../../src/aho_corasick/prefilter.rs.html#735">pos</a>);
-                <span class="kw">let </span>offset = <a class="self" href="../../src/aho_corasick/prefilter.rs.html#728">self</a>.offsets.set[<a href="../../src/aho_corasick/prefilter.rs.html#730">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#735">pos</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max;
-                cmp::max(<a href="../../src/aho_corasick/prefilter.rs.html#731">at</a>, <a href="../../src/aho_corasick/prefilter.rs.html#735">pos</a>.saturating_sub(<a href="../../src/aho_corasick/prefilter.rs.html#737">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+                <span class="kw">let </span>pos = <a href="#731">at</a> + <a href="#734">i</a>;
+                <a href="#729">state</a>.<a href="#235">update_at</a>(<a href="#735">pos</a>);
+                <span class="kw">let </span>offset = <a class="self" href="#728">self</a>.offsets.set[<a href="#730">haystack</a>[<a href="#735">pos</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max;
+                cmp::max(<a href="#731">at</a>, <a href="#735">pos</a>.saturating_sub(<a href="#737">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
             })
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#743">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#743">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -1814,31 +1814,31 @@
 <span class="doccomment">/// A prefilter for scanning for three &quot;rare&quot; bytes.
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesThree {
-    offsets: <a href="../../src/aho_corasick/prefilter.rs.html#451">RareByteOffsets</a>,
+    offsets: <a href="#451">RareByteOffsets</a>,
     byte1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     byte2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     byte3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#759">RareBytesThree</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#759">RareBytesThree</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#768">self</a>.byte1, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#768">self</a>.byte2, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#768">self</a>.byte3, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#770">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#771">at</a>..])
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="#768">self</a>.byte1, <a class="self" href="#768">self</a>.byte2, <a class="self" href="#768">self</a>.byte3, <span class="kw-2">&amp;</span><a href="#770">haystack</a>[<a href="#771">at</a>..])
             .map(|i| {
-                <span class="kw">let </span>pos = <a href="../../src/aho_corasick/prefilter.rs.html#771">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#774">i</a>;
-                <a href="../../src/aho_corasick/prefilter.rs.html#769">state</a>.<a href="../../src/aho_corasick/prefilter.rs.html#235">update_at</a>(<a href="../../src/aho_corasick/prefilter.rs.html#775">pos</a>);
-                <span class="kw">let </span>offset = <a class="self" href="../../src/aho_corasick/prefilter.rs.html#768">self</a>.offsets.set[<a href="../../src/aho_corasick/prefilter.rs.html#770">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#775">pos</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max;
-                cmp::max(<a href="../../src/aho_corasick/prefilter.rs.html#771">at</a>, <a href="../../src/aho_corasick/prefilter.rs.html#775">pos</a>.saturating_sub(<a href="../../src/aho_corasick/prefilter.rs.html#777">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+                <span class="kw">let </span>pos = <a href="#771">at</a> + <a href="#774">i</a>;
+                <a href="#769">state</a>.<a href="#235">update_at</a>(<a href="#775">pos</a>);
+                <span class="kw">let </span>offset = <a class="self" href="#768">self</a>.offsets.set[<a href="#770">haystack</a>[<a href="#775">pos</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].max;
+                cmp::max(<a href="#771">at</a>, <a href="#775">pos</a>.saturating_sub(<a href="#777">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
             })
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#783">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#783">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -1877,10 +1877,10 @@
     </span>rank_sum: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#810">StartBytesBuilder</a> {
+<span class="kw">impl </span><a href="#810">StartBytesBuilder</a> {
     <span class="doccomment">/// Create a new builder for constructing a start byte prefilter.
-    </span><span class="kw">fn </span>new() -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#810">StartBytesBuilder</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#810">StartBytesBuilder</a> {
+    </span><span class="kw">fn </span>new() -&gt; <a href="#810">StartBytesBuilder</a> {
+        <a href="#810">StartBytesBuilder</a> {
             ascii_case_insensitive: <span class="bool-val">false</span>,
             byteset: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="number">256</span>],
             count: <span class="number">0</span>,
@@ -1890,9 +1890,9 @@
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this
     /// builder will be interpreted without respect to ASCII case.
-    </span><span class="kw">fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#810">StartBytesBuilder</a> {
-        <a class="self" href="../../src/aho_corasick/prefilter.rs.html#836">self</a>.ascii_case_insensitive = <a href="../../src/aho_corasick/prefilter.rs.html#836">yes</a>;
-        <span class="self"><a href="../../src/aho_corasick/prefilter.rs.html#836">self</a>
+    </span><span class="kw">fn </span>ascii_case_insensitive(<span class="kw-2">mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#810">StartBytesBuilder</a> {
+        <a class="self" href="#836">self</a>.ascii_case_insensitive = <a href="#836">yes</a>;
+        <span class="self"><a href="#836">self</a>
     </span>}
 
     <span class="doccomment">/// Build the starting bytes prefilter.
@@ -1900,7 +1900,7 @@
     /// If there are more than 3 distinct starting bytes, or if heuristics
     /// otherwise determine that this prefilter should not be used, then `None`
     /// is returned.
-    </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>&gt; {
+    </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#123">PrefilterObj</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.count &gt; <span class="number">3 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -1921,17 +1921,17 @@
             bytes[len] = b <span class="kw">as </span>u8;
             len += <span class="number">1</span>;
         }
-        <span class="kw">match </span><a href="../../src/aho_corasick/prefilter.rs.html#850">len</a> {
+        <span class="kw">match </span><a href="#850">len</a> {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#910">StartBytesOne</a> { byte1: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">0</span>] })),
-            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#937">StartBytesTwo</a> {
-                byte1: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">0</span>],
-                byte2: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">1</span>],
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#910">StartBytesOne</a> { byte1: <a href="#850">bytes</a>[<span class="number">0</span>] })),
+            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#937">StartBytesTwo</a> {
+                byte1: <a href="#850">bytes</a>[<span class="number">0</span>],
+                byte2: <a href="#850">bytes</a>[<span class="number">1</span>],
             })),
-            <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="../../src/aho_corasick/prefilter.rs.html#965">StartBytesThree</a> {
-                byte1: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">0</span>],
-                byte2: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">1</span>],
-                byte3: <a href="../../src/aho_corasick/prefilter.rs.html#850">bytes</a>[<span class="number">2</span>],
+            <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(PrefilterObj::new(<a href="#965">StartBytesThree</a> {
+                byte1: <a href="#850">bytes</a>[<span class="number">0</span>],
+                byte2: <a href="#850">bytes</a>[<span class="number">1</span>],
+                byte3: <a href="#850">bytes</a>[<span class="number">2</span>],
             })),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
@@ -1945,19 +1945,19 @@
         <span class="kw">if </span><span class="self">self</span>.count &gt; <span class="number">3 </span>{
             <span class="kw">return</span>;
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>byte) = <a href="../../src/aho_corasick/prefilter.rs.html#887">bytes</a>.get(<span class="number">0</span>) {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#887">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#899">add_one_byte</a>(<a href="../../src/aho_corasick/prefilter.rs.html#891">byte</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>byte) = <a href="#887">bytes</a>.get(<span class="number">0</span>) {
+            <a class="self" href="#887">self</a>.<a href="#899">add_one_byte</a>(<a href="#891">byte</a>);
             <span class="kw">if </span><span class="self">self</span>.ascii_case_insensitive {
-                <a class="self" href="../../src/aho_corasick/prefilter.rs.html#887">self</a>.<a href="../../src/aho_corasick/prefilter.rs.html#899">add_one_byte</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1022">opposite_ascii_case</a>(<a href="../../src/aho_corasick/prefilter.rs.html#891">byte</a>));
+                <a class="self" href="#887">self</a>.<a href="#899">add_one_byte</a>(<a href="#1022">opposite_ascii_case</a>(<a href="#891">byte</a>));
             }
         }
     }
 
     <span class="kw">fn </span>add_one_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
         <span class="kw">if </span>!<span class="self">self</span>.byteset[byte <span class="kw">as </span>usize] {
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#899">self</a>.byteset[<a href="../../src/aho_corasick/prefilter.rs.html#899">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#899">self</a>.count += <span class="number">1</span>;
-            <a class="self" href="../../src/aho_corasick/prefilter.rs.html#899">self</a>.rank_sum += <a href="../../src/aho_corasick/prefilter.rs.html#1034">freq_rank</a>(<a href="../../src/aho_corasick/prefilter.rs.html#899">byte</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+            <a class="self" href="#899">self</a>.byteset[<a href="#899">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <span class="bool-val">true</span>;
+            <a class="self" href="#899">self</a>.count += <span class="number">1</span>;
+            <a class="self" href="#899">self</a>.rank_sum += <a href="#1034">freq_rank</a>(<a href="#899">byte</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
         }
     }
 }
@@ -1968,20 +1968,20 @@
     byte1: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#910">StartBytesOne</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#910">StartBytesOne</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        _state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#916">self</a>.byte1, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#918">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#919">at</a>..])
-            .map(|i| <a href="../../src/aho_corasick/prefilter.rs.html#919">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#922">i</a>)
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="#916">self</a>.byte1, <span class="kw-2">&amp;</span><a href="#918">haystack</a>[<a href="#919">at</a>..])
+            .map(|i| <a href="#919">at</a> + <a href="#922">i</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#926">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#926">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -1996,20 +1996,20 @@
     byte2: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#937">StartBytesTwo</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#937">StartBytesTwo</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        _state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#944">self</a>.byte1, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#944">self</a>.byte2, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#946">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#947">at</a>..])
-            .map(|i| <a href="../../src/aho_corasick/prefilter.rs.html#947">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#950">i</a>)
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="#944">self</a>.byte1, <a class="self" href="#944">self</a>.byte2, <span class="kw-2">&amp;</span><a href="#946">haystack</a>[<a href="#947">at</a>..])
+            .map(|i| <a href="#947">at</a> + <a href="#950">i</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#954">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#954">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -2025,20 +2025,20 @@
     byte3: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a> <span class="kw">for </span><a href="../../src/aho_corasick/prefilter.rs.html#965">StartBytesThree</a> {
+<span class="kw">impl </span><a href="#50-51">Prefilter</a> <span class="kw">for </span><a href="#965">StartBytesThree</a> {
     <span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        _state: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
         haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-        <a href="../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#973">self</a>.byte1, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#973">self</a>.byte2, <a class="self" href="../../src/aho_corasick/prefilter.rs.html#973">self</a>.byte3, <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/prefilter.rs.html#975">haystack</a>[<a href="../../src/aho_corasick/prefilter.rs.html#976">at</a>..])
-            .map(|i| <a href="../../src/aho_corasick/prefilter.rs.html#976">at</a> + <a href="../../src/aho_corasick/prefilter.rs.html#979">i</a>)
-            .map_or(<a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a>, <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>)
+    ) -&gt; <a href="#27">Candidate</a> {
+        <a href="../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="#973">self</a>.byte1, <a class="self" href="#973">self</a>.byte2, <a class="self" href="#973">self</a>.byte3, <span class="kw-2">&amp;</span><a href="#975">haystack</a>[<a href="#976">at</a>..])
+            .map(|i| <a href="#976">at</a> + <a href="#979">i</a>)
+            .map_or(<a href="#28">Candidate::None</a>, <a href="#30">Candidate::PossibleStartOfMatch</a>)
     }
 
-    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
-        Box::new(<a class="self" href="../../src/aho_corasick/prefilter.rs.html#983">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">fn </span>clone_prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="#50-51">Prefilter</a>&gt; {
+        Box::new(<a class="self" href="#983">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -2052,25 +2052,25 @@
 /// The caller is responsible for checking the prestate before deciding whether
 /// to initiate a search.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>next&lt;P: <a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt;(
-    prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+</span><span class="kw">pub fn </span>next&lt;P: <a href="#50-51">Prefilter</a>&gt;(
+    prestate: <span class="kw-2">&amp;mut </span><a href="#151">PrefilterState</a>,
     prefilter: P,
     haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <a href="../../src/aho_corasick/prefilter.rs.html#27">Candidate</a> {
-    <span class="kw">let </span>cand = <a href="../../src/aho_corasick/prefilter.rs.html#1000">prefilter</a>.<a href="../../src/aho_corasick/prefilter.rs.html#58-63">next_candidate</a>(<a href="../../src/aho_corasick/prefilter.rs.html#999">prestate</a>, <a href="../../src/aho_corasick/prefilter.rs.html#1001">haystack</a>, <a href="../../src/aho_corasick/prefilter.rs.html#1002">at</a>);
-    <span class="kw">match </span><a href="../../src/aho_corasick/prefilter.rs.html#1004">cand</a> {
-        <a href="../../src/aho_corasick/prefilter.rs.html#28">Candidate::None</a> =&gt; {
-            <a href="../../src/aho_corasick/prefilter.rs.html#999">prestate</a>.<a href="../../src/aho_corasick/prefilter.rs.html#219">update_skipped_bytes</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1001">haystack</a>.len() - <a href="../../src/aho_corasick/prefilter.rs.html#1002">at</a>);
+) -&gt; <a href="#27">Candidate</a> {
+    <span class="kw">let </span>cand = <a href="#1000">prefilter</a>.<a href="#58-63">next_candidate</a>(<a href="#999">prestate</a>, <a href="#1001">haystack</a>, <a href="#1002">at</a>);
+    <span class="kw">match </span><a href="#1004">cand</a> {
+        <a href="#28">Candidate::None</a> =&gt; {
+            <a href="#999">prestate</a>.<a href="#219">update_skipped_bytes</a>(<a href="#1001">haystack</a>.len() - <a href="#1002">at</a>);
         }
-        <a href="../../src/aho_corasick/prefilter.rs.html#29">Candidate::Match</a>(<span class="kw-2">ref </span>m) =&gt; {
-            <a href="../../src/aho_corasick/prefilter.rs.html#999">prestate</a>.<a href="../../src/aho_corasick/prefilter.rs.html#219">update_skipped_bytes</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1009">m</a>.<a href="../../src/aho_corasick/lib.rs.html#268">start</a>() - <a href="../../src/aho_corasick/prefilter.rs.html#1002">at</a>);
+        <a href="#29">Candidate::Match</a>(<span class="kw-2">ref </span>m) =&gt; {
+            <a href="#999">prestate</a>.<a href="#219">update_skipped_bytes</a>(<a href="#1009">m</a>.<a href="lib.rs.html#268">start</a>() - <a href="#1002">at</a>);
         }
-        <a href="../../src/aho_corasick/prefilter.rs.html#30">Candidate::PossibleStartOfMatch</a>(i) =&gt; {
-            <a href="../../src/aho_corasick/prefilter.rs.html#999">prestate</a>.<a href="../../src/aho_corasick/prefilter.rs.html#219">update_skipped_bytes</a>(<a href="../../src/aho_corasick/prefilter.rs.html#1012">i</a> - <a href="../../src/aho_corasick/prefilter.rs.html#1002">at</a>);
+        <a href="#30">Candidate::PossibleStartOfMatch</a>(i) =&gt; {
+            <a href="#999">prestate</a>.<a href="#219">update_skipped_bytes</a>(<a href="#1012">i</a> - <a href="#1002">at</a>);
         }
     }
-    <a href="../../src/aho_corasick/prefilter.rs.html#1004">cand</a>
+    <a href="#1004">cand</a>
 }
 
 <span class="doccomment">/// If the given byte is an ASCII letter, then return it in the opposite case.
@@ -2078,19 +2078,19 @@
 /// `b&#39;A&#39;`. If a non-ASCII letter is given, then the given byte is returned.
 </span><span class="kw">pub fn </span>opposite_ascii_case(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
     <span class="kw">if </span><span class="string">b&#39;A&#39; </span>&lt;= b &amp;&amp; b &lt;= <span class="string">b&#39;Z&#39; </span>{
-        <a href="../../src/aho_corasick/prefilter.rs.html#1022">b</a>.to_ascii_lowercase()
+        <a href="#1022">b</a>.to_ascii_lowercase()
     } <span class="kw">else if </span><span class="string">b&#39;a&#39; </span>&lt;= b &amp;&amp; b &lt;= <span class="string">b&#39;z&#39; </span>{
-        <a href="../../src/aho_corasick/prefilter.rs.html#1022">b</a>.to_ascii_uppercase()
+        <a href="#1022">b</a>.to_ascii_uppercase()
     } <span class="kw">else </span>{
-        <a href="../../src/aho_corasick/prefilter.rs.html#1022">b</a>
+        <a href="#1022">b</a>
     }
 }
 
 <span class="doccomment">/// Return the frequency rank of the given byte. The higher the rank, the more
 /// common the byte (heuristically speaking).
 </span><span class="kw">fn </span>freq_rank(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <span class="kw">use </span><a href="../../src/aho_corasick/byte_frequencies.rs.html#1"><span class="kw">crate</span>::byte_frequencies::BYTE_FREQUENCIES</a>;
-    <a href="../../src/aho_corasick/byte_frequencies.rs.html#1">BYTE_FREQUENCIES</a>[<a href="../../src/aho_corasick/prefilter.rs.html#1034">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+    <span class="kw">use </span><a href="byte_frequencies.rs.html#1"><span class="kw">crate</span>::byte_frequencies::BYTE_FREQUENCIES</a>;
+    <a href="byte_frequencies.rs.html#1">BYTE_FREQUENCIES</a>[<a href="#1034">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
 }
 
 <span class="attribute">#[cfg(test)]
@@ -2113,4 +2113,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -223,14 +223,14 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-</pre><pre class="rust"><code><span class="kw">mod </span><a href="../../../src/ryu/pretty/exponent.rs.html#1-48">exponent</a>;
-<span class="kw">mod </span><a href="../../../src/ryu/pretty/mantissa.rs.html#1-82">mantissa</a>;
+</pre><pre class="rust"><code><span class="kw">mod </span><a href="exponent.rs.html#1-48">exponent</a>;
+<span class="kw">mod </span><a href="mantissa.rs.html#1-82">mantissa</a>;
 
-<span class="kw">use </span><a href="../../../src/ryu/pretty/mod.rs.html#1"><span class="self">self</span>::exponent</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../../src/ryu/pretty/mod.rs.html#2"><span class="self">self</span>::mantissa</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../../src/ryu/lib.rs.html#106"><span class="kw">crate</span>::common</a>;
-<span class="kw">use </span><span class="kw">crate</span>::d2s::{<a class="self" href="../../../src/ryu/lib.rs.html#107">self</a>, <span class="kw-2">*</span>};
-<span class="kw">use </span><a href="../../../src/ryu/lib.rs.html#114"><span class="kw">crate</span>::f2s</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#1"><span class="self">self</span>::exponent</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="#2"><span class="self">self</span>::mantissa</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../lib.rs.html#106"><span class="kw">crate</span>::common</a>;
+<span class="kw">use </span><span class="kw">crate</span>::d2s::{<a class="self" href="../lib.rs.html#107">self</a>, <span class="kw-2">*</span>};
+<span class="kw">use </span><a href="../lib.rs.html#114"><span class="kw">crate</span>::f2s</a>::<span class="kw-2">*</span>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;no-panic&quot;</span>)]
 </span><span class="kw">use </span>no_panic::no_panic;
@@ -275,70 +275,70 @@
 </span><span class="attribute">#[must_use]
 #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
 </span><span class="kw">pub unsafe fn </span>format64(f: <a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a>, result: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>bits = <a href="../../../src/ryu/pretty/mod.rs.html#52">f</a>.to_bits();
-    <span class="kw">let </span>sign = ((<a href="../../../src/ryu/pretty/mod.rs.html#53">bits</a> &gt;&gt; (<a href="../../../src/ryu/d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a> + <a href="../../../src/ryu/d2s.rs.html#30">DOUBLE_EXPONENT_BITS</a>)) &amp; <span class="number">1</span>) != <span class="number">0</span>;
-    <span class="kw">let </span>ieee_mantissa = <a href="../../../src/ryu/pretty/mod.rs.html#53">bits</a> &amp; ((<span class="number">1u64 </span>&lt;&lt; <a href="../../../src/ryu/d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a>) - <span class="number">1</span>);
+    <span class="kw">let </span>bits = <a href="#52">f</a>.to_bits();
+    <span class="kw">let </span>sign = ((<a href="#53">bits</a> &gt;&gt; (<a href="../d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a> + <a href="../d2s.rs.html#30">DOUBLE_EXPONENT_BITS</a>)) &amp; <span class="number">1</span>) != <span class="number">0</span>;
+    <span class="kw">let </span>ieee_mantissa = <a href="#53">bits</a> &amp; ((<span class="number">1u64 </span>&lt;&lt; <a href="../d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a>) - <span class="number">1</span>);
     <span class="kw">let </span>ieee_exponent =
-        (<a href="../../../src/ryu/pretty/mod.rs.html#53">bits</a> &gt;&gt; <a href="../../../src/ryu/d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../../../src/ryu/d2s.rs.html#30">DOUBLE_EXPONENT_BITS</a>) - <span class="number">1</span>);
+        (<a href="#53">bits</a> &gt;&gt; <a href="../d2s.rs.html#29">DOUBLE_MANTISSA_BITS</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../d2s.rs.html#30">DOUBLE_EXPONENT_BITS</a>) - <span class="number">1</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0isize</span>;
     <span class="kw">if </span>sign {
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a> = <span class="string">b&#39;-&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> += <span class="number">1</span>;
+        <span class="kw-2">*</span><a href="#52">result</a> = <span class="string">b&#39;-&#39;</span>;
+        <a href="#59">index</a> += <span class="number">1</span>;
     }
 
     <span class="kw">if </span>ieee_exponent == <span class="number">0 </span>&amp;&amp; ieee_mantissa == <span class="number">0 </span>{
-        ptr::copy_nonoverlapping(<span class="string">b&quot;0.0&quot;</span>.as_ptr(), <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a>), <span class="number">3</span>);
-        <span class="kw">return </span><a href="../../../src/ryu/pretty/mod.rs.html#54">sign</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">3</span>;
+        ptr::copy_nonoverlapping(<span class="string">b&quot;0.0&quot;</span>.as_ptr(), <a href="#52">result</a>.offset(<a href="#59">index</a>), <span class="number">3</span>);
+        <span class="kw">return </span><a href="#54">sign</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">3</span>;
     }
 
-    <span class="kw">let </span>v = <a href="../../../src/ryu/d2s.rs.html#89">d2d</a>(<a href="../../../src/ryu/pretty/mod.rs.html#55">ieee_mantissa</a>, <a href="../../../src/ryu/pretty/mod.rs.html#56">ieee_exponent</a>);
+    <span class="kw">let </span>v = <a href="../d2s.rs.html#89">d2d</a>(<a href="#55">ieee_mantissa</a>, <a href="#56">ieee_exponent</a>);
 
-    <span class="kw">let </span>length = <a href="../../../src/ryu/d2s.rs.html#36">d2s::decimal_length17</a>(<a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
-    <span class="kw">let </span>k = <a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.exponent <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
-    <span class="kw">let </span>kk = <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <a href="../../../src/ryu/pretty/mod.rs.html#73">k</a>; <span class="comment">// 10^(kk-1) &lt;= v &lt; 10^kk
+    <span class="kw">let </span>length = <a href="../d2s.rs.html#36">d2s::decimal_length17</a>(<a href="#70">v</a>.mantissa) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
+    <span class="kw">let </span>k = <a href="#70">v</a>.exponent <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
+    <span class="kw">let </span>kk = <a href="#72">length</a> + <a href="#73">k</a>; <span class="comment">// 10^(kk-1) &lt;= v &lt; 10^kk
     </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(k &gt;= -<span class="number">324</span>);
 
     <span class="kw">if </span><span class="number">0 </span>&lt;= k &amp;&amp; kk &lt;= <span class="number">16 </span>{
         <span class="comment">// 1234e7 -&gt; 12340000000.0
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#5">write_mantissa_long</a>(<a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a>));
+        </span><a href="mantissa.rs.html#5">write_mantissa_long</a>(<a href="#70">v</a>.mantissa, <a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a>));
         <span class="kw">for </span>i <span class="kw">in </span>length..kk {
             <span class="kw-2">*</span>result.offset(index + i) = <span class="string">b&#39;0&#39;</span>;
         }
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a> + <span class="number">1</span>) = <span class="string">b&#39;0&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#74">kk</a>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#74">kk</a> + <span class="number">1</span>) = <span class="string">b&#39;0&#39;</span>;
+        <a href="#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#74">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2
     </span>} <span class="kw">else if </span><span class="number">0 </span>&lt; kk &amp;&amp; kk &lt;= <span class="number">16 </span>{
         <span class="comment">// 1234e-2 -&gt; 12.34
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#5">write_mantissa_long</a>(<a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <span class="number">1</span>));
-        ptr::copy(<a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">1</span>), <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a>), <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a>) = <span class="string">b&#39;.&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">1
+        </span><a href="mantissa.rs.html#5">write_mantissa_long</a>(<a href="#70">v</a>.mantissa, <a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a> + <span class="number">1</span>));
+        ptr::copy(<a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">1</span>), <a href="#52">result</a>.offset(<a href="#59">index</a>), <a href="#74">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#74">kk</a>) = <span class="string">b&#39;.&#39;</span>;
+        <a href="#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">1
     </span>} <span class="kw">else if </span>-<span class="number">5 </span>&lt; kk &amp;&amp; kk &lt;= <span class="number">0 </span>{
         <span class="comment">// 1234e-6 -&gt; 0.001234
-        </span><span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a>) = <span class="string">b&#39;0&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw">let </span>offset = <span class="number">2 </span>- <a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a>;
+        </span><span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a>) = <span class="string">b&#39;0&#39;</span>;
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw">let </span>offset = <span class="number">2 </span>- <a href="#74">kk</a>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">2</span>..offset {
             <span class="kw-2">*</span>result.offset(index + i) = <span class="string">b&#39;0&#39;</span>;
         }
-        <a href="../../../src/ryu/pretty/mantissa.rs.html#5">write_mantissa_long</a>(<a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <a href="../../../src/ryu/pretty/mod.rs.html#96">offset</a>));
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#96">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+        <a href="mantissa.rs.html#5">write_mantissa_long</a>(<a href="#70">v</a>.mantissa, <a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a> + <a href="#96">offset</a>));
+        <a href="#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#96">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     } <span class="kw">else if </span>length == <span class="number">1 </span>{
         <span class="comment">// 1e30
-        </span><span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a>) = <span class="string">b&#39;0&#39; </span>+ <a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2 </span>+ <a href="../../../src/ryu/pretty/exponent.rs.html#5">write_exponent3</a>(<a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a> - <span class="number">1</span>, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">2</span>))
+        </span><span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a>) = <span class="string">b&#39;0&#39; </span>+ <a href="#70">v</a>.mantissa <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
+        <a href="#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2 </span>+ <a href="exponent.rs.html#5">write_exponent3</a>(<a href="#74">kk</a> - <span class="number">1</span>, <a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">2</span>))
     } <span class="kw">else </span>{
         <span class="comment">// 1234e30 -&gt; 1.234e33
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#5">write_mantissa_long</a>(<a href="../../../src/ryu/pretty/mod.rs.html#70">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <span class="number">1</span>));
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a>) = <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">1</span>);
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
-            + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+        </span><a href="mantissa.rs.html#5">write_mantissa_long</a>(<a href="#70">v</a>.mantissa, <a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a> + <span class="number">1</span>));
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a>) = <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">1</span>);
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw-2">*</span><a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
+        <a href="#59">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+            + <a href="#72">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
             + <span class="number">2
-            </span>+ <a href="../../../src/ryu/pretty/exponent.rs.html#5">write_exponent3</a>(<a href="../../../src/ryu/pretty/mod.rs.html#74">kk</a> - <span class="number">1</span>, <a href="../../../src/ryu/pretty/mod.rs.html#52">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#59">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#72">length</a> + <span class="number">2</span>))
+            </span>+ <a href="exponent.rs.html#5">write_exponent3</a>(<a href="#74">kk</a> - <span class="number">1</span>, <a href="#52">result</a>.offset(<a href="#59">index</a> + <a href="#72">length</a> + <span class="number">2</span>))
     }
 }
 
@@ -382,71 +382,71 @@
 </span><span class="attribute">#[must_use]
 #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
 </span><span class="kw">pub unsafe fn </span>format32(f: <a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a>, result: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <span class="kw">let </span>bits = <a href="../../../src/ryu/pretty/mod.rs.html#159">f</a>.to_bits();
-    <span class="kw">let </span>sign = ((<a href="../../../src/ryu/pretty/mod.rs.html#160">bits</a> &gt;&gt; (<a href="../../../src/ryu/f2s.rs.html#24">FLOAT_MANTISSA_BITS</a> + <a href="../../../src/ryu/f2s.rs.html#25">FLOAT_EXPONENT_BITS</a>)) &amp; <span class="number">1</span>) != <span class="number">0</span>;
-    <span class="kw">let </span>ieee_mantissa = <a href="../../../src/ryu/pretty/mod.rs.html#160">bits</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../../../src/ryu/f2s.rs.html#24">FLOAT_MANTISSA_BITS</a>) - <span class="number">1</span>);
+    <span class="kw">let </span>bits = <a href="#159">f</a>.to_bits();
+    <span class="kw">let </span>sign = ((<a href="#160">bits</a> &gt;&gt; (<a href="../f2s.rs.html#24">FLOAT_MANTISSA_BITS</a> + <a href="../f2s.rs.html#25">FLOAT_EXPONENT_BITS</a>)) &amp; <span class="number">1</span>) != <span class="number">0</span>;
+    <span class="kw">let </span>ieee_mantissa = <a href="#160">bits</a> &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../f2s.rs.html#24">FLOAT_MANTISSA_BITS</a>) - <span class="number">1</span>);
     <span class="kw">let </span>ieee_exponent =
-        ((<a href="../../../src/ryu/pretty/mod.rs.html#160">bits</a> &gt;&gt; <a href="../../../src/ryu/f2s.rs.html#24">FLOAT_MANTISSA_BITS</a>) &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../../../src/ryu/f2s.rs.html#25">FLOAT_EXPONENT_BITS</a>) - <span class="number">1</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+        ((<a href="#160">bits</a> &gt;&gt; <a href="../f2s.rs.html#24">FLOAT_MANTISSA_BITS</a>) &amp; ((<span class="number">1u32 </span>&lt;&lt; <a href="../f2s.rs.html#25">FLOAT_EXPONENT_BITS</a>) - <span class="number">1</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0isize</span>;
     <span class="kw">if </span>sign {
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a> = <span class="string">b&#39;-&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> += <span class="number">1</span>;
+        <span class="kw-2">*</span><a href="#159">result</a> = <span class="string">b&#39;-&#39;</span>;
+        <a href="#166">index</a> += <span class="number">1</span>;
     }
 
     <span class="kw">if </span>ieee_exponent == <span class="number">0 </span>&amp;&amp; ieee_mantissa == <span class="number">0 </span>{
-        ptr::copy_nonoverlapping(<span class="string">b&quot;0.0&quot;</span>.as_ptr(), <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a>), <span class="number">3</span>);
-        <span class="kw">return </span><a href="../../../src/ryu/pretty/mod.rs.html#161">sign</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">3</span>;
+        ptr::copy_nonoverlapping(<span class="string">b&quot;0.0&quot;</span>.as_ptr(), <a href="#159">result</a>.offset(<a href="#166">index</a>), <span class="number">3</span>);
+        <span class="kw">return </span><a href="#161">sign</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">3</span>;
     }
 
-    <span class="kw">let </span>v = <a href="../../../src/ryu/f2s.rs.html#38">f2d</a>(<a href="../../../src/ryu/pretty/mod.rs.html#162">ieee_mantissa</a>, <a href="../../../src/ryu/pretty/mod.rs.html#163">ieee_exponent</a>);
+    <span class="kw">let </span>v = <a href="../f2s.rs.html#38">f2d</a>(<a href="#162">ieee_mantissa</a>, <a href="#163">ieee_exponent</a>);
 
-    <span class="kw">let </span>length = <a href="../../../src/ryu/common.rs.html#24">common::decimal_length9</a>(<a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
-    <span class="kw">let </span>k = <a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.exponent <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
-    <span class="kw">let </span>kk = <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <a href="../../../src/ryu/pretty/mod.rs.html#180">k</a>; <span class="comment">// 10^(kk-1) &lt;= v &lt; 10^kk
+    <span class="kw">let </span>length = <a href="../common.rs.html#24">common::decimal_length9</a>(<a href="#177">v</a>.mantissa) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
+    <span class="kw">let </span>k = <a href="#177">v</a>.exponent <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.isize.html">isize</a>;
+    <span class="kw">let </span>kk = <a href="#179">length</a> + <a href="#180">k</a>; <span class="comment">// 10^(kk-1) &lt;= v &lt; 10^kk
     </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(k &gt;= -<span class="number">45</span>);
 
     <span class="kw">if </span><span class="number">0 </span>&lt;= k &amp;&amp; kk &lt;= <span class="number">13 </span>{
         <span class="comment">// 1234e7 -&gt; 12340000000.0
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#44">write_mantissa</a>(<a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a>));
+        </span><a href="mantissa.rs.html#44">write_mantissa</a>(<a href="#177">v</a>.mantissa, <a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a>));
         <span class="kw">for </span>i <span class="kw">in </span>length..kk {
             <span class="kw-2">*</span>result.offset(index + i) = <span class="string">b&#39;0&#39;</span>;
         }
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a> + <span class="number">1</span>) = <span class="string">b&#39;0&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#181">kk</a>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#181">kk</a> + <span class="number">1</span>) = <span class="string">b&#39;0&#39;</span>;
+        <a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#181">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2
     </span>} <span class="kw">else if </span><span class="number">0 </span>&lt; kk &amp;&amp; kk &lt;= <span class="number">13 </span>{
         <span class="comment">// 1234e-2 -&gt; 12.34
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#44">write_mantissa</a>(<a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <span class="number">1</span>));
-        ptr::copy(<a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">1</span>), <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a>), <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a>) = <span class="string">b&#39;.&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">1
+        </span><a href="mantissa.rs.html#44">write_mantissa</a>(<a href="#177">v</a>.mantissa, <a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a> + <span class="number">1</span>));
+        ptr::copy(<a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">1</span>), <a href="#159">result</a>.offset(<a href="#166">index</a>), <a href="#181">kk</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>);
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#181">kk</a>) = <span class="string">b&#39;.&#39;</span>;
+        <a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">1
     </span>} <span class="kw">else if </span>-<span class="number">6 </span>&lt; kk &amp;&amp; kk &lt;= <span class="number">0 </span>{
         <span class="comment">// 1234e-6 -&gt; 0.001234
-        </span><span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a>) = <span class="string">b&#39;0&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw">let </span>offset = <span class="number">2 </span>- <a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a>;
+        </span><span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a>) = <span class="string">b&#39;0&#39;</span>;
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw">let </span>offset = <span class="number">2 </span>- <a href="#181">kk</a>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">2</span>..offset {
             <span class="kw-2">*</span>result.offset(index + i) = <span class="string">b&#39;0&#39;</span>;
         }
-        <a href="../../../src/ryu/pretty/mantissa.rs.html#44">write_mantissa</a>(<a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <a href="../../../src/ryu/pretty/mod.rs.html#203">offset</a>));
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="../../../src/ryu/pretty/mod.rs.html#203">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+        <a href="mantissa.rs.html#44">write_mantissa</a>(<a href="#177">v</a>.mantissa, <a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a> + <a href="#203">offset</a>));
+        <a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <a href="#203">offset</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     } <span class="kw">else if </span>length == <span class="number">1 </span>{
         <span class="comment">// 1e30
-        </span><span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a>) = <span class="string">b&#39;0&#39; </span>+ <a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2 </span>+ <a href="../../../src/ryu/pretty/exponent.rs.html#31">write_exponent2</a>(<a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a> - <span class="number">1</span>, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">2</span>))
+        </span><span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a>) = <span class="string">b&#39;0&#39; </span>+ <a href="#177">v</a>.mantissa <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>;
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
+        <a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> + <span class="number">2 </span>+ <a href="exponent.rs.html#31">write_exponent2</a>(<a href="#181">kk</a> - <span class="number">1</span>, <a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">2</span>))
     } <span class="kw">else </span>{
         <span class="comment">// 1234e30 -&gt; 1.234e33
-        </span><a href="../../../src/ryu/pretty/mantissa.rs.html#44">write_mantissa</a>(<a href="../../../src/ryu/pretty/mod.rs.html#177">v</a>.mantissa, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <span class="number">1</span>));
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a>) = <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">1</span>);
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
-        <span class="kw-2">*</span><a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
-        <a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
-            + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+        </span><a href="mantissa.rs.html#44">write_mantissa</a>(<a href="#177">v</a>.mantissa, <a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a> + <span class="number">1</span>));
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a>) = <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">1</span>);
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <span class="number">1</span>) = <span class="string">b&#39;.&#39;</span>;
+        <span class="kw-2">*</span><a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a> + <span class="number">1</span>) = <span class="string">b&#39;e&#39;</span>;
+        <a href="#166">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+            + <a href="#179">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
             + <span class="number">2
-            </span>+ <a href="../../../src/ryu/pretty/exponent.rs.html#31">write_exponent2</a>(<a href="../../../src/ryu/pretty/mod.rs.html#181">kk</a> - <span class="number">1</span>, <a href="../../../src/ryu/pretty/mod.rs.html#159">result</a>.offset(<a href="../../../src/ryu/pretty/mod.rs.html#166">index</a> + <a href="../../../src/ryu/pretty/mod.rs.html#179">length</a> + <span class="number">2</span>))
+            </span>+ <a href="exponent.rs.html#31">write_exponent2</a>(<a href="#181">kk</a> - <span class="number">1</span>, <a href="#159">result</a>.offset(<a href="#166">index</a> + <a href="#179">length</a> + <span class="number">2</span>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

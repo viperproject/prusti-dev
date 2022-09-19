@@ -639,7 +639,7 @@
 <span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>};
 <span class="kw">use </span>std::thread::{<a class="self" href="https://doc.rust-lang.org/nightly/std/thread/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>};
 
-<span class="kw">use </span><a href="../../../src/crossbeam_utils/cache_padded.rs.html#128"><span class="kw">crate</span>::CachePadded</a>;
+<span class="kw">use </span><a href="../cache_padded.rs.html#128"><span class="kw">crate</span>::CachePadded</a>;
 <span class="kw">use </span><a href="../../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 
 <span class="doccomment">/// The number of shards per sharded lock. Must be a power of two.
@@ -705,7 +705,7 @@
 /// [`RwLock`]: std::sync::RwLock
 </span><span class="kw">pub struct </span>ShardedLock&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
     <span class="doccomment">/// A list of locks protecting the internal data.
-    </span>shards: Box&lt;[CachePadded&lt;<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19">Shard</a>&gt;]&gt;,
+    </span>shards: Box&lt;[CachePadded&lt;<a href="#19">Shard</a>&gt;]&gt;,
 
     <span class="doccomment">/// The internal data.
     </span>value: UnsafeCell&lt;T&gt;,
@@ -728,16 +728,16 @@
     /// let lock = ShardedLock::new(5);
     /// ```
     </span><span class="kw">pub fn </span>new(value: T) -&gt; ShardedLock&lt;T&gt; {
-        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#76">ShardedLock</a> {
-            shards: (<span class="number">0</span>..<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#16">NUM_SHARDS</a>)
+        <a href="#76">ShardedLock</a> {
+            shards: (<span class="number">0</span>..<a href="#16">NUM_SHARDS</a>)
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| {
-                    CachePadded::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19">Shard</a> {
+                    CachePadded::new(<a href="#19">Shard</a> {
                         lock: RwLock::new(()),
                         write_guard: UnsafeCell::new(<span class="prelude-val">None</span>),
                     })
                 })
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Box&lt;[<span class="kw">_</span>]&gt;&gt;(),
-            value: UnsafeCell::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#100">value</a>),
+            value: UnsafeCell::new(<a href="#100">value</a>),
         }
     }
 
@@ -761,13 +761,13 @@
     /// assert_eq!(lock.into_inner().unwrap(), &quot;modified&quot;);
     /// ```
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; LockResult&lt;T&gt; {
-        <span class="kw">let </span>is_poisoned = <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#133">self</a>.<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#167">is_poisoned</a>();
-        <span class="kw">let </span>inner = <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#133">self</a>.value.into_inner();
+        <span class="kw">let </span>is_poisoned = <a class="self" href="#133">self</a>.<a href="#167">is_poisoned</a>();
+        <span class="kw">let </span>inner = <a class="self" href="#133">self</a>.value.into_inner();
 
         <span class="kw">if </span>is_poisoned {
-            <span class="prelude-val">Err</span>(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#135">inner</a>))
+            <span class="prelude-val">Err</span>(PoisonError::new(<a href="#135">inner</a>))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#135">inner</a>)
+            <span class="prelude-val">Ok</span>(<a href="#135">inner</a>)
         }
     }
 }
@@ -795,7 +795,7 @@
     /// assert_eq!(lock.is_poisoned(), true);
     /// ```
     </span><span class="kw">pub fn </span>is_poisoned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#167">self</a>.shards[<span class="number">0</span>].lock.is_poisoned()
+        <a class="self" href="#167">self</a>.shards[<span class="number">0</span>].lock.is_poisoned()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying data.
@@ -817,13 +817,13 @@
     /// assert_eq!(*lock.read().unwrap(), 10);
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; LockResult&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <span class="kw">let </span>is_poisoned = <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#189">self</a>.<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#167">is_poisoned</a>();
-        <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#189">self</a>.value.get() };
+        <span class="kw">let </span>is_poisoned = <a class="self" href="#189">self</a>.<a href="#167">is_poisoned</a>();
+        <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#189">self</a>.value.get() };
 
         <span class="kw">if </span>is_poisoned {
-            <span class="prelude-val">Err</span>(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#191">inner</a>))
+            <span class="prelude-val">Err</span>(PoisonError::new(<a href="#191">inner</a>))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#191">inner</a>)
+            <span class="prelude-val">Ok</span>(<a href="#191">inner</a>)
         }
     }
 
@@ -854,22 +854,22 @@
     </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TryLockResult&lt;ShardedLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="comment">// Take the current thread index and map it to a shard index. Thread indices will tend to
         // distribute shards among threads equally, thus reducing contention due to read-locking.
-        </span><span class="kw">let </span>current_index = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#570">current_index</a>().unwrap_or(<span class="number">0</span>);
-        <span class="kw">let </span>shard_index = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#227">current_index</a> &amp; (<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>.shards.len() - <span class="number">1</span>);
+        </span><span class="kw">let </span>current_index = <a href="#570">current_index</a>().unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>shard_index = <a href="#227">current_index</a> &amp; (<a class="self" href="#224">self</a>.shards.len() - <span class="number">1</span>);
 
-        <span class="kw">match </span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>.shards[<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#228">shard_index</a>].lock.try_read() {
-            <span class="prelude-val">Ok</span>(guard) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>,
-                _guard: <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#231">guard</a>,
+        <span class="kw">match </span><a class="self" href="#224">self</a>.shards[<a href="#228">shard_index</a>].lock.try_read() {
+            <span class="prelude-val">Ok</span>(guard) =&gt; <span class="prelude-val">Ok</span>(<a href="#483">ShardedLockReadGuard</a> {
+                lock: <a class="self" href="#224">self</a>,
+                _guard: <a href="#231">guard</a>,
                 _marker: PhantomData,
             }),
             <span class="prelude-val">Err</span>(TryLockError::Poisoned(err)) =&gt; {
-                <span class="kw">let </span>guard = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
-                    lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>,
-                    _guard: <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#236">err</a>.into_inner(),
+                <span class="kw">let </span>guard = <a href="#483">ShardedLockReadGuard</a> {
+                    lock: <a class="self" href="#224">self</a>,
+                    _guard: <a href="#236">err</a>.into_inner(),
                     _marker: PhantomData,
                 };
-                <span class="prelude-val">Err</span>(TryLockError::Poisoned(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#237">guard</a>)))
+                <span class="prelude-val">Err</span>(TryLockError::Poisoned(PoisonError::new(<a href="#237">guard</a>)))
             }
             <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; <span class="prelude-val">Err</span>(TryLockError::WouldBlock),
         }
@@ -914,18 +914,18 @@
     </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LockResult&lt;ShardedLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="comment">// Take the current thread index and map it to a shard index. Thread indices will tend to
         // distribute shards among threads equally, thus reducing contention due to read-locking.
-        </span><span class="kw">let </span>current_index = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#570">current_index</a>().unwrap_or(<span class="number">0</span>);
-        <span class="kw">let </span>shard_index = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#287">current_index</a> &amp; (<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>.shards.len() - <span class="number">1</span>);
+        </span><span class="kw">let </span>current_index = <a href="#570">current_index</a>().unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>shard_index = <a href="#287">current_index</a> &amp; (<a class="self" href="#284">self</a>.shards.len() - <span class="number">1</span>);
 
-        <span class="kw">match </span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>.shards[<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#288">shard_index</a>].lock.read() {
-            <span class="prelude-val">Ok</span>(guard) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>,
-                _guard: <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#291">guard</a>,
+        <span class="kw">match </span><a class="self" href="#284">self</a>.shards[<a href="#288">shard_index</a>].lock.read() {
+            <span class="prelude-val">Ok</span>(guard) =&gt; <span class="prelude-val">Ok</span>(<a href="#483">ShardedLockReadGuard</a> {
+                lock: <a class="self" href="#284">self</a>,
+                _guard: <a href="#291">guard</a>,
                 _marker: PhantomData,
             }),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>,
-                _guard: <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#296">err</a>.into_inner(),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(PoisonError::new(<a href="#483">ShardedLockReadGuard</a> {
+                lock: <a class="self" href="#284">self</a>,
+                _guard: <a href="#296">err</a>.into_inner(),
                 _marker: PhantomData,
             })),
         }
@@ -981,7 +981,7 @@
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#330">blocked</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = <a href="#330">blocked</a> {
             <span class="comment">// Unlock the shards in reverse order of locking.
             </span><span class="kw">for </span>shard <span class="kw">in </span><span class="self">self</span>.shards[<span class="number">0</span>..i].iter().rev() {
                 <span class="kw">unsafe </span>{
@@ -992,14 +992,14 @@
             }
             <span class="prelude-val">Err</span>(TryLockError::WouldBlock)
         } <span class="kw">else if </span>poisoned {
-            <span class="kw">let </span>guard = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#328">self</a>,
+            <span class="kw">let </span>guard = <a href="#514">ShardedLockWriteGuard</a> {
+                lock: <a class="self" href="#328">self</a>,
                 _marker: PhantomData,
             };
-            <span class="prelude-val">Err</span>(TryLockError::Poisoned(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#365">guard</a>)))
+            <span class="prelude-val">Err</span>(TryLockError::Poisoned(PoisonError::new(<a href="#365">guard</a>)))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#328">self</a>,
+            <span class="prelude-val">Ok</span>(<a href="#514">ShardedLockWriteGuard</a> {
+                lock: <a class="self" href="#328">self</a>,
                 _marker: PhantomData,
             })
         }
@@ -1058,13 +1058,13 @@
         }
 
         <span class="kw">if </span>poisoned {
-            <span class="prelude-val">Err</span>(PoisonError::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#408">self</a>,
+            <span class="prelude-val">Err</span>(PoisonError::new(<a href="#514">ShardedLockWriteGuard</a> {
+                lock: <a class="self" href="#408">self</a>,
                 _marker: PhantomData,
             }))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
-                lock: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#408">self</a>,
+            <span class="prelude-val">Ok</span>(<a href="#514">ShardedLockWriteGuard</a> {
+                lock: <a class="self" href="#408">self</a>,
                 _marker: PhantomData,
             })
         }
@@ -1073,24 +1073,24 @@
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ShardedLock&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#445">self</a>.<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">try_read</a>() {
-            <span class="prelude-val">Ok</span>(guard) =&gt; <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#445">f</a>
+        <span class="kw">match </span><a class="self" href="#445">self</a>.<a href="#224">try_read</a>() {
+            <span class="prelude-val">Ok</span>(guard) =&gt; <a href="#445">f</a>
                 .debug_struct(<span class="string">&quot;ShardedLock&quot;</span>)
-                .field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#447">guard</a>)
+                .field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="#447">guard</a>)
                 .finish(),
-            <span class="prelude-val">Err</span>(TryLockError::Poisoned(err)) =&gt; <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#445">f</a>
+            <span class="prelude-val">Err</span>(TryLockError::Poisoned(err)) =&gt; <a href="#445">f</a>
                 .debug_struct(<span class="string">&quot;ShardedLock&quot;</span>)
-                .field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">**</span><a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#451">err</a>.get_ref())
+                .field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">**</span><a href="#451">err</a>.get_ref())
                 .finish(),
             <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; {
                 <span class="kw">struct </span>LockedPlaceholder;
-                <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#456">LockedPlaceholder</a> {
+                <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#456">LockedPlaceholder</a> {
                     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#458">f</a>.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
+                        <a href="#458">f</a>.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
                     }
                 }
-                <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#445">f</a>.debug_struct(<span class="string">&quot;ShardedLock&quot;</span>)
-                    .field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#456">LockedPlaceholder</a>)
+                <a href="#445">f</a>.debug_struct(<span class="string">&quot;ShardedLock&quot;</span>)
+                    .field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a href="#456">LockedPlaceholder</a>)
                     .finish()
             }
         }
@@ -1105,7 +1105,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>ShardedLock&lt;T&gt; {
     <span class="kw">fn </span>from(t: T) -&gt; <span class="self">Self </span>{
-        ShardedLock::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#477">t</a>)
+        ShardedLock::new(<a href="#477">t</a>)
     }
 }
 
@@ -1122,21 +1122,21 @@
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#494">self</a>.lock.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#494">self</a>.lock.value.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ShardedLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#500">f</a>.debug_struct(<span class="string">&quot;ShardedLockReadGuard&quot;</span>)
-            .field(<span class="string">&quot;lock&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#500">self</a>.lock)
+        <a href="#500">f</a>.debug_struct(<span class="string">&quot;ShardedLockReadGuard&quot;</span>)
+            .field(<span class="string">&quot;lock&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#500">self</a>.lock)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>ShardedLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#508">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#508">f</a>)
+        (<span class="kw-2">**</span><a class="self" href="#508">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#508">f</a>)
     }
 }
 
@@ -1163,15 +1163,15 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ShardedLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#535">f</a>.debug_struct(<span class="string">&quot;ShardedLockWriteGuard&quot;</span>)
-            .field(<span class="string">&quot;lock&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#535">self</a>.lock)
+        <a href="#535">f</a>.debug_struct(<span class="string">&quot;ShardedLockWriteGuard&quot;</span>)
+            .field(<span class="string">&quot;lock&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#535">self</a>.lock)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>ShardedLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#543">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#543">f</a>)
+        (<span class="kw-2">**</span><a class="self" href="#543">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#543">f</a>)
     }
 }
 
@@ -1179,13 +1179,13 @@
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#551">self</a>.lock.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#551">self</a>.lock.value.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>ShardedLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#557">self</a>.lock.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#557">self</a>.lock.value.get() }
     }
 }
 
@@ -1198,7 +1198,7 @@
 /// tearing down.
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>current_index() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#610-630">REGISTRATION</a>.try_with(|reg| <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#571">reg</a>.index).ok()
+    <a href="#610-630">REGISTRATION</a>.try_with(|reg| <a href="#571">reg</a>.index).ok()
 }
 
 <span class="doccomment">/// The global registry keeping track of registered threads and indices.
@@ -1213,8 +1213,8 @@
     </span>next_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">static </span>THREAD_INDICES: Lazy&lt;Mutex&lt;<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575">ThreadIndices</a>&gt;&gt; = Lazy::new(|| {
-    Mutex::new(<a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575">ThreadIndices</a> {
+<span class="kw">static </span>THREAD_INDICES: Lazy&lt;Mutex&lt;<a href="#575">ThreadIndices</a>&gt;&gt; = Lazy::new(|| {
+    Mutex::new(<a href="#575">ThreadIndices</a> {
         mapping: HashMap::new(),
         free_list: Vec::new(),
         next_index: <span class="number">0</span>,
@@ -1229,11 +1229,11 @@
     thread_id: <a href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#597">Registration</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#597">Registration</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#586">THREAD_INDICES</a>.lock().unwrap();
-        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#604">indices</a>.mapping.remove(<span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#603">self</a>.thread_id);
-        <a href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#604">indices</a>.free_list.push(<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#603">self</a>.index);
+        <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="#586">THREAD_INDICES</a>.lock().unwrap();
+        <a href="#604">indices</a>.mapping.remove(<span class="kw-2">&amp;</span><a class="self" href="#603">self</a>.thread_id);
+        <a href="#604">indices</a>.free_list.push(<a class="self" href="#603">self</a>.index);
     }
 }
 
@@ -1259,4 +1259,4 @@
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

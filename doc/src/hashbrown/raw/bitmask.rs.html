@@ -120,7 +120,7 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::imp::{<a href="../../../src/hashbrown/raw/sse2.rs.html#10">BitMaskWord</a>, <a href="../../../src/hashbrown/raw/sse2.rs.html#12">BITMASK_MASK</a>, <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::imp::{<a href="sse2.rs.html#10">BitMaskWord</a>, <a href="sse2.rs.html#12">BITMASK_MASK</a>, <a href="sse2.rs.html#11">BITMASK_STRIDE</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;nightly&quot;</span>)]
 </span><span class="kw">use </span>core::intrinsics;
 
@@ -136,15 +136,15 @@
 /// performed on counts/indices to normalize this difference. `BITMASK_MASK` is
 /// similarly a mask of all the actually-used bits.
 </span><span class="attribute">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>BitMask(<span class="kw">pub </span><a href="../../../src/hashbrown/raw/sse2.rs.html#10">BitMaskWord</a>);
+</span><span class="kw">pub struct </span>BitMask(<span class="kw">pub </span><a href="sse2.rs.html#10">BitMaskWord</a>);
 
 <span class="attribute">#[allow(clippy::use_self)]
-</span><span class="kw">impl </span><a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
+</span><span class="kw">impl </span><a href="#17">BitMask</a> {
     <span class="doccomment">/// Returns a new `BitMask` with all bits inverted.
     </span><span class="attribute">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>invert(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a>(<a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#24">self</a>.<span class="number">0 </span>^ <a href="../../../src/hashbrown/raw/sse2.rs.html#12">BITMASK_MASK</a>)
+        <a href="#17">BitMask</a>(<a class="self" href="#24">self</a>.<span class="number">0 </span>^ <a href="sse2.rs.html#12">BITMASK_MASK</a>)
     }
 
     <span class="doccomment">/// Flip the bit in the mask for the entry at the given index.
@@ -155,22 +155,22 @@
     #[cfg(feature = <span class="string">&quot;raw&quot;</span>)]
     </span><span class="kw">pub unsafe fn </span>flip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// NOTE: The + BITMASK_STRIDE - 1 is to set the high bit.
-        </span><span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; (<a href="../../../src/hashbrown/raw/bitmask.rs.html#34">index</a> * <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a> + <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a> - <span class="number">1</span>);
-        <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#34">self</a>.<span class="number">0 </span>^= <a href="../../../src/hashbrown/raw/bitmask.rs.html#36">mask</a>;
+        </span><span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; (<a href="#34">index</a> * <a href="sse2.rs.html#11">BITMASK_STRIDE</a> + <a href="sse2.rs.html#11">BITMASK_STRIDE</a> - <span class="number">1</span>);
+        <a class="self" href="#34">self</a>.<span class="number">0 </span>^= <a href="#36">mask</a>;
         <span class="comment">// The bit was set if the bit is now 0.
-        </span><a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#34">self</a>.<span class="number">0 </span>&amp; <a href="../../../src/hashbrown/raw/bitmask.rs.html#36">mask</a> == <span class="number">0
+        </span><a class="self" href="#34">self</a>.<span class="number">0 </span>&amp; <a href="#36">mask</a> == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a new `BitMask` with the lowest bit removed.
     </span><span class="attribute">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>remove_lowest_bit(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a>(<a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#45">self</a>.<span class="number">0 </span>&amp; (<a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#45">self</a>.<span class="number">0 </span>- <span class="number">1</span>))
+        <a href="#17">BitMask</a>(<a class="self" href="#45">self</a>.<span class="number">0 </span>&amp; (<a class="self" href="#45">self</a>.<span class="number">0 </span>- <span class="number">1</span>))
     }
     <span class="doccomment">/// Returns whether the `BitMask` has at least one set bit.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>any_bit_set(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#50">self</a>.<span class="number">0 </span>!= <span class="number">0
+        <a class="self" href="#50">self</a>.<span class="number">0 </span>!= <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the first set bit in the `BitMask`, if there is one.
@@ -179,7 +179,7 @@
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#56">self</a>.<a href="../../../src/hashbrown/raw/bitmask.rs.html#73">lowest_set_bit_nonzero</a>() })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a class="self" href="#56">self</a>.<a href="#73">lowest_set_bit_nonzero</a>() })
         }
     }
 
@@ -193,7 +193,7 @@
     <span class="attribute">#[inline]
     #[cfg(not(feature = <span class="string">&quot;nightly&quot;</span>))]
     </span><span class="kw">pub unsafe fn </span>lowest_set_bit_nonzero(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#73">self</a>.<a href="../../../src/hashbrown/raw/bitmask.rs.html#79">trailing_zeros</a>()
+        <a class="self" href="#73">self</a>.<a href="#79">trailing_zeros</a>()
     }
 
     <span class="doccomment">/// Returns the number of trailing zeroes in the `BitMask`.
@@ -205,42 +205,42 @@
         // instead. Since we only have 1 bit set in each byte on ARM, we can
         // use swap_bytes (REV) + leading_zeroes instead.
         </span><span class="kw">if </span><span class="macro">cfg!</span>(target_arch = <span class="string">&quot;arm&quot;</span>) &amp;&amp; BITMASK_STRIDE % <span class="number">8 </span>== <span class="number">0 </span>{
-            <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#79">self</a>.<span class="number">0</span>.swap_bytes().leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a>
+            <a class="self" href="#79">self</a>.<span class="number">0</span>.swap_bytes().leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#79">self</a>.<span class="number">0</span>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a>
+            <a class="self" href="#79">self</a>.<span class="number">0</span>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
         }
     }
 
     <span class="doccomment">/// Returns the number of leading zeroes in the `BitMask`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>leading_zeros(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#94">self</a>.<span class="number">0</span>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="../../../src/hashbrown/raw/sse2.rs.html#11">BITMASK_STRIDE</a>
+        <a class="self" href="#94">self</a>.<span class="number">0</span>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a href="sse2.rs.html#11">BITMASK_STRIDE</a>
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><a href="#17">BitMask</a> {
     <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">type </span>IntoIter = <a href="../../../src/hashbrown/raw/bitmask.rs.html#111">BitMaskIter</a>;
+    <span class="kw">type </span>IntoIter = <a href="#111">BitMaskIter</a>;
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <a href="../../../src/hashbrown/raw/bitmask.rs.html#111">BitMaskIter</a> {
-        <a href="../../../src/hashbrown/raw/bitmask.rs.html#111">BitMaskIter</a>(<a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#104">self</a>)
+    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <a href="#111">BitMaskIter</a> {
+        <a href="#111">BitMaskIter</a>(<a class="self" href="#104">self</a>)
     }
 }
 
 <span class="doccomment">/// Iterator over the contents of a `BitMask`, returning the indices of set
 /// bits.
-</span><span class="kw">pub struct </span>BitMaskIter(<a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a>);
+</span><span class="kw">pub struct </span>BitMaskIter(<a href="#17">BitMask</a>);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="../../../src/hashbrown/raw/bitmask.rs.html#111">BitMaskIter</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="#111">BitMaskIter</a> {
     <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">let </span>bit = <span class="self">self</span>.<span class="number">0</span>.lowest_set_bit()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#117">self</a>.<span class="number">0 </span>= <a class="self" href="../../../src/hashbrown/raw/bitmask.rs.html#117">self</a>.<span class="number">0</span>.<a href="../../../src/hashbrown/raw/bitmask.rs.html#45">remove_lowest_bit</a>();
-        <span class="prelude-val">Some</span>(<a href="../../../src/hashbrown/raw/bitmask.rs.html#118">bit</a>)
+        <a class="self" href="#117">self</a>.<span class="number">0 </span>= <a class="self" href="#117">self</a>.<span class="number">0</span>.<a href="#45">remove_lowest_bit</a>();
+        <span class="prelude-val">Some</span>(<a href="#118">bit</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

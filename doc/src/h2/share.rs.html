@@ -586,9 +586,9 @@
 <span id="586">586</span>
 <span id="587">587</span>
 <span id="588">588</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/h2/codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use </span><a href="../../src/h2/frame/reason.rs.html#19"><span class="kw">crate</span>::frame::Reason</a>;
-<span class="kw">use </span><span class="kw">crate</span>::proto::{<a class="self" href="../../src/h2/lib.rs.html#109">self</a>, <a href="../../src/h2/proto/mod.rs.html#30">WindowSize</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
+<span class="kw">use </span><a href="frame/reason.rs.html#19"><span class="kw">crate</span>::frame::Reason</a>;
+<span class="kw">use </span><span class="kw">crate</span>::proto::{<a class="self" href="lib.rs.html#109">self</a>, <a href="proto/mod.rs.html#30">WindowSize</a>};
 
 <span class="kw">use </span>bytes::{<a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>};
 <span class="kw">use </span><a href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>;
@@ -718,7 +718,7 @@
 /// [`Stream`]: https://docs.rs/futures/0.1/futures/stream/trait.Stream.html
 </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
 </span><span class="kw">pub struct </span>RecvStream {
-    inner: <a href="../../src/h2/share.rs.html#189">FlowControl</a>,
+    inner: <a href="#189">FlowControl</a>,
 }
 
 <span class="doccomment">/// A handle to release window capacity to a remote stream.
@@ -775,13 +775,13 @@
 /// [`release_capacity`]: struct.FlowControl.html#method.release_capacity
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>FlowControl {
-    inner: <a href="../../src/h2/proto/streams/streams.rs.html#59">proto::OpaqueStreamRef</a>,
+    inner: <a href="proto/streams/streams.rs.html#59">proto::OpaqueStreamRef</a>,
 }
 
 <span class="doccomment">/// A handle to send and receive PING frames with the peer.
 </span><span class="comment">// NOT Clone on purpose
 </span><span class="kw">pub struct </span>PingPong {
-    inner: <a href="../../src/h2/proto/ping_pong.rs.html#22">proto::UserPings</a>,
+    inner: <a href="proto/ping_pong.rs.html#22">proto::UserPings</a>,
 }
 
 <span class="doccomment">/// Sent via [`PingPong`][] to send a PING frame to a peer.
@@ -803,7 +803,7 @@
 
 </span><span class="kw">impl</span>&lt;B: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt; SendStream&lt;B&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: proto::StreamRef&lt;B&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../src/h2/share.rs.html#97">SendStream</a> { <a href="../../src/h2/share.rs.html#217">inner</a> }
+        <a href="#97">SendStream</a> { <a href="#217">inner</a> }
     }
 
     <span class="doccomment">/// Requests capacity to send data.
@@ -866,7 +866,7 @@
     /// of how send flow control works.
     </span><span class="kw">pub fn </span>reserve_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="comment">// TODO: Check for overflow
-        </span><a class="self" href="../../src/h2/share.rs.html#279">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1184">reserve_capacity</a>(<a href="../../src/h2/share.rs.html#279">capacity</a> <span class="kw">as </span><a href="../../src/h2/proto/mod.rs.html#30">WindowSize</a>)
+        </span><a class="self" href="#279">self</a>.inner.<a href="proto/streams/streams.rs.html#1184">reserve_capacity</a>(<a href="#279">capacity</a> <span class="kw">as </span><a href="proto/mod.rs.html#30">WindowSize</a>)
     }
 
     <span class="doccomment">/// Returns the stream&#39;s current send capacity.
@@ -874,7 +874,7 @@
     /// This allows the caller to check the current amount of available capacity
     /// before sending data.
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/h2/share.rs.html#288">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1196">capacity</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <a class="self" href="#288">self</a>.inner.<a href="proto/streams/streams.rs.html#1196">capacity</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="doccomment">/// Requests to be notified when the stream&#39;s capacity increases.
@@ -891,10 +891,10 @@
     /// amount of assigned capacity at that point in time. It is also possible
     /// that `n` is lower than the previous call if, since then, the caller has
     /// sent data.
-    </span><span class="kw">pub fn </span>poll_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt; {
-        <a class="self" href="../../src/h2/share.rs.html#306">self</a>.inner
-            .<a href="../../src/h2/proto/streams/streams.rs.html#1206">poll_capacity</a>(<a href="../../src/h2/share.rs.html#306">cx</a>)
-            .map_ok(|w| <a href="../../src/h2/share.rs.html#309">w</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><span class="kw">pub fn </span>poll_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt; {
+        <a class="self" href="#306">self</a>.inner
+            .<a href="proto/streams/streams.rs.html#1206">poll_capacity</a>(<a href="#306">cx</a>)
+            .map_ok(|w| <a href="#309">w</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
             .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 
@@ -913,9 +913,9 @@
     /// amounts of data being buffered in memory.
     ///
     /// [`Error`]: struct.Error.html
-    </span><span class="kw">pub fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: B, end_of_stream: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="../../src/h2/share.rs.html#328">self</a>.inner
-            .<a href="../../src/h2/proto/streams/streams.rs.html#1026-1028">send_data</a>(<a href="../../src/h2/share.rs.html#328">data</a>, <a href="../../src/h2/share.rs.html#328">end_of_stream</a>)
+    </span><span class="kw">pub fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: B, end_of_stream: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+        <a class="self" href="#328">self</a>.inner
+            .<a href="proto/streams/streams.rs.html#1026-1028">send_data</a>(<a href="#328">data</a>, <a href="#328">end_of_stream</a>)
             .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 
@@ -923,8 +923,8 @@
     ///
     /// Sending trailers implicitly closes the send stream. Once the send stream
     /// is closed, no more data can be sent.
-    </span><span class="kw">pub fn </span>send_trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trailers: <a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
-        <a class="self" href="../../src/h2/share.rs.html#338">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1050">send_trailers</a>(<a href="../../src/h2/share.rs.html#338">trailers</a>).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+    </span><span class="kw">pub fn </span>send_trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trailers: <a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+        <a class="self" href="#338">self</a>.inner.<a href="proto/streams/streams.rs.html#1050">send_trailers</a>(<a href="#338">trailers</a>).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 
     <span class="doccomment">/// Resets the stream.
@@ -934,8 +934,8 @@
     /// [`Error`] to reflect the canceled exchange.
     ///
     /// [`Error`]: struct.Error.html
-    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="../../src/h2/frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="../../src/h2/share.rs.html#349">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1070">send_reset</a>(<a href="../../src/h2/share.rs.html#349">reason</a>)
+    </span><span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <a href="frame/reason.rs.html#19">Reason</a>) {
+        <a class="self" href="#349">self</a>.inner.<a href="proto/streams/streams.rs.html#1070">send_reset</a>(<a href="#349">reason</a>)
     }
 
     <span class="doccomment">/// Polls to be notified when the client resets this stream.
@@ -950,8 +950,8 @@
     ///
     /// If connection sees an error, this returns that error instead of a
     /// `Reason`.
-    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../src/h2/frame/reason.rs.html#19">Reason</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="../../src/h2/share.rs.html#365">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1216-1220">poll_reset</a>(<a href="../../src/h2/share.rs.html#365">cx</a>, <a href="../../src/h2/proto/streams/send.rs.html#47">proto::PollReset::Streaming</a>)
+    </span><span class="kw">pub fn </span>poll_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="frame/reason.rs.html#19">Reason</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <a class="self" href="#365">self</a>.inner.<a href="proto/streams/streams.rs.html#1216-1220">poll_reset</a>(<a href="#365">cx</a>, <a href="proto/streams/send.rs.html#47">proto::PollReset::Streaming</a>)
     }
 
     <span class="doccomment">/// Returns the stream ID of this `SendStream`.
@@ -959,48 +959,48 @@
     /// # Panics
     ///
     /// If the lock on the stream store has been poisoned.
-    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/h2/share.rs.html#112">StreamId</a> {
-        StreamId::from_internal(<a class="self" href="../../src/h2/share.rs.html#374">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1239">stream_id</a>())
+    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#112">StreamId</a> {
+        StreamId::from_internal(<a class="self" href="#374">self</a>.inner.<a href="proto/streams/streams.rs.html#1239">stream_id</a>())
     }
 }
 
 <span class="comment">// ===== impl StreamId =====
 
-</span><span class="kw">impl </span><a href="../../src/h2/share.rs.html#112">StreamId</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_internal(id: <a href="../../src/h2/frame/stream_id.rs.html#14"><span class="kw">crate</span>::frame::StreamId</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/h2/share.rs.html#112">StreamId</a>(<a href="../../src/h2/share.rs.html#382">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+</span><span class="kw">impl </span><a href="#112">StreamId</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_internal(id: <a href="frame/stream_id.rs.html#14"><span class="kw">crate</span>::frame::StreamId</a>) -&gt; <span class="self">Self </span>{
+        <a href="#112">StreamId</a>(<a href="#382">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 <span class="comment">// ===== impl RecvStream =====
 
-</span><span class="kw">impl </span><a href="../../src/h2/share.rs.html#132">RecvStream</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="../../src/h2/share.rs.html#189">FlowControl</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/h2/share.rs.html#132">RecvStream</a> { <a href="../../src/h2/share.rs.html#389">inner</a> }
+</span><span class="kw">impl </span><a href="#132">RecvStream</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="#189">FlowControl</a>) -&gt; <span class="self">Self </span>{
+        <a href="#132">RecvStream</a> { <a href="#389">inner</a> }
     }
 
     <span class="doccomment">/// Get the next data frame.
-    </span><span class="kw">pub async fn </span>data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+    </span><span class="kw">pub async fn </span>data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
         futures_util::future::poll_fn(<span class="kw">move </span>|cx| <span class="self">self</span>.poll_data(cx)).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Get optional trailers for this stream.
-    </span><span class="kw">pub async fn </span>trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+    </span><span class="kw">pub async fn </span>trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
         futures_util::future::poll_fn(<span class="kw">move </span>|cx| <span class="self">self</span>.poll_trailers(cx)).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Poll for the next data frame.
-    </span><span class="kw">pub fn </span>poll_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt; {
-        <a class="self" href="../../src/h2/share.rs.html#404">self</a>.inner.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1301">poll_data</a>(<a href="../../src/h2/share.rs.html#404">cx</a>).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+    </span><span class="kw">pub fn </span>poll_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt;&gt; {
+        <a class="self" href="#404">self</a>.inner.inner.<a href="proto/streams/streams.rs.html#1301">poll_data</a>(<a href="#404">cx</a>).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 
     <span class="attribute">#[doc(hidden)]
     </span><span class="kw">pub fn </span>poll_trailers(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
-    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <span class="kw">match </span><a class="macro" href="../../src/h2/lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.inner.inner.poll_trailers(cx)) {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(map)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/h2/share.rs.html#414">map</a>))),
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/h2/share.rs.html#415">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <span class="kw">match </span><a class="macro" href="lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.inner.inner.poll_trailers(cx)) {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(map)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#414">map</a>))),
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#415">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
             <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
         }
     }
@@ -1010,14 +1010,14 @@
     /// A return value of `true` means that calls to `poll` and `poll_trailers`
     /// will both return `None`.
     </span><span class="kw">pub fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/h2/share.rs.html#424">self</a>.inner.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1292">is_end_stream</a>()
+        <a class="self" href="#424">self</a>.inner.inner.<a href="proto/streams/streams.rs.html#1292">is_end_stream</a>()
     }
 
     <span class="doccomment">/// Get a mutable reference to this stream&#39;s `FlowControl`.
     ///
     /// It can be used immediately, or cloned to be used later.
-    </span><span class="kw">pub fn </span>flow_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/h2/share.rs.html#189">FlowControl</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/h2/share.rs.html#431">self</a>.inner
+    </span><span class="kw">pub fn </span>flow_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="#189">FlowControl</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="#431">self</a>.inner
     }
 
     <span class="doccomment">/// Returns the stream ID of this stream.
@@ -1025,8 +1025,8 @@
     /// # Panics
     ///
     /// If the lock on the stream store has been poisoned.
-    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/h2/share.rs.html#112">StreamId</a> {
-        <a class="self" href="../../src/h2/share.rs.html#440">self</a>.inner.<a href="../../src/h2/share.rs.html#482">stream_id</a>()
+    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#112">StreamId</a> {
+        <a class="self" href="#440">self</a>.inner.<a href="#482">stream_id</a>()
     }
 }
 
@@ -1039,48 +1039,48 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/h2/share.rs.html#132">RecvStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#132">RecvStream</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/h2/share.rs.html#455">fmt</a>.debug_struct(<span class="string">&quot;RecvStream&quot;</span>)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/h2/share.rs.html#455">self</a>.inner)
+        <a href="#455">fmt</a>.debug_struct(<span class="string">&quot;RecvStream&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#455">self</a>.inner)
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/h2/share.rs.html#132">RecvStream</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#132">RecvStream</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Eagerly clear any received DATA frames now, since its no longer
         // possible to retrieve them. However, this will be called
         // again once *all* stream refs have been dropped, since
         // this won&#39;t send a RST_STREAM frame, in case the user wishes to
         // still *send* DATA.
-        </span><a class="self" href="../../src/h2/share.rs.html#463">self</a>.inner.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1348">clear_recv_buffer</a>();
+        </span><a class="self" href="#463">self</a>.inner.inner.<a href="proto/streams/streams.rs.html#1348">clear_recv_buffer</a>();
     }
 }
 
 <span class="comment">// ===== impl FlowControl =====
 
-</span><span class="kw">impl </span><a href="../../src/h2/share.rs.html#189">FlowControl</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="../../src/h2/proto/streams/streams.rs.html#59">proto::OpaqueStreamRef</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/h2/share.rs.html#189">FlowControl</a> { <a href="../../src/h2/share.rs.html#476">inner</a> }
+</span><span class="kw">impl </span><a href="#189">FlowControl</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="proto/streams/streams.rs.html#59">proto::OpaqueStreamRef</a>) -&gt; <span class="self">Self </span>{
+        <a href="#189">FlowControl</a> { <a href="#476">inner</a> }
     }
 
     <span class="doccomment">/// Returns the stream ID of the stream whose capacity will
     /// be released by this `FlowControl`.
-    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/h2/share.rs.html#112">StreamId</a> {
-        StreamId::from_internal(<a class="self" href="../../src/h2/share.rs.html#482">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1357">stream_id</a>())
+    </span><span class="kw">pub fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#112">StreamId</a> {
+        StreamId::from_internal(<a class="self" href="#482">self</a>.inner.<a href="proto/streams/streams.rs.html#1357">stream_id</a>())
     }
 
     <span class="doccomment">/// Get the current available capacity of data this stream *could* receive.
     </span><span class="kw">pub fn </span>available_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
-        <a class="self" href="../../src/h2/share.rs.html#487">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1319">available_recv_capacity</a>()
+        <a class="self" href="#487">self</a>.inner.<a href="proto/streams/streams.rs.html#1319">available_recv_capacity</a>()
     }
 
     <span class="doccomment">/// Get the currently *used* capacity for this stream.
     ///
     /// This is the amount of bytes that can be released back to the remote.
     </span><span class="kw">pub fn </span>used_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/h2/share.rs.html#494">self</a>.inner.<a href="../../src/h2/proto/streams/streams.rs.html#1327">used_recv_capacity</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <a class="self" href="#494">self</a>.inner.<a href="proto/streams/streams.rs.html#1327">used_recv_capacity</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="doccomment">/// Release window capacity back to remote stream.
@@ -1099,80 +1099,80 @@
     /// can be released.
     ///
     /// [struct level]: #
-    </span><span class="kw">pub fn </span>release_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+    </span><span class="kw">pub fn </span>release_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
         <span class="kw">if </span>sz &gt; proto::MAX_WINDOW_SIZE <span class="kw">as </span>usize {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/h2/codec/error.rs.html#28">UserError::ReleaseCapacityTooBig</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="codec/error.rs.html#28">UserError::ReleaseCapacityTooBig</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
-        <a class="self" href="../../src/h2/share.rs.html#514">self</a>.inner
-            .<a href="../../src/h2/proto/streams/streams.rs.html#1337">release_capacity</a>(<a href="../../src/h2/share.rs.html#514">sz</a> <span class="kw">as </span><a href="../../src/h2/proto/mod.rs.html#30">proto::WindowSize</a>)
+        <a class="self" href="#514">self</a>.inner
+            .<a href="proto/streams/streams.rs.html#1337">release_capacity</a>(<a href="#514">sz</a> <span class="kw">as </span><a href="proto/mod.rs.html#30">proto::WindowSize</a>)
             .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 }
 
 <span class="comment">// ===== impl PingPong =====
 
-</span><span class="kw">impl </span><a href="../../src/h2/share.rs.html#195">PingPong</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="../../src/h2/proto/ping_pong.rs.html#22">proto::UserPings</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/h2/share.rs.html#195">PingPong</a> { <a href="../../src/h2/share.rs.html#527">inner</a> }
+</span><span class="kw">impl </span><a href="#195">PingPong</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="proto/ping_pong.rs.html#22">proto::UserPings</a>) -&gt; <span class="self">Self </span>{
+        <a href="#195">PingPong</a> { <a href="#527">inner</a> }
     }
 
     <span class="doccomment">/// Send a PING frame and wait for the peer to send the pong.
-    </span><span class="kw">pub async fn </span>ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: <a href="../../src/h2/share.rs.html#202">Ping</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/h2/share.rs.html#210">Pong</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+    </span><span class="kw">pub async fn </span>ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: <a href="#202">Ping</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#210">Pong</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
         <span class="self">self</span>.send_ping(ping)<span class="question-mark">?</span>;
         futures_util::future::poll_fn(|cx| <span class="self">self</span>.poll_pong(cx)).<span class="kw">await
     </span>}
 
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>send_ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: <a href="../../src/h2/share.rs.html#202">Ping</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
+    </span><span class="kw">pub fn </span>send_ping(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ping: <a href="#202">Ping</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt; {
         <span class="comment">// Passing a `Ping` here is just to be forwards-compatible with
         // eventually allowing choosing a ping payload. For now, we can
         // just drop it.
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/h2/share.rs.html#538">ping</a>);
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#538">ping</a>);
 
-        <a class="self" href="../../src/h2/share.rs.html#538">self</a>.inner.<a href="../../src/h2/proto/ping_pong.rs.html#213">send_ping</a>().map_err(|err| <span class="kw">match </span><a href="../../src/h2/share.rs.html#544">err</a> {
-            <span class="prelude-val">Some</span>(err) =&gt; <a href="../../src/h2/share.rs.html#545">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <span class="prelude-val">None </span>=&gt; <a href="../../src/h2/codec/error.rs.html#45">UserError::SendPingWhilePending</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <a class="self" href="#538">self</a>.inner.<a href="proto/ping_pong.rs.html#213">send_ping</a>().map_err(|err| <span class="kw">match </span><a href="#544">err</a> {
+            <span class="prelude-val">Some</span>(err) =&gt; <a href="#545">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="prelude-val">None </span>=&gt; <a href="codec/error.rs.html#45">UserError::SendPingWhilePending</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         })
     }
 
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>poll_pong(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../src/h2/share.rs.html#210">Pong</a>, <a href="../../src/h2/error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_pong(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="#210">Pong</a>, <a href="error.rs.html#21"><span class="kw">crate</span>::Error</a>&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.inner.poll_pong(cx))<span class="question-mark">?</span>;
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/h2/share.rs.html#210">Pong</a> { _p: () }))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#210">Pong</a> { _p: () }))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/h2/share.rs.html#195">PingPong</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#195">PingPong</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/h2/share.rs.html#558">fmt</a>.debug_struct(<span class="string">&quot;PingPong&quot;</span>).finish()
+        <a href="#558">fmt</a>.debug_struct(<span class="string">&quot;PingPong&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Ping =====
 
-</span><span class="kw">impl </span><a href="../../src/h2/share.rs.html#202">Ping</a> {
+</span><span class="kw">impl </span><a href="#202">Ping</a> {
     <span class="doccomment">/// Creates a new opaque `Ping` to be sent via a [`PingPong`][].
     ///
     /// The payload is &quot;opaque&quot;, such that it shouldn&#39;t be depended on.
     ///
     /// [`PingPong`]: struct.PingPong.html
-    </span><span class="kw">pub fn </span>opaque() -&gt; <a href="../../src/h2/share.rs.html#202">Ping</a> {
-        <a href="../../src/h2/share.rs.html#202">Ping</a> { _p: () }
+    </span><span class="kw">pub fn </span>opaque() -&gt; <a href="#202">Ping</a> {
+        <a href="#202">Ping</a> { _p: () }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/h2/share.rs.html#202">Ping</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#202">Ping</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/h2/share.rs.html#577">fmt</a>.debug_struct(<span class="string">&quot;Ping&quot;</span>).finish()
+        <a href="#577">fmt</a>.debug_struct(<span class="string">&quot;Ping&quot;</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Pong =====
 
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/h2/share.rs.html#210">Pong</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#210">Pong</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/h2/share.rs.html#585">fmt</a>.debug_struct(<span class="string">&quot;Pong&quot;</span>).finish()
+        <a href="#585">fmt</a>.debug_struct(<span class="string">&quot;Pong&quot;</span>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -128,8 +128,8 @@
 <span class="kw">use </span>core::sync::atomic::Ordering::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">self</a>, Relaxed, SeqCst};
 <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>};
 
-<span class="kw">use </span><a href="../../../../src/futures_util/stream/futures_unordered/abort.rs.html#1"><span class="kw">super</span>::abort::abort</a>;
-<span class="kw">use </span><a href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#17"><span class="kw">super</span>::ReadyToRunQueue</a>;
+<span class="kw">use </span><a href="abort.rs.html#1"><span class="kw">super</span>::abort::abort</a>;
+<span class="kw">use </span><a href="ready_to_run_queue.rs.html#17"><span class="kw">super</span>::ReadyToRunQueue</a>;
 <span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>, <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>, <a href="../../../../futures_util/task/struct.WakerRef.html">WakerRef</a>};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Task&lt;Fut&gt; {
@@ -173,12 +173,12 @@
 
 <span class="kw">impl</span>&lt;Fut&gt; <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for </span>Task&lt;Fut&gt; {
     <span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#50">arc_self</a>.ready_to_run_queue.upgrade() {
-            <span class="prelude-val">Some</span>(inner) =&gt; <a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#52">inner</a>,
+        <span class="kw">let </span>inner = <span class="kw">match </span><a href="#50">arc_self</a>.ready_to_run_queue.upgrade() {
+            <span class="prelude-val">Some</span>(inner) =&gt; <a href="#52">inner</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
-        <a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#50">arc_self</a>.woken.store(<span class="bool-val">true</span>, Relaxed);
+        <a href="#50">arc_self</a>.woken.store(<span class="bool-val">true</span>, Relaxed);
 
         <span class="comment">// It&#39;s our job to enqueue this task it into the ready to run queue. To
         // do this we set the `queued` flag, and if successful we then do the
@@ -192,10 +192,10 @@
         // implementation guarantees that if we set the `queued` flag that
         // there&#39;s a reference count held by the main `FuturesUnordered` queue
         // still.
-        </span><span class="kw">let </span>prev = <a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#50">arc_self</a>.queued.swap(<span class="bool-val">true</span>, SeqCst);
+        </span><span class="kw">let </span>prev = <a href="#50">arc_self</a>.queued.swap(<span class="bool-val">true</span>, SeqCst);
         <span class="kw">if </span>!prev {
-            <a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#51">inner</a>.<a href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#31">enqueue</a>(Arc::as_ptr(<a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#50">arc_self</a>));
-            <a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#51">inner</a>.waker.wake();
+            <a href="#51">inner</a>.<a href="ready_to_run_queue.rs.html#31">enqueue</a>(Arc::as_ptr(<a href="#50">arc_self</a>));
+            <a href="#51">inner</a>.waker.wake();
         }
     }
 }
@@ -203,7 +203,7 @@
 <span class="kw">impl</span>&lt;Fut&gt; Task&lt;Fut&gt; {
     <span class="doccomment">/// Returns a waker reference for this task without cloning the Arc.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_ref(this: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; WakerRef&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>(<a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#80">this</a>)
+        <a href="../../../../futures_util/task/fn.waker_ref.html">waker_ref</a>(<a href="#80">this</a>)
     }
 
     <span class="doccomment">/// Spins until `next_all` is no longer set to `pending_next_all`.
@@ -223,9 +223,9 @@
         ordering: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
     ) -&gt; <span class="kw-2">*const </span><span class="self">Self </span>{
         <span class="kw">loop </span>{
-            <span class="kw">let </span>next = <a class="self" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#96">self</a>.next_all.load(<a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#98">ordering</a>);
+            <span class="kw">let </span>next = <a class="self" href="#96">self</a>.next_all.load(<a href="#98">ordering</a>);
             <span class="kw">if </span>next != pending_next_all {
-                <span class="kw">return </span><a href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#101">next</a>;
+                <span class="kw">return </span><a href="#101">next</a>;
             }
         }
     }
@@ -243,10 +243,10 @@
         // a bug in that logic.
         </span><span class="kw">unsafe </span>{
             <span class="kw">if </span>(<span class="kw-2">*</span><span class="self">self</span>.future.get()).is_some() {
-                <a href="../../../../src/futures_util/stream/futures_unordered/abort.rs.html#1">abort</a>(<span class="string">&quot;future still here when dropping&quot;</span>);
+                <a href="abort.rs.html#1">abort</a>(<span class="string">&quot;future still here when dropping&quot;</span>);
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -198,10 +198,10 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
-</pre><pre class="rust"><code><span class="kw">mod </span><a href="../../../../src/h2/hpack/huffman/table.rs.html#4-5130">table</a>;
+</pre><pre class="rust"><code><span class="kw">mod </span><a href="table.rs.html#4-5130">table</a>;
 
-<span class="kw">use </span><span class="self">self</span>::table::{<a href="../../../../src/h2/hpack/huffman/table.rs.html#265">DECODE_TABLE</a>, <a href="../../../../src/h2/hpack/huffman/table.rs.html#4">ENCODE_TABLE</a>};
-<span class="kw">use </span><a href="../../../../src/h2/hpack/decoder.rs.html#27"><span class="kw">crate</span>::hpack::DecoderError</a>;
+<span class="kw">use </span><span class="self">self</span>::table::{<a href="table.rs.html#265">DECODE_TABLE</a>, <a href="table.rs.html#4">ENCODE_TABLE</a>};
+<span class="kw">use </span><a href="../decoder.rs.html#27"><span class="kw">crate</span>::hpack::DecoderError</a>;
 
 <span class="kw">use </span>bytes::{<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
 
@@ -217,11 +217,11 @@
 <span class="kw">const </span>DECODED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">2</span>;
 <span class="kw">const </span>ERROR: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">4</span>;
 
-<span class="kw">pub fn </span>decode(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;mut </span><a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>, <a href="../../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+<span class="kw">pub fn </span>decode(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;mut </span><a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>, <a href="../decoder.rs.html#27">DecoderError</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>decoder = Decoder::new();
 
     <span class="comment">// Max compression ratio is &gt;= 0.5
-    </span><a href="../../../../src/h2/hpack/huffman/mod.rs.html#20">buf</a>.reserve(<a href="../../../../src/h2/hpack/huffman/mod.rs.html#20">src</a>.len() &lt;&lt; <span class="number">1</span>);
+    </span><a href="#20">buf</a>.reserve(<a href="#20">src</a>.len() &lt;&lt; <span class="number">1</span>);
 
     <span class="kw">for </span>b <span class="kw">in </span>src {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = decoder.decode4(b &gt;&gt; <span class="number">4</span>)<span class="question-mark">? </span>{
@@ -234,10 +234,10 @@
     }
 
     <span class="kw">if </span>!decoder.is_final() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/h2/hpack/decoder.rs.html#31">DecoderError::InvalidHuffmanCode</a>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../decoder.rs.html#31">DecoderError::InvalidHuffmanCode</a>);
     }
 
-    <span class="prelude-val">Ok</span>(<a href="../../../../src/h2/hpack/huffman/mod.rs.html#20">buf</a>.split())
+    <span class="prelude-val">Ok</span>(<a href="#20">buf</a>.split())
 }
 
 <span class="kw">pub fn </span>encode(src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], dst: <span class="kw-2">&amp;mut </span><a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) {
@@ -260,43 +260,43 @@
 
     <span class="kw">if </span>bits_left != <span class="number">40 </span>{
         <span class="comment">// This writes the EOS token
-        </span><a href="../../../../src/h2/hpack/huffman/mod.rs.html#44">bits</a> |= (<span class="number">1 </span>&lt;&lt; <a href="../../../../src/h2/hpack/huffman/mod.rs.html#45">bits_left</a>) - <span class="number">1</span>;
-        <a href="../../../../src/h2/hpack/huffman/mod.rs.html#43">dst</a>.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>((<a href="../../../../src/h2/hpack/huffman/mod.rs.html#44">bits</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+        </span><a href="#44">bits</a> |= (<span class="number">1 </span>&lt;&lt; <a href="#45">bits_left</a>) - <span class="number">1</span>;
+        <a href="#43">dst</a>.<a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">put_u8</a>((<a href="#44">bits</a> &gt;&gt; <span class="number">32</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/h2/hpack/huffman/mod.rs.html#9">Decoder</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="../../../../src/h2/hpack/huffman/mod.rs.html#9">Decoder</a> {
-        <a href="../../../../src/h2/hpack/huffman/mod.rs.html#9">Decoder</a> {
+<span class="kw">impl </span><a href="#9">Decoder</a> {
+    <span class="kw">fn </span>new() -&gt; <a href="#9">Decoder</a> {
+        <a href="#9">Decoder</a> {
             state: <span class="number">0</span>,
             maybe_eos: <span class="bool-val">false</span>,
         }
     }
 
     <span class="comment">// Decodes 4 bits
-    </span><span class="kw">fn </span>decode4(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+    </span><span class="kw">fn </span>decode4(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../decoder.rs.html#27">DecoderError</a>&gt; {
         <span class="comment">// (next-state, byte, flags)
-        </span><span class="kw">let </span>(next, byte, flags) = <a href="../../../../src/h2/hpack/huffman/table.rs.html#265">DECODE_TABLE</a>[<a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#77">self</a>.state][<a href="../../../../src/h2/hpack/huffman/mod.rs.html#77">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+        </span><span class="kw">let </span>(next, byte, flags) = <a href="table.rs.html#265">DECODE_TABLE</a>[<a class="self" href="#77">self</a>.state][<a href="#77">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
 
         <span class="kw">if </span>flags &amp; ERROR == ERROR {
             <span class="comment">// Data followed the EOS marker
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/h2/hpack/decoder.rs.html#31">DecoderError::InvalidHuffmanCode</a>);
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../decoder.rs.html#31">DecoderError::InvalidHuffmanCode</a>);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="prelude-val">None</span>;
 
         <span class="kw">if </span>flags &amp; DECODED == DECODED {
-            <a href="../../../../src/h2/hpack/huffman/mod.rs.html#86">ret</a> = <span class="prelude-val">Some</span>(<a href="../../../../src/h2/hpack/huffman/mod.rs.html#79">byte</a>);
+            <a href="#86">ret</a> = <span class="prelude-val">Some</span>(<a href="#79">byte</a>);
         }
 
-        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#77">self</a>.state = <a href="../../../../src/h2/hpack/huffman/mod.rs.html#79">next</a>;
-        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#77">self</a>.maybe_eos = <a href="../../../../src/h2/hpack/huffman/mod.rs.html#79">flags</a> &amp; <a href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a> == <a href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a>;
+        <a class="self" href="#77">self</a>.state = <a href="#79">next</a>;
+        <a class="self" href="#77">self</a>.maybe_eos = <a href="#79">flags</a> &amp; <a href="#16">MAYBE_EOS</a> == <a href="#16">MAYBE_EOS</a>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/h2/hpack/huffman/mod.rs.html#86">ret</a>)
+        <span class="prelude-val">Ok</span>(<a href="#86">ret</a>)
     }
 
     <span class="kw">fn </span>is_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#98">self</a>.state == <span class="number">0 </span>|| <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#98">self</a>.maybe_eos
+        <a class="self" href="#98">self</a>.state == <span class="number">0 </span>|| <a class="self" href="#98">self</a>.maybe_eos
     }
 }
 
@@ -399,4 +399,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

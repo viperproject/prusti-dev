@@ -267,39 +267,39 @@
 </span><span class="kw">use </span>vir::polymorphic::{<span class="self"><a href="../../../../../prusti_common/vir/polymorphic_vir/index.html">self</a> </span><span class="kw">as </span>vir_poly, <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">StmtFolder</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">StmtWalker</a>};
 
 <span class="kw">pub fn </span>uses_bit_operations(program: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Program.html">vir_poly::Program</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#13">Checker</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="#13">Checker</a> {
         uses_bit_operations: <span class="bool-val">false</span>,
     };
-    <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_methods.html">vir_poly::walk_methods</a>(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#5">program</a>.methods, <span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#6">checker</a>);
-    <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#6">checker</a>.uses_bit_operations
+    <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_methods.html">vir_poly::walk_methods</a>(<span class="kw-2">&amp;</span><a href="#5">program</a>.methods, <span class="kw-2">&amp;mut </span><a href="#6">checker</a>);
+    <a href="#6">checker</a>.uses_bit_operations
 }
 
 <span class="kw">struct </span>Checker {
     uses_bit_operations: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#13">Checker</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#13">Checker</a> {
     <span class="kw">fn </span>walk_bin_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir_poly::BinOp</a>) {
         <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.BinaryOpKind.html">vir_poly::BinaryOpKind</a>::<span class="kw-2">*</span>;
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
             expr.op_kind,
             BitAnd | BitOr | BitXor | Shl | LShr | AShr | Min | Max
         ) {
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#18">self</a>.uses_bit_operations = <span class="bool-val">true</span>;
+            <a class="self" href="#18">self</a>.uses_bit_operations = <span class="bool-val">true</span>;
         }
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#18">self</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#18">expr</a>.left);
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#18">self</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#18">expr</a>.right);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#18">self</a>, <span class="kw-2">&amp;</span><a href="#18">expr</a>.left);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#18">self</a>, <span class="kw-2">&amp;</span><a href="#18">expr</a>.right);
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#13">Checker</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#13">Checker</a> {
     <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>) {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#32">self</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#32">expr</a>)
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#32">self</a>, <a href="#32">expr</a>)
     }
 }
 
 <span class="kw">pub fn </span>replace_all_ints(program: <span class="kw-2">&amp;mut </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Program.html">vir_poly::Program</a>) {
-    <span class="kw">let </span><span class="kw-2">mut </span>replacer = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#94">Replacer</a> { captured_bv: <span class="prelude-val">None </span>};
+    <span class="kw">let </span><span class="kw-2">mut </span>replacer = <a href="#94">Replacer</a> { captured_bv: <span class="prelude-val">None </span>};
     <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = vir_poly::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
     <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;mut </span>program.methods {
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>method.basic_blocks {
@@ -359,10 +359,10 @@
     captured_bv: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.BitVector.html">vir_poly::BitVector</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#94">Replacer</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span><a href="#94">Replacer</a> {
     <span class="kw">fn </span>fold_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir_poly::FieldExpr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a> {
-        <span class="kw">if let </span>vir_poly::Type::TypedRef(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.TypedRef.html">vir_poly::TypedRef</a> { label, .. }) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#99">expr</a>.base.get_type() {
-            <span class="kw">let </span>variant = <span class="kw">match </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#100">label</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+        <span class="kw">if let </span>vir_poly::Type::TypedRef(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.TypedRef.html">vir_poly::TypedRef</a> { label, .. }) = <a href="#99">expr</a>.base.get_type() {
+            <span class="kw">let </span>variant = <span class="kw">match </span><a href="#100">label</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                 <span class="string">&quot;u8&quot; </span>=&gt; <span class="prelude-val">Some</span>(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV8)),
                 <span class="string">&quot;u16&quot; </span>=&gt; <span class="prelude-val">Some</span>(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV16)),
                 <span class="string">&quot;u32&quot; </span>=&gt; <span class="prelude-val">Some</span>(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV32)),
@@ -377,26 +377,26 @@
                 <span class="string">&quot;i128&quot; </span>=&gt; <span class="prelude-val">Some</span>(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV128)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             };
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#101">variant</a> {
-                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#99">self</a>.captured_bv = <span class="prelude-val">Some</span>(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#116">variant</a>);
-                <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#99">expr</a>.field = vir_poly::Field::new(
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="#101">variant</a> {
+                <a class="self" href="#99">self</a>.captured_bv = <span class="prelude-val">Some</span>(<a href="#116">variant</a>);
+                <a href="#99">expr</a>.field = vir_poly::Field::new(
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;field_{}&quot;</span>, variant),
-                    vir_poly::Type::BitVector(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#116">variant</a>),
+                    vir_poly::Type::BitVector(<a href="#116">variant</a>),
                 )
             }
         }
-        vir_poly::Expr::Field(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#99">expr</a>)
+        vir_poly::Expr::Field(<a href="#99">expr</a>)
     }
     <span class="kw">fn </span>fold_const(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">vir_poly::ConstExpr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#126">expr</a>.value {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#126">expr</a>.value {
             vir_poly::Const::Int(value) =&gt; {
-                <span class="kw">let </span>value = <span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#128">value</a>;
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(captured_bv) = <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#126">self</a>.captured_bv {
+                <span class="kw">let </span>value = <span class="kw-2">*</span><a href="#128">value</a>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(captured_bv) = <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.captured_bv {
                     <span class="kw">let </span>const_value = <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BitVectorConst.html">vir_poly::BitVectorConst</a> {
-                        value: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#129">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                        typ: <span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#130">captured_bv</a>,
+                        value: <a href="#129">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                        typ: <span class="kw-2">*</span><a href="#130">captured_bv</a>,
                     };
-                    <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#126">expr</a>.value = vir_poly::Const::BitVector(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#131">const_value</a>);
+                    <a href="#126">expr</a>.value = vir_poly::Const::BitVector(<a href="#131">const_value</a>);
                 }
             }
             vir_poly::Const::BigInt(_value) =&gt; {
@@ -415,20 +415,20 @@
             </span>}
             <span class="kw">_ </span>=&gt; {}
         };
-        vir_poly::Expr::Const(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#126">expr</a>)
+        vir_poly::Expr::Const(<a href="#126">expr</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">StmtFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#94">Replacer</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">StmtFolder</a> <span class="kw">for </span><a href="#94">Replacer</a> {
     <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a> {
-        <span class="kw">let </span>expr = <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder::fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#159">self</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#159">expr</a>);
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder::fold</a>(<span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#165">Fixer</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#160">expr</a>)
+        <span class="kw">let </span>expr = <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder::fold</a>(<a class="self" href="#159">self</a>, <a href="#159">expr</a>);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder::fold</a>(<span class="kw-2">&amp;mut </span><a href="#165">Fixer</a>, <a href="#160">expr</a>)
     }
 }
 
 <span class="kw">struct </span>Fixer;
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#165">Fixer</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span><a href="#165">Fixer</a> {
     <span class="kw">fn </span>fold_bin_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir_poly::BinOp</a> {
@@ -438,13 +438,13 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir_poly::BinOp</a>,
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a> {
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a> = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#169">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>);
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a> = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#169">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>);
+        <a href="#172">left</a> = <a class="self" href="#169">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#172">left</a>);
+        <a href="#173">right</a> = <a class="self" href="#169">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#173">right</a>);
         <span class="kw">if </span>op_kind != vir_poly::BinaryOpKind::And {
-            <span class="kw">let </span>left_type = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>.get_type();
-            <span class="kw">let </span>right_type = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>.get_type();
+            <span class="kw">let </span>left_type = <a href="#172">left</a>.get_type();
+            <span class="kw">let </span>right_type = <a href="#173">right</a>.get_type();
             <span class="kw">if </span>left_type != right_type {
-                <span class="kw">match </span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#171">op_kind</a> {
+                <span class="kw">match </span><a href="#171">op_kind</a> {
                     vir_poly::BinaryOpKind::EqCmp
                     | vir_poly::BinaryOpKind::NeCmp
                     | vir_poly::BinaryOpKind::GtCmp
@@ -456,7 +456,7 @@
                     | vir_poly::BinaryOpKind::Mul
                     | vir_poly::BinaryOpKind::Div
                     | vir_poly::BinaryOpKind::Mod =&gt; {
-                        (<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#224-227">ensure_int</a>(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>);
+                        (<a href="#172">left</a>, <a href="#173">right</a>) = <a href="#224-227">ensure_int</a>(<a href="#172">left</a>, <a href="#173">right</a>);
                     }
                     vir_poly::BinaryOpKind::And
                     | vir_poly::BinaryOpKind::Or
@@ -471,16 +471,16 @@
                     | vir_poly::BinaryOpKind::AShr
                     | vir_poly::BinaryOpKind::Min
                     | vir_poly::BinaryOpKind::Max =&gt; {
-                        (<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#245-248">ensure_bitvector</a>(<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>);
+                        (<a href="#172">left</a>, <a href="#173">right</a>) = <a href="#245-248">ensure_bitvector</a>(<a href="#172">left</a>, <a href="#173">right</a>);
                     }
                 }
             }
         }
         vir_poly::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir_poly::BinOp</a> {
-            <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#171">op_kind</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#172">left</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#173">right</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#174">position</a>,
+            <a href="#171">op_kind</a>,
+            <a href="#172">left</a>,
+            <a href="#173">right</a>,
+            <a href="#174">position</a>,
         })
     }
 }
@@ -489,42 +489,42 @@
     <span class="kw-2">mut </span>left: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;,
     <span class="kw-2">mut </span>right: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;,
 ) -&gt; (Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;) {
-    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#225">left</a>.get_type() {
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#225">left</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
-            kind: vir_poly::CastKind::BVIntoInt(<span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#228">size</a>),
-            position: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#225">left</a>.pos(),
-            base: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#225">left</a>,
+    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="#225">left</a>.get_type() {
+        <a href="#225">left</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
+            kind: vir_poly::CastKind::BVIntoInt(<span class="kw-2">*</span><a href="#228">size</a>),
+            position: <a href="#225">left</a>.pos(),
+            base: <a href="#225">left</a>,
         }));
     }
-    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#226">right</a>.get_type() {
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#226">right</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
-            kind: vir_poly::CastKind::BVIntoInt(<span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#235">size</a>),
-            position: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#226">right</a>.pos(),
-            base: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#226">right</a>,
+    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="#226">right</a>.get_type() {
+        <a href="#226">right</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
+            kind: vir_poly::CastKind::BVIntoInt(<span class="kw-2">*</span><a href="#235">size</a>),
+            position: <a href="#226">right</a>.pos(),
+            base: <a href="#226">right</a>,
         }));
     }
-    (<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#225">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#226">right</a>)
+    (<a href="#225">left</a>, <a href="#226">right</a>)
 }
 
 <span class="kw">fn </span>ensure_bitvector(
     <span class="kw-2">mut </span>left: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;,
     <span class="kw-2">mut </span>right: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;,
 ) -&gt; (Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir_poly::Expr</a>&gt;) {
-    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#247">right</a>.get_type() {
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#246">left</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
-            kind: vir_poly::CastKind::IntIntoBV(<span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#249">size</a>),
-            position: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#246">left</a>.pos(),
-            base: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#246">left</a>,
+    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="#247">right</a>.get_type() {
+        <a href="#246">left</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
+            kind: vir_poly::CastKind::IntIntoBV(<span class="kw-2">*</span><a href="#249">size</a>),
+            position: <a href="#246">left</a>.pos(),
+            base: <a href="#246">left</a>,
         }));
     }
-    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#246">left</a>.get_type() {
-        <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#247">right</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
-            kind: vir_poly::CastKind::IntIntoBV(<span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#256">size</a>),
-            position: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#247">right</a>.pos(),
-            base: <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#247">right</a>,
+    <span class="kw">if let </span>vir_poly::Type::BitVector(size) = <a href="#246">left</a>.get_type() {
+        <a href="#247">right</a> = Box::new(vir_poly::Expr::Cast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cast.html">vir_poly::Cast</a> {
+            kind: vir_poly::CastKind::IntIntoBV(<span class="kw-2">*</span><a href="#256">size</a>),
+            position: <a href="#247">right</a>.pos(),
+            base: <a href="#247">right</a>,
         }));
     }
-    (<a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#246">left</a>, <a href="../../../../../src/prusti_common/vir/optimizations/bitvectors/mod.rs.html#247">right</a>)
+    (<a href="#246">left</a>, <a href="#247">right</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

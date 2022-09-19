@@ -125,82 +125,82 @@
 <span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
 <span class="kw">use crate</span>::{
-    error::{<a href="../../../src/tungstenite/error.rs.html#14">Error</a>, <a href="../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>},
-    <a href="../../../src/tungstenite/util.rs.html#37">util::NonBlockingResult</a>,
-    <a href="../../../src/tungstenite/lib.rs.html#27">ReadBuffer</a>,
+    error::{<a href="../error.rs.html#14">Error</a>, <a href="../error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>},
+    <a href="../util.rs.html#37">util::NonBlockingResult</a>,
+    <a href="../lib.rs.html#27">ReadBuffer</a>,
 };
 
 <span class="doccomment">/// A generic handshake state machine.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>HandshakeMachine&lt;Stream&gt; {
     stream: Stream,
-    state: <a href="../../../src/tungstenite/handshake/machine.rs.html#117">HandshakeState</a>,
+    state: <a href="#117">HandshakeState</a>,
 }
 
 <span class="kw">impl</span>&lt;Stream&gt; HandshakeMachine&lt;Stream&gt; {
     <span class="doccomment">/// Start reading data from the peer.
     </span><span class="kw">pub fn </span>start_read(stream: Stream) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> { <a href="../../../src/tungstenite/handshake/machine.rs.html#20">stream</a>, state: <a href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(ReadBuffer::new()) }
+        <a href="#13">HandshakeMachine</a> { <a href="#20">stream</a>, state: <a href="#119">HandshakeState::Reading</a>(ReadBuffer::new()) }
     }
     <span class="doccomment">/// Start writing data to the peer.
     </span><span class="kw">pub fn </span>start_write&lt;D: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;(stream: Stream, data: D) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> { <a href="../../../src/tungstenite/handshake/machine.rs.html#24">stream</a>, state: <a href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(Cursor::new(<a href="../../../src/tungstenite/handshake/machine.rs.html#24">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())) }
+        <a href="#13">HandshakeMachine</a> { <a href="#24">stream</a>, state: <a href="#121">HandshakeState::Writing</a>(Cursor::new(<a href="#24">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())) }
     }
     <span class="doccomment">/// Returns a shared reference to the inner stream.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Stream {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#28">self</a>.stream
+        <span class="kw-2">&amp;</span><a class="self" href="#28">self</a>.stream
     }
     <span class="doccomment">/// Returns a mutable reference to the inner stream.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Stream {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#32">self</a>.stream
+        <span class="kw-2">&amp;mut </span><a class="self" href="#32">self</a>.stream
     }
 }
 
 <span class="kw">impl</span>&lt;Stream: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; HandshakeMachine&lt;Stream&gt; {
     <span class="doccomment">/// Perform a single handshake round.
-    </span><span class="kw">pub fn </span>single_round&lt;Obj: <a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RoundResult&lt;Obj, Stream&gt;&gt; {
+    </span><span class="kw">pub fn </span>single_round&lt;Obj: <a href="#110">TryParse</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RoundResult&lt;Obj, Stream&gt;&gt; {
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Doing handshake round.&quot;</span>);
-        <span class="kw">match </span><a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.state {
-            <a href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<span class="kw-2">mut </span>buf) =&gt; {
+        <span class="kw">match </span><a class="self" href="#39">self</a>.state {
+            <a href="#119">HandshakeState::Reading</a>(<span class="kw-2">mut </span>buf) =&gt; {
                 <span class="kw">let </span>read = buf.read_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>.stream).no_block()<span class="question-mark">?</span>;
-                <span class="kw">match </span><a href="../../../src/tungstenite/handshake/machine.rs.html#43">read</a> {
-                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#172">ProtocolError::HandshakeIncomplete</a>)),
+                <span class="kw">match </span><a href="#43">read</a> {
+                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../error.rs.html#54">Error::Protocol</a>(<a href="../error.rs.html#172">ProtocolError::HandshakeIncomplete</a>)),
                     <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>((size, obj)) = Obj::try_parse(Buf::chunk(<span class="kw-2">&amp;</span>buf))<span class="question-mark">? </span>{
-                        <a href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#46">size</a>);
-                        <a href="../../../src/tungstenite/handshake/machine.rs.html#97">RoundResult::StageFinished</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> {
-                            result: <a href="../../../src/tungstenite/handshake/machine.rs.html#46">obj</a>,
-                            stream: <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.stream,
-                            tail: <a href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>.<a href="../../../src/tungstenite/buffer.rs.html#45">into_vec</a>(),
+                        <a href="#42">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#46">size</a>);
+                        <a href="#97">RoundResult::StageFinished</a>(<a href="#104">StageResult::DoneReading</a> {
+                            result: <a href="#46">obj</a>,
+                            stream: <a class="self" href="#39">self</a>.stream,
+                            tail: <a href="#42">buf</a>.<a href="../buffer.rs.html#45">into_vec</a>(),
                         })
                     } <span class="kw">else </span>{
-                        <a href="../../../src/tungstenite/handshake/machine.rs.html#95">RoundResult::Incomplete</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> {
-                            state: <a href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>),
-                            ..<span class="self"><a href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
+                        <a href="#95">RoundResult::Incomplete</a>(<a href="#13">HandshakeMachine</a> {
+                            state: <a href="#119">HandshakeState::Reading</a>(<a href="#42">buf</a>),
+                            ..<span class="self"><a href="#39">self</a>
                         </span>})
                     }),
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/machine.rs.html#93">RoundResult::WouldBlock</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> {
-                        state: <a href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>),
-                        ..<span class="self"><a href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#93">RoundResult::WouldBlock</a>(<a href="#13">HandshakeMachine</a> {
+                        state: <a href="#119">HandshakeState::Reading</a>(<a href="#42">buf</a>),
+                        ..<span class="self"><a href="#39">self</a>
                     </span>})),
                 }
             }
-            <a href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<span class="kw-2">mut </span>buf) =&gt; {
+            <a href="#121">HandshakeState::Writing</a>(<span class="kw-2">mut </span>buf) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.has_remaining());
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <span class="self">self</span>.stream.write(Buf::chunk(<span class="kw-2">&amp;</span>buf)).no_block()<span class="question-mark">? </span>{
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(size &gt; <span class="number">0</span>);
-                    <a href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#67">size</a>);
+                    <a href="#65">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="#67">size</a>);
                     <span class="prelude-val">Ok</span>(<span class="kw">if </span>buf.has_remaining() {
-                        <a href="../../../src/tungstenite/handshake/machine.rs.html#95">RoundResult::Incomplete</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> {
-                            state: <a href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>),
-                            ..<span class="self"><a href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
+                        <a href="#95">RoundResult::Incomplete</a>(<a href="#13">HandshakeMachine</a> {
+                            state: <a href="#121">HandshakeState::Writing</a>(<a href="#65">buf</a>),
+                            ..<span class="self"><a href="#39">self</a>
                         </span>})
                     } <span class="kw">else </span>{
-                        <a href="../../../src/tungstenite/handshake/machine.rs.html#97">RoundResult::StageFinished</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.stream))
+                        <a href="#97">RoundResult::StageFinished</a>(<a href="#106">StageResult::DoneWriting</a>(<a class="self" href="#39">self</a>.stream))
                     })
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/machine.rs.html#93">RoundResult::WouldBlock</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a> {
-                        state: <a href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<a href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>),
-                        ..<span class="self"><a href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
+                    <span class="prelude-val">Ok</span>(<a href="#93">RoundResult::WouldBlock</a>(<a href="#13">HandshakeMachine</a> {
+                        state: <a href="#121">HandshakeState::Writing</a>(<a href="#65">buf</a>),
+                        ..<span class="self"><a href="#39">self</a>
                     </span>}))
                 }
             }
@@ -238,9 +238,9 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">enum </span>HandshakeState {
     <span class="doccomment">/// Reading data from the peer.
-    </span>Reading(<a href="../../../src/tungstenite/lib.rs.html#27">ReadBuffer</a>),
+    </span>Reading(<a href="../lib.rs.html#27">ReadBuffer</a>),
     <span class="doccomment">/// Sending data to the peer.
     </span>Writing(Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

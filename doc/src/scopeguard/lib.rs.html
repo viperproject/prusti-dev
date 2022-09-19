@@ -804,19 +804,19 @@
 #[derive(Debug)]
 </span><span class="kw">pub enum </span>OnSuccess {}
 
-<span class="kw">impl </span><a href="../../src/scopeguard/lib.rs.html#201">Strategy</a> <span class="kw">for </span><a href="../../src/scopeguard/lib.rs.html#213">Always</a> {
+<span class="kw">impl </span><a href="#201">Strategy</a> <span class="kw">for </span><a href="#213">Always</a> {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>should_run() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> { <span class="bool-val">true </span>}
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
-</span><span class="kw">impl </span><a href="../../src/scopeguard/lib.rs.html#201">Strategy</a> <span class="kw">for </span><a href="../../src/scopeguard/lib.rs.html#220">OnUnwind</a> {
+</span><span class="kw">impl </span><a href="#201">Strategy</a> <span class="kw">for </span><a href="#220">OnUnwind</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>should_run() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> { <a href="https://doc.rust-lang.org/nightly/std/thread/fn.panicking.html">std::thread::panicking</a>() }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
-</span><span class="kw">impl </span><a href="../../src/scopeguard/lib.rs.html#201">Strategy</a> <span class="kw">for </span><a href="../../src/scopeguard/lib.rs.html#227">OnSuccess</a> {
+</span><span class="kw">impl </span><a href="#201">Strategy</a> <span class="kw">for </span><a href="#227">OnSuccess</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>should_run() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> { !<a href="https://doc.rust-lang.org/nightly/std/thread/fn.panicking.html">std::thread::panicking</a>() }
 }
@@ -873,9 +873,9 @@
 /// The guard&#39;s closure will be called with the held value in the destructor.
 ///
 /// The `ScopeGuard` implements `Deref` so that you can access the inner value.
-</span><span class="kw">pub struct </span>ScopeGuard&lt;T, F, S = <a href="../../src/scopeguard/lib.rs.html#213">Always</a>&gt;
+</span><span class="kw">pub struct </span>ScopeGuard&lt;T, F, S = <a href="#213">Always</a>&gt;
     <span class="kw">where </span>F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>,
+          S: <a href="#201">Strategy</a>,
 {
     value: ManuallyDrop&lt;T&gt;,
     dropfn: ManuallyDrop&lt;F&gt;,
@@ -885,7 +885,7 @@
 
 <span class="kw">impl</span>&lt;T, F, S&gt; ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>,
+          S: <a href="#201">Strategy</a>,
 {
     <span class="doccomment">/// Create a `ScopeGuard` that owns `v` (accessible through deref) and calls
     /// `dropfn` when its destructor runs.
@@ -893,9 +893,9 @@
     /// The `Strategy` decides whether the scope guard&#39;s closure should run.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>with_strategy(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, S&gt; {
-        <a href="../../src/scopeguard/lib.rs.html#298">ScopeGuard</a> {
-            value: ManuallyDrop::new(<a href="../../src/scopeguard/lib.rs.html#317">v</a>),
-            dropfn: ManuallyDrop::new(<a href="../../src/scopeguard/lib.rs.html#317">dropfn</a>),
+        <a href="#298">ScopeGuard</a> {
+            value: ManuallyDrop::new(<a href="#317">v</a>),
+            dropfn: ManuallyDrop::new(<a href="#317">dropfn</a>),
             strategy: PhantomData,
         }
     }
@@ -927,14 +927,14 @@
         <span class="comment">// Cannot move out of Drop-implementing types, so
         // ptr::read the value and forget the guard.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>value = ptr::read(<span class="kw-2">&amp;*</span><a href="../../src/scopeguard/lib.rs.html#348">guard</a>.value);
+            <span class="kw">let </span>value = ptr::read(<span class="kw-2">&amp;*</span><a href="#348">guard</a>.value);
             <span class="comment">// read the closure so that it is dropped, and assign it to a local
             // variable to ensure that it is only dropped after the guard has
             // been forgotten. (In case the Drop impl of the closure, or that
             // of any consumed captured variable, panics).
-            </span><span class="kw">let </span>_dropfn = ptr::read(<span class="kw-2">&amp;*</span><a href="../../src/scopeguard/lib.rs.html#348">guard</a>.dropfn);
-            mem::forget(<a href="../../src/scopeguard/lib.rs.html#348">guard</a>);
-            <a href="../../src/scopeguard/lib.rs.html#352">value</a>
+            </span><span class="kw">let </span>_dropfn = ptr::read(<span class="kw-2">&amp;*</span><a href="#348">guard</a>.dropfn);
+            mem::forget(<a href="#348">guard</a>);
+            <a href="#352">value</a>
         }
     }
 }
@@ -942,10 +942,10 @@
 
 <span class="doccomment">/// Create a new `ScopeGuard` owning `v` and with deferred closure `dropfn`.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>guard&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="../../src/scopeguard/lib.rs.html#213">Always</a>&gt;
+</span><span class="kw">pub fn </span>guard&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="#213">Always</a>&gt;
     <span class="kw">where </span>F: FnOnce(T)
 {
-    ScopeGuard::with_strategy(<a href="../../src/scopeguard/lib.rs.html#367">v</a>, <a href="../../src/scopeguard/lib.rs.html#367">dropfn</a>)
+    ScopeGuard::with_strategy(<a href="#367">v</a>, <a href="#367">dropfn</a>)
 }
 
 <span class="doccomment">/// Create a new `ScopeGuard` owning `v` and with deferred closure `dropfn`.
@@ -953,10 +953,10 @@
 /// Requires crate feature `use_std`.
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
 #[inline]
-</span><span class="kw">pub fn </span>guard_on_success&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="../../src/scopeguard/lib.rs.html#227">OnSuccess</a>&gt;
+</span><span class="kw">pub fn </span>guard_on_success&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="#227">OnSuccess</a>&gt;
     <span class="kw">where </span>F: FnOnce(T)
 {
-    ScopeGuard::with_strategy(<a href="../../src/scopeguard/lib.rs.html#378">v</a>, <a href="../../src/scopeguard/lib.rs.html#378">dropfn</a>)
+    ScopeGuard::with_strategy(<a href="#378">v</a>, <a href="#378">dropfn</a>)
 }
 
 <span class="doccomment">/// Create a new `ScopeGuard` owning `v` and with deferred closure `dropfn`.
@@ -988,10 +988,10 @@
 /// ```
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
 #[inline]
-</span><span class="kw">pub fn </span>guard_on_unwind&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="../../src/scopeguard/lib.rs.html#220">OnUnwind</a>&gt;
+</span><span class="kw">pub fn </span>guard_on_unwind&lt;T, F&gt;(v: T, dropfn: F) -&gt; ScopeGuard&lt;T, F, <a href="#220">OnUnwind</a>&gt;
     <span class="kw">where </span>F: FnOnce(T)
 {
-    ScopeGuard::with_strategy(<a href="../../src/scopeguard/lib.rs.html#413">v</a>, <a href="../../src/scopeguard/lib.rs.html#413">dropfn</a>)
+    ScopeGuard::with_strategy(<a href="#413">v</a>, <a href="#413">dropfn</a>)
 }
 
 <span class="comment">// ScopeGuard can be Sync even if F isn&#39;t because the closure is
@@ -1000,41 +1000,41 @@
 </span><span class="kw">unsafe impl</span>&lt;T, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
           F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>
+          S: <a href="#201">Strategy</a>
 {}
 
 <span class="kw">impl</span>&lt;T, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>
+          S: <a href="#201">Strategy</a>
 {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;*</span><a class="self" href="../../src/scopeguard/lib.rs.html#434">self</a>.value
+        <span class="kw-2">&amp;*</span><a class="self" href="#434">self</a>.value
     }
 }
 
 <span class="kw">impl</span>&lt;T, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>
+          S: <a href="#201">Strategy</a>
 {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/scopeguard/lib.rs.html#443">self</a>.value
+        <span class="kw-2">&amp;mut *</span><a class="self" href="#443">self</a>.value
     }
 }
 
 <span class="kw">impl</span>&lt;T, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>
+          S: <a href="#201">Strategy</a>
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// This is OK because the fields are `ManuallyDrop`s
         // which will not be dropped by the compiler.
         </span><span class="kw">let </span>(value, dropfn) = <span class="kw">unsafe </span>{
-            (ptr::read(<span class="kw-2">&amp;*</span><a class="self" href="../../src/scopeguard/lib.rs.html#452">self</a>.value), ptr::read(<span class="kw-2">&amp;*</span><a class="self" href="../../src/scopeguard/lib.rs.html#452">self</a>.dropfn))
+            (ptr::read(<span class="kw-2">&amp;*</span><a class="self" href="#452">self</a>.value), ptr::read(<span class="kw-2">&amp;*</span><a class="self" href="#452">self</a>.dropfn))
         };
         <span class="kw">if </span>S::should_run() {
-            <a href="../../src/scopeguard/lib.rs.html#455">dropfn</a>(<a href="../../src/scopeguard/lib.rs.html#455">value</a>);
+            <a href="#455">dropfn</a>(<a href="#455">value</a>);
         }
     }
 }
@@ -1042,11 +1042,11 @@
 <span class="kw">impl</span>&lt;T, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ScopeGuard&lt;T, F, S&gt;
     <span class="kw">where </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
           F: FnOnce(T),
-          S: <a href="../../src/scopeguard/lib.rs.html#201">Strategy</a>
+          S: <a href="#201">Strategy</a>
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/scopeguard/lib.rs.html#469">f</a>.debug_struct(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.stringify.html">stringify!</a>(ScopeGuard))
-         .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;*</span><a class="self" href="../../src/scopeguard/lib.rs.html#469">self</a>.value)
+        <a href="#469">f</a>.debug_struct(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.stringify.html">stringify!</a>(ScopeGuard))
+         .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;*</span><a class="self" href="#469">self</a>.value)
          .finish()
     }
 }
@@ -1155,4 +1155,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="scopeguard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="scopeguard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

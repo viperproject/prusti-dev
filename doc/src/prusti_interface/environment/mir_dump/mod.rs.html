@@ -37,24 +37,24 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/prusti_interface/environment/mod.rs.html#51"><span class="kw">super</span>::Environment</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../mod.rs.html#51"><span class="kw">super</span>::Environment</a>;
 <span class="kw">use </span><span class="kw">crate</span>::environment::{
-    mir_body::{<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">borrowck::facts::LocationTable</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#11-15">graphviz::to_graphviz</a>},
-    <a href="../../../../src/prusti_interface/environment/procedure.rs.html#27">Procedure</a>,
+    mir_body::{<a href="../mir_body/borrowck/facts/mod.rs.html#83">borrowck::facts::LocationTable</a>, <a href="../mir_body/graphviz.rs.html#11-15">graphviz::to_graphviz</a>},
+    <a href="../procedure.rs.html#27">Procedure</a>,
 };
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::span::def_id::DefId</a>;
 <span class="kw">use </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">vir::common::graphviz::Graph</a>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dump_mir_info(env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;_</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;def_id: {:?}&quot;</span>, def_id);
-    <span class="kw">let </span>local_def_id = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#9">def_id</a>.expect_local();
-    <span class="kw">let </span>def_path = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#9">env</a>.query.<a href="../../../../src/prusti_interface/environment/query.rs.html#42">hir</a>().def_path(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#11">local_def_id</a>);
+    <span class="kw">let </span>local_def_id = <a href="#9">def_id</a>.expect_local();
+    <span class="kw">let </span>def_path = <a href="#9">env</a>.query.<a href="../query.rs.html#42">hir</a>().def_path(<a href="#11">local_def_id</a>);
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(graph) = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#25">populate_graph</a>(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#9">env</a>, <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#9">def_id</a>) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(graph) = <a href="#25">populate_graph</a>(<a href="#9">env</a>, <a href="#9">def_id</a>) {
         prusti_common::report::log::report_with_writer(
             <span class="string">&quot;graphviz_mir_dump&quot;</span>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.dot&quot;</span>, def_path.to_filename_friendly_no_crate()),
-            |writer| <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#14">graph</a>.write(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#18">writer</a>).unwrap(),
+            |writer| <a href="#14">graph</a>.write(<a href="#18">writer</a>).unwrap(),
         );
     } <span class="kw">else </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;Failed to populate the graph.&quot;</span>);
@@ -63,18 +63,18 @@
 
 <span class="kw">fn </span>populate_graph(env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;_</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>&gt; {
     <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;populate_graph: {:?}&quot;</span>, def_id);
-    <span class="kw">let </span>procedure = Procedure::new(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#25">env</a>, <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#25">def_id</a>);
-    <span class="kw">let </span>mir = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#27">procedure</a>.<a href="../../../../src/prusti_interface/environment/procedure.rs.html#132">get_mir</a>();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(facts) = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#25">env</a>
+    <span class="kw">let </span>procedure = Procedure::new(<a href="#25">env</a>, <a href="#25">def_id</a>);
+    <span class="kw">let </span>mir = <a href="#27">procedure</a>.<a href="../procedure.rs.html#132">get_mir</a>();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(facts) = <a href="#25">env</a>
         .body
-        .<a href="../../../../src/prusti_interface/environment/body.rs.html#269-272">try_get_local_mir_borrowck_facts</a>(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#25">def_id</a>.expect_local())
+        .<a href="../body.rs.html#269-272">try_get_local_mir_borrowck_facts</a>(<a href="#25">def_id</a>.expect_local())
     {
-        <span class="kw">let </span>input_facts = <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#29">facts</a>.input_facts.borrow().as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>location_table = LocationTable::new(<a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#29">facts</a>.location_table.borrow().as_ref().unwrap());
-        <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#11-15">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#33">input_facts</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#34">location_table</a>, <a href="../../../../src/prusti_interface/environment/mir_dump/mod.rs.html#28">mir</a>))
+        <span class="kw">let </span>input_facts = <a href="#29">facts</a>.input_facts.borrow().as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>location_table = LocationTable::new(<a href="#29">facts</a>.location_table.borrow().as_ref().unwrap());
+        <span class="prelude-val">Some</span>(<a href="../mir_body/graphviz.rs.html#11-15">to_graphviz</a>(<span class="kw-2">&amp;</span><a href="#33">input_facts</a>, <span class="kw-2">&amp;</span><a href="#34">location_table</a>, <a href="#28">mir</a>))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -96,8 +96,8 @@
 <span id="96">96</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Host (&quot;authority&quot;) filter
 //!
-</span><span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/generic.rs.html#4">One</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../generic.rs.html#4">One</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#210">Rejection</a>};
 <span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
 <span class="kw">pub use </span><a href="../../../warp/filters/host/struct.Authority.html">http::uri::Authority</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
@@ -116,14 +116,14 @@
 ///     warp::host::exact(&quot;foo.com&quot;).map(|| &quot;you&#39;ve reached foo.com&quot;)
 ///     .or(warp::host::exact(&quot;bar.com&quot;).map(|| &quot;you&#39;ve reached bar.com&quot;));
 /// ```
-</span><span class="kw">pub fn </span>exact(expected: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">let </span>expected = Authority::from_str(<a href="../../../src/warp/filters/host.rs.html#23">expected</a>).expect(<span class="string">&quot;invalid host/authority&quot;</span>);
-    <a href="../../../src/warp/filters/host.rs.html#58">optional</a>()
-        .<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|option: <span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;| <span class="kw">match </span><a href="../../../src/warp/filters/host.rs.html#26">option</a> {
-            <span class="prelude-val">Some</span>(authority) <span class="kw">if </span><a href="../../../src/warp/filters/host.rs.html#27">authority</a> == <a href="../../../src/warp/filters/host.rs.html#24">expected</a> =&gt; future::ok(()),
-            <span class="kw">_ </span>=&gt; future::err(<a href="../../../src/warp/reject.rs.html#86">reject::not_found</a>()),
+</span><span class="kw">pub fn </span>exact(expected: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
+    <span class="kw">let </span>expected = Authority::from_str(<a href="#23">expected</a>).expect(<span class="string">&quot;invalid host/authority&quot;</span>);
+    <a href="#58">optional</a>()
+        .<a href="../filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|option: <span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;| <span class="kw">match </span><a href="#26">option</a> {
+            <span class="prelude-val">Some</span>(authority) <span class="kw">if </span><a href="#27">authority</a> == <a href="#24">expected</a> =&gt; future::ok(()),
+            <span class="kw">_ </span>=&gt; future::err(<a href="../reject.rs.html#86">reject::not_found</a>()),
         })
-        .<a href="../../../src/warp/filter/mod.rs.html#370-373">untuple_one</a>()
+        .<a href="../filter/mod.rs.html#370-373">untuple_one</a>()
 }
 
 <span class="doccomment">/// Creates a `Filter` that looks for an authority (target server&#39;s host
@@ -151,8 +151,8 @@
 ///         }
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>optional() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;&gt;, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
+</span><span class="kw">pub fn </span>optional() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../warp/filters/host/struct.Authority.html">Authority</a>&gt;&gt;, Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="kw">move </span>|route| {
         <span class="comment">// The authority can be sent by clients in various ways:
         //
         //  1) in the &quot;target URI&quot;
@@ -162,33 +162,33 @@
         //
         // Hyper transparently handles 1a/1b, but not 2, so we must look at both.
 
-        </span><span class="kw">let </span>from_uri = <a href="../../../src/warp/filters/host.rs.html#59">route</a>.<a href="../../../src/warp/route.rs.html#82">uri</a>().authority();
+        </span><span class="kw">let </span>from_uri = <a href="#59">route</a>.<a href="../route.rs.html#82">uri</a>().authority();
 
         <span class="kw">let </span>name = <span class="string">&quot;host&quot;</span>;
-        <span class="kw">let </span>from_header = <a href="../../../src/warp/filters/host.rs.html#59">route</a>.<a href="../../../src/warp/route.rs.html#65">headers</a>()
-            .get(<a href="../../../src/warp/filters/host.rs.html#71">name</a>)
+        <span class="kw">let </span>from_header = <a href="#59">route</a>.<a href="../route.rs.html#65">headers</a>()
+            .get(<a href="#71">name</a>)
             .map(|value|
                 <span class="comment">// Header present, parse it
-                </span><a href="../../../src/warp/filters/host.rs.html#74">value</a>.to_str().map_err(|<span class="kw">_</span>| <a href="../../../src/warp/reject.rs.html#106">reject::invalid_header</a>(<a href="../../../src/warp/filters/host.rs.html#71">name</a>))
-                    .and_then(|value| Authority::from_str(<a href="../../../src/warp/filters/host.rs.html#77">value</a>).map_err(|<span class="kw">_</span>| <a href="../../../src/warp/reject.rs.html#106">reject::invalid_header</a>(<a href="../../../src/warp/filters/host.rs.html#71">name</a>)))
+                </span><a href="#74">value</a>.to_str().map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#106">reject::invalid_header</a>(<a href="#71">name</a>))
+                    .and_then(|value| Authority::from_str(<a href="#77">value</a>).map_err(|<span class="kw">_</span>| <a href="../reject.rs.html#106">reject::invalid_header</a>(<a href="#71">name</a>)))
             );
 
-        future::ready(<span class="kw">match </span>(<a href="../../../src/warp/filters/host.rs.html#69">from_uri</a>, <a href="../../../src/warp/filters/host.rs.html#72">from_header</a>) {
+        future::ready(<span class="kw">match </span>(<a href="#69">from_uri</a>, <a href="#72">from_header</a>) {
             <span class="comment">// no authority in the request (HTTP/1.0 or non-conforming)
             </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
 
             <span class="comment">// authority specified in either or both matching
-            </span>(<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/host.rs.html#85">a</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(a))) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/host.rs.html#86">a</a>)),
-            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b))) <span class="kw">if </span><span class="kw-2">*</span><a href="../../../src/warp/filters/host.rs.html#87">a</a> == <a href="../../../src/warp/filters/host.rs.html#87">b</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/host.rs.html#87">b</a>)),
+            </span>(<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#85">a</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(a))) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#86">a</a>)),
+            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(b))) <span class="kw">if </span><span class="kw-2">*</span><a href="#87">a</a> == <a href="#87">b</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#87">b</a>)),
 
             <span class="comment">// mismatch
-            </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/warp/reject.rs.html#106">reject::invalid_header</a>(<a href="../../../src/warp/filters/host.rs.html#71">name</a>)),
+            </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Err</span>(<a href="../reject.rs.html#106">reject::invalid_header</a>(<a href="#71">name</a>)),
 
             <span class="comment">// parse error
-            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(r))) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/host.rs.html#93">r</a>),
+            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(r))) =&gt; <span class="prelude-val">Err</span>(<a href="#93">r</a>),
         })
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

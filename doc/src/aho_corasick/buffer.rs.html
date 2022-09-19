@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -169,11 +169,11 @@
     </span>end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/aho_corasick/buffer.rs.html#29">Buffer</a> {
+<span class="kw">impl </span><a href="#29">Buffer</a> {
     <span class="doccomment">/// Create a new buffer for stream searching. The minimum buffer length
     /// given should be the size of the maximum possible match length.
-    </span><span class="kw">pub fn </span>new(min_buffer_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/aho_corasick/buffer.rs.html#29">Buffer</a> {
-        <span class="kw">let </span>min = cmp::max(<span class="number">1</span>, <a href="../../src/aho_corasick/buffer.rs.html#43">min_buffer_len</a>);
+    </span><span class="kw">pub fn </span>new(min_buffer_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#29">Buffer</a> {
+        <span class="kw">let </span>min = cmp::max(<span class="number">1</span>, <a href="#43">min_buffer_len</a>);
         <span class="comment">// The minimum buffer amount is also the amount that we roll our
         // buffer in order to support incremental searching. To this end,
         // our actual capacity needs to be at least 1 byte bigger than our
@@ -185,14 +185,14 @@
         // implementation with the minimal buffer size. For now, we just
         // uncomment out the next line and comment out the subsequent line.
         // let capacity = 1 + min;
-        </span><span class="kw">let </span>capacity = cmp::max(<a href="../../src/aho_corasick/buffer.rs.html#44">min</a> * <span class="number">8</span>, <a href="../../src/aho_corasick/buffer.rs.html#6">DEFAULT_BUFFER_CAPACITY</a>);
-        <a href="../../src/aho_corasick/buffer.rs.html#29">Buffer</a> { buf: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; capacity], <a href="../../src/aho_corasick/buffer.rs.html#44">min</a>, end: <span class="number">0 </span>}
+        </span><span class="kw">let </span>capacity = cmp::max(<a href="#44">min</a> * <span class="number">8</span>, <a href="#6">DEFAULT_BUFFER_CAPACITY</a>);
+        <a href="#29">Buffer</a> { buf: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; capacity], <a href="#44">min</a>, end: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Return the contents of this buffer.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/buffer.rs.html#62">self</a>.buf[..<a class="self" href="../../src/aho_corasick/buffer.rs.html#62">self</a>.end]
+        <span class="kw-2">&amp;</span><a class="self" href="#62">self</a>.buf[..<a class="self" href="#62">self</a>.end]
     }
 
     <span class="doccomment">/// Return the minimum size of the buffer. The only way a buffer may be
@@ -200,18 +200,18 @@
     /// minimum buffer amount.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>min_buffer_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/buffer.rs.html#70">self</a>.min
+        <a class="self" href="#70">self</a>.min
     }
 
     <span class="doccomment">/// Return the total length of the contents in the buffer.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/buffer.rs.html#76">self</a>.end
+        <a class="self" href="#76">self</a>.end
     }
 
     <span class="doccomment">/// Return all free capacity in this buffer.
     </span><span class="kw">fn </span>free_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/aho_corasick/buffer.rs.html#81">self</a>.buf[<a class="self" href="../../src/aho_corasick/buffer.rs.html#81">self</a>.end..]
+        <span class="kw-2">&amp;mut </span><a class="self" href="#81">self</a>.buf[<a class="self" href="#81">self</a>.end..]
     }
 
     <span class="doccomment">/// Refill the contents of this buffer by reading as much as possible into
@@ -223,10 +223,10 @@
         <span class="kw">loop </span>{
             <span class="kw">let </span>readlen = rdr.read(<span class="self">self</span>.free_buffer())<span class="question-mark">?</span>;
             <span class="kw">if </span>readlen == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/aho_corasick/buffer.rs.html#90">readany</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#90">readany</a>);
             }
-            <a href="../../src/aho_corasick/buffer.rs.html#90">readany</a> = <span class="bool-val">true</span>;
-            <a class="self" href="../../src/aho_corasick/buffer.rs.html#89">self</a>.end += <a href="../../src/aho_corasick/buffer.rs.html#92">readlen</a>;
+            <a href="#90">readany</a> = <span class="bool-val">true</span>;
+            <a class="self" href="#89">self</a>.end += <a href="#92">readlen</a>;
             <span class="kw">if </span><span class="self">self</span>.len() &gt;= <span class="self">self</span>.min {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }
@@ -240,11 +240,11 @@
     /// This should only be called when the entire contents of this buffer have
     /// been searched.
     </span><span class="kw">pub fn </span>roll(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>roll_start = <span class="self"><a href="../../src/aho_corasick/buffer.rs.html#110">self</a>
+        <span class="kw">let </span>roll_start = <span class="self"><a href="#110">self</a>
             </span>.end
-            .checked_sub(<a class="self" href="../../src/aho_corasick/buffer.rs.html#110">self</a>.min)
+            .checked_sub(<a class="self" href="#110">self</a>.min)
             .expect(<span class="string">&quot;buffer capacity should be bigger than minimum amount&quot;</span>);
-        <span class="kw">let </span>roll_len = <a class="self" href="../../src/aho_corasick/buffer.rs.html#110">self</a>.min;
+        <span class="kw">let </span>roll_len = <a class="self" href="#110">self</a>.min;
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(roll_start + roll_len &lt;= <span class="self">self</span>.end);
         <span class="kw">unsafe </span>{
@@ -254,13 +254,13 @@
             //
             // TODO: Switch to [T]::copy_within once our MSRV is high enough.
             </span>ptr::copy(
-                <a class="self" href="../../src/aho_corasick/buffer.rs.html#110">self</a>.buf[<a href="../../src/aho_corasick/buffer.rs.html#111">roll_start</a>..].as_ptr(),
-                <a class="self" href="../../src/aho_corasick/buffer.rs.html#110">self</a>.buf.as_mut_ptr(),
-                <a href="../../src/aho_corasick/buffer.rs.html#115">roll_len</a>,
+                <a class="self" href="#110">self</a>.buf[<a href="#111">roll_start</a>..].as_ptr(),
+                <a class="self" href="#110">self</a>.buf.as_mut_ptr(),
+                <a href="#115">roll_len</a>,
             );
         }
-        <a class="self" href="../../src/aho_corasick/buffer.rs.html#110">self</a>.end = <a href="../../src/aho_corasick/buffer.rs.html#115">roll_len</a>;
+        <a class="self" href="#110">self</a>.end = <a href="#115">roll_len</a>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

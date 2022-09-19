@@ -370,8 +370,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../src/git2/util.rs.html#204">path_to_repo_path</a>, <a href="../../src/git2/util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/diff.rs.html#19">Diff</a>, <a href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/index.rs.html#17">Index</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>, <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/tree.rs.html#17">Tree</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="util.rs.html#204">path_to_repo_path</a>, <a href="util.rs.html#25">Binding</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="diff.rs.html#19">Diff</a>, <a href="diff.rs.html#27">DiffDelta</a>, <a href="error.rs.html#12">Error</a>, <a href="index.rs.html#17">Index</a>, <a href="util.rs.html#101">IntoCString</a>, <a href="lib.rs.html#1266-1293">PathspecFlags</a>, <a href="repo.rs.html#108">Repository</a>, <a href="tree.rs.html#17">Tree</a>};
 
 <span class="doccomment">/// Structure representing a compiled pathspec used for matching against various
 /// structures.
@@ -382,7 +382,7 @@
 <span class="doccomment">/// List of filenames matching a pathspec.
 </span><span class="kw">pub struct </span>PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec_match_list.html">raw::git_pathspec_match_list</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ps </span><a href="../../src/git2/pathspec.rs.html#13">Pathspec</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ps </span><a href="#13">Pathspec</a>&gt;,
 }
 
 <span class="doccomment">/// Iterator over the matched paths in a pathspec.
@@ -403,19 +403,19 @@
     list: <span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>PathspecMatchList&lt;<span class="lifetime">&#39;list</span>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/git2/pathspec.rs.html#13">Pathspec</a> {
+<span class="kw">impl </span><a href="#13">Pathspec</a> {
     <span class="doccomment">/// Creates a new pathspec from a list of specs to match against.
-    </span><span class="kw">pub fn </span>new&lt;I, T&gt;(specs: I) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/pathspec.rs.html#13">Pathspec</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    </span><span class="kw">pub fn </span>new&lt;I, T&gt;(specs: I) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#13">Pathspec</a>, <a href="error.rs.html#12">Error</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/git2/util.rs.html#101">IntoCString</a>,
+        </span>T: <a href="util.rs.html#101">IntoCString</a>,
         I: IntoIterator&lt;Item = T&gt;,
     {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>(_a, _b, arr) = <span class="kw">crate</span>::util::iter2cstrs_paths(specs)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_pathspec_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;</span>arr));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/pathspec.rs.html#51">ret</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_pathspec_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;</span>arr));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#51">ret</a>))
         }
     }
 
@@ -428,17 +428,17 @@
     </span><span class="kw">pub fn </span>match_diff(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         diff: <span class="kw-2">&amp;</span>Diff&lt;<span class="lifetime">&#39;_</span>&gt;,
-        flags: <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        flags: <a href="lib.rs.html#1266-1293">PathspecFlags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_diff(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_diff(
                 <span class="kw-2">&amp;mut </span>ret,
                 diff.raw(),
                 flags.bits(),
                 <span class="self">self</span>.raw
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/pathspec.rs.html#68">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#68">ret</a>))
         }
     }
 
@@ -451,17 +451,17 @@
     </span><span class="kw">pub fn </span>match_tree(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree&lt;<span class="lifetime">&#39;_</span>&gt;,
-        flags: <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        flags: <a href="lib.rs.html#1266-1293">PathspecFlags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_tree(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_tree(
                 <span class="kw-2">&amp;mut </span>ret,
                 tree.raw(),
                 flags.bits(),
                 <span class="self">self</span>.raw
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/pathspec.rs.html#91">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#91">ret</a>))
         }
     }
 
@@ -473,18 +473,18 @@
     /// specified.
     </span><span class="kw">pub fn </span>match_index(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        index: <span class="kw-2">&amp;</span><a href="../../src/git2/index.rs.html#17">Index</a>,
-        flags: <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        index: <span class="kw-2">&amp;</span><a href="index.rs.html#17">Index</a>,
+        flags: <a href="lib.rs.html#1266-1293">PathspecFlags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_index(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_index(
                 <span class="kw-2">&amp;mut </span>ret,
                 index.raw(),
                 flags.bits(),
                 <span class="self">self</span>.raw
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/pathspec.rs.html#114">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#114">ret</a>))
         }
     }
 
@@ -502,18 +502,18 @@
     /// specified.
     </span><span class="kw">pub fn </span>match_workdir(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        repo: <span class="kw-2">&amp;</span><a href="../../src/git2/repo.rs.html#108">Repository</a>,
-        flags: <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        repo: <span class="kw-2">&amp;</span><a href="repo.rs.html#108">Repository</a>,
+        flags: <a href="lib.rs.html#1266-1293">PathspecFlags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathspecMatchList&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_workdir(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_pathspec_match_workdir(
                 <span class="kw-2">&amp;mut </span>ret,
                 repo.raw(),
                 flags.bits(),
                 <span class="self">self</span>.raw
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/pathspec.rs.html#143">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#143">ret</a>))
         }
     }
 
@@ -523,49 +523,49 @@
     /// back on the native case-sensitivity for your platform. You must
     /// explicitly pass flags to control case sensitivity or else this will fall
     /// back on being case sensitive.
-    </span><span class="kw">pub fn </span>matches_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, flags: <a href="../../src/git2/lib.rs.html#1266-1293">PathspecFlags</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>path = <a href="../../src/git2/util.rs.html#204">path_to_repo_path</a>(<a href="../../src/git2/pathspec.rs.html#161">path</a>).unwrap();
-        <span class="kw">unsafe </span>{ raw::git_pathspec_matches_path(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#161">self</a>.raw, <a href="../../src/git2/pathspec.rs.html#161">flags</a>.<a href="../../src/git2/lib.rs.html#1266-1293">bits</a>(), <a href="../../src/git2/pathspec.rs.html#162">path</a>.as_ptr()) == <span class="number">1 </span>}
+    </span><span class="kw">pub fn </span>matches_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, flags: <a href="lib.rs.html#1266-1293">PathspecFlags</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>path = <a href="util.rs.html#204">path_to_repo_path</a>(<a href="#161">path</a>).unwrap();
+        <span class="kw">unsafe </span>{ raw::git_pathspec_matches_path(<span class="kw-2">&amp;*</span><a class="self" href="#161">self</a>.raw, <a href="#161">flags</a>.<a href="lib.rs.html#1266-1293">bits</a>(), <a href="#162">path</a>.as_ptr()) == <span class="number">1 </span>}
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/pathspec.rs.html#13">Pathspec</a> {
+<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#13">Pathspec</a> {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec.html">raw::git_pathspec</a>;
 
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec.html">raw::git_pathspec</a>) -&gt; <a href="../../src/git2/pathspec.rs.html#13">Pathspec</a> {
-        <a href="../../src/git2/pathspec.rs.html#13">Pathspec</a> { <a href="../../src/git2/pathspec.rs.html#170">raw</a> }
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec.html">raw::git_pathspec</a>) -&gt; <a href="#13">Pathspec</a> {
+        <a href="#13">Pathspec</a> { <a href="#170">raw</a> }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec.html">raw::git_pathspec</a> {
-        <a class="self" href="../../src/git2/pathspec.rs.html#173">self</a>.raw
+        <a class="self" href="#173">self</a>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/pathspec.rs.html#13">Pathspec</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#13">Pathspec</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_pathspec_free(<a class="self" href="../../src/git2/pathspec.rs.html#179">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_pathspec_free(<a class="self" href="#179">self</a>.raw) }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ps</span>&gt; PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
     <span class="kw">fn </span>entrycount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_entrycount(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#185">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_entrycount(<span class="kw-2">&amp;*</span><a class="self" href="#185">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="kw">fn </span>failed_entrycount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_failed_entrycount(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#189">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_failed_entrycount(<span class="kw-2">&amp;*</span><a class="self" href="#189">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Returns an iterator over the matching filenames in this list.
     </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathspecEntries&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>n = <a class="self" href="../../src/git2/pathspec.rs.html#194">self</a>.<a href="../../src/git2/pathspec.rs.html#185">entrycount</a>();
+        <span class="kw">let </span>n = <a class="self" href="#194">self</a>.<a href="#185">entrycount</a>();
         <span class="kw">let </span>n = <span class="kw">if </span>n &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.entry(<span class="number">0</span>).is_none() {
             <span class="number">0
         </span>} <span class="kw">else </span>{
-            <a href="../../src/git2/pathspec.rs.html#195">n</a>
+            <a href="#195">n</a>
         };
-        <a href="../../src/git2/pathspec.rs.html#24">PathspecEntries</a> {
-            range: <span class="number">0</span>..<a href="../../src/git2/pathspec.rs.html#196">n</a>,
-            list: <a class="self" href="../../src/git2/pathspec.rs.html#194">self</a>,
+        <a href="#24">PathspecEntries</a> {
+            range: <span class="number">0</span>..<a href="#196">n</a>,
+            list: <a class="self" href="#194">self</a>,
         }
     }
 
@@ -575,22 +575,22 @@
     /// always be `None.
     </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_entry(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#211">self</a>.raw, <a href="../../src/git2/pathspec.rs.html#211">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/pathspec.rs.html#211">self</a>, <a href="../../src/git2/pathspec.rs.html#213">ptr</a>)
+            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_entry(<span class="kw-2">&amp;*</span><a class="self" href="#211">self</a>.raw, <a href="#211">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#211">self</a>, <a href="#213">ptr</a>)
         }
     }
 
     <span class="doccomment">/// Returns an iterator over the matching diff entries in this list.
     </span><span class="kw">pub fn </span>diff_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathspecDiffEntries&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>n = <a class="self" href="../../src/git2/pathspec.rs.html#219">self</a>.<a href="../../src/git2/pathspec.rs.html#185">entrycount</a>();
+        <span class="kw">let </span>n = <a class="self" href="#219">self</a>.<a href="#185">entrycount</a>();
         <span class="kw">let </span>n = <span class="kw">if </span>n &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.diff_entry(<span class="number">0</span>).is_none() {
             <span class="number">0
         </span>} <span class="kw">else </span>{
-            <a href="../../src/git2/pathspec.rs.html#220">n</a>
+            <a href="#220">n</a>
         };
-        <a href="../../src/git2/pathspec.rs.html#30">PathspecDiffEntries</a> {
-            range: <span class="number">0</span>..<a href="../../src/git2/pathspec.rs.html#221">n</a>,
-            list: <a class="self" href="../../src/git2/pathspec.rs.html#219">self</a>,
+        <a href="#30">PathspecDiffEntries</a> {
+            range: <span class="number">0</span>..<a href="#221">n</a>,
+            list: <a class="self" href="#219">self</a>,
         }
     }
 
@@ -600,66 +600,66 @@
     /// always be `None`.
     </span><span class="kw">pub fn </span>diff_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_diff_entry(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#236">self</a>.raw, <a href="../../src/git2/pathspec.rs.html#236">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/pathspec.rs.html#238">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_diff_entry(<span class="kw-2">&amp;*</span><a class="self" href="#236">self</a>.raw, <a href="#236">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="#238">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 
     <span class="doccomment">/// Returns an iterator over the non-matching entries in this list.
     </span><span class="kw">pub fn </span>failed_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathspecFailedEntries&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>n = <a class="self" href="../../src/git2/pathspec.rs.html#244">self</a>.<a href="../../src/git2/pathspec.rs.html#189">failed_entrycount</a>();
+        <span class="kw">let </span>n = <a class="self" href="#244">self</a>.<a href="#189">failed_entrycount</a>();
         <span class="kw">let </span>n = <span class="kw">if </span>n &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.failed_entry(<span class="number">0</span>).is_none() {
             <span class="number">0
         </span>} <span class="kw">else </span>{
-            <a href="../../src/git2/pathspec.rs.html#245">n</a>
+            <a href="#245">n</a>
         };
-        <a href="../../src/git2/pathspec.rs.html#36">PathspecFailedEntries</a> {
-            range: <span class="number">0</span>..<a href="../../src/git2/pathspec.rs.html#246">n</a>,
-            list: <a class="self" href="../../src/git2/pathspec.rs.html#244">self</a>,
+        <a href="#36">PathspecFailedEntries</a> {
+            range: <span class="number">0</span>..<a href="#246">n</a>,
+            list: <a class="self" href="#244">self</a>,
         }
     }
 
     <span class="doccomment">/// Get an original pathspec string that had no matches.
     </span><span class="kw">pub fn </span>failed_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_failed_entry(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/pathspec.rs.html#258">self</a>.raw, <a href="../../src/git2/pathspec.rs.html#258">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/pathspec.rs.html#258">self</a>, <a href="../../src/git2/pathspec.rs.html#260">ptr</a>)
+            <span class="kw">let </span>ptr = raw::git_pathspec_match_list_failed_entry(<span class="kw-2">&amp;*</span><a class="self" href="#258">self</a>.raw, <a href="#258">i</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#258">self</a>, <a href="#260">ptr</a>)
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ps</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ps</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec_match_list.html">raw::git_pathspec_match_list</a>;
 
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec_match_list.html">raw::git_pathspec_match_list</a>) -&gt; PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
-        <a href="../../src/git2/pathspec.rs.html#18">PathspecMatchList</a> {
-            <a href="../../src/git2/pathspec.rs.html#269">raw</a>,
+        <a href="#18">PathspecMatchList</a> {
+            <a href="#269">raw</a>,
             _marker: marker::PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_pathspec_match_list.html">raw::git_pathspec_match_list</a> {
-        <a class="self" href="../../src/git2/pathspec.rs.html#275">self</a>.raw
+        <a class="self" href="#275">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ps</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>PathspecMatchList&lt;<span class="lifetime">&#39;ps</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_free(<a class="self" href="../../src/git2/pathspec.rs.html#281">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_pathspec_match_list_free(<a class="self" href="#281">self</a>.raw) }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PathspecEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#288">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#288">self</a>.list.<a href="../../src/git2/pathspec.rs.html#211">entry</a>(<a href="../../src/git2/pathspec.rs.html#289">i</a>))
+        <a class="self" href="#288">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#288">self</a>.list.<a href="#211">entry</a>(<a href="#289">i</a>))
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/pathspec.rs.html#291">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#291">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>PathspecEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#296">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#296">self</a>.list.<a href="../../src/git2/pathspec.rs.html#211">entry</a>(<a href="../../src/git2/pathspec.rs.html#297">i</a>))
+        <a class="self" href="#296">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="#296">self</a>.list.<a href="#211">entry</a>(<a href="#297">i</a>))
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>PathspecEntries&lt;<span class="lifetime">&#39;list</span>&gt; {}
@@ -667,15 +667,15 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PathspecDiffEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">type </span>Item = DiffDelta&lt;<span class="lifetime">&#39;list</span>&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;list</span>&gt;&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#304">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#304">self</a>.list.<a href="../../src/git2/pathspec.rs.html#236">diff_entry</a>(<a href="../../src/git2/pathspec.rs.html#305">i</a>))
+        <a class="self" href="#304">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#304">self</a>.list.<a href="#236">diff_entry</a>(<a href="#305">i</a>))
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/pathspec.rs.html#307">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#307">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>PathspecDiffEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;list</span>&gt;&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#312">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#312">self</a>.list.<a href="../../src/git2/pathspec.rs.html#236">diff_entry</a>(<a href="../../src/git2/pathspec.rs.html#313">i</a>))
+        <a class="self" href="#312">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="#312">self</a>.list.<a href="#236">diff_entry</a>(<a href="#313">i</a>))
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>PathspecDiffEntries&lt;<span class="lifetime">&#39;list</span>&gt; {}
@@ -683,17 +683,17 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PathspecFailedEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#320">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#320">self</a>.list.<a href="../../src/git2/pathspec.rs.html#258">failed_entry</a>(<a href="../../src/git2/pathspec.rs.html#321">i</a>))
+        <a class="self" href="#320">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="#320">self</a>.list.<a href="#258">failed_entry</a>(<a href="#321">i</a>))
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <a class="self" href="../../src/git2/pathspec.rs.html#323">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="#323">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>PathspecFailedEntries&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;list </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../src/git2/pathspec.rs.html#328">self</a>.range
+        <a class="self" href="#328">self</a>.range
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-            .and_then(|i| <a class="self" href="../../src/git2/pathspec.rs.html#328">self</a>.list.<a href="../../src/git2/pathspec.rs.html#258">failed_entry</a>(<a href="../../src/git2/pathspec.rs.html#331">i</a>))
+            .and_then(|i| <a class="self" href="#328">self</a>.list.<a href="#258">failed_entry</a>(<a href="#331">i</a>))
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;list</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>PathspecFailedEntries&lt;<span class="lifetime">&#39;list</span>&gt; {}
@@ -729,4 +729,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -289,42 +289,42 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">core::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/index.html">core::hash</a>;
 
-<span class="kw">mod </span><a href="../../src/crc32fast/baseline.rs.html#1-94">baseline</a>;
-<span class="kw">mod </span><a href="../../src/crc32fast/combine.rs.html#1-77">combine</a>;
-<span class="kw">mod </span><a href="../../src/crc32fast/specialized/mod.rs.html#1-37">specialized</a>;
-<span class="kw">mod </span><a href="../../src/crc32fast/table.rs.html#4-629">table</a>;
+<span class="kw">mod </span><a href="baseline.rs.html#1-94">baseline</a>;
+<span class="kw">mod </span><a href="combine.rs.html#1-77">combine</a>;
+<span class="kw">mod </span><a href="specialized/mod.rs.html#1-37">specialized</a>;
+<span class="kw">mod </span><a href="table.rs.html#4-629">table</a>;
 
 <span class="doccomment">/// Computes the CRC32 hash of a byte slice.
 ///
 /// Check out [`Hasher`] for more advanced use-cases.
 </span><span class="kw">pub fn </span>hash(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>h = Hasher::new();
-    <a href="../../src/crc32fast/lib.rs.html#66">h</a>.<a href="../../src/crc32fast/lib.rs.html#137">update</a>(<a href="../../src/crc32fast/lib.rs.html#65">buf</a>);
-    <a href="../../src/crc32fast/lib.rs.html#66">h</a>.<a href="../../src/crc32fast/lib.rs.html#146">finalize</a>()
+    <a href="#66">h</a>.<a href="#137">update</a>(<a href="#65">buf</a>);
+    <a href="#66">h</a>.<a href="#146">finalize</a>()
 }
 
 <span class="attribute">#[derive(Clone)]
 </span><span class="kw">enum </span>State {
-    Baseline(<a href="../../src/crc32fast/baseline.rs.html#4">baseline::State</a>),
-    Specialized(<a href="../../src/crc32fast/specialized/pclmulqdq.rs.html#7">specialized::State</a>),
+    Baseline(<a href="baseline.rs.html#4">baseline::State</a>),
+    Specialized(<a href="specialized/pclmulqdq.rs.html#7">specialized::State</a>),
 }
 
 <span class="attribute">#[derive(Clone)]
 </span><span class="doccomment">/// Represents an in-progress CRC32 computation.
 </span><span class="kw">pub struct </span>Hasher {
     amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    state: <a href="../../src/crc32fast/lib.rs.html#72">State</a>,
+    state: <a href="#72">State</a>,
 }
 
 <span class="kw">const </span>DEFAULT_INIT_STATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
 
-<span class="kw">impl </span><a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
+<span class="kw">impl </span><a href="#79">Hasher</a> {
     <span class="doccomment">/// Create a new `Hasher`.
     ///
     /// This will perform a CPU feature detection at runtime to select the most
     /// optimal implementation for the current processor architecture.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new_with_initial(<a href="../../src/crc32fast/lib.rs.html#84">DEFAULT_INIT_STATE</a>)
+        <span class="self">Self</span>::new_with_initial(<a href="#84">DEFAULT_INIT_STATE</a>)
     }
 
     <span class="doccomment">/// Create a new `Hasher` with an initial CRC32 state.
@@ -332,7 +332,7 @@
     /// This works just like `Hasher::new`, except that it allows for an initial
     /// CRC32 state to be passed in.
     </span><span class="kw">pub fn </span>new_with_initial(init: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new_with_initial_len(<a href="../../src/crc32fast/lib.rs.html#99">init</a>, <span class="number">0</span>)
+        <span class="self">Self</span>::new_with_initial_len(<a href="#99">init</a>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Create a new `Hasher` with an initial CRC32 state.
@@ -341,16 +341,16 @@
     /// resulting object can then be used with `combine` to compute `crc(a ||
     /// b)` from `crc(a)`, `crc(b)`, and `len(b)`.
     </span><span class="kw">pub fn </span>new_with_initial_len(init: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::internal_new_specialized(<a href="../../src/crc32fast/lib.rs.html#108">init</a>, <a href="../../src/crc32fast/lib.rs.html#108">amount</a>)
-            .unwrap_or_else(|| <span class="self">Self</span>::internal_new_baseline(<a href="../../src/crc32fast/lib.rs.html#108">init</a>, <a href="../../src/crc32fast/lib.rs.html#108">amount</a>))
+        <span class="self">Self</span>::internal_new_specialized(<a href="#108">init</a>, <a href="#108">amount</a>)
+            .unwrap_or_else(|| <span class="self">Self</span>::internal_new_baseline(<a href="#108">init</a>, <a href="#108">amount</a>))
     }
 
     <span class="attribute">#[doc(hidden)]
     </span><span class="comment">// Internal-only API. Don&#39;t use.
     </span><span class="kw">pub fn </span>internal_new_baseline(init: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
-            <a href="../../src/crc32fast/lib.rs.html#115">amount</a>,
-            state: <a href="../../src/crc32fast/lib.rs.html#73">State::Baseline</a>(baseline::State::new(<a href="../../src/crc32fast/lib.rs.html#115">init</a>)),
+        <a href="#79">Hasher</a> {
+            <a href="#115">amount</a>,
+            state: <a href="#73">State::Baseline</a>(baseline::State::new(<a href="#115">init</a>)),
         }
     }
 
@@ -358,10 +358,10 @@
     </span><span class="comment">// Internal-only API. Don&#39;t use.
     </span><span class="kw">pub fn </span>internal_new_specialized(init: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = specialized::State::new(<a href="../../src/crc32fast/lib.rs.html#124">init</a>) {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
-                    <a href="../../src/crc32fast/lib.rs.html#124">amount</a>,
-                    state: <a href="../../src/crc32fast/lib.rs.html#74">State::Specialized</a>(<a href="../../src/crc32fast/lib.rs.html#126">state</a>),
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = specialized::State::new(<a href="#124">init</a>) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#79">Hasher</a> {
+                    <a href="#124">amount</a>,
+                    state: <a href="#74">State::Specialized</a>(<a href="#126">state</a>),
                 });
             }
         }
@@ -370,60 +370,60 @@
 
     <span class="doccomment">/// Process the given byte slice and update the hash state.
     </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../src/crc32fast/lib.rs.html#137">self</a>.amount += <a href="../../src/crc32fast/lib.rs.html#137">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <span class="kw">match </span><a class="self" href="../../src/crc32fast/lib.rs.html#137">self</a>.state {
-            <a href="../../src/crc32fast/lib.rs.html#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#140">state</a>.<a href="../../src/crc32fast/baseline.rs.html#13">update</a>(<a href="../../src/crc32fast/lib.rs.html#137">buf</a>),
-            <a href="../../src/crc32fast/lib.rs.html#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#141">state</a>.<a href="../../src/crc32fast/specialized/pclmulqdq.rs.html#40">update</a>(<a href="../../src/crc32fast/lib.rs.html#137">buf</a>),
+        <a class="self" href="#137">self</a>.amount += <a href="#137">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        <span class="kw">match </span><a class="self" href="#137">self</a>.state {
+            <a href="#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#140">state</a>.<a href="baseline.rs.html#13">update</a>(<a href="#137">buf</a>),
+            <a href="#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#141">state</a>.<a href="specialized/pclmulqdq.rs.html#40">update</a>(<a href="#137">buf</a>),
         }
     }
 
     <span class="doccomment">/// Finalize the hash state and return the computed CRC32 value.
     </span><span class="kw">pub fn </span>finalize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">match </span><a class="self" href="../../src/crc32fast/lib.rs.html#146">self</a>.state {
-            <a href="../../src/crc32fast/lib.rs.html#73">State::Baseline</a>(state) =&gt; <a href="../../src/crc32fast/lib.rs.html#148">state</a>.<a href="../../src/crc32fast/baseline.rs.html#17">finalize</a>(),
-            <a href="../../src/crc32fast/lib.rs.html#74">State::Specialized</a>(state) =&gt; <a href="../../src/crc32fast/lib.rs.html#149">state</a>.<a href="../../src/crc32fast/specialized/pclmulqdq.rs.html#46">finalize</a>(),
+        <span class="kw">match </span><a class="self" href="#146">self</a>.state {
+            <a href="#73">State::Baseline</a>(state) =&gt; <a href="#148">state</a>.<a href="baseline.rs.html#17">finalize</a>(),
+            <a href="#74">State::Specialized</a>(state) =&gt; <a href="#149">state</a>.<a href="specialized/pclmulqdq.rs.html#46">finalize</a>(),
         }
     }
 
     <span class="doccomment">/// Reset the hash state.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/crc32fast/lib.rs.html#154">self</a>.amount = <span class="number">0</span>;
-        <span class="kw">match </span><a class="self" href="../../src/crc32fast/lib.rs.html#154">self</a>.state {
-            <a href="../../src/crc32fast/lib.rs.html#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#157">state</a>.<a href="../../src/crc32fast/baseline.rs.html#21">reset</a>(),
-            <a href="../../src/crc32fast/lib.rs.html#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#158">state</a>.<a href="../../src/crc32fast/specialized/pclmulqdq.rs.html#50">reset</a>(),
+        <a class="self" href="#154">self</a>.amount = <span class="number">0</span>;
+        <span class="kw">match </span><a class="self" href="#154">self</a>.state {
+            <a href="#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#157">state</a>.<a href="baseline.rs.html#21">reset</a>(),
+            <a href="#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#158">state</a>.<a href="specialized/pclmulqdq.rs.html#50">reset</a>(),
         }
     }
 
     <span class="doccomment">/// Combine the hash state with the hash state for the subsequent block of bytes.
     </span><span class="kw">pub fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="self" href="../../src/crc32fast/lib.rs.html#163">self</a>.amount += <a href="../../src/crc32fast/lib.rs.html#163">other</a>.amount;
-        <span class="kw">let </span>other_crc = <a href="../../src/crc32fast/lib.rs.html#163">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../src/crc32fast/lib.rs.html#146">finalize</a>();
-        <span class="kw">match </span><a class="self" href="../../src/crc32fast/lib.rs.html#163">self</a>.state {
-            <a href="../../src/crc32fast/lib.rs.html#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#167">state</a>.<a href="../../src/crc32fast/baseline.rs.html#25">combine</a>(<a href="../../src/crc32fast/lib.rs.html#165">other_crc</a>, <a href="../../src/crc32fast/lib.rs.html#163">other</a>.amount),
-            <a href="../../src/crc32fast/lib.rs.html#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="../../src/crc32fast/lib.rs.html#168">state</a>.<a href="../../src/crc32fast/specialized/pclmulqdq.rs.html#54">combine</a>(<a href="../../src/crc32fast/lib.rs.html#165">other_crc</a>, <a href="../../src/crc32fast/lib.rs.html#163">other</a>.amount),
+        <a class="self" href="#163">self</a>.amount += <a href="#163">other</a>.amount;
+        <span class="kw">let </span>other_crc = <a href="#163">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#146">finalize</a>();
+        <span class="kw">match </span><a class="self" href="#163">self</a>.state {
+            <a href="#73">State::Baseline</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#167">state</a>.<a href="baseline.rs.html#25">combine</a>(<a href="#165">other_crc</a>, <a href="#163">other</a>.amount),
+            <a href="#74">State::Specialized</a>(<span class="kw-2">ref mut </span>state) =&gt; <a href="#168">state</a>.<a href="specialized/pclmulqdq.rs.html#54">combine</a>(<a href="#165">other_crc</a>, <a href="#163">other</a>.amount),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#79">Hasher</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/crc32fast/lib.rs.html#174">f</a>.debug_struct(<span class="string">&quot;crc32fast::Hasher&quot;</span>).finish()
+        <a href="#174">f</a>.debug_struct(<span class="string">&quot;crc32fast::Hasher&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#79">Hasher</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">hash::Hasher</a> <span class="kw">for </span><a href="../../src/crc32fast/lib.rs.html#79">Hasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">hash::Hasher</a> <span class="kw">for </span><a href="#79">Hasher</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../src/crc32fast/lib.rs.html#186">self</a>.<a href="../../src/crc32fast/lib.rs.html#137">update</a>(<a href="../../src/crc32fast/lib.rs.html#186">bytes</a>)
+        <a class="self" href="#186">self</a>.<a href="#137">update</a>(<a href="#186">bytes</a>)
     }
 
     <span class="kw">fn </span>finish(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        u64::from(<a class="self" href="../../src/crc32fast/lib.rs.html#190">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../src/crc32fast/lib.rs.html#146">finalize</a>())
+        u64::from(<a class="self" href="#190">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="#146">finalize</a>())
     }
 }
 
@@ -469,4 +469,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crc32fast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crc32fast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

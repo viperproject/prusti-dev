@@ -277,11 +277,11 @@
     <a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>,
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/attohttpc/error.rs.html#47">ErrorKind</a>, <a href="../../../src/attohttpc/error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span><span class="kw">crate</span>::parsing::buffers::{<a class="self" href="../../../src/attohttpc/parsing/mod.rs.html#2">self</a>, <a href="../../../src/attohttpc/parsing/buffers.rs.html#58">trim_byte</a>};
-<span class="kw">use </span><span class="kw">crate</span>::parsing::{<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">body_reader::BodyReader</a>, <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#16">compressed_reader::CompressedReader</a>, <a href="../../../src/attohttpc/parsing/response_reader.rs.html#51">ResponseReader</a>};
-<span class="kw">use </span><a href="../../../src/attohttpc/request/mod.rs.html#65"><span class="kw">crate</span>::request::PreparedRequest</a>;
-<span class="kw">use </span><a href="../../../src/attohttpc/streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error.rs.html#47">ErrorKind</a>, <a href="../error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::parsing::buffers::{<a class="self" href="mod.rs.html#2">self</a>, <a href="buffers.rs.html#58">trim_byte</a>};
+<span class="kw">use </span><span class="kw">crate</span>::parsing::{<a href="body_reader.rs.html#10">body_reader::BodyReader</a>, <a href="compressed_reader.rs.html#16">compressed_reader::CompressedReader</a>, <a href="response_reader.rs.html#51">ResponseReader</a>};
+<span class="kw">use </span><a href="../request/mod.rs.html#65"><span class="kw">crate</span>::request::PreparedRequest</a>;
+<span class="kw">use </span><a href="../streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;charsets&quot;</span>)]
 </span><span class="kw">use crate</span>::{charsets::Charset, parsing::TextReader};
@@ -301,7 +301,7 @@
     <span class="comment">// status line
     </span><span class="kw">let </span>status: <a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a> = {
         buffers::read_line(reader, <span class="kw-2">&amp;mut </span>line, MAX_LINE_LEN)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>parts = <a href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>.split(|<span class="kw-2">&amp;</span>b| <a href="../../../src/attohttpc/parsing/response.rs.html#33">b</a> == <span class="string">b&#39; &#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| !<a href="../../../src/attohttpc/parsing/response.rs.html#33">x</a>.is_empty());
+        <span class="kw">let </span><span class="kw-2">mut </span>parts = <a href="#27">line</a>.split(|<span class="kw-2">&amp;</span>b| <a href="#33">b</a> == <span class="string">b&#39; &#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| !<a href="#33">x</a>.is_empty());
 
         <span class="kw">let _ </span>= parts.next().ok_or(InvalidResponseKind::StatusLine)<span class="question-mark">?</span>;
         <span class="kw">let </span>code = parts.next().ok_or(InvalidResponseKind::StatusLine)<span class="question-mark">?</span>;
@@ -323,39 +323,39 @@
             .position(|<span class="kw-2">&amp;</span>c| c == <span class="string">b&#39;:&#39;</span>)
             .ok_or(InvalidResponseKind::Header)<span class="question-mark">?</span>;
 
-        <a href="../../../src/attohttpc/parsing/buffers.rs.html#70">buffers::replace_byte</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;mut </span><a href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>[<a href="../../../src/attohttpc/parsing/response.rs.html#50">col</a> + <span class="number">1</span>..]);
+        <a href="buffers.rs.html#70">buffers::replace_byte</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;mut </span><a href="#27">line</a>[<a href="#50">col</a> + <span class="number">1</span>..]);
 
-        <span class="kw">let </span>header = <a href="../../../src/attohttpc/parsing/buffers.rs.html#58">trim_byte</a>(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>[..<a href="../../../src/attohttpc/parsing/response.rs.html#50">col</a>]);
-        <span class="kw">let </span>value = <a href="../../../src/attohttpc/parsing/buffers.rs.html#58">trim_byte</a>(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>[<a href="../../../src/attohttpc/parsing/response.rs.html#50">col</a> + <span class="number">1</span>..]);
+        <span class="kw">let </span>header = <a href="buffers.rs.html#58">trim_byte</a>(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="#27">line</a>[..<a href="#50">col</a>]);
+        <span class="kw">let </span>value = <a href="buffers.rs.html#58">trim_byte</a>(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a href="#27">line</a>[<a href="#50">col</a> + <span class="number">1</span>..]);
 
-        <span class="kw">let </span>header = <span class="kw">match </span>HeaderName::from_bytes(<a href="../../../src/attohttpc/parsing/response.rs.html#57">header</a>) {
-            <span class="prelude-val">Ok</span>(val) =&gt; <a href="../../../src/attohttpc/parsing/response.rs.html#61">val</a>,
+        <span class="kw">let </span>header = <span class="kw">match </span>HeaderName::from_bytes(<a href="#57">header</a>) {
+            <span class="prelude-val">Ok</span>(val) =&gt; <a href="#61">val</a>,
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <a class="macro" href="../../../src/attohttpc/lib.rs.html#60-62">warn!</a>(<span class="string">&quot;Dropped invalid response header: {}&quot;</span>, err);
+                <a class="macro" href="../lib.rs.html#60-62">warn!</a>(<span class="string">&quot;Dropped invalid response header: {}&quot;</span>, err);
                 <span class="kw">continue</span>;
             }
         };
 
-        <a href="../../../src/attohttpc/parsing/response.rs.html#28">headers</a>.append(<a href="../../../src/attohttpc/parsing/response.rs.html#60">header</a>, HeaderValue::from_bytes(value).map_err(http::Error::from)<span class="question-mark">?</span>);
+        <a href="#28">headers</a>.append(<a href="#60">header</a>, HeaderValue::from_bytes(value).map_err(http::Error::from)<span class="question-mark">?</span>);
     }
 
-    <span class="prelude-val">Ok</span>((<a href="../../../src/attohttpc/parsing/response.rs.html#31">status</a>, <a href="../../../src/attohttpc/parsing/response.rs.html#28">headers</a>))
+    <span class="prelude-val">Ok</span>((<a href="#31">status</a>, <a href="#28">headers</a>))
 }
 
-<span class="kw">pub fn </span>parse_response&lt;B&gt;(reader: <a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>, request: <span class="kw-2">&amp;</span>PreparedRequest&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/attohttpc/parsing/response.rs.html#93">Response</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<a href="../../../src/attohttpc/parsing/response.rs.html#74">reader</a>);
+<span class="kw">pub fn </span>parse_response&lt;B&gt;(reader: <a href="../streams.rs.html#26">BaseStream</a>, request: <span class="kw-2">&amp;</span>PreparedRequest&lt;B&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#93">Response</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<a href="#74">reader</a>);
     <span class="kw">let </span>(status, <span class="kw-2">mut </span>headers) = parse_response_head(<span class="kw-2">&amp;mut </span>reader)<span class="question-mark">?</span>;
     <span class="kw">let </span>body_reader = BodyReader::new(<span class="kw-2">&amp;</span>headers, reader)<span class="question-mark">?</span>;
     <span class="kw">let </span>compressed_reader = CompressedReader::new(<span class="kw-2">&amp;</span>headers, request, body_reader)<span class="question-mark">?</span>;
-    <span class="kw">let </span>response_reader = ResponseReader::new(<span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/response.rs.html#76">headers</a>, <a href="../../../src/attohttpc/parsing/response.rs.html#74">request</a>, <a href="../../../src/attohttpc/parsing/response.rs.html#78">compressed_reader</a>);
+    <span class="kw">let </span>response_reader = ResponseReader::new(<span class="kw-2">&amp;</span><a href="#76">headers</a>, <a href="#74">request</a>, <a href="#78">compressed_reader</a>);
 
     <span class="comment">// Remove HOP-BY-HOP headers
-    </span><a href="../../../src/attohttpc/parsing/response.rs.html#76">headers</a>.remove(<a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>);
+    </span><a href="#76">headers</a>.remove(<a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>);
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/response.rs.html#93">Response</a> {
-        <a href="../../../src/attohttpc/parsing/response.rs.html#76">status</a>,
-        <a href="../../../src/attohttpc/parsing/response.rs.html#76">headers</a>,
-        reader: <a href="../../../src/attohttpc/parsing/response.rs.html#79">response_reader</a>,
+    <span class="prelude-val">Ok</span>(<a href="#93">Response</a> {
+        <a href="#76">status</a>,
+        <a href="#76">headers</a>,
+        reader: <a href="#79">response_reader</a>,
     })
 }
 
@@ -364,34 +364,34 @@
 </span><span class="kw">pub struct </span>Response {
     status: <a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>,
     headers: <a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>,
-    reader: <a href="../../../src/attohttpc/parsing/response_reader.rs.html#51">ResponseReader</a>,
+    reader: <a href="response_reader.rs.html#51">ResponseReader</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/attohttpc/parsing/response.rs.html#93">Response</a> {
+<span class="kw">impl </span><a href="#93">Response</a> {
     <span class="doccomment">/// Get the status code of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a> {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#102">self</a>.status
+        <a class="self" href="#102">self</a>.status
     }
 
     <span class="doccomment">/// Get the headers of this `Response`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/attohttpc/parsing/response.rs.html#108">self</a>.headers
+        <span class="kw-2">&amp;</span><a class="self" href="#108">self</a>.headers
     }
 
     <span class="doccomment">/// Checks if the status code of this `Response` was a success code.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_success(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#114">self</a>.status.is_success()
+        <a class="self" href="#114">self</a>.status.is_success()
     }
 
     <span class="doccomment">/// Returns error variant if the status code was not a success code.
     </span><span class="kw">pub fn </span>error_for_status(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_success() {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/attohttpc/parsing/response.rs.html#119">self</a>)
+            <span class="prelude-val">Ok</span>(<a class="self" href="#119">self</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/attohttpc/error.rs.html#72">ErrorKind::StatusCode</a>(<a class="self" href="../../../src/attohttpc/parsing/response.rs.html#119">self</a>.status).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="prelude-val">Err</span>(<a href="../error.rs.html#72">ErrorKind::StatusCode</a>(<a class="self" href="#119">self</a>.status).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         }
     }
 
@@ -399,8 +399,8 @@
     ///
     /// This method is useful to read the status code or headers after consuming the response.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>split(<span class="self">self</span>) -&gt; (<a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../src/attohttpc/parsing/response_reader.rs.html#51">ResponseReader</a>) {
-        (<a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.status, <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.headers, <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.reader)
+    </span><span class="kw">pub fn </span>split(<span class="self">self</span>) -&gt; (<a href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a href="response_reader.rs.html#51">ResponseReader</a>) {
+        (<a class="self" href="#131">self</a>.status, <a class="self" href="#131">self</a>.headers, <a class="self" href="#131">self</a>.reader)
     }
 
     <span class="doccomment">/// Write the response to any object that implements `Write`.
@@ -409,13 +409,13 @@
     <span class="kw">where
         </span>W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#137">self</a>.reader.<a href="../../../src/attohttpc/parsing/response_reader.rs.html#76-78">write_to</a>(<a href="../../../src/attohttpc/parsing/response.rs.html#137">writer</a>)
+        <a class="self" href="#137">self</a>.reader.<a href="response_reader.rs.html#76-78">write_to</a>(<a href="#137">writer</a>)
     }
 
     <span class="doccomment">/// Read the response to a `Vec` of bytes.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bytes(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#146">self</a>.reader.<a href="../../../src/attohttpc/parsing/response_reader.rs.html#85">bytes</a>()
+        <a class="self" href="#146">self</a>.reader.<a href="response_reader.rs.html#85">bytes</a>()
     }
 
     <span class="doccomment">/// Read the response to a `String`.
@@ -432,7 +432,7 @@
     /// invalid data is encountered but output replacement characters instead.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>text(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#163">self</a>.reader.<a href="../../../src/attohttpc/parsing/response_reader.rs.html#104">text</a>()
+        <a class="self" href="#163">self</a>.reader.<a href="response_reader.rs.html#104">text</a>()
     }
 
     <span class="doccomment">/// Read the response to a `String`, decoding with the given `Charset`.
@@ -477,7 +477,7 @@
     /// invalid data is encountered but output replacement characters instead.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>text_utf8(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#208">self</a>.reader.<a href="../../../src/attohttpc/parsing/response_reader.rs.html#168">text_utf8</a>()
+        <a class="self" href="#208">self</a>.reader.<a href="response_reader.rs.html#168">text_utf8</a>()
     }
 
     <span class="doccomment">/// Parse the response as a JSON object and return it.
@@ -513,9 +513,9 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/response.rs.html#93">Response</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#93">Response</a> {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#246">self</a>.reader.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/response.rs.html#246">buf</a>)
+        <a class="self" href="#246">self</a>.reader.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#246">buf</a>)
     }
 }
 
@@ -541,4 +541,4 @@
     <span class="macro">assert_eq!</span>(headers[<span class="string">&quot;the-other-kind-of-header&quot;</span>], <span class="string">&quot;foobar&quot;</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -88,8 +88,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    abstract_interpretation::{<a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
-    <a href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#14">domains::DefinitelyAllocatedState</a>,
+    abstract_interpretation::{<a href="../../abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
+    <a href="state.rs.html#14">domains::DefinitelyAllocatedState</a>,
 };
 <span class="kw">use </span>prusti_rustc_interface::{<a href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">span::def_id::DefId</a>};
 
@@ -100,7 +100,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; DefinitelyAllocatedAnalysis&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#13">DefinitelyAllocatedAnalysis</a> { <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#19">def_id</a>, <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#19">mir</a> }
+        <a href="#13">DefinitelyAllocatedAnalysis</a> { <a href="#19">def_id</a>, <a href="#19">mir</a> }
     }
 }
 
@@ -108,25 +108,25 @@
     <span class="kw">type </span>State = DefinitelyAllocatedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt;;
 
     <span class="kw">fn </span>def_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#27">self</a>.def_id
+        <a class="self" href="#27">self</a>.def_id
     }
 
     <span class="kw">fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#31">self</a>.mir
+        <a class="self" href="#31">self</a>.mir
     }
 
     <span class="doccomment">/// The bottom element of the lattice contains all possible places,
     /// meaning all locals (which includes all their fields)
     </span><span class="kw">fn </span>new_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State {
-        <a href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#14">DefinitelyAllocatedState</a> {
-            def_allocated_locals: <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#37">self</a>.mir.local_decls.indices().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            mir: <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#37">self</a>.mir,
+        <a href="state.rs.html#14">DefinitelyAllocatedState</a> {
+            def_allocated_locals: <a class="self" href="#37">self</a>.mir.local_decls.indices().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            mir: <a class="self" href="#37">self</a>.mir,
         }
     }
 
     <span class="kw">fn </span>new_initial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State {
         <span class="kw">let </span><span class="kw-2">mut </span>locals_without_explicit_allocation: FxHashSet&lt;<span class="kw">_</span>&gt; =
-            <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#44">self</a>.mir.vars_and_temps_iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a class="self" href="#44">self</a>.mir.vars_and_temps_iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.mir.basic_blocks.iter() {
             <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span>block.statements {
                 <span class="kw">match </span>statement.kind {
@@ -138,9 +138,9 @@
                 }
             }
         }
-        <a href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#14">DefinitelyAllocatedState</a> {
-            def_allocated_locals: <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#45">locals_without_explicit_allocation</a>,
-            mir: <a class="self" href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#44">self</a>.mir,
+        <a href="state.rs.html#14">DefinitelyAllocatedState</a> {
+            def_allocated_locals: <a href="#45">locals_without_explicit_allocation</a>,
+            mir: <a class="self" href="#44">self</a>.mir,
         }
     }
 
@@ -153,7 +153,7 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; AnalysisResult&lt;()&gt; {
-        <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#70">state</a>.<a href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#74-77">apply_statement_effect</a>(<a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#71">location</a>)
+        <a href="#70">state</a>.<a href="state.rs.html#74-77">apply_statement_effect</a>(<a href="#71">location</a>)
     }
 
     <span class="kw">fn </span>apply_terminator_effect(
@@ -161,8 +161,8 @@
         state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; AnalysisResult&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>::State)&gt;&gt; {
-        <a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#78">state</a>.<a href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#91-94">apply_terminator_effect</a>(<a href="../../../../src/analysis/domains/definitely_allocated/analysis.rs.html#79">location</a>)
+        <a href="#78">state</a>.<a href="state.rs.html#91-94">apply_terminator_effect</a>(<a href="#79">location</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

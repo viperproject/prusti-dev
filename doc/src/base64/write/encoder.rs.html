@@ -379,8 +379,8 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/base64/encode.rs.html#167"><span class="kw">crate</span>::encode::encode_to_slice</a>;
-<span class="kw">use crate</span>::{<a href="../../../src/base64/encode.rs.html#117">encode_config_slice</a>, <a href="../../../src/base64/lib.rs.html#153">Config</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../encode.rs.html#167"><span class="kw">crate</span>::encode::encode_to_slice</a>;
+<span class="kw">use crate</span>::{<a href="../encode.rs.html#117">encode_config_slice</a>, <a href="../lib.rs.html#153">Config</a>};
 <span class="kw">use </span>std::{
     <a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
     io::{<a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <span class="prelude-ty">Result</span>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
@@ -388,7 +388,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
 <span class="doccomment">/// The most bytes whose encoding will fit in `BUF_SIZE`
-</span><span class="kw">const </span>MAX_INPUT_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/base64/write/encoder.rs.html#8">BUF_SIZE</a> / <span class="number">4 </span>* <span class="number">3</span>;
+</span><span class="kw">const </span>MAX_INPUT_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#8">BUF_SIZE</a> / <span class="number">4 </span>* <span class="number">3</span>;
 <span class="comment">// 3 bytes of input = 4 bytes of base64, always (because we don&#39;t allow line wrapping)
 </span><span class="kw">const </span>MIN_ENCODE_CHUNK_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">3</span>;
 
@@ -435,19 +435,19 @@
 /// It has some minor performance loss compared to encoding slices (a couple percent).
 /// It does not do any heap allocation.
 </span><span class="kw">pub struct </span>EncoderWriter&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
-    config: <a href="../../../src/base64/lib.rs.html#153">Config</a>,
+    config: <a href="../lib.rs.html#153">Config</a>,
     <span class="doccomment">/// Where encoded data is written to. It&#39;s an Option as it&#39;s None immediately before Drop is
     /// called so that finish() can return the underlying writer. None implies that finish() has
     /// been called successfully.
     </span>delegate: <span class="prelude-ty">Option</span>&lt;W&gt;,
     <span class="doccomment">/// Holds a partial chunk, if any, after the last `write()`, so that we may then fill the chunk
     /// with the next `write()`, encode it, then proceed with the rest of the input normally.
-    </span>extra_input: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>],
+    </span>extra_input: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#12">MIN_ENCODE_CHUNK_SIZE</a>],
     <span class="doccomment">/// How much of `extra` is occupied, in `[0, MIN_ENCODE_CHUNK_SIZE]`.
     </span>extra_input_occupied_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// Buffer to encode into. May hold leftover encoded bytes from a previous write call that the underlying writer
     /// did not write last time.
-    </span>output: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../../src/base64/write/encoder.rs.html#8">BUF_SIZE</a>],
+    </span>output: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#8">BUF_SIZE</a>],
     <span class="doccomment">/// How much of `output` is occupied with encoded data that couldn&#39;t be written last time
     </span>output_occupied_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// panic safety: don&#39;t write again in destructor if writer panicked while we were writing to it
@@ -457,7 +457,7 @@
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>EncoderWriter&lt;W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="../../../src/base64/write/encoder.rs.html#77">f</a>,
+            <a href="#77">f</a>,
             <span class="string">&quot;extra_input: {:?} extra_input_occupied_len:{:?} output[..5]: {:?} output_occupied_len: {:?}&quot;</span>,
             <span class="self">self</span>.extra_input,
             <span class="self">self</span>.extra_input_occupied_len,
@@ -469,13 +469,13 @@
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; EncoderWriter&lt;W&gt; {
     <span class="doccomment">/// Create a new encoder that will write to the provided delegate writer `w`.
-    </span><span class="kw">pub fn </span>new(w: W, config: <a href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; EncoderWriter&lt;W&gt; {
-        <a href="../../../src/base64/write/encoder.rs.html#56">EncoderWriter</a> {
-            <a href="../../../src/base64/write/encoder.rs.html#91">config</a>,
-            delegate: <span class="prelude-val">Some</span>(<a href="../../../src/base64/write/encoder.rs.html#91">w</a>),
-            extra_input: [<span class="number">0u8</span>; <a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>],
+    </span><span class="kw">pub fn </span>new(w: W, config: <a href="../lib.rs.html#153">Config</a>) -&gt; EncoderWriter&lt;W&gt; {
+        <a href="#56">EncoderWriter</a> {
+            <a href="#91">config</a>,
+            delegate: <span class="prelude-val">Some</span>(<a href="#91">w</a>),
+            extra_input: [<span class="number">0u8</span>; <a href="#12">MIN_ENCODE_CHUNK_SIZE</a>],
             extra_input_occupied_len: <span class="number">0</span>,
-            output: [<span class="number">0u8</span>; <a href="../../../src/base64/write/encoder.rs.html#8">BUF_SIZE</a>],
+            output: [<span class="number">0u8</span>; <a href="#8">BUF_SIZE</a>],
             output_occupied_len: <span class="number">0</span>,
             panicked: <span class="bool-val">false</span>,
         }
@@ -506,9 +506,9 @@
 
         <span class="self">self</span>.write_final_leftovers()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>writer = <a class="self" href="../../../src/base64/write/encoder.rs.html#119">self</a>.delegate.take().expect(<span class="string">&quot;Writer must be present&quot;</span>);
+        <span class="kw">let </span>writer = <a class="self" href="#119">self</a>.delegate.take().expect(<span class="string">&quot;Writer must be present&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/base64/write/encoder.rs.html#128">writer</a>)
+        <span class="prelude-val">Ok</span>(<a href="#128">writer</a>)
     }
 
     <span class="doccomment">/// Write any remaining buffered data to the delegate writer.
@@ -522,18 +522,18 @@
         <span class="self">self</span>.write_all_encoded_output()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.extra_input_occupied_len &gt; <span class="number">0 </span>{
-            <span class="kw">let </span>encoded_len = <a href="../../../src/base64/encode.rs.html#117">encode_config_slice</a>(
-                <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.extra_input[..<a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.extra_input_occupied_len],
-                <a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.config,
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.output[..],
+            <span class="kw">let </span>encoded_len = <a href="../encode.rs.html#117">encode_config_slice</a>(
+                <span class="kw-2">&amp;</span><a class="self" href="#134">self</a>.extra_input[..<a class="self" href="#134">self</a>.extra_input_occupied_len],
+                <a class="self" href="#134">self</a>.config,
+                <span class="kw-2">&amp;mut </span><a class="self" href="#134">self</a>.output[..],
             );
 
-            <a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.output_occupied_len = <a href="../../../src/base64/write/encoder.rs.html#144">encoded_len</a>;
+            <a class="self" href="#134">self</a>.output_occupied_len = <a href="#144">encoded_len</a>;
 
             <span class="self">self</span>.write_all_encoded_output()<span class="question-mark">?</span>;
 
             <span class="comment">// write succeeded, do not write the encoding of extra again if finish() is retried
-            </span><a class="self" href="../../../src/base64/write/encoder.rs.html#134">self</a>.extra_input_occupied_len = <span class="number">0</span>;
+            </span><a class="self" href="#134">self</a>.extra_input_occupied_len = <span class="number">0</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -548,25 +548,25 @@
     /// `self.output_occupied_len` will not be updated, as errors from `write` are specified to mean
     /// that no write took place.
     </span><span class="kw">fn </span>write_to_delegate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_output_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.panicked = <span class="bool-val">true</span>;
-        <span class="kw">let </span>res = <span class="self"><a href="../../../src/base64/write/encoder.rs.html#169">self</a>
+        <a class="self" href="#169">self</a>.panicked = <span class="bool-val">true</span>;
+        <span class="kw">let </span>res = <span class="self"><a href="#169">self</a>
             </span>.delegate
             .as_mut()
             .expect(<span class="string">&quot;Writer must be present&quot;</span>)
-            .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.output[..<a href="../../../src/base64/write/encoder.rs.html#169">current_output_len</a>]);
-        <a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.panicked = <span class="bool-val">false</span>;
+            .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span><a class="self" href="#169">self</a>.output[..<a href="#169">current_output_len</a>]);
+        <a class="self" href="#169">self</a>.panicked = <span class="bool-val">false</span>;
 
-        <a href="../../../src/base64/write/encoder.rs.html#171">res</a>.map(|consumed| {
+        <a href="#171">res</a>.map(|consumed| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(consumed &lt;= current_output_len);
 
             <span class="kw">if </span>consumed &lt; current_output_len {
-                <a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.output_occupied_len = <a href="../../../src/base64/write/encoder.rs.html#169">current_output_len</a>.checked_sub(<a href="../../../src/base64/write/encoder.rs.html#178">consumed</a>).unwrap();
+                <a class="self" href="#169">self</a>.output_occupied_len = <a href="#169">current_output_len</a>.checked_sub(<a href="#178">consumed</a>).unwrap();
                 <span class="comment">// If we&#39;re blocking on I/O, the minor inefficiency of copying bytes to the
                 // start of the buffer is the least of our concerns...
                 // Rotate moves more than we need to, but copy_within isn&#39;t stabilized yet.
-                </span><a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.output.rotate_left(<a href="../../../src/base64/write/encoder.rs.html#178">consumed</a>);
+                </span><a class="self" href="#169">self</a>.output.rotate_left(<a href="#178">consumed</a>);
             } <span class="kw">else </span>{
-                <a class="self" href="../../../src/base64/write/encoder.rs.html#169">self</a>.output_occupied_len = <span class="number">0</span>;
+                <a class="self" href="#169">self</a>.output_occupied_len = <span class="number">0</span>;
             }
         })
     }
@@ -632,9 +632,9 @@
 
         // before reading any input, write any leftover encoded output from last time
         </span><span class="kw">if </span><span class="self">self</span>.output_occupied_len &gt; <span class="number">0 </span>{
-            <span class="kw">let </span>current_len = <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.output_occupied_len;
-            <span class="kw">return </span><span class="self"><a href="../../../src/base64/write/encoder.rs.html#237">self</a>
-                </span>.<a href="../../../src/base64/write/encoder.rs.html#169">write_to_delegate</a>(<a href="../../../src/base64/write/encoder.rs.html#254">current_len</a>)
+            <span class="kw">let </span>current_len = <a class="self" href="#237">self</a>.output_occupied_len;
+            <span class="kw">return </span><span class="self"><a href="#237">self</a>
+                </span>.<a href="#169">write_to_delegate</a>(<a href="#254">current_len</a>)
                 <span class="comment">// did not read any input
                 </span>.map(|<span class="kw">_</span>| <span class="number">0</span>);
         }
@@ -643,13 +643,13 @@
 
         <span class="comment">// how many bytes, if any, were read into `extra` to create a triple to encode
         </span><span class="kw">let </span><span class="kw-2">mut </span>extra_input_read_len = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>input = <a href="../../../src/base64/write/encoder.rs.html#237">input</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>input = <a href="#237">input</a>;
 
-        <span class="kw">let </span>orig_extra_len = <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len;
+        <span class="kw">let </span>orig_extra_len = <a class="self" href="#237">self</a>.extra_input_occupied_len;
 
         <span class="kw">let </span><span class="kw-2">mut </span>encoded_size = <span class="number">0</span>;
         <span class="comment">// always a multiple of MIN_ENCODE_CHUNK_SIZE
-        </span><span class="kw">let </span><span class="kw-2">mut </span>max_input_len = <a href="../../../src/base64/write/encoder.rs.html#10">MAX_INPUT_LEN</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>max_input_len = <a href="#10">MAX_INPUT_LEN</a>;
 
         <span class="comment">// process leftover un-encoded input from last write
         </span><span class="kw">if </span><span class="self">self</span>.extra_input_occupied_len &gt; <span class="number">0 </span>{
@@ -660,28 +660,28 @@
                 // We could write just the encoding of `extra` by itself but then we&#39;d have to
                 // return after writing only 4 bytes, which is inefficient if the underlying writer
                 // would make a syscall.
-                </span><a href="../../../src/base64/write/encoder.rs.html#264">extra_input_read_len</a> = <a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a> - <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len;
+                </span><a href="#264">extra_input_read_len</a> = <a href="#12">MIN_ENCODE_CHUNK_SIZE</a> - <a class="self" href="#237">self</a>.extra_input_occupied_len;
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(extra_input_read_len &gt; <span class="number">0</span>);
                 <span class="comment">// overwrite only bytes that weren&#39;t already used. If we need to rollback extra_len
                 // (when the subsequent write errors), the old leading bytes will still be there.
-                </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input[<a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len..<a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>]
-                    .copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/base64/write/encoder.rs.html#265">input</a>[<span class="number">0</span>..<a href="../../../src/base64/write/encoder.rs.html#264">extra_input_read_len</a>]);
+                </span><a class="self" href="#237">self</a>.extra_input[<a class="self" href="#237">self</a>.extra_input_occupied_len..<a href="#12">MIN_ENCODE_CHUNK_SIZE</a>]
+                    .copy_from_slice(<span class="kw-2">&amp;</span><a href="#265">input</a>[<span class="number">0</span>..<a href="#264">extra_input_read_len</a>]);
 
-                <span class="kw">let </span>len = <a href="../../../src/base64/encode.rs.html#167">encode_to_slice</a>(
-                    <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input[<span class="number">0</span>..<a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>],
-                    <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.output[..],
-                    <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.config.char_set.<a href="../../../src/base64/lib.rs.html#128">encode_table</a>(),
+                <span class="kw">let </span>len = <a href="../encode.rs.html#167">encode_to_slice</a>(
+                    <span class="kw-2">&amp;</span><a class="self" href="#237">self</a>.extra_input[<span class="number">0</span>..<a href="#12">MIN_ENCODE_CHUNK_SIZE</a>],
+                    <span class="kw-2">&amp;mut </span><a class="self" href="#237">self</a>.output[..],
+                    <a class="self" href="#237">self</a>.config.char_set.<a href="../lib.rs.html#128">encode_table</a>(),
                 );
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">4</span>, len);
 
-                <a href="../../../src/base64/write/encoder.rs.html#265">input</a> = <span class="kw-2">&amp;</span><a href="../../../src/base64/write/encoder.rs.html#265">input</a>[<a href="../../../src/base64/write/encoder.rs.html#264">extra_input_read_len</a>..];
+                <a href="#265">input</a> = <span class="kw-2">&amp;</span><a href="#265">input</a>[<a href="#264">extra_input_read_len</a>..];
 
                 <span class="comment">// consider extra to be used up, since we encoded it
-                </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len = <span class="number">0</span>;
+                </span><a class="self" href="#237">self</a>.extra_input_occupied_len = <span class="number">0</span>;
                 <span class="comment">// don&#39;t clobber where we just encoded to
-                </span><a href="../../../src/base64/write/encoder.rs.html#269">encoded_size</a> = <span class="number">4</span>;
+                </span><a href="#269">encoded_size</a> = <span class="number">4</span>;
                 <span class="comment">// and don&#39;t read more than can be encoded
-                </span><a href="../../../src/base64/write/encoder.rs.html#271">max_input_len</a> = <a href="../../../src/base64/write/encoder.rs.html#10">MAX_INPUT_LEN</a> - <a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>;
+                </span><a href="#271">max_input_len</a> = <a href="#10">MAX_INPUT_LEN</a> - <a href="#12">MIN_ENCODE_CHUNK_SIZE</a>;
 
             <span class="comment">// fall through to normal encoding
             </span>} <span class="kw">else </span>{
@@ -690,15 +690,15 @@
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">1</span>, input.len());
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">1</span>, <span class="self">self</span>.extra_input_occupied_len);
 
-                <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input[<a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len] = <a href="../../../src/base64/write/encoder.rs.html#265">input</a>[<span class="number">0</span>];
-                <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len += <span class="number">1</span>;
+                <a class="self" href="#237">self</a>.extra_input[<a class="self" href="#237">self</a>.extra_input_occupied_len] = <a href="#265">input</a>[<span class="number">0</span>];
+                <a class="self" href="#237">self</a>.extra_input_occupied_len += <span class="number">1</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">1</span>);
             };
         } <span class="kw">else if </span>input.len() &lt; MIN_ENCODE_CHUNK_SIZE {
             <span class="comment">// `extra` is empty, and `input` fits inside it
-            </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input[<span class="number">0</span>..<a href="../../../src/base64/write/encoder.rs.html#265">input</a>.len()].copy_from_slice(<a href="../../../src/base64/write/encoder.rs.html#265">input</a>);
-            <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len = <a href="../../../src/base64/write/encoder.rs.html#265">input</a>.len();
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/base64/write/encoder.rs.html#265">input</a>.len());
+            </span><a class="self" href="#237">self</a>.extra_input[<span class="number">0</span>..<a href="#265">input</a>.len()].copy_from_slice(<a href="#265">input</a>);
+            <a class="self" href="#237">self</a>.extra_input_occupied_len = <a href="#265">input</a>.len();
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#265">input</a>.len());
         };
 
         <span class="comment">// either 0 or 1 complete chunks encoded from extra
@@ -711,30 +711,30 @@
         );
 
         <span class="comment">// encode complete triples only
-        </span><span class="kw">let </span>input_complete_chunks_len = <a href="../../../src/base64/write/encoder.rs.html#265">input</a>.len() - (<a href="../../../src/base64/write/encoder.rs.html#265">input</a>.len() % <a href="../../../src/base64/write/encoder.rs.html#12">MIN_ENCODE_CHUNK_SIZE</a>);
-        <span class="kw">let </span>input_chunks_to_encode_len = cmp::min(<a href="../../../src/base64/write/encoder.rs.html#333">input_complete_chunks_len</a>, <a href="../../../src/base64/write/encoder.rs.html#271">max_input_len</a>);
+        </span><span class="kw">let </span>input_complete_chunks_len = <a href="#265">input</a>.len() - (<a href="#265">input</a>.len() % <a href="#12">MIN_ENCODE_CHUNK_SIZE</a>);
+        <span class="kw">let </span>input_chunks_to_encode_len = cmp::min(<a href="#333">input_complete_chunks_len</a>, <a href="#271">max_input_len</a>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">0</span>, max_input_len % MIN_ENCODE_CHUNK_SIZE);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">0</span>, input_chunks_to_encode_len % MIN_ENCODE_CHUNK_SIZE);
 
-        <a href="../../../src/base64/write/encoder.rs.html#269">encoded_size</a> += <a href="../../../src/base64/encode.rs.html#167">encode_to_slice</a>(
-            <span class="kw-2">&amp;</span><a href="../../../src/base64/write/encoder.rs.html#265">input</a>[..(<a href="../../../src/base64/write/encoder.rs.html#334">input_chunks_to_encode_len</a>)],
-            <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.output[<a href="../../../src/base64/write/encoder.rs.html#269">encoded_size</a>..],
-            <a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.config.char_set.<a href="../../../src/base64/lib.rs.html#128">encode_table</a>(),
+        <a href="#269">encoded_size</a> += <a href="../encode.rs.html#167">encode_to_slice</a>(
+            <span class="kw-2">&amp;</span><a href="#265">input</a>[..(<a href="#334">input_chunks_to_encode_len</a>)],
+            <span class="kw-2">&amp;mut </span><a class="self" href="#237">self</a>.output[<a href="#269">encoded_size</a>..],
+            <a class="self" href="#237">self</a>.config.char_set.<a href="../lib.rs.html#128">encode_table</a>(),
         );
 
         <span class="comment">// not updating `self.output_occupied_len` here because if the below write fails, it should
         // &quot;never take place&quot; -- the buffer contents we encoded are ignored and perhaps retried
         // later, if the consumer chooses.
 
-        </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.<a href="../../../src/base64/write/encoder.rs.html#169">write_to_delegate</a>(<a href="../../../src/base64/write/encoder.rs.html#269">encoded_size</a>)
+        </span><a class="self" href="#237">self</a>.<a href="#169">write_to_delegate</a>(<a href="#269">encoded_size</a>)
             <span class="comment">// no matter whether we wrote the full encoded buffer or not, we consumed the same
             // input
-            </span>.map(|<span class="kw">_</span>| <a href="../../../src/base64/write/encoder.rs.html#264">extra_input_read_len</a> + <a href="../../../src/base64/write/encoder.rs.html#334">input_chunks_to_encode_len</a>)
+            </span>.map(|<span class="kw">_</span>| <a href="#264">extra_input_read_len</a> + <a href="#334">input_chunks_to_encode_len</a>)
             .map_err(|e| {
                 <span class="comment">// in case we filled and encoded `extra`, reset extra_len
-                </span><a class="self" href="../../../src/base64/write/encoder.rs.html#237">self</a>.extra_input_occupied_len = <a href="../../../src/base64/write/encoder.rs.html#267">orig_extra_len</a>;
+                </span><a class="self" href="#237">self</a>.extra_input_occupied_len = <a href="#267">orig_extra_len</a>;
 
-                <a href="../../../src/base64/write/encoder.rs.html#352">e</a>
+                <a href="#352">e</a>
             })
     }
 
@@ -745,7 +745,7 @@
     /// The first error that is not of [`ErrorKind::Interrupted`] will be returned.
     </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.write_all_encoded_output()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/base64/write/encoder.rs.html#365">self</a>.delegate
+        <a class="self" href="#365">self</a>.delegate
             .as_mut()
             .expect(<span class="string">&quot;Writer must be present&quot;</span>)
             .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
@@ -756,9 +756,9 @@
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.panicked {
             <span class="comment">// like `BufWriter`, ignore errors during drop
-            </span><span class="kw">let _ </span>= <a class="self" href="../../../src/base64/write/encoder.rs.html#375">self</a>.<a href="../../../src/base64/write/encoder.rs.html#134">write_final_leftovers</a>();
+            </span><span class="kw">let _ </span>= <a class="self" href="#375">self</a>.<a href="#134">write_final_leftovers</a>();
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

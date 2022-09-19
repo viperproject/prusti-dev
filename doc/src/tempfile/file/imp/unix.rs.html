@@ -170,7 +170,7 @@
         </span><span class="kw">use </span>std::os::wasi::fs::MetadataExt;
     }
 }
-<span class="kw">use </span><a href="../../../../src/tempfile/lib.rs.html#181"><span class="kw">crate</span>::util</a>;
+<span class="kw">use </span><a href="../../lib.rs.html#181"><span class="kw">crate</span>::util</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
@@ -182,7 +182,7 @@
     <span class="kw">if </span>result == -<span class="number">1 </span>{
         <span class="prelude-val">Err</span>(io::Error::last_os_error())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#23">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="#23">result</a>)
     }
 }
 
@@ -194,36 +194,36 @@
 
 <span class="comment">// Stolen from std.
 </span><span class="kw">pub fn </span>cstr(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt; {
-    CString::new(<a href="../../../../src/tempfile/file/imp/unix.rs.html#38">path</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>())
+    CString::new(<a href="#38">path</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>())
         .map_err(|<span class="kw">_</span>| io::Error::new(io::ErrorKind::InvalidInput, <span class="string">&quot;path contained a null&quot;</span>))
 }
 
 <span class="kw">pub fn </span>create_named(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, open_options: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">OpenOptions</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt; {
-    <a href="../../../../src/tempfile/file/imp/unix.rs.html#43">open_options</a>.read(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>);
+    <a href="#43">open_options</a>.read(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>);
 
     <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))]
     </span>{
-        <a href="../../../../src/tempfile/file/imp/unix.rs.html#43">open_options</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">mode</a>(<span class="number">0o600</span>);
+        <a href="#43">open_options</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">mode</a>(<span class="number">0o600</span>);
     }
 
-    <a href="../../../../src/tempfile/file/imp/unix.rs.html#43">open_options</a>.open(<a href="../../../../src/tempfile/file/imp/unix.rs.html#43">path</a>)
+    <a href="#43">open_options</a>.open(<a href="#43">path</a>)
 }
 
 <span class="kw">fn </span>create_unlinked(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt; {
     <span class="kw">let </span>tmp;
     <span class="comment">// shadow this to decrease the lifetime. It can&#39;t live longer than `tmp`.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>path = <a href="../../../../src/tempfile/file/imp/unix.rs.html#54">path</a>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>path = <a href="#54">path</a>;
     <span class="kw">if </span>!path.is_absolute() {
         <span class="kw">let </span>cur_dir = env::current_dir()<span class="question-mark">?</span>;
-        <a href="../../../../src/tempfile/file/imp/unix.rs.html#55">tmp</a> = <a href="../../../../src/tempfile/file/imp/unix.rs.html#59">cur_dir</a>.join(<a href="../../../../src/tempfile/file/imp/unix.rs.html#57">path</a>);
-        <a href="../../../../src/tempfile/file/imp/unix.rs.html#57">path</a> = <span class="kw-2">&amp;</span><a href="../../../../src/tempfile/file/imp/unix.rs.html#55">tmp</a>;
+        <a href="#55">tmp</a> = <a href="#59">cur_dir</a>.join(<a href="#57">path</a>);
+        <a href="#57">path</a> = <span class="kw-2">&amp;</span><a href="#55">tmp</a>;
     }
 
     <span class="kw">let </span>f = create_named(path, <span class="kw-2">&amp;mut </span>OpenOptions::new())<span class="question-mark">?</span>;
     <span class="comment">// don&#39;t care whether the path has already been unlinked,
     // but perhaps there are some IO error conditions we should send up?
-    </span><span class="kw">let _ </span>= fs::remove_file(<a href="../../../../src/tempfile/file/imp/unix.rs.html#57">path</a>);
-    <span class="prelude-val">Ok</span>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#64">f</a>)
+    </span><span class="kw">let _ </span>= fs::remove_file(<a href="#57">path</a>);
+    <span class="prelude-val">Ok</span>(<a href="#64">f</a>)
 }
 
 <span class="attribute">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
@@ -233,12 +233,12 @@
         .read(<span class="bool-val">true</span>)
         .write(<span class="bool-val">true</span>)
         .<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.OpenOptionsExt.html">custom_flags</a>(O_TMPFILE) <span class="comment">// do not mix with `create_new(true)`
-        </span>.open(<a href="../../../../src/tempfile/file/imp/unix.rs.html#72">dir</a>)
+        </span>.open(<a href="#72">dir</a>)
         .or_else(|e| {
-            <span class="kw">match </span><a href="../../../../src/tempfile/file/imp/unix.rs.html#79">e</a>.raw_os_error() {
+            <span class="kw">match </span><a href="#79">e</a>.raw_os_error() {
                 <span class="comment">// These are the three &quot;not supported&quot; error codes for O_TMPFILE.
-                </span><span class="prelude-val">Some</span>(EOPNOTSUPP) | <span class="prelude-val">Some</span>(EISDIR) | <span class="prelude-val">Some</span>(ENOENT) =&gt; <a href="../../../../src/tempfile/file/imp/unix.rs.html#93">create_unix</a>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#72">dir</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#79">e</a>),
+                </span><span class="prelude-val">Some</span>(EOPNOTSUPP) | <span class="prelude-val">Some</span>(EISDIR) | <span class="prelude-val">Some</span>(ENOENT) =&gt; <a href="#93">create_unix</a>(<a href="#72">dir</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#79">e</a>),
             }
         })
 }
@@ -249,12 +249,12 @@
 }
 
 <span class="kw">fn </span>create_unix(dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt; {
-    <a href="../../../../src/tempfile/util.rs.html#19-27">util::create_helper</a>(
-        <a href="../../../../src/tempfile/file/imp/unix.rs.html#93">dir</a>,
+    <a href="../../util.rs.html#19-27">util::create_helper</a>(
+        <a href="#93">dir</a>,
         OsStr::new(<span class="string">&quot;.tmp&quot;</span>),
         OsStr::new(<span class="string">&quot;&quot;</span>),
-        <a href="../../../../src/tempfile/lib.rs.html#170"><span class="kw">crate</span>::NUM_RAND_CHARS</a>,
-        |path| <a href="../../../../src/tempfile/file/imp/unix.rs.html#54">create_unlinked</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tempfile/file/imp/unix.rs.html#99">path</a>),
+        <a href="../../lib.rs.html#170"><span class="kw">crate</span>::NUM_RAND_CHARS</a>,
+        |path| <a href="#54">create_unlinked</a>(<span class="kw-2">&amp;</span><a href="#99">path</a>),
     )
 }
 
@@ -269,7 +269,7 @@
             <span class="string">&quot;original tempfile has been replaced&quot;</span>,
         ));
     }
-    <span class="prelude-val">Ok</span>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#105">new_file</a>)
+    <span class="prelude-val">Ok</span>(<a href="#105">new_file</a>)
 }
 
 <span class="attribute">#[cfg(all(target_os = <span class="string">&quot;wasi&quot;</span>, not(feature = <span class="string">&quot;nightly&quot;</span>)))]
@@ -297,7 +297,7 @@
             ))<span class="question-mark">?</span>;
             <span class="comment">// Ignore unlink errors. Can we do better?
             // On recent linux, we can use renameat2 to do this atomically.
-            </span><span class="kw">let _ </span>= <a href="../../../../libc/unix/fn.unlink.html">unlink</a>(<a href="../../../../src/tempfile/file/imp/unix.rs.html#128">old_path</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>);
+            </span><span class="kw">let _ </span>= <a href="../../../../libc/unix/fn.unlink.html">unlink</a>(<a href="#128">old_path</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>);
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -313,4 +313,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

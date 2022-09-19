@@ -143,7 +143,7 @@
 
 <span class="kw">impl</span>&lt;R: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>&gt; Take&lt;R&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(inner: R, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../src/futures_util/io/take.rs.html#20">inner</a>, <a href="../../../src/futures_util/io/take.rs.html#20">limit</a> }
+        <span class="self">Self </span>{ <a href="#20">inner</a>, <a href="#20">limit</a> }
     }
 
     <span class="doccomment">/// Returns the remaining number of bytes that can be
@@ -170,7 +170,7 @@
     /// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(()) }).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/futures_util/io/take.rs.html#47">self</a>.limit
+        <a class="self" href="#47">self</a>.limit
     }
 
     <span class="doccomment">/// Sets the number of bytes that can be read before this instance will
@@ -200,10 +200,10 @@
     /// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(()) }).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>set_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../src/futures_util/io/take.rs.html#77">self</a>.limit = <a href="../../../src/futures_util/io/take.rs.html#77">limit</a>
+        <a class="self" href="#77">self</a>.limit = <a href="#77">limit</a>
     }
 
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(inner, R, ());
+    <a class="macro" href="../lib.rs.html#182-216">delegate_access_inner!</a>(inner, R, ());
 }
 
 <span class="kw">impl</span>&lt;R: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>&gt; <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>Take&lt;R&gt; {
@@ -212,22 +212,22 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/take.rs.html#86">self</a>.<a href="../../../src/futures_util/io/take.rs.html#8-17">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#86">self</a>.<a href="#8-17">project</a>();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.limit == <span class="number">0 </span>{
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">let </span>max = cmp::min(<a href="../../../src/futures_util/io/take.rs.html#88">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="../../../src/futures_util/io/take.rs.html#90">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>max = cmp::min(<a href="#88">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="#90">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">let </span>n = <span class="macro">ready!</span>(this.inner.poll_read(cx, <span class="kw-2">&amp;mut </span>buf[..max]))<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/take.rs.html#90">this</a>.limit -= <a href="../../../src/futures_util/io/take.rs.html#97">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/take.rs.html#97">n</a>))
+        <span class="kw-2">*</span><a href="#90">this</a>.limit -= <a href="#97">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#97">n</a>))
     }
 }
 
 <span class="kw">impl</span>&lt;R: <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>&gt; <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>Take&lt;R&gt; {
     <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/take.rs.html#104">self</a>.<a href="../../../src/futures_util/io/take.rs.html#8-17">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#104">self</a>.<a href="#8-17">project</a>();
 
         <span class="comment">// Don&#39;t call into inner reader at all at EOF because it may still block
         </span><span class="kw">if </span><span class="kw-2">*</span>this.limit == <span class="number">0 </span>{
@@ -235,18 +235,18 @@
         }
 
         <span class="kw">let </span>buf = <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(this.inner.poll_fill_buf(cx)<span class="question-mark">?</span>);
-        <span class="kw">let </span>cap = cmp::min(<a href="../../../src/futures_util/io/take.rs.html#112">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="../../../src/futures_util/io/take.rs.html#105">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/take.rs.html#112">buf</a>[..<a href="../../../src/futures_util/io/take.rs.html#113">cap</a>]))
+        <span class="kw">let </span>cap = cmp::min(<a href="#112">buf</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="#105">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="#112">buf</a>[..<a href="#113">cap</a>]))
     }
 
     <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/take.rs.html#117">self</a>.<a href="../../../src/futures_util/io/take.rs.html#8-17">project</a>();
+        <span class="kw">let </span>this = <a class="self" href="#117">self</a>.<a href="#8-17">project</a>();
 
         <span class="comment">// Don&#39;t let callers reset the limit by passing an overlarge value
-        </span><span class="kw">let </span>amt = cmp::min(<a href="../../../src/futures_util/io/take.rs.html#117">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="../../../src/futures_util/io/take.rs.html#118">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/take.rs.html#118">this</a>.limit -= <a href="../../../src/futures_util/io/take.rs.html#121">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <a href="../../../src/futures_util/io/take.rs.html#118">this</a>.inner.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="../../../src/futures_util/io/take.rs.html#121">amt</a>);
+        </span><span class="kw">let </span>amt = cmp::min(<a href="#117">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="kw-2">*</span><a href="#118">this</a>.limit) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw-2">*</span><a href="#118">this</a>.limit -= <a href="#121">amt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        <a href="#118">this</a>.inner.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="#121">amt</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

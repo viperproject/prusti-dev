@@ -136,74 +136,74 @@
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extend(dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) {
-    <a href="../../../src/hyper/common/date.rs.html#42">CACHED</a>.with(|cache| {
-        <a href="../../../src/hyper/common/date.rs.html#14">dst</a>.extend_from_slice(<a href="../../../src/hyper/common/date.rs.html#15">cache</a>.borrow().<a href="../../../src/hyper/common/date.rs.html#55">buffer</a>());
+    <a href="#42">CACHED</a>.with(|cache| {
+        <a href="#14">dst</a>.extend_from_slice(<a href="#15">cache</a>.borrow().<a href="#55">buffer</a>());
     })
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update() {
-    <a href="../../../src/hyper/common/date.rs.html#42">CACHED</a>.with(|cache| {
-        <a href="../../../src/hyper/common/date.rs.html#22">cache</a>.borrow_mut().<a href="../../../src/hyper/common/date.rs.html#59">check</a>();
+    <a href="#42">CACHED</a>.with(|cache| {
+        <a href="#22">cache</a>.borrow_mut().<a href="#59">check</a>();
     })
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_and_header_value() -&gt; <a href="../../../hyper/header/struct.HeaderValue.html">HeaderValue</a> {
-    <a href="../../../src/hyper/common/date.rs.html#42">CACHED</a>.with(|cache| {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../../src/hyper/common/date.rs.html#29">cache</a>.borrow_mut();
-        <a href="../../../src/hyper/common/date.rs.html#30">cache</a>.<a href="../../../src/hyper/common/date.rs.html#59">check</a>();
-        HeaderValue::from_bytes(<a href="../../../src/hyper/common/date.rs.html#30">cache</a>.<a href="../../../src/hyper/common/date.rs.html#55">buffer</a>()).expect(<span class="string">&quot;Date format should be valid HeaderValue&quot;</span>)
+    <a href="#42">CACHED</a>.with(|cache| {
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#29">cache</a>.borrow_mut();
+        <a href="#30">cache</a>.<a href="#59">check</a>();
+        HeaderValue::from_bytes(<a href="#30">cache</a>.<a href="#55">buffer</a>()).expect(<span class="string">&quot;Date format should be valid HeaderValue&quot;</span>)
     })
 }
 
 <span class="kw">struct </span>CachedDate {
-    bytes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../../src/hyper/common/date.rs.html#11">DATE_VALUE_LENGTH</a>],
+    bytes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="#11">DATE_VALUE_LENGTH</a>],
     pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     next_update: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>,
 }
 
 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a>(<span class="kw">static </span>CACHED: RefCell&lt;CachedDate&gt; = RefCell::new(CachedDate::new()));
 
-<span class="kw">impl </span><a href="../../../src/hyper/common/date.rs.html#36">CachedDate</a> {
+<span class="kw">impl </span><a href="#36">CachedDate</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../../src/hyper/common/date.rs.html#36">CachedDate</a> {
-            bytes: [<span class="number">0</span>; <a href="../../../src/hyper/common/date.rs.html#11">DATE_VALUE_LENGTH</a>],
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#36">CachedDate</a> {
+            bytes: [<span class="number">0</span>; <a href="#11">DATE_VALUE_LENGTH</a>],
             pos: <span class="number">0</span>,
             next_update: SystemTime::now(),
         };
-        <a href="../../../src/hyper/common/date.rs.html#46">cache</a>.<a href="../../../src/hyper/common/date.rs.html#66">update</a>(<a href="../../../src/hyper/common/date.rs.html#46">cache</a>.next_update);
-        <a href="../../../src/hyper/common/date.rs.html#46">cache</a>
+        <a href="#46">cache</a>.<a href="#66">update</a>(<a href="#46">cache</a>.next_update);
+        <a href="#46">cache</a>
     }
 
     <span class="kw">fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/common/date.rs.html#55">self</a>.bytes[..]
+        <span class="kw-2">&amp;</span><a class="self" href="#55">self</a>.bytes[..]
     }
 
     <span class="kw">fn </span>check(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>now = SystemTime::now();
         <span class="kw">if </span>now &gt; <span class="self">self</span>.next_update {
-            <a class="self" href="../../../src/hyper/common/date.rs.html#59">self</a>.<a href="../../../src/hyper/common/date.rs.html#66">update</a>(<a href="../../../src/hyper/common/date.rs.html#60">now</a>);
+            <a class="self" href="#59">self</a>.<a href="#66">update</a>(<a href="#60">now</a>);
         }
     }
 
     <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) {
-        <a class="self" href="../../../src/hyper/common/date.rs.html#66">self</a>.<a href="../../../src/hyper/common/date.rs.html#71">render</a>(<a href="../../../src/hyper/common/date.rs.html#66">now</a>);
-        <a class="self" href="../../../src/hyper/common/date.rs.html#66">self</a>.next_update = <a href="../../../src/hyper/common/date.rs.html#66">now</a> + Duration::new(<span class="number">1</span>, <span class="number">0</span>);
+        <a class="self" href="#66">self</a>.<a href="#71">render</a>(<a href="#66">now</a>);
+        <a class="self" href="#66">self</a>.next_update = <a href="#66">now</a> + Duration::new(<span class="number">1</span>, <span class="number">0</span>);
     }
 
     <span class="kw">fn </span>render(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: <a href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a>) {
-        <a class="self" href="../../../src/hyper/common/date.rs.html#71">self</a>.pos = <span class="number">0</span>;
-        <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="../../../src/hyper/common/date.rs.html#71">self</a>, <span class="string">&quot;{}&quot;</span>, HttpDate::from(now));
+        <a class="self" href="#71">self</a>.pos = <span class="number">0</span>;
+        <span class="kw">let _ </span>= <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="self" href="#71">self</a>, <span class="string">&quot;{}&quot;</span>, HttpDate::from(now));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos == DATE_VALUE_LENGTH);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for </span><a href="../../../src/hyper/common/date.rs.html#36">CachedDate</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for </span><a href="#36">CachedDate</a> {
     <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>len = <a href="../../../src/hyper/common/date.rs.html#79">s</a>.len();
-        <a class="self" href="../../../src/hyper/common/date.rs.html#79">self</a>.bytes[<a class="self" href="../../../src/hyper/common/date.rs.html#79">self</a>.pos..<a class="self" href="../../../src/hyper/common/date.rs.html#79">self</a>.pos + <a href="../../../src/hyper/common/date.rs.html#80">len</a>].copy_from_slice(<a href="../../../src/hyper/common/date.rs.html#79">s</a>.as_bytes());
-        <a class="self" href="../../../src/hyper/common/date.rs.html#79">self</a>.pos += <a href="../../../src/hyper/common/date.rs.html#80">len</a>;
+        <span class="kw">let </span>len = <a href="#79">s</a>.len();
+        <a class="self" href="#79">self</a>.bytes[<a class="self" href="#79">self</a>.pos..<a class="self" href="#79">self</a>.pos + <a href="#80">len</a>].copy_from_slice(<a href="#79">s</a>.as_bytes());
+        <a class="self" href="#79">self</a>.pos += <a href="#80">len</a>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -247,4 +247,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

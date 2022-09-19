@@ -39,30 +39,30 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::add_helpers::{<a href="../../src/derive_more/add_helpers.rs.html#17">struct_exprs</a>, <a href="../../src/derive_more/add_helpers.rs.html#5">tuple_exprs</a>};
-<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="../../src/derive_more/utils.rs.html#133-136">add_extra_ty_param_bound_op</a>, <a href="../../src/derive_more/utils.rs.html#243">named_to_vec</a>, <a href="../../src/derive_more/utils.rs.html#239">unnamed_to_vec</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::add_helpers::{<a href="add_helpers.rs.html#17">struct_exprs</a>, <a href="add_helpers.rs.html#5">tuple_exprs</a>};
+<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="utils.rs.html#133-136">add_extra_ty_param_bound_op</a>, <a href="utils.rs.html#243">named_to_vec</a>, <a href="utils.rs.html#239">unnamed_to_vec</a>};
 <span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use </span><a href="../../quote/macro.quote.html">quote::quote</a>;
 <span class="kw">use </span>syn::{<a href="../../syn/derive/enum.Data.html">Data</a>, <a href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a href="../../syn/data/enum.Fields.html">Fields</a>, Ident};
 
 <span class="kw">pub fn </span>expand(input: <span class="kw-2">&amp;</span><a href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, trait_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>trait_ident = Ident::new(<a href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>, Span::call_site());
-    <span class="kw">let </span>method_name = <a href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-    <span class="kw">let </span>method_name = <a href="../../src/derive_more/add_assign_like.rs.html#9">method_name</a>.trim_end_matches(<span class="string">&quot;Assign&quot;</span>);
-    <span class="kw">let </span>method_name = <a href="../../src/derive_more/add_assign_like.rs.html#10">method_name</a>.to_lowercase();
-    <span class="kw">let </span>method_ident = Ident::new(<span class="kw-2">&amp;</span>(<a href="../../src/derive_more/add_assign_like.rs.html#11">method_name</a> + <span class="string">&quot;_assign&quot;</span>), Span::call_site());
-    <span class="kw">let </span>input_type = <span class="kw-2">&amp;</span><a href="../../src/derive_more/add_assign_like.rs.html#7">input</a>.ident;
+    <span class="kw">let </span>trait_ident = Ident::new(<a href="#7">trait_name</a>, Span::call_site());
+    <span class="kw">let </span>method_name = <a href="#7">trait_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+    <span class="kw">let </span>method_name = <a href="#9">method_name</a>.trim_end_matches(<span class="string">&quot;Assign&quot;</span>);
+    <span class="kw">let </span>method_name = <a href="#10">method_name</a>.to_lowercase();
+    <span class="kw">let </span>method_ident = Ident::new(<span class="kw-2">&amp;</span>(<a href="#11">method_name</a> + <span class="string">&quot;_assign&quot;</span>), Span::call_site());
+    <span class="kw">let </span>input_type = <span class="kw-2">&amp;</span><a href="#7">input</a>.ident;
 
-    <span class="kw">let </span>generics = <a href="../../src/derive_more/utils.rs.html#133-136">add_extra_ty_param_bound_op</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/add_assign_like.rs.html#7">input</a>.generics, <span class="kw-2">&amp;</span><a href="../../src/derive_more/add_assign_like.rs.html#8">trait_ident</a>);
-    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derive_more/add_assign_like.rs.html#15">generics</a>.split_for_impl();
+    <span class="kw">let </span>generics = <a href="utils.rs.html#133-136">add_extra_ty_param_bound_op</a>(<span class="kw-2">&amp;</span><a href="#7">input</a>.generics, <span class="kw-2">&amp;</span><a href="#8">trait_ident</a>);
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="#15">generics</a>.split_for_impl();
 
-    <span class="kw">let </span>exprs = <span class="kw">match </span><a href="../../src/derive_more/add_assign_like.rs.html#7">input</a>.data {
-        Data::Struct(<span class="kw-2">ref </span>data_struct) =&gt; <span class="kw">match </span><a href="../../src/derive_more/add_assign_like.rs.html#19">data_struct</a>.fields {
+    <span class="kw">let </span>exprs = <span class="kw">match </span><a href="#7">input</a>.data {
+        Data::Struct(<span class="kw-2">ref </span>data_struct) =&gt; <span class="kw">match </span><a href="#19">data_struct</a>.fields {
             Fields::Unnamed(<span class="kw-2">ref </span>fields) =&gt; {
-                <a href="../../src/derive_more/add_helpers.rs.html#5">tuple_exprs</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/utils.rs.html#239">unnamed_to_vec</a>(<a href="../../src/derive_more/add_assign_like.rs.html#20">fields</a>), <span class="kw-2">&amp;</span><a href="../../src/derive_more/add_assign_like.rs.html#12">method_ident</a>)
+                <a href="add_helpers.rs.html#5">tuple_exprs</a>(<span class="kw-2">&amp;</span><a href="utils.rs.html#239">unnamed_to_vec</a>(<a href="#20">fields</a>), <span class="kw-2">&amp;</span><a href="#12">method_ident</a>)
             }
             Fields::Named(<span class="kw-2">ref </span>fields) =&gt; {
-                <a href="../../src/derive_more/add_helpers.rs.html#17">struct_exprs</a>(<span class="kw-2">&amp;</span><a href="../../src/derive_more/utils.rs.html#243">named_to_vec</a>(<a href="../../src/derive_more/add_assign_like.rs.html#23">fields</a>), <span class="kw-2">&amp;</span><a href="../../src/derive_more/add_assign_like.rs.html#12">method_ident</a>)
+                <a href="add_helpers.rs.html#17">struct_exprs</a>(<span class="kw-2">&amp;</span><a href="utils.rs.html#243">named_to_vec</a>(<a href="#23">fields</a>), <span class="kw-2">&amp;</span><a href="#12">method_ident</a>)
             }
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unit structs cannot use derive({})&quot;</span>, trait_name),
         },
@@ -81,4 +81,4 @@
     )
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

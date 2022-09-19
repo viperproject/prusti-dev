@@ -714,10 +714,10 @@
 <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 <span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">use </span><a href="../../src/async_task/header.rs.html#13"><span class="kw">crate</span>::header::Header</a>;
-<span class="kw">use </span><a href="../../src/async_task/lib.rs.html#91"><span class="kw">crate</span>::state</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="../../src/async_task/utils.rs.html#7">abort</a>, <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>, <a href="../../src/async_task/utils.rs.html#121">max</a>, <a href="../../src/async_task/utils.rs.html#42">Layout</a>};
-<span class="kw">use </span><a href="../../src/async_task/runnable.rs.html#233"><span class="kw">crate</span>::Runnable</a>;
+<span class="kw">use </span><a href="header.rs.html#13"><span class="kw">crate</span>::header::Header</a>;
+<span class="kw">use </span><a href="lib.rs.html#91"><span class="kw">crate</span>::state</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="utils.rs.html#7">abort</a>, <a href="utils.rs.html#24">abort_on_panic</a>, <a href="utils.rs.html#121">max</a>, <a href="utils.rs.html#42">Layout</a>};
+<span class="kw">use </span><a href="runnable.rs.html#233"><span class="kw">crate</span>::Runnable</a>;
 
 <span class="doccomment">/// The vtable for a task.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TaskVTable {
@@ -746,7 +746,7 @@
     /// debuggers to decode raw task memory blobs. Do not remove
     /// the field, even if it appears to be unused.
     </span><span class="attribute">#[allow(unused)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) layout_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="prelude-ty">Option</span>&lt;<a href="../../src/async_task/raw.rs.html#52">TaskLayout</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) layout_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="prelude-ty">Option</span>&lt;<a href="#52">TaskLayout</a>&gt;,
 }
 
 <span class="doccomment">/// Memory layout of a task.
@@ -773,7 +773,7 @@
 <span class="doccomment">/// Raw pointers to the fields inside a task.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RawTask&lt;F, T, S&gt; {
     <span class="doccomment">/// The task header.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) header: <span class="kw-2">*const </span><a href="../../src/async_task/header.rs.html#13">Header</a>,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) header: <span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>,
 
     <span class="doccomment">/// The schedule function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) schedule: <span class="kw-2">*const </span>S,
@@ -789,39 +789,39 @@
 
 <span class="kw">impl</span>&lt;F, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>RawTask&lt;F, T, S&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw-2">*</span><span class="self"><a href="../../src/async_task/raw.rs.html#84">self</a>
+        <span class="kw-2">*</span><span class="self"><a href="#84">self</a>
     </span>}
 }
 
 <span class="kw">impl</span>&lt;F, T, S&gt; RawTask&lt;F, T, S&gt; {
-    <span class="kw">const </span>TASK_LAYOUT: <span class="prelude-ty">Option</span>&lt;<a href="../../src/async_task/raw.rs.html#52">TaskLayout</a>&gt; = <span class="self">Self</span>::eval_task_layout();
+    <span class="kw">const </span>TASK_LAYOUT: <span class="prelude-ty">Option</span>&lt;<a href="#52">TaskLayout</a>&gt; = <span class="self">Self</span>::eval_task_layout();
 
     <span class="doccomment">/// Computes the memory layout for a task.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">const fn </span>eval_task_layout() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/async_task/raw.rs.html#52">TaskLayout</a>&gt; {
+    </span><span class="kw">const fn </span>eval_task_layout() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#52">TaskLayout</a>&gt; {
         <span class="comment">// Compute the layouts for `Header`, `S`, `F`, and `T`.
-        </span><span class="kw">let </span>layout_header = Layout::new::&lt;<a href="../../src/async_task/header.rs.html#13">Header</a>&gt;();
+        </span><span class="kw">let </span>layout_header = Layout::new::&lt;<a href="header.rs.html#13">Header</a>&gt;();
         <span class="kw">let </span>layout_s = Layout::new::&lt;S&gt;();
         <span class="kw">let </span>layout_f = Layout::new::&lt;F&gt;();
         <span class="kw">let </span>layout_r = Layout::new::&lt;T&gt;();
 
         <span class="comment">// Compute the layout for `union { F, T }`.
-        </span><span class="kw">let </span>size_union = <a href="../../src/async_task/utils.rs.html#121">max</a>(<a href="../../src/async_task/raw.rs.html#98">layout_f</a>.<a href="../../src/async_task/utils.rs.html#80">size</a>(), <a href="../../src/async_task/raw.rs.html#99">layout_r</a>.<a href="../../src/async_task/utils.rs.html#80">size</a>());
-        <span class="kw">let </span>align_union = <a href="../../src/async_task/utils.rs.html#121">max</a>(<a href="../../src/async_task/raw.rs.html#98">layout_f</a>.<a href="../../src/async_task/utils.rs.html#74">align</a>(), <a href="../../src/async_task/raw.rs.html#99">layout_r</a>.<a href="../../src/async_task/utils.rs.html#74">align</a>());
-        <span class="kw">let </span>layout_union = Layout::from_size_align(<a href="../../src/async_task/raw.rs.html#102">size_union</a>, <a href="../../src/async_task/raw.rs.html#103">align_union</a>);
+        </span><span class="kw">let </span>size_union = <a href="utils.rs.html#121">max</a>(<a href="#98">layout_f</a>.<a href="utils.rs.html#80">size</a>(), <a href="#99">layout_r</a>.<a href="utils.rs.html#80">size</a>());
+        <span class="kw">let </span>align_union = <a href="utils.rs.html#121">max</a>(<a href="#98">layout_f</a>.<a href="utils.rs.html#74">align</a>(), <a href="#99">layout_r</a>.<a href="utils.rs.html#74">align</a>());
+        <span class="kw">let </span>layout_union = Layout::from_size_align(<a href="#102">size_union</a>, <a href="#103">align_union</a>);
 
         <span class="comment">// Compute the layout for `Header` followed `S` and `union { F, T }`.
-        </span><span class="kw">let </span>layout = <a href="../../src/async_task/raw.rs.html#96">layout_header</a>;
-        <span class="kw">let </span>(layout, offset_s) = <a class="macro" href="../../src/async_task/lib.rs.html#79-86">leap!</a>(layout.extend(layout_s));
-        <span class="kw">let </span>(layout, offset_union) = <a class="macro" href="../../src/async_task/lib.rs.html#79-86">leap!</a>(layout.extend(layout_union));
-        <span class="kw">let </span>offset_f = <a href="../../src/async_task/raw.rs.html#109">offset_union</a>;
-        <span class="kw">let </span>offset_r = <a href="../../src/async_task/raw.rs.html#109">offset_union</a>;
+        </span><span class="kw">let </span>layout = <a href="#96">layout_header</a>;
+        <span class="kw">let </span>(layout, offset_s) = <a class="macro" href="lib.rs.html#79-86">leap!</a>(layout.extend(layout_s));
+        <span class="kw">let </span>(layout, offset_union) = <a class="macro" href="lib.rs.html#79-86">leap!</a>(layout.extend(layout_union));
+        <span class="kw">let </span>offset_f = <a href="#109">offset_union</a>;
+        <span class="kw">let </span>offset_r = <a href="#109">offset_union</a>;
 
-        <span class="prelude-val">Some</span>(<a href="../../src/async_task/raw.rs.html#52">TaskLayout</a> {
-            layout: <span class="kw">unsafe </span>{ <a href="../../src/async_task/raw.rs.html#109">layout</a>.<a href="../../src/async_task/utils.rs.html#68">into_std</a>() },
-            <a href="../../src/async_task/raw.rs.html#108">offset_s</a>,
-            <a href="../../src/async_task/raw.rs.html#110">offset_f</a>,
-            <a href="../../src/async_task/raw.rs.html#111">offset_r</a>,
+        <span class="prelude-val">Some</span>(<a href="#52">TaskLayout</a> {
+            layout: <span class="kw">unsafe </span>{ <a href="#109">layout</a>.<a href="utils.rs.html#68">into_std</a>() },
+            <a href="#108">offset_s</a>,
+            <a href="#110">offset_f</a>,
+            <a href="#111">offset_r</a>,
         })
     }
 }
@@ -829,7 +829,7 @@
 <span class="kw">impl</span>&lt;F, T, S&gt; RawTask&lt;F, T, S&gt;
 <span class="kw">where
     </span>F: Future&lt;Output = T&gt;,
-    S: Fn(<a href="../../src/async_task/runnable.rs.html#233">Runnable</a>),
+    S: Fn(<a href="runnable.rs.html#233">Runnable</a>),
 {
     <span class="kw">const </span>RAW_WAKER_VTABLE: <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a> = RawWakerVTable::new(
         <span class="self">Self</span>::clone_waker,
@@ -849,18 +849,18 @@
 
         <span class="kw">unsafe </span>{
             <span class="comment">// Allocate enough space for the entire task.
-            </span><span class="kw">let </span>ptr = <span class="kw">match </span>NonNull::new(alloc::alloc::alloc(<a href="../../src/async_task/raw.rs.html#141">task_layout</a>.layout) <span class="kw">as </span><span class="kw-2">*mut </span>()) {
-                <span class="prelude-val">None </span>=&gt; <a href="../../src/async_task/utils.rs.html#7">abort</a>(),
-                <span class="prelude-val">Some</span>(p) =&gt; <a href="../../src/async_task/raw.rs.html#147">p</a>,
+            </span><span class="kw">let </span>ptr = <span class="kw">match </span>NonNull::new(alloc::alloc::alloc(<a href="#141">task_layout</a>.layout) <span class="kw">as </span><span class="kw-2">*mut </span>()) {
+                <span class="prelude-val">None </span>=&gt; <a href="utils.rs.html#7">abort</a>(),
+                <span class="prelude-val">Some</span>(p) =&gt; <a href="#147">p</a>,
             };
 
-            <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#145">ptr</a>.as_ptr());
+            <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#145">ptr</a>.as_ptr());
 
             <span class="comment">// Write the header as the first field of the task.
-            </span>(<a href="../../src/async_task/raw.rs.html#150">raw</a>.header <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/async_task/header.rs.html#13">Header</a>).write(<a href="../../src/async_task/header.rs.html#13">Header</a> {
-                state: AtomicUsize::new(<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a> | <a href="../../src/async_task/state.rs.html#41">TASK</a> | <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>),
+            </span>(<a href="#150">raw</a>.header <span class="kw">as </span><span class="kw-2">*mut </span><a href="header.rs.html#13">Header</a>).write(<a href="header.rs.html#13">Header</a> {
+                state: AtomicUsize::new(<a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#41">TASK</a> | <a href="state.rs.html#69">REFERENCE</a>),
                 awaiter: UnsafeCell::new(<span class="prelude-val">None</span>),
-                vtable: <span class="kw-2">&amp;</span><a href="../../src/async_task/raw.rs.html#16">TaskVTable</a> {
+                vtable: <span class="kw-2">&amp;</span><a href="#16">TaskVTable</a> {
                     schedule: <span class="self">Self</span>::schedule,
                     drop_future: <span class="self">Self</span>::drop_future,
                     get_output: <span class="self">Self</span>::get_output,
@@ -873,12 +873,12 @@
             });
 
             <span class="comment">// Write the schedule function as the third field of the task.
-            </span>(<a href="../../src/async_task/raw.rs.html#150">raw</a>.schedule <span class="kw">as </span><span class="kw-2">*mut </span>S).write(<a href="../../src/async_task/raw.rs.html#137">schedule</a>);
+            </span>(<a href="#150">raw</a>.schedule <span class="kw">as </span><span class="kw-2">*mut </span>S).write(<a href="#137">schedule</a>);
 
             <span class="comment">// Write the future as the fourth field of the task.
-            </span><a href="../../src/async_task/raw.rs.html#150">raw</a>.future.write(<a href="../../src/async_task/raw.rs.html#137">future</a>);
+            </span><a href="#150">raw</a>.future.write(<a href="#137">future</a>);
 
-            <a href="../../src/async_task/raw.rs.html#145">ptr</a>
+            <a href="#145">ptr</a>
         }
     }
 
@@ -886,24 +886,24 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ptr(ptr: <span class="kw-2">*const </span>()) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>task_layout = <span class="self">Self</span>::task_layout();
-        <span class="kw">let </span>p = <a href="../../src/async_task/raw.rs.html#180">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+        <span class="kw">let </span>p = <a href="#180">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
 
         <span class="kw">unsafe </span>{
             <span class="self">Self </span>{
-                header: <a href="../../src/async_task/raw.rs.html#182">p</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../src/async_task/header.rs.html#13">Header</a>,
-                schedule: <a href="../../src/async_task/raw.rs.html#182">p</a>.add(<a href="../../src/async_task/raw.rs.html#181">task_layout</a>.offset_s) <span class="kw">as </span><span class="kw-2">*const </span>S,
-                future: <a href="../../src/async_task/raw.rs.html#182">p</a>.add(<a href="../../src/async_task/raw.rs.html#181">task_layout</a>.offset_f) <span class="kw">as </span><span class="kw-2">*mut </span>F,
-                output: <a href="../../src/async_task/raw.rs.html#182">p</a>.add(<a href="../../src/async_task/raw.rs.html#181">task_layout</a>.offset_r) <span class="kw">as </span><span class="kw-2">*mut </span>T,
+                header: <a href="#182">p</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="header.rs.html#13">Header</a>,
+                schedule: <a href="#182">p</a>.add(<a href="#181">task_layout</a>.offset_s) <span class="kw">as </span><span class="kw-2">*const </span>S,
+                future: <a href="#182">p</a>.add(<a href="#181">task_layout</a>.offset_f) <span class="kw">as </span><span class="kw-2">*mut </span>F,
+                output: <a href="#182">p</a>.add(<a href="#181">task_layout</a>.offset_r) <span class="kw">as </span><span class="kw-2">*mut </span>T,
             }
         }
     }
 
     <span class="doccomment">/// Returns the layout of the task.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>task_layout() -&gt; <a href="../../src/async_task/raw.rs.html#52">TaskLayout</a> {
+    </span><span class="kw">fn </span>task_layout() -&gt; <a href="#52">TaskLayout</a> {
         <span class="kw">match </span><span class="self">Self</span>::TASK_LAYOUT {
-            <span class="prelude-val">Some</span>(tl) =&gt; <a href="../../src/async_task/raw.rs.html#198">tl</a>,
-            <span class="prelude-val">None </span>=&gt; <a href="../../src/async_task/utils.rs.html#7">abort</a>(),
+            <span class="prelude-val">Some</span>(tl) =&gt; <a href="#198">tl</a>,
+            <span class="prelude-val">None </span>=&gt; <a href="utils.rs.html#7">abort</a>(),
         }
     }
 
@@ -912,20 +912,20 @@
         <span class="comment">// This is just an optimization. If the schedule function has captured variables, then
         // we&#39;ll do less reference counting if we wake the waker by reference and then drop it.
         </span><span class="kw">if </span>mem::size_of::&lt;S&gt;() &gt; <span class="number">0 </span>{
-            <span class="self">Self</span>::wake_by_ref(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
-            <span class="self">Self</span>::drop_waker(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+            <span class="self">Self</span>::wake_by_ref(<a href="#204">ptr</a>);
+            <span class="self">Self</span>::drop_waker(<a href="#204">ptr</a>);
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#204">ptr</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#213">raw</a>.header).state.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#213">raw</a>.header).state.load(Ordering::Acquire);
 
         <span class="kw">loop </span>{
             <span class="comment">// If the task is completed or closed, it can&#39;t be woken up.
             </span><span class="kw">if </span>state &amp; (COMPLETED | CLOSED) != <span class="number">0 </span>{
                 <span class="comment">// Drop the waker.
-                </span><span class="self">Self</span>::drop_waker(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+                </span><span class="self">Self</span>::drop_waker(<a href="#204">ptr</a>);
                 <span class="kw">break</span>;
             }
 
@@ -933,24 +933,24 @@
             // will run the task by &quot;publishing&quot; our current view of the memory.
             </span><span class="kw">if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
                 <span class="comment">// Update the state without actually modifying it.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#213">raw</a>.header).state.compare_exchange_weak(
-                    <a href="../../src/async_task/raw.rs.html#215">state</a>,
-                    <a href="../../src/async_task/raw.rs.html#215">state</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#213">raw</a>.header).state.compare_exchange_weak(
+                    <a href="#215">state</a>,
+                    <a href="#215">state</a>,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// Drop the waker.
-                        </span><span class="self">Self</span>::drop_waker(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+                        </span><span class="self">Self</span>::drop_waker(<a href="#204">ptr</a>);
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#215">state</a> = <a href="../../src/async_task/raw.rs.html#240">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#215">state</a> = <a href="#240">s</a>,
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// Mark the task as scheduled.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#213">raw</a>.header).state.compare_exchange_weak(
-                    <a href="../../src/async_task/raw.rs.html#215">state</a>,
-                    <a href="../../src/async_task/raw.rs.html#215">state</a> | <a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#213">raw</a>.header).state.compare_exchange_weak(
+                    <a href="#215">state</a>,
+                    <a href="#215">state</a> | <a href="state.rs.html#7">SCHEDULED</a>,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
@@ -959,15 +959,15 @@
                         // time to schedule it.
                         </span><span class="kw">if </span>state &amp; RUNNING == <span class="number">0 </span>{
                             <span class="comment">// Schedule the task.
-                            </span><span class="self">Self</span>::schedule(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+                            </span><span class="self">Self</span>::schedule(<a href="#204">ptr</a>);
                         } <span class="kw">else </span>{
                             <span class="comment">// Drop the waker.
-                            </span><span class="self">Self</span>::drop_waker(<a href="../../src/async_task/raw.rs.html#204">ptr</a>);
+                            </span><span class="self">Self</span>::drop_waker(<a href="#204">ptr</a>);
                         }
 
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#215">state</a> = <a href="../../src/async_task/raw.rs.html#263">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#215">state</a> = <a href="#263">s</a>,
                 }
             }
         }
@@ -975,9 +975,9 @@
 
     <span class="doccomment">/// Wakes a waker by reference.
     </span><span class="kw">unsafe fn </span>wake_by_ref(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#270">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#270">ptr</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#271">raw</a>.header).state.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#271">raw</a>.header).state.load(Ordering::Acquire);
 
         <span class="kw">loop </span>{
             <span class="comment">// If the task is completed or closed, it can&#39;t be woken up.
@@ -989,27 +989,27 @@
             // will run the task by &quot;publishing&quot; our current view of the memory.
             </span><span class="kw">if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
                 <span class="comment">// Update the state without actually modifying it.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#271">raw</a>.header).state.compare_exchange_weak(
-                    <a href="../../src/async_task/raw.rs.html#273">state</a>,
-                    <a href="../../src/async_task/raw.rs.html#273">state</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#271">raw</a>.header).state.compare_exchange_weak(
+                    <a href="#273">state</a>,
+                    <a href="#273">state</a>,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#273">state</a> = <a href="../../src/async_task/raw.rs.html#292">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#273">state</a> = <a href="#292">s</a>,
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// If the task is not running, we can schedule right away.
                 </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; RUNNING == <span class="number">0 </span>{
-                    (<a href="../../src/async_task/raw.rs.html#273">state</a> | <a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) + <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>
+                    (<a href="#273">state</a> | <a href="state.rs.html#7">SCHEDULED</a>) + <a href="state.rs.html#69">REFERENCE</a>
                 } <span class="kw">else </span>{
-                    <a href="../../src/async_task/raw.rs.html#273">state</a> | <a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>
+                    <a href="#273">state</a> | <a href="state.rs.html#7">SCHEDULED</a>
                 };
 
                 <span class="comment">// Mark the task as scheduled.
-                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#271">raw</a>.header).state.compare_exchange_weak(
-                    <a href="../../src/async_task/raw.rs.html#273">state</a>,
-                    <a href="../../src/async_task/raw.rs.html#296">new</a>,
+                </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#271">raw</a>.header).state.compare_exchange_weak(
+                    <a href="#273">state</a>,
+                    <a href="#296">new</a>,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 ) {
@@ -1018,21 +1018,21 @@
                         </span><span class="kw">if </span>state &amp; RUNNING == <span class="number">0 </span>{
                             <span class="comment">// If the reference count overflowed, abort.
                             </span><span class="kw">if </span>state &gt; isize::max_value() <span class="kw">as </span>usize {
-                                <a href="../../src/async_task/utils.rs.html#7">abort</a>();
+                                <a href="utils.rs.html#7">abort</a>();
                             }
 
                             <span class="comment">// Schedule the task. There is no need to call `Self::schedule(ptr)`
                             // because the schedule function cannot be destroyed while the waker is
                             // still alive.
-                            </span><span class="kw">let </span>task = <a href="../../src/async_task/runnable.rs.html#233">Runnable</a> {
-                                ptr: NonNull::new_unchecked(<a href="../../src/async_task/raw.rs.html#270">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span>()),
+                            </span><span class="kw">let </span>task = <a href="runnable.rs.html#233">Runnable</a> {
+                                ptr: NonNull::new_unchecked(<a href="#270">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span>()),
                             };
-                            (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#271">raw</a>.schedule)(<a href="../../src/async_task/raw.rs.html#320">task</a>);
+                            (<span class="kw-2">*</span><a href="#271">raw</a>.schedule)(<a href="#320">task</a>);
                         }
 
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#273">state</a> = <a href="../../src/async_task/raw.rs.html#328">s</a>,
+                    <span class="prelude-val">Err</span>(s) =&gt; <a href="#273">state</a> = <a href="#328">s</a>,
                 }
             }
         }
@@ -1040,18 +1040,18 @@
 
     <span class="doccomment">/// Clones a waker.
     </span><span class="kw">unsafe fn </span>clone_waker(ptr: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#335">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#335">ptr</a>);
 
         <span class="comment">// Increment the reference count. With any kind of reference-counted data structure,
         // relaxed ordering is appropriate when incrementing the counter.
-        </span><span class="kw">let </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#336">raw</a>.header).state.fetch_add(<a href="../../src/async_task/state.rs.html#69">REFERENCE</a>, Ordering::Relaxed);
+        </span><span class="kw">let </span>state = (<span class="kw-2">*</span><a href="#336">raw</a>.header).state.fetch_add(<a href="state.rs.html#69">REFERENCE</a>, Ordering::Relaxed);
 
         <span class="comment">// If the reference count overflowed, abort.
         </span><span class="kw">if </span>state &gt; isize::max_value() <span class="kw">as </span>usize {
-            <a href="../../src/async_task/utils.rs.html#7">abort</a>();
+            <a href="utils.rs.html#7">abort</a>();
         }
 
-        RawWaker::new(<a href="../../src/async_task/raw.rs.html#335">ptr</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::RAW_WAKER_VTABLE)
+        RawWaker::new(<a href="#335">ptr</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::RAW_WAKER_VTABLE)
     }
 
     <span class="doccomment">/// Drops a waker.
@@ -1061,10 +1061,10 @@
     /// scheduled one more time so that its future gets dropped by the executor.
     </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>drop_waker(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#356">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#356">ptr</a>);
 
         <span class="comment">// Decrement the reference count.
-        </span><span class="kw">let </span>new = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#357">raw</a>.header).state.fetch_sub(<a href="../../src/async_task/state.rs.html#69">REFERENCE</a>, Ordering::AcqRel) - <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>;
+        </span><span class="kw">let </span>new = (<span class="kw-2">*</span><a href="#357">raw</a>.header).state.fetch_sub(<a href="state.rs.html#69">REFERENCE</a>, Ordering::AcqRel) - <a href="state.rs.html#69">REFERENCE</a>;
 
         <span class="comment">// If this was the last reference to the task and the `Task` has been dropped too,
         // then we need to decide how to destroy the task.
@@ -1072,13 +1072,13 @@
             <span class="kw">if </span>new &amp; (COMPLETED | CLOSED) == <span class="number">0 </span>{
                 <span class="comment">// If the task was not completed nor closed, close it and schedule one more time so
                 // that its future gets dropped by the executor.
-                </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#357">raw</a>.header)
+                </span>(<span class="kw-2">*</span><a href="#357">raw</a>.header)
                     .state
-                    .store(<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a> | <a href="../../src/async_task/state.rs.html#35">CLOSED</a> | <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>, Ordering::Release);
-                <span class="self">Self</span>::schedule(<a href="../../src/async_task/raw.rs.html#356">ptr</a>);
+                    .store(<a href="state.rs.html#7">SCHEDULED</a> | <a href="state.rs.html#35">CLOSED</a> | <a href="state.rs.html#69">REFERENCE</a>, Ordering::Release);
+                <span class="self">Self</span>::schedule(<a href="#356">ptr</a>);
             } <span class="kw">else </span>{
                 <span class="comment">// Otherwise, destroy the task right away.
-                </span><span class="self">Self</span>::destroy(<a href="../../src/async_task/raw.rs.html#356">ptr</a>);
+                </span><span class="self">Self</span>::destroy(<a href="#356">ptr</a>);
             }
         }
     }
@@ -1089,15 +1089,15 @@
     /// associated `Task` handle has been dropped too, then the task gets destroyed.
     </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>drop_ref(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#384">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#384">ptr</a>);
 
         <span class="comment">// Decrement the reference count.
-        </span><span class="kw">let </span>new = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#385">raw</a>.header).state.fetch_sub(<a href="../../src/async_task/state.rs.html#69">REFERENCE</a>, Ordering::AcqRel) - <a href="../../src/async_task/state.rs.html#69">REFERENCE</a>;
+        </span><span class="kw">let </span>new = (<span class="kw-2">*</span><a href="#385">raw</a>.header).state.fetch_sub(<a href="state.rs.html#69">REFERENCE</a>, Ordering::AcqRel) - <a href="state.rs.html#69">REFERENCE</a>;
 
         <span class="comment">// If this was the last reference to the task and the `Task` has been dropped too,
         // then destroy the task.
         </span><span class="kw">if </span>new &amp; !(REFERENCE - <span class="number">1</span>) == <span class="number">0 </span>&amp;&amp; new &amp; TASK == <span class="number">0 </span>{
-            <span class="self">Self</span>::destroy(<a href="../../src/async_task/raw.rs.html#384">ptr</a>);
+            <span class="self">Self</span>::destroy(<a href="#384">ptr</a>);
         }
     }
 
@@ -1106,36 +1106,36 @@
     /// This function doesn&#39;t modify the state of the task. It only passes the task reference to
     /// its schedule function.
     </span><span class="kw">unsafe fn </span>schedule(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#401">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#401">ptr</a>);
 
         <span class="comment">// If the schedule function has captured variables, create a temporary waker that prevents
         // the task from getting deallocated while the function is being invoked.
         </span><span class="kw">let </span>_waker;
         <span class="kw">if </span>mem::size_of::&lt;S&gt;() &gt; <span class="number">0 </span>{
-            <a href="../../src/async_task/raw.rs.html#406">_waker</a> = Waker::from_raw(<span class="self">Self</span>::clone_waker(<a href="../../src/async_task/raw.rs.html#401">ptr</a>));
+            <a href="#406">_waker</a> = Waker::from_raw(<span class="self">Self</span>::clone_waker(<a href="#401">ptr</a>));
         }
 
-        <span class="kw">let </span>task = <a href="../../src/async_task/runnable.rs.html#233">Runnable</a> {
-            ptr: NonNull::new_unchecked(<a href="../../src/async_task/raw.rs.html#401">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span>()),
+        <span class="kw">let </span>task = <a href="runnable.rs.html#233">Runnable</a> {
+            ptr: NonNull::new_unchecked(<a href="#401">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span>()),
         };
-        (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#402">raw</a>.schedule)(<a href="../../src/async_task/raw.rs.html#411">task</a>);
+        (<span class="kw-2">*</span><a href="#402">raw</a>.schedule)(<a href="#411">task</a>);
     }
 
     <span class="doccomment">/// Drops the future inside a task.
     </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>drop_future(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#419">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#419">ptr</a>);
 
         <span class="comment">// We need a safeguard against panics because the destructor can panic.
-        </span><a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| {
-            <a href="../../src/async_task/raw.rs.html#420">raw</a>.future.drop_in_place();
+        </span><a href="utils.rs.html#24">abort_on_panic</a>(|| {
+            <a href="#420">raw</a>.future.drop_in_place();
         })
     }
 
     <span class="doccomment">/// Returns a pointer to the output inside a task.
     </span><span class="kw">unsafe fn </span>get_output(ptr: <span class="kw-2">*const </span>()) -&gt; <span class="kw-2">*const </span>() {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#429">ptr</a>);
-        <a href="../../src/async_task/raw.rs.html#430">raw</a>.output <span class="kw">as </span><span class="kw-2">*const </span>()
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#429">ptr</a>);
+        <a href="#430">raw</a>.output <span class="kw">as </span><span class="kw-2">*const </span>()
     }
 
     <span class="doccomment">/// Cleans up task&#39;s resources and deallocates it.
@@ -1144,17 +1144,17 @@
     /// The task must be closed before this function is called.
     </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>destroy(ptr: <span class="kw-2">*const </span>()) {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#439">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#439">ptr</a>);
         <span class="kw">let </span>task_layout = <span class="self">Self</span>::task_layout();
 
         <span class="comment">// We need a safeguard against panics because destructors can panic.
-        </span><a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| {
+        </span><a href="utils.rs.html#24">abort_on_panic</a>(|| {
             <span class="comment">// Drop the schedule function.
-            </span>(<a href="../../src/async_task/raw.rs.html#440">raw</a>.schedule <span class="kw">as </span><span class="kw-2">*mut </span>S).drop_in_place();
+            </span>(<a href="#440">raw</a>.schedule <span class="kw">as </span><span class="kw-2">*mut </span>S).drop_in_place();
         });
 
         <span class="comment">// Finally, deallocate the memory reserved by the task.
-        </span>alloc::alloc::dealloc(<a href="../../src/async_task/raw.rs.html#439">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/async_task/raw.rs.html#441">task_layout</a>.layout);
+        </span>alloc::alloc::dealloc(<a href="#439">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#441">task_layout</a>.layout);
     }
 
     <span class="doccomment">/// Runs a task.
@@ -1162,81 +1162,81 @@
     /// If polling its future panics, the task will be closed and the panic will be propagated into
     /// the caller.
     </span><span class="kw">unsafe fn </span>run(ptr: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+        <span class="kw">let </span>raw = <span class="self">Self</span>::from_ptr(<a href="#457">ptr</a>);
 
         <span class="comment">// Create a context from the raw task pointer and the vtable inside the its header.
-        </span><span class="kw">let </span>waker = ManuallyDrop::new(Waker::from_raw(RawWaker::new(<a href="../../src/async_task/raw.rs.html#457">ptr</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::RAW_WAKER_VTABLE)));
-        <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="../../src/async_task/raw.rs.html#461">waker</a>);
+        </span><span class="kw">let </span>waker = ManuallyDrop::new(Waker::from_raw(RawWaker::new(<a href="#457">ptr</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::RAW_WAKER_VTABLE)));
+        <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="#461">waker</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).state.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#458">raw</a>.header).state.load(Ordering::Acquire);
 
         <span class="comment">// Update the task&#39;s state before polling its future.
         </span><span class="kw">loop </span>{
             <span class="comment">// If the task has already been closed, drop the task reference and return.
             </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
                 <span class="comment">// Drop the future.
-                </span><span class="self">Self</span>::drop_future(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                </span><span class="self">Self</span>::drop_future(<a href="#457">ptr</a>);
 
                 <span class="comment">// Mark the task as unscheduled.
-                </span><span class="kw">let </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).state.fetch_and(!<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>, Ordering::AcqRel);
+                </span><span class="kw">let </span>state = (<span class="kw-2">*</span><a href="#458">raw</a>.header).state.fetch_and(!<a href="state.rs.html#7">SCHEDULED</a>, Ordering::AcqRel);
 
                 <span class="comment">// Take the awaiter out.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
                 <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                    <a href="../../src/async_task/raw.rs.html#477">awaiter</a> = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).<a href="../../src/async_task/header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
+                    <a href="#477">awaiter</a> = (<span class="kw-2">*</span><a href="#458">raw</a>.header).<a href="header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
                 }
 
                 <span class="comment">// Drop the task reference.
-                </span><span class="self">Self</span>::drop_ref(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                </span><span class="self">Self</span>::drop_ref(<a href="#457">ptr</a>);
 
                 <span class="comment">// Notify the awaiter that the future has been dropped.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/raw.rs.html#477">awaiter</a> {
-                    <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#486">w</a>.wake());
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#477">awaiter</a> {
+                    <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#486">w</a>.wake());
                 }
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
 
             <span class="comment">// Mark the task as unscheduled and running.
-            </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).state.compare_exchange_weak(
-                <a href="../../src/async_task/raw.rs.html#464">state</a>,
-                (<a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) | <a href="../../src/async_task/state.rs.html#15">RUNNING</a>,
+            </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#458">raw</a>.header).state.compare_exchange_weak(
+                <a href="#464">state</a>,
+                (<a href="#464">state</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>) | <a href="state.rs.html#15">RUNNING</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// Update the state because we&#39;re continuing with polling the future.
-                    </span><a href="../../src/async_task/raw.rs.html#464">state</a> = (<a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) | <a href="../../src/async_task/state.rs.html#15">RUNNING</a>;
+                    </span><a href="#464">state</a> = (<a href="#464">state</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>) | <a href="state.rs.html#15">RUNNING</a>;
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#464">state</a> = <a href="../../src/async_task/raw.rs.html#504">s</a>,
+                <span class="prelude-val">Err</span>(s) =&gt; <a href="#464">state</a> = <a href="#504">s</a>,
             }
         }
 
         <span class="comment">// Poll the inner future, but surround it with a guard that closes the task in case polling
         // panics.
-        </span><span class="kw">let </span>guard = <a href="../../src/async_task/raw.rs.html#628">Guard</a>(<a href="../../src/async_task/raw.rs.html#458">raw</a>);
-        <span class="kw">let </span>poll = &lt;F <span class="kw">as </span>Future&gt;::poll(Pin::new_unchecked(<span class="kw-2">&amp;mut *</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.future), <a href="../../src/async_task/raw.rs.html#462">cx</a>);
-        mem::forget(<a href="../../src/async_task/raw.rs.html#510">guard</a>);
+        </span><span class="kw">let </span>guard = <a href="#628">Guard</a>(<a href="#458">raw</a>);
+        <span class="kw">let </span>poll = &lt;F <span class="kw">as </span>Future&gt;::poll(Pin::new_unchecked(<span class="kw-2">&amp;mut *</span><a href="#458">raw</a>.future), <a href="#462">cx</a>);
+        mem::forget(<a href="#510">guard</a>);
 
-        <span class="kw">match </span><a href="../../src/async_task/raw.rs.html#511">poll</a> {
+        <span class="kw">match </span><a href="#511">poll</a> {
             Poll::Ready(out) =&gt; {
                 <span class="comment">// Replace the future with its output.
-                </span><span class="self">Self</span>::drop_future(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
-                <a href="../../src/async_task/raw.rs.html#458">raw</a>.output.write(<a href="../../src/async_task/raw.rs.html#515">out</a>);
+                </span><span class="self">Self</span>::drop_future(<a href="#457">ptr</a>);
+                <a href="#458">raw</a>.output.write(<a href="#515">out</a>);
 
                 <span class="comment">// The task is now completed.
                 </span><span class="kw">loop </span>{
                     <span class="comment">// If the `Task` is dropped, we&#39;ll need to close it and drop the output.
                     </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; TASK == <span class="number">0 </span>{
-                        (<a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#15">RUNNING</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) | <a href="../../src/async_task/state.rs.html#24">COMPLETED</a> | <a href="../../src/async_task/state.rs.html#35">CLOSED</a>
+                        (<a href="#464">state</a> &amp; !<a href="state.rs.html#15">RUNNING</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>) | <a href="state.rs.html#24">COMPLETED</a> | <a href="state.rs.html#35">CLOSED</a>
                     } <span class="kw">else </span>{
-                        (<a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#15">RUNNING</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) | <a href="../../src/async_task/state.rs.html#24">COMPLETED</a>
+                        (<a href="#464">state</a> &amp; !<a href="state.rs.html#15">RUNNING</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>) | <a href="state.rs.html#24">COMPLETED</a>
                     };
 
                     <span class="comment">// Mark the task as not running and completed.
-                    </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).state.compare_exchange_weak(
-                        <a href="../../src/async_task/raw.rs.html#464">state</a>,
-                        <a href="../../src/async_task/raw.rs.html#523">new</a>,
+                    </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#458">raw</a>.header).state.compare_exchange_weak(
+                        <a href="#464">state</a>,
+                        <a href="#523">new</a>,
                         Ordering::AcqRel,
                         Ordering::Acquire,
                     ) {
@@ -1245,25 +1245,25 @@
                             // now it&#39;s time to drop the output.
                             </span><span class="kw">if </span>state &amp; TASK == <span class="number">0 </span>|| state &amp; CLOSED != <span class="number">0 </span>{
                                 <span class="comment">// Drop the output.
-                                </span><a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#458">raw</a>.output.drop_in_place());
+                                </span><a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#458">raw</a>.output.drop_in_place());
                             }
 
                             <span class="comment">// Take the awaiter out.
                             </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
                             <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                                <a href="../../src/async_task/raw.rs.html#545">awaiter</a> = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).<a href="../../src/async_task/header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
+                                <a href="#545">awaiter</a> = (<span class="kw-2">*</span><a href="#458">raw</a>.header).<a href="header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
                             }
 
                             <span class="comment">// Drop the task reference.
-                            </span><span class="self">Self</span>::drop_ref(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                            </span><span class="self">Self</span>::drop_ref(<a href="#457">ptr</a>);
 
                             <span class="comment">// Notify the awaiter that the future has been dropped.
-                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/raw.rs.html#545">awaiter</a> {
-                                <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#554">w</a>.wake());
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#545">awaiter</a> {
+                                <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#554">w</a>.wake());
                             }
                             <span class="kw">break</span>;
                         }
-                        <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#464">state</a> = <a href="../../src/async_task/raw.rs.html#559">s</a>,
+                        <span class="prelude-val">Err</span>(s) =&gt; <a href="#464">state</a> = <a href="#559">s</a>,
                     }
                 }
             }
@@ -1275,22 +1275,22 @@
                     <span class="comment">// If the task was closed while running, we&#39;ll need to unschedule in case it
                     // was woken up and then destroy it.
                     </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
-                        <a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#15">RUNNING</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>
+                        <a href="#464">state</a> &amp; !<a href="state.rs.html#15">RUNNING</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>
                     } <span class="kw">else </span>{
-                        <a href="../../src/async_task/raw.rs.html#464">state</a> &amp; !<a href="../../src/async_task/state.rs.html#15">RUNNING</a>
+                        <a href="#464">state</a> &amp; !<a href="state.rs.html#15">RUNNING</a>
                     };
 
                     <span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>&amp;&amp; !future_dropped {
                         <span class="comment">// The thread that closed the task didn&#39;t drop the future because it was
                         // running so now it&#39;s our responsibility to do so.
-                        </span><span class="self">Self</span>::drop_future(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
-                        <a href="../../src/async_task/raw.rs.html#564">future_dropped</a> = <span class="bool-val">true</span>;
+                        </span><span class="self">Self</span>::drop_future(<a href="#457">ptr</a>);
+                        <a href="#564">future_dropped</a> = <span class="bool-val">true</span>;
                     }
 
                     <span class="comment">// Mark the task as not running.
-                    </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).state.compare_exchange_weak(
-                        <a href="../../src/async_task/raw.rs.html#464">state</a>,
-                        <a href="../../src/async_task/raw.rs.html#570">new</a>,
+                    </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#458">raw</a>.header).state.compare_exchange_weak(
+                        <a href="#464">state</a>,
+                        <a href="#570">new</a>,
                         Ordering::AcqRel,
                         Ordering::Acquire,
                     ) {
@@ -1302,28 +1302,28 @@
                                 <span class="comment">// Take the awaiter out.
                                 </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
                                 <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                                    <a href="../../src/async_task/raw.rs.html#596">awaiter</a> = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#458">raw</a>.header).<a href="../../src/async_task/header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
+                                    <a href="#596">awaiter</a> = (<span class="kw-2">*</span><a href="#458">raw</a>.header).<a href="header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
                                 }
 
                                 <span class="comment">// Drop the task reference.
-                                </span><span class="self">Self</span>::drop_ref(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                                </span><span class="self">Self</span>::drop_ref(<a href="#457">ptr</a>);
 
                                 <span class="comment">// Notify the awaiter that the future has been dropped.
-                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/raw.rs.html#596">awaiter</a> {
-                                    <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#605">w</a>.wake());
+                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#596">awaiter</a> {
+                                    <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#605">w</a>.wake());
                                 }
                             } <span class="kw">else if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
                                 <span class="comment">// The thread that woke the task up didn&#39;t reschedule it because
                                 // it was running so now it&#39;s our responsibility to do so.
-                                </span><span class="self">Self</span>::schedule(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                                </span><span class="self">Self</span>::schedule(<a href="#457">ptr</a>);
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             } <span class="kw">else </span>{
                                 <span class="comment">// Drop the task reference.
-                                </span><span class="self">Self</span>::drop_ref(<a href="../../src/async_task/raw.rs.html#457">ptr</a>);
+                                </span><span class="self">Self</span>::drop_ref(<a href="#457">ptr</a>);
                             }
                             <span class="kw">break</span>;
                         }
-                        <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#464">state</a> = <a href="../../src/async_task/raw.rs.html#619">s</a>,
+                        <span class="prelude-val">Err</span>(s) =&gt; <a href="#464">state</a> = <a href="#619">s</a>,
                     }
                 }
             }
@@ -1335,19 +1335,19 @@
         </span><span class="kw">struct </span>Guard&lt;F, T, S&gt;(RawTask&lt;F, T, S&gt;)
         <span class="kw">where
             </span>F: Future&lt;Output = T&gt;,
-            S: Fn(<a href="../../src/async_task/runnable.rs.html#233">Runnable</a>);
+            S: Fn(<a href="runnable.rs.html#233">Runnable</a>);
 
         <span class="kw">impl</span>&lt;F, T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;F, T, S&gt;
         <span class="kw">where
             </span>F: Future&lt;Output = T&gt;,
-            S: Fn(<a href="../../src/async_task/runnable.rs.html#233">Runnable</a>),
+            S: Fn(<a href="runnable.rs.html#233">Runnable</a>),
         {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-                <span class="kw">let </span>raw = <a class="self" href="../../src/async_task/raw.rs.html#638">self</a>.<span class="number">0</span>;
-                <span class="kw">let </span>ptr = <a href="../../src/async_task/raw.rs.html#639">raw</a>.header <span class="kw">as </span><span class="kw-2">*const </span>();
+                <span class="kw">let </span>raw = <a class="self" href="#638">self</a>.<span class="number">0</span>;
+                <span class="kw">let </span>ptr = <a href="#639">raw</a>.header <span class="kw">as </span><span class="kw-2">*const </span>();
 
                 <span class="kw">unsafe </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#639">raw</a>.header).state.load(Ordering::Acquire);
+                    <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span><a href="#639">raw</a>.header).state.load(Ordering::Acquire);
 
                     <span class="kw">loop </span>{
                         <span class="comment">// If the task was closed while running, then unschedule it, drop its
@@ -1355,56 +1355,56 @@
                         </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
                             <span class="comment">// The thread that closed the task didn&#39;t drop the future because it
                             // was running so now it&#39;s our responsibility to do so.
-                            </span>RawTask::&lt;F, T, S&gt;::drop_future(<a href="../../src/async_task/raw.rs.html#640">ptr</a>);
+                            </span>RawTask::&lt;F, T, S&gt;::drop_future(<a href="#640">ptr</a>);
 
                             <span class="comment">// Mark the task as not running and not scheduled.
-                            </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#639">raw</a>.header)
+                            </span>(<span class="kw-2">*</span><a href="#639">raw</a>.header)
                                 .state
-                                .fetch_and(!<a href="../../src/async_task/state.rs.html#15">RUNNING</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>, Ordering::AcqRel);
+                                .fetch_and(!<a href="state.rs.html#15">RUNNING</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>, Ordering::AcqRel);
 
                             <span class="comment">// Take the awaiter out.
                             </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
                             <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                                <a href="../../src/async_task/raw.rs.html#659">awaiter</a> = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#639">raw</a>.header).<a href="../../src/async_task/header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
+                                <a href="#659">awaiter</a> = (<span class="kw-2">*</span><a href="#639">raw</a>.header).<a href="header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
                             }
 
                             <span class="comment">// Drop the task reference.
-                            </span>RawTask::&lt;F, T, S&gt;::drop_ref(<a href="../../src/async_task/raw.rs.html#640">ptr</a>);
+                            </span>RawTask::&lt;F, T, S&gt;::drop_ref(<a href="#640">ptr</a>);
 
                             <span class="comment">// Notify the awaiter that the future has been dropped.
-                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/raw.rs.html#659">awaiter</a> {
-                                <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#668">w</a>.wake());
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#659">awaiter</a> {
+                                <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#668">w</a>.wake());
                             }
                             <span class="kw">break</span>;
                         }
 
                         <span class="comment">// Mark the task as not running, not scheduled, and closed.
-                        </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#639">raw</a>.header).state.compare_exchange_weak(
-                            <a href="../../src/async_task/raw.rs.html#643">state</a>,
-                            (<a href="../../src/async_task/raw.rs.html#643">state</a> &amp; !<a href="../../src/async_task/state.rs.html#15">RUNNING</a> &amp; !<a href="../../src/async_task/state.rs.html#7">SCHEDULED</a>) | <a href="../../src/async_task/state.rs.html#35">CLOSED</a>,
+                        </span><span class="kw">match </span>(<span class="kw-2">*</span><a href="#639">raw</a>.header).state.compare_exchange_weak(
+                            <a href="#643">state</a>,
+                            (<a href="#643">state</a> &amp; !<a href="state.rs.html#15">RUNNING</a> &amp; !<a href="state.rs.html#7">SCHEDULED</a>) | <a href="state.rs.html#35">CLOSED</a>,
                             Ordering::AcqRel,
                             Ordering::Acquire,
                         ) {
                             <span class="prelude-val">Ok</span>(state) =&gt; {
                                 <span class="comment">// Drop the future because the task is now closed.
-                                </span>RawTask::&lt;F, T, S&gt;::drop_future(<a href="../../src/async_task/raw.rs.html#640">ptr</a>);
+                                </span>RawTask::&lt;F, T, S&gt;::drop_future(<a href="#640">ptr</a>);
 
                                 <span class="comment">// Take the awaiter out.
                                 </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
                                 <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
-                                    <a href="../../src/async_task/raw.rs.html#686">awaiter</a> = (<span class="kw-2">*</span><a href="../../src/async_task/raw.rs.html#639">raw</a>.header).<a href="../../src/async_task/header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
+                                    <a href="#686">awaiter</a> = (<span class="kw-2">*</span><a href="#639">raw</a>.header).<a href="header.rs.html#46">take</a>(<span class="prelude-val">None</span>);
                                 }
 
                                 <span class="comment">// Drop the task reference.
-                                </span>RawTask::&lt;F, T, S&gt;::drop_ref(<a href="../../src/async_task/raw.rs.html#640">ptr</a>);
+                                </span>RawTask::&lt;F, T, S&gt;::drop_ref(<a href="#640">ptr</a>);
 
                                 <span class="comment">// Notify the awaiter that the future has been dropped.
-                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="../../src/async_task/raw.rs.html#686">awaiter</a> {
-                                    <a href="../../src/async_task/utils.rs.html#24">abort_on_panic</a>(|| <a href="../../src/async_task/raw.rs.html#695">w</a>.wake());
+                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#686">awaiter</a> {
+                                    <a href="utils.rs.html#24">abort_on_panic</a>(|| <a href="#695">w</a>.wake());
                                 }
                                 <span class="kw">break</span>;
                             }
-                            <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_task/raw.rs.html#643">state</a> = <a href="../../src/async_task/raw.rs.html#700">s</a>,
+                            <span class="prelude-val">Err</span>(s) =&gt; <a href="#643">state</a> = <a href="#700">s</a>,
                         }
                     }
                 }
@@ -1413,4 +1413,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

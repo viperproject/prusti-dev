@@ -415,12 +415,12 @@
 <span class="kw">impl</span>&lt;S&gt; AllowStd&lt;S&gt; {
     <span class="doccomment">/// Returns a shared reference to the inner stream.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_native_tls/lib.rs.html#51">self</a>.inner
+        <span class="kw-2">&amp;</span><a class="self" href="#51">self</a>.inner
     }
 
     <span class="doccomment">/// Returns a mutable reference to the inner stream.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>S {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio_native_tls/lib.rs.html#56">self</a>.inner
+        <span class="kw-2">&amp;mut </span><a class="self" href="#56">self</a>.inner
     }
 }
 
@@ -466,7 +466,7 @@
     </span>AllowStd&lt;S&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        (<a class="self" href="../../src/tokio_native_tls/lib.rs.html#102">self</a>.<span class="number">0</span>).<span class="number">0</span>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+        (<a class="self" href="#102">self</a>.<span class="number">0</span>).<span class="number">0</span>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
     }
 }
 
@@ -484,9 +484,9 @@
     {
         <span class="kw">unsafe </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.context.is_null());
-            <span class="kw">let </span>waker = <span class="kw-2">&amp;mut *</span>(<a class="self" href="../../src/tokio_native_tls/lib.rs.html#115">self</a>.context <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
-            <span class="kw">match </span><a href="../../src/tokio_native_tls/lib.rs.html#115">f</a>(<a href="../../src/tokio_native_tls/lib.rs.html#121">waker</a>, Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio_native_tls/lib.rs.html#115">self</a>.inner)) {
-                Poll::Ready(r) =&gt; <a href="../../src/tokio_native_tls/lib.rs.html#123">r</a>,
+            <span class="kw">let </span>waker = <span class="kw-2">&amp;mut *</span>(<a class="self" href="#115">self</a>.context <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+            <span class="kw">match </span><a href="#115">f</a>(<a href="#121">waker</a>, Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#115">self</a>.inner)) {
+                Poll::Ready(r) =&gt; <a href="#123">r</a>,
                 Poll::Pending =&gt; <span class="prelude-val">Err</span>(io::Error::from(io::ErrorKind::WouldBlock)),
             }
         }
@@ -498,9 +498,9 @@
     </span>S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<a href="../../src/tokio_native_tls/lib.rs.html#134">buf</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<a href="#134">buf</a>);
         <span class="self">self</span>.with_context(|ctx, stream| stream.poll_read(ctx, <span class="kw-2">&amp;mut </span>buf))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="../../src/tokio_native_tls/lib.rs.html#135">buf</a>.filled().len())
+        <span class="prelude-val">Ok</span>(<a href="#135">buf</a>.filled().len())
     }
 }
 
@@ -509,11 +509,11 @@
     </span>S: <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#145">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#115-117">with_context</a>(|ctx, stream| <a href="../../src/tokio_native_tls/lib.rs.html#146">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="../../src/tokio_native_tls/lib.rs.html#146">ctx</a>, <a href="../../src/tokio_native_tls/lib.rs.html#145">buf</a>))
+        <a class="self" href="#145">self</a>.<a href="#115-117">with_context</a>(|ctx, stream| <a href="#146">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="#146">ctx</a>, <a href="#145">buf</a>))
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#149">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#115-117">with_context</a>(|ctx, stream| <a href="../../src/tokio_native_tls/lib.rs.html#150">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="../../src/tokio_native_tls/lib.rs.html#150">ctx</a>))
+        <a class="self" href="#149">self</a>.<a href="#115-117">with_context</a>(|ctx, stream| <a href="#150">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#150">ctx</a>))
     }
 }
 
@@ -523,12 +523,12 @@
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>native_tls::TlsStream&lt;AllowStd&lt;S&gt;&gt;) -&gt; io::Result&lt;R&gt;,
         AllowStd&lt;S&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#155">self</a>.<span class="number">0</span>.get_mut().context = <a href="../../src/tokio_native_tls/lib.rs.html#155">ctx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>();
-        <span class="kw">let </span>g = <a href="../../src/tokio_native_tls/lib.rs.html#94">Guard</a>(<a class="self" href="../../src/tokio_native_tls/lib.rs.html#155">self</a>);
-        <span class="kw">match </span><a href="../../src/tokio_native_tls/lib.rs.html#155">f</a>(<span class="kw-2">&amp;mut </span>(<a href="../../src/tokio_native_tls/lib.rs.html#161">g</a>.<span class="number">0</span>).<span class="number">0</span>) {
-            <span class="prelude-val">Ok</span>(v) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_native_tls/lib.rs.html#163">v</a>)),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="../../src/tokio_native_tls/lib.rs.html#164">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; Poll::Pending,
-            <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/tokio_native_tls/lib.rs.html#165">e</a>)),
+        <a class="self" href="#155">self</a>.<span class="number">0</span>.get_mut().context = <a href="#155">ctx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>();
+        <span class="kw">let </span>g = <a href="#94">Guard</a>(<a class="self" href="#155">self</a>);
+        <span class="kw">match </span><a href="#155">f</a>(<span class="kw-2">&amp;mut </span>(<a href="#161">g</a>.<span class="number">0</span>).<span class="number">0</span>) {
+            <span class="prelude-val">Ok</span>(v) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#163">v</a>)),
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="#164">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; Poll::Pending,
+            <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#165">e</a>)),
         }
     }
 
@@ -537,7 +537,7 @@
     <span class="kw">where
         </span>S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_native_tls/lib.rs.html#170">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><a class="self" href="#170">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a mutable reference to the inner stream.
@@ -545,7 +545,7 @@
     <span class="kw">where
         </span>S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio_native_tls/lib.rs.html#178">self</a>.<span class="number">0
+        <span class="kw-2">&amp;mut </span><a class="self" href="#178">self</a>.<span class="number">0
     </span>}
 }
 
@@ -558,9 +558,9 @@
         ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#191">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#155-158">with_context</a>(<a href="../../src/tokio_native_tls/lib.rs.html#192">ctx</a>, |s| {
+        <a class="self" href="#191">self</a>.<a href="#155-158">with_context</a>(<a href="#192">ctx</a>, |s| {
             <span class="kw">let </span>n = s.read(buf.initialize_unfilled())<span class="question-mark">?</span>;
-            <a href="../../src/tokio_native_tls/lib.rs.html#193">buf</a>.advance(<a href="../../src/tokio_native_tls/lib.rs.html#196">n</a>);
+            <a href="#193">buf</a>.advance(<a href="#196">n</a>);
             <span class="prelude-val">Ok</span>(())
         })
     }
@@ -575,15 +575,15 @@
         ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#208">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#155-158">with_context</a>(<a href="../../src/tokio_native_tls/lib.rs.html#209">ctx</a>, |s| <a href="../../src/tokio_native_tls/lib.rs.html#212">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/tokio_native_tls/lib.rs.html#210">buf</a>))
+        <a class="self" href="#208">self</a>.<a href="#155-158">with_context</a>(<a href="#209">ctx</a>, |s| <a href="#212">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#210">buf</a>))
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#215">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#155-158">with_context</a>(<a href="../../src/tokio_native_tls/lib.rs.html#215">ctx</a>, |s| <a href="../../src/tokio_native_tls/lib.rs.html#216">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+        <a class="self" href="#215">self</a>.<a href="#155-158">with_context</a>(<a href="#215">ctx</a>, |s| <a href="#216">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../src/tokio_native_tls/lib.rs.html#219">self</a>.<a href="../../src/tokio_native_tls/lib.rs.html#155-158">with_context</a>(<a href="../../src/tokio_native_tls/lib.rs.html#219">ctx</a>, |s| <a href="../../src/tokio_native_tls/lib.rs.html#220">s</a>.shutdown())
+        <a class="self" href="#219">self</a>.<a href="#155-158">with_context</a>(<a href="#219">ctx</a>, |s| <a href="#220">s</a>.shutdown())
     }
 }
 
@@ -619,27 +619,27 @@
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;StartedHandshake&lt;S&gt;, <a href="../../tokio_native_tls/native_tls/struct.Error.html">Error</a>&gt;&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="../../src/tokio_native_tls/lib.rs.html#253">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
-        <span class="kw">let </span>stream = <a href="../../src/tokio_native_tls/lib.rs.html#44">AllowStd</a> {
-            inner: <a href="../../src/tokio_native_tls/lib.rs.html#256">inner</a>.stream,
-            context: <a href="../../src/tokio_native_tls/lib.rs.html#254">ctx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(),
+        <span class="kw">let </span>inner = <a class="self" href="#253">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
+        <span class="kw">let </span>stream = <a href="#44">AllowStd</a> {
+            inner: <a href="#256">inner</a>.stream,
+            context: <a href="#254">ctx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(),
         };
 
-        <span class="kw">match </span>(<a href="../../src/tokio_native_tls/lib.rs.html#256">inner</a>.f)(<a href="../../src/tokio_native_tls/lib.rs.html#257">stream</a>) {
+        <span class="kw">match </span>(<a href="#256">inner</a>.f)(<a href="#257">stream</a>) {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>s) =&gt; {
-                <a href="../../src/tokio_native_tls/lib.rs.html#263">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
-                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_native_tls/lib.rs.html#84">StartedHandshake::Done</a>(<a href="../../src/tokio_native_tls/lib.rs.html#69">TlsStream</a>(<a href="../../src/tokio_native_tls/lib.rs.html#263">s</a>))))
+                <a href="#263">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#84">StartedHandshake::Done</a>(<a href="#69">TlsStream</a>(<a href="#263">s</a>))))
             }
             <span class="prelude-val">Err</span>(HandshakeError::WouldBlock(<span class="kw-2">mut </span>s)) =&gt; {
-                <a href="../../src/tokio_native_tls/lib.rs.html#267">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
-                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_native_tls/lib.rs.html#85">StartedHandshake::Mid</a>(<a href="../../src/tokio_native_tls/lib.rs.html#267">s</a>)))
+                <a href="#267">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#85">StartedHandshake::Mid</a>(<a href="#267">s</a>)))
             }
-            <span class="prelude-val">Err</span>(HandshakeError::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/tokio_native_tls/lib.rs.html#271">e</a>)),
+            <span class="prelude-val">Err</span>(HandshakeError::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#271">e</a>)),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/tokio_native_tls/lib.rs.html#74">TlsConnector</a> {
+<span class="kw">impl </span><a href="#74">TlsConnector</a> {
     <span class="doccomment">/// Connects the provided stream with this connector, assuming the provided
     /// domain.
     ///
@@ -660,19 +660,19 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/tokio_native_tls/lib.rs.html#74">TlsConnector</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#74">TlsConnector</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/tokio_native_tls/lib.rs.html#298">f</a>.debug_struct(<span class="string">&quot;TlsConnector&quot;</span>).finish()
+        <a href="#298">f</a>.debug_struct(<span class="string">&quot;TlsConnector&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../tokio_native_tls/native_tls/struct.TlsConnector.html">native_tls::TlsConnector</a>&gt; <span class="kw">for </span><a href="../../src/tokio_native_tls/lib.rs.html#74">TlsConnector</a> {
-    <span class="kw">fn </span>from(inner: <a href="../../tokio_native_tls/native_tls/struct.TlsConnector.html">native_tls::TlsConnector</a>) -&gt; <a href="../../src/tokio_native_tls/lib.rs.html#74">TlsConnector</a> {
-        <a href="../../src/tokio_native_tls/lib.rs.html#74">TlsConnector</a>(<a href="../../src/tokio_native_tls/lib.rs.html#304">inner</a>)
+<span class="kw">impl </span>From&lt;<a href="../../tokio_native_tls/native_tls/struct.TlsConnector.html">native_tls::TlsConnector</a>&gt; <span class="kw">for </span><a href="#74">TlsConnector</a> {
+    <span class="kw">fn </span>from(inner: <a href="../../tokio_native_tls/native_tls/struct.TlsConnector.html">native_tls::TlsConnector</a>) -&gt; <a href="#74">TlsConnector</a> {
+        <a href="#74">TlsConnector</a>(<a href="#304">inner</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/tokio_native_tls/lib.rs.html#79">TlsAcceptor</a> {
+<span class="kw">impl </span><a href="#79">TlsAcceptor</a> {
     <span class="doccomment">/// Accepts a new client connection with the provided stream.
     ///
     /// This function will internally call `TlsAcceptor::accept` to connect
@@ -691,15 +691,15 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/tokio_native_tls/lib.rs.html#79">TlsAcceptor</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#79">TlsAcceptor</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/tokio_native_tls/lib.rs.html#329">f</a>.debug_struct(<span class="string">&quot;TlsAcceptor&quot;</span>).finish()
+        <a href="#329">f</a>.debug_struct(<span class="string">&quot;TlsAcceptor&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../tokio_native_tls/native_tls/struct.TlsAcceptor.html">native_tls::TlsAcceptor</a>&gt; <span class="kw">for </span><a href="../../src/tokio_native_tls/lib.rs.html#79">TlsAcceptor</a> {
-    <span class="kw">fn </span>from(inner: <a href="../../tokio_native_tls/native_tls/struct.TlsAcceptor.html">native_tls::TlsAcceptor</a>) -&gt; <a href="../../src/tokio_native_tls/lib.rs.html#79">TlsAcceptor</a> {
-        <a href="../../src/tokio_native_tls/lib.rs.html#79">TlsAcceptor</a>(<a href="../../src/tokio_native_tls/lib.rs.html#335">inner</a>)
+<span class="kw">impl </span>From&lt;<a href="../../tokio_native_tls/native_tls/struct.TlsAcceptor.html">native_tls::TlsAcceptor</a>&gt; <span class="kw">for </span><a href="#79">TlsAcceptor</a> {
+    <span class="kw">fn </span>from(inner: <a href="../../tokio_native_tls/native_tls/struct.TlsAcceptor.html">native_tls::TlsAcceptor</a>) -&gt; <a href="#79">TlsAcceptor</a> {
+        <a href="#79">TlsAcceptor</a>(<a href="#335">inner</a>)
     }
 }
 
@@ -707,21 +707,21 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;TlsStream&lt;S&gt;, <a href="../../tokio_native_tls/native_tls/struct.Error.html">Error</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>mut_self = <a class="self" href="../../src/tokio_native_tls/lib.rs.html#343">self</a>.get_mut();
-        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="../../src/tokio_native_tls/lib.rs.html#344">mut_self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
+        <span class="kw">let </span>mut_self = <a class="self" href="#343">self</a>.get_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="#344">mut_self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
 
-        <a href="../../src/tokio_native_tls/lib.rs.html#345">s</a>.get_mut().context = <a href="../../src/tokio_native_tls/lib.rs.html#343">cx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>();
-        <span class="kw">match </span><a href="../../src/tokio_native_tls/lib.rs.html#345">s</a>.handshake() {
+        <a href="#345">s</a>.get_mut().context = <a href="#343">cx</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>();
+        <span class="kw">match </span><a href="#345">s</a>.handshake() {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>s) =&gt; {
-                <a href="../../src/tokio_native_tls/lib.rs.html#349">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
-                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_native_tls/lib.rs.html#69">TlsStream</a>(<a href="../../src/tokio_native_tls/lib.rs.html#349">s</a>)))
+                <a href="#349">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+                Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#69">TlsStream</a>(<a href="#349">s</a>)))
             }
             <span class="prelude-val">Err</span>(HandshakeError::WouldBlock(<span class="kw-2">mut </span>s)) =&gt; {
-                <a href="../../src/tokio_native_tls/lib.rs.html#353">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
-                <a href="../../src/tokio_native_tls/lib.rs.html#344">mut_self</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="../../src/tokio_native_tls/lib.rs.html#353">s</a>);
+                <a href="#353">s</a>.get_mut().context = <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+                <a href="#344">mut_self</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="#353">s</a>);
                 Poll::Pending
             }
-            <span class="prelude-val">Err</span>(HandshakeError::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/tokio_native_tls/lib.rs.html#358">e</a>)),
+            <span class="prelude-val">Err</span>(HandshakeError::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#358">e</a>)),
         }
     }
 }
@@ -731,4 +731,4 @@
     <span class="kw">pub use </span><a href="../../native_tls/index.html">native_tls</a>::<span class="kw-2">*</span>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

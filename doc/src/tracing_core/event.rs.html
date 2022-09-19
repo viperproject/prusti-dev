@@ -129,9 +129,9 @@
 <span id="127">127</span>
 <span id="128">128</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Events represent single points in time during the execution of a program.
-</span><span class="kw">use </span><a href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
-<span class="kw">use </span><a href="../../src/tracing_core/span.rs.html#16"><span class="kw">crate</span>::span::Id</a>;
-<span class="kw">use crate</span>::{<a href="../../src/tracing_core/lib.rs.html#274">field</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
+</span><span class="kw">use </span><a href="parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
+<span class="kw">use </span><a href="span.rs.html#16"><span class="kw">crate</span>::span::Id</a>;
+<span class="kw">use crate</span>::{<a href="lib.rs.html#274">field</a>, <a href="metadata.rs.html#57">Metadata</a>};
 
 <span class="doccomment">/// `Event`s represent single points in time where something occurred during the
 /// execution of a program.
@@ -153,16 +153,16 @@
 </span><span class="kw">pub struct </span>Event&lt;<span class="lifetime">&#39;a</span>&gt; {
     fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
     metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
-    parent: <a href="../../src/tracing_core/parent.rs.html#4">Parent</a>,
+    parent: <a href="parent.rs.html#4">Parent</a>,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Event&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,
     /// and observes it with the current subscriber.
     </span><span class="kw">pub fn </span>dispatch(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <span class="kw">let </span>event = Event::new(<a href="../../src/tracing_core/event.rs.html#32">metadata</a>, <a href="../../src/tracing_core/event.rs.html#32">fields</a>);
-        <a href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
-            <a href="../../src/tracing_core/event.rs.html#34">current</a>.<a href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/event.rs.html#33">event</a>);
+        <span class="kw">let </span>event = Event::new(<a href="#32">metadata</a>, <a href="#32">fields</a>);
+        <a href="dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
+            <a href="#34">current</a>.<a href="dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="#33">event</a>);
         });
     }
 
@@ -170,10 +170,10 @@
     /// and set of values.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../src/tracing_core/event.rs.html#23">Event</a> {
-            <a href="../../src/tracing_core/event.rs.html#42">fields</a>,
-            <a href="../../src/tracing_core/event.rs.html#42">metadata</a>,
-            parent: <a href="../../src/tracing_core/parent.rs.html#8">Parent::Current</a>,
+        <a href="#23">Event</a> {
+            <a href="#42">fields</a>,
+            <a href="#42">metadata</a>,
+            parent: <a href="parent.rs.html#8">Parent::Current</a>,
         }
     }
 
@@ -181,31 +181,31 @@
     /// provided metadata and set of values.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new_child_of(
-        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt;&gt;,
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="span.rs.html#16">Id</a>&gt;&gt;,
         metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>parent = <span class="kw">match </span><a href="../../src/tracing_core/event.rs.html#54">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-            <span class="prelude-val">Some</span>(p) =&gt; <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<a href="../../src/tracing_core/event.rs.html#59">p</a>),
-            <span class="prelude-val">None </span>=&gt; <a href="../../src/tracing_core/parent.rs.html#6">Parent::Root</a>,
+        <span class="kw">let </span>parent = <span class="kw">match </span><a href="#54">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="prelude-val">Some</span>(p) =&gt; <a href="parent.rs.html#10">Parent::Explicit</a>(<a href="#59">p</a>),
+            <span class="prelude-val">None </span>=&gt; <a href="parent.rs.html#6">Parent::Root</a>,
         };
-        <a href="../../src/tracing_core/event.rs.html#23">Event</a> {
-            <a href="../../src/tracing_core/event.rs.html#56">fields</a>,
-            <a href="../../src/tracing_core/event.rs.html#55">metadata</a>,
-            <a href="../../src/tracing_core/event.rs.html#58">parent</a>,
+        <a href="#23">Event</a> {
+            <a href="#56">fields</a>,
+            <a href="#55">metadata</a>,
+            <a href="#58">parent</a>,
         }
     }
 
     <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,
     /// and observes it with the current subscriber and an explicit parent.
     </span><span class="kw">pub fn </span>child_of(
-        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt;&gt;,
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="span.rs.html#16">Id</a>&gt;&gt;,
         metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
         fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
-        <span class="kw">let </span>event = <span class="self">Self</span>::new_child_of(<a href="../../src/tracing_core/event.rs.html#72">parent</a>, <a href="../../src/tracing_core/event.rs.html#73">metadata</a>, <a href="../../src/tracing_core/event.rs.html#74">fields</a>);
-        <a href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
-            <a href="../../src/tracing_core/event.rs.html#77">current</a>.<a href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/event.rs.html#76">event</a>);
+        <span class="kw">let </span>event = <span class="self">Self</span>::new_child_of(<a href="#72">parent</a>, <a href="#73">metadata</a>, <a href="#74">fields</a>);
+        <a href="dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
+            <a href="#77">current</a>.<a href="dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="#76">event</a>);
         });
     }
 
@@ -213,20 +213,20 @@
     ///
     /// [visitor]: super::field::Visit
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/event.rs.html#86">self</a>.fields.<a href="../../src/tracing_core/field.rs.html#990">record</a>(<a href="../../src/tracing_core/event.rs.html#86">visitor</a>);
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="#86">self</a>.fields.<a href="field.rs.html#990">record</a>(<a href="#86">visitor</a>);
     }
 
     <span class="doccomment">/// Returns an iterator over the set of values on this `Event`.
-    </span><span class="kw">pub fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/field.rs.html#173">field::Iter</a> {
-        <a class="self" href="../../src/tracing_core/event.rs.html#91">self</a>.fields.<a href="../../src/tracing_core/field.rs.html#1032">field_set</a>().<a href="../../src/tracing_core/field.rs.html#859">iter</a>()
+    </span><span class="kw">pub fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="field.rs.html#173">field::Iter</a> {
+        <a class="self" href="#91">self</a>.fields.<a href="field.rs.html#1032">field_set</a>().<a href="field.rs.html#859">iter</a>()
     }
 
     <span class="doccomment">/// Returns [metadata] describing this `Event`.
     ///
     /// [metadata]: super::Metadata
     </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt; {
-        <a class="self" href="../../src/tracing_core/event.rs.html#98">self</a>.metadata
+        <a class="self" href="#98">self</a>.metadata
     }
 
     <span class="doccomment">/// Returns true if the new event should be a root.
@@ -249,12 +249,12 @@
     ///
     /// Otherwise (if the new event is a root or is a child of the current span),
     /// returns `None`.
-    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/tracing_core/event.rs.html#122">self</a>.parent {
-            <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref </span>p) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/event.rs.html#124">p</a>),
+    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="span.rs.html#16">Id</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#122">self</a>.parent {
+            <a href="parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref </span>p) =&gt; <span class="prelude-val">Some</span>(<a href="#124">p</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

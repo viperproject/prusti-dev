@@ -197,8 +197,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
 <span class="kw">use </span><a href="../../../async_std/future/trait.Future.html">std::future::Future</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../../src/async_std/lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Write.html">Write</a>};
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../src/async_std/task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
 
 <span class="doccomment">/// Constructs a new handle to the standard output of the current process.
 ///
@@ -225,8 +225,8 @@
 /// #
 /// # Ok(()) }) }
 /// ```
-</span><span class="kw">pub fn </span>stdout() -&gt; <a href="../../../src/async_std/io/stdout.rs.html#54">Stdout</a> {
-    <a href="../../../src/async_std/io/stdout.rs.html#54">Stdout</a>(Mutex::new(<a href="../../../src/async_std/io/stdout.rs.html#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#72">Inner</a> {
+</span><span class="kw">pub fn </span>stdout() -&gt; <a href="#54">Stdout</a> {
+    <a href="#54">Stdout</a>(Mutex::new(<a href="#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#72">Inner</a> {
         stdout: std::io::stdout(),
         buf: Vec::new(),
         last_op: <span class="prelude-val">None</span>,
@@ -246,7 +246,7 @@
 ///
 /// [`stdout`]: fn.stdout.html
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Stdout(Mutex&lt;<a href="../../../src/async_std/io/stdout.rs.html#60">State</a>&gt;);
+</span><span class="kw">pub struct </span>Stdout(Mutex&lt;<a href="#60">State</a>&gt;);
 
 <span class="doccomment">/// The state of the asynchronous stdout.
 ///
@@ -254,12 +254,12 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">enum </span>State {
     <span class="doccomment">/// The stdout is idle.
-    </span>Idle(<span class="prelude-ty">Option</span>&lt;<a href="../../../src/async_std/io/stdout.rs.html#72">Inner</a>&gt;),
+    </span>Idle(<span class="prelude-ty">Option</span>&lt;<a href="#72">Inner</a>&gt;),
 
     <span class="doccomment">/// The stdout is blocked on an asynchronous operation.
     ///
     /// Awaiting this operation will result in the new state of the stdout.
-    </span>Busy(JoinHandle&lt;<a href="../../../src/async_std/io/stdout.rs.html#60">State</a>&gt;),
+    </span>Busy(JoinHandle&lt;<a href="#60">State</a>&gt;),
 }
 
 <span class="doccomment">/// Inner representation of the asynchronous stdout.
@@ -272,7 +272,7 @@
     </span>buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 
     <span class="doccomment">/// The result of the last asynchronous operation on the stdout.
-    </span>last_op: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/async_std/io/stdout.rs.html#85">Operation</a>&gt;,
+    </span>last_op: <span class="prelude-ty">Option</span>&lt;<a href="#85">Operation</a>&gt;,
 }
 
 <span class="doccomment">/// Possible results of an asynchronous operation on the stdout.
@@ -282,95 +282,95 @@
     Flush(io::Result&lt;()&gt;),
 }
 
-<span class="kw">impl </span><a href="../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../../src/async_std/io/stdout.rs.html#54">Stdout</a> {
+<span class="kw">impl </span><a href="../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#54">Stdout</a> {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="../../../src/async_std/io/stdout.rs.html#92">self</a>.<span class="number">0</span>.lock().unwrap();
-        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="../../../src/async_std/io/stdout.rs.html#96">state_guard</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="#92">self</a>.<span class="number">0</span>.lock().unwrap();
+        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="#96">state_guard</a>;
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/async_std/io/stdout.rs.html#97">state</a> {
-                <a href="../../../src/async_std/io/stdout.rs.html#62">State::Idle</a>(opt) =&gt; {
-                    <span class="kw">let </span>inner = <a href="../../../src/async_std/io/stdout.rs.html#101">opt</a>.as_mut().unwrap();
+            <span class="kw">match </span><a href="#97">state</a> {
+                <a href="#62">State::Idle</a>(opt) =&gt; {
+                    <span class="kw">let </span>inner = <a href="#101">opt</a>.as_mut().unwrap();
 
                     <span class="comment">// Check if the operation has completed.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#86">Operation::Write</a>(res)) = <a href="../../../src/async_std/io/stdout.rs.html#102">inner</a>.last_op.take() {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#86">Operation::Write</a>(res)) = <a href="#102">inner</a>.last_op.take() {
                         <span class="kw">let </span>n = res<span class="question-mark">?</span>;
 
                         <span class="comment">// If more data was written than is available in the buffer, let&#39;s retry
                         // the write operation.
                         </span><span class="kw">if </span>n &lt;= buf.len() {
-                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/async_std/io/stdout.rs.html#106">n</a>));
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#106">n</a>));
                         }
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="../../../src/async_std/io/stdout.rs.html#101">opt</a>.take().unwrap();
+                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#101">opt</a>.take().unwrap();
 
                         <span class="comment">// Set the length of the inner buffer to the length of the provided buffer.
                         </span><span class="kw">if </span>inner.buf.len() &lt; buf.len() {
-                            <a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.buf.reserve(<a href="../../../src/async_std/io/stdout.rs.html#94">buf</a>.len() - <a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.buf.len());
+                            <a href="#114">inner</a>.buf.reserve(<a href="#94">buf</a>.len() - <a href="#114">inner</a>.buf.len());
                         }
                         <span class="kw">unsafe </span>{
-                            <a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.buf.set_len(<a href="../../../src/async_std/io/stdout.rs.html#94">buf</a>.len());
+                            <a href="#114">inner</a>.buf.set_len(<a href="#94">buf</a>.len());
                         }
 
                         <span class="comment">// Copy the data to write into the inner buffer.
-                        </span><a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.buf[..<a href="../../../src/async_std/io/stdout.rs.html#94">buf</a>.len()].copy_from_slice(<a href="../../../src/async_std/io/stdout.rs.html#94">buf</a>);
+                        </span><a href="#114">inner</a>.buf[..<a href="#94">buf</a>.len()].copy_from_slice(<a href="#94">buf</a>);
 
                         <span class="comment">// Start the operation asynchronously.
-                        </span><span class="kw-2">*</span><a href="../../../src/async_std/io/stdout.rs.html#97">state</a> = <a href="../../../src/async_std/io/stdout.rs.html#67">State::Busy</a>(<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::write</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.stdout, <span class="kw-2">&amp;</span><a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.buf);
-                            <a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#86">Operation::Write</a>(<a href="../../../src/async_std/io/stdout.rs.html#129">res</a>));
-                            <a href="../../../src/async_std/io/stdout.rs.html#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#114">inner</a>))
+                        </span><span class="kw-2">*</span><a href="#97">state</a> = <a href="#67">State::Busy</a>(<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
+                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::write</a>(<span class="kw-2">&amp;mut </span><a href="#114">inner</a>.stdout, <span class="kw-2">&amp;</span><a href="#114">inner</a>.buf);
+                            <a href="#114">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="#86">Operation::Write</a>(<a href="#129">res</a>));
+                            <a href="#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#114">inner</a>))
                         }));
                     }
                 }
                 <span class="comment">// Poll the asynchronous operation the stdout is currently blocked on.
-                </span><a href="../../../src/async_std/io/stdout.rs.html#67">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="../../../src/async_std/io/stdout.rs.html#97">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
+                </span><a href="#67">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="#97">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
             }
         }
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="../../../src/async_std/io/stdout.rs.html#141">self</a>.<span class="number">0</span>.lock().unwrap();
-        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="../../../src/async_std/io/stdout.rs.html#142">state_guard</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>state_guard = <a class="self" href="#141">self</a>.<span class="number">0</span>.lock().unwrap();
+        <span class="kw">let </span>state = <span class="kw-2">&amp;mut *</span><a href="#142">state_guard</a>;
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="../../../src/async_std/io/stdout.rs.html#143">state</a> {
-                <a href="../../../src/async_std/io/stdout.rs.html#62">State::Idle</a>(opt) =&gt; {
-                    <span class="kw">let </span>inner = <a href="../../../src/async_std/io/stdout.rs.html#147">opt</a>.as_mut().unwrap();
+            <span class="kw">match </span><a href="#143">state</a> {
+                <a href="#62">State::Idle</a>(opt) =&gt; {
+                    <span class="kw">let </span>inner = <a href="#147">opt</a>.as_mut().unwrap();
 
                     <span class="comment">// Check if the operation has completed.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#87">Operation::Flush</a>(res)) = <a href="../../../src/async_std/io/stdout.rs.html#148">inner</a>.last_op.take() {
-                        <span class="kw">return </span>Poll::Ready(<a href="../../../src/async_std/io/stdout.rs.html#151">res</a>);
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="#87">Operation::Flush</a>(res)) = <a href="#148">inner</a>.last_op.take() {
+                        <span class="kw">return </span>Poll::Ready(<a href="#151">res</a>);
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="../../../src/async_std/io/stdout.rs.html#147">opt</a>.take().unwrap();
+                        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a href="#147">opt</a>.take().unwrap();
 
                         <span class="comment">// Start the operation asynchronously.
-                        </span><span class="kw-2">*</span><a href="../../../src/async_std/io/stdout.rs.html#143">state</a> = <a href="../../../src/async_std/io/stdout.rs.html#67">State::Busy</a>(<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::flush</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/async_std/io/stdout.rs.html#154">inner</a>.stdout);
-                            <a href="../../../src/async_std/io/stdout.rs.html#154">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#87">Operation::Flush</a>(<a href="../../../src/async_std/io/stdout.rs.html#158">res</a>));
-                            <a href="../../../src/async_std/io/stdout.rs.html#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/async_std/io/stdout.rs.html#154">inner</a>))
+                        </span><span class="kw-2">*</span><a href="#143">state</a> = <a href="#67">State::Busy</a>(<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
+                            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::flush</a>(<span class="kw-2">&amp;mut </span><a href="#154">inner</a>.stdout);
+                            <a href="#154">inner</a>.last_op = <span class="prelude-val">Some</span>(<a href="#87">Operation::Flush</a>(<a href="#158">res</a>));
+                            <a href="#62">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="#154">inner</a>))
                         }));
                     }
                 }
                 <span class="comment">// Poll the asynchronous operation the stdout is currently blocked on.
-                </span><a href="../../../src/async_std/io/stdout.rs.html#67">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="../../../src/async_std/io/stdout.rs.html#143">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
+                </span><a href="#67">State::Busy</a>(task) =&gt; <span class="kw-2">*</span><a href="#143">state</a> = <a class="macro" href="../../../async_std/task/macro.ready.html">futures_core::ready!</a>(Pin::new(task).poll(cx)),
             }
         }
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/async_std/io/stdout.rs.html#170">self</a>.<a href="../../../async_std/io/trait.Write.html">poll_flush</a>(<a href="../../../src/async_std/io/stdout.rs.html#170">cx</a>)
+        <a class="self" href="#170">self</a>.<a href="../../../async_std/io/trait.Write.html">poll_flush</a>(<a href="#170">cx</a>)
     }
 }
 
 <span class="macro">cfg_unix! </span>{
     <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
 
-    <span class="kw">impl </span><a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/async_std/io/stdout.rs.html#54">Stdout</a> {
+    <span class="kw">impl </span><a href="../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#54">Stdout</a> {
         <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
             std::io::stdout().<a href="../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
         }
@@ -387,4 +387,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

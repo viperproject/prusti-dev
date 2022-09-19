@@ -1,0 +1,498 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/mqueue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mqueue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Posix Message Queue functions
+//!
+//! # Example
+//!
+</span><span class="comment">// no_run because a kernel module may be required.
+</span><span class="doccomment">//! ```no_run
+//! # use std::ffi::CString;
+//! # use nix::mqueue::*;
+//! use nix::sys::stat::Mode;
+//!
+//! const MSG_SIZE: mq_attr_member_t = 32;
+//! let mq_name= CString::new(&quot;/a_nix_test_queue&quot;).unwrap();
+//!
+//! let oflag0 = MQ_OFlag::O_CREAT | MQ_OFlag::O_WRONLY;
+//! let mode = Mode::S_IWUSR | Mode::S_IRUSR | Mode::S_IRGRP | Mode::S_IROTH;
+//! let mqd0 = mq_open(&amp;mq_name, oflag0, mode, None).unwrap();
+//! let msg_to_send = b&quot;msg_1&quot;;
+//! mq_send(&amp;mqd0, msg_to_send, 1).unwrap();
+//!
+//! let oflag1 = MQ_OFlag::O_CREAT | MQ_OFlag::O_RDONLY;
+//! let mqd1 = mq_open(&amp;mq_name, oflag1, mode, None).unwrap();
+//! let mut buf = [0u8; 32];
+//! let mut prio = 0u32;
+//! let len = mq_receive(&amp;mqd1, &amp;mut buf, &amp;mut prio).unwrap();
+//! assert_eq!(prio, 1);
+//! assert_eq!(msg_to_send, &amp;buf[0..len]);
+//!
+//! mq_close(mqd1).unwrap();
+//! mq_close(mqd0).unwrap();
+//! ```
+//! [Further reading and details on the C API](https://man7.org/linux/man-pages/man7/mq_overview.7.html)
+
+</span><span class="kw">use </span><a href="lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><a href="errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+
+<span class="kw">use </span>libc::{<a class="self" href="../../libc/index.html">self</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/linux_like/linux/type.mqd_t.html">mqd_t</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
+<span class="kw">use </span><a href="sys/stat.rs.html#33-52"><span class="kw">crate</span>::sys::stat::Mode</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+
+<a class="macro" href="macros.rs.html#55-75">libc_bitflags!</a>{
+    <span class="doccomment">/// Used with [`mq_open`].
+    </span><span class="kw">pub struct </span>MQ_OFlag: <a href="../../libc/unix/type.c_int.html">libc::c_int</a> {
+        <span class="doccomment">/// Open the message queue for receiving messages.
+        </span>O_RDONLY;
+        <span class="doccomment">/// Open the queue for sending messages.
+        </span>O_WRONLY;
+        <span class="doccomment">/// Open the queue for both receiving and sending messages
+        </span>O_RDWR;
+        <span class="doccomment">/// Create a message queue.
+        </span>O_CREAT;
+        <span class="doccomment">/// If set along with `O_CREAT`, `mq_open` will fail if the message
+        /// queue name exists.
+        </span>O_EXCL;
+        <span class="doccomment">/// `mq_send` and `mq_receive` should fail with `EAGAIN` rather than
+        /// wait for resources that are not currently available.
+        </span>O_NONBLOCK;
+        <span class="doccomment">/// Set the close-on-exec flag for the message queue descriptor.
+        </span>O_CLOEXEC;
+    }
+}
+
+<span class="doccomment">/// A message-queue attribute, optionally used with [`mq_setattr`] and
+/// [`mq_getattr`] and optionally [`mq_open`],
+</span><span class="attribute">#[repr(C)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+</span><span class="kw">pub struct </span>MqAttr {
+    mq_attr: <a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>,
+}
+
+<span class="doccomment">/// Identifies an open POSIX Message Queue
+</span><span class="comment">// A safer wrapper around libc::mqd_t, which is a pointer on some platforms
+// Deliberately is not Clone to prevent use-after-close scenarios
+</span><span class="attribute">#[repr(transparent)]
+#[derive(Debug)]
+#[allow(missing_copy_implementations)]
+</span><span class="kw">pub struct </span>MqdT(<a href="../../libc/unix/linux_like/linux/type.mqd_t.html">mqd_t</a>);
+
+<span class="comment">// x32 compatibility
+// See https://sourceware.org/bugzilla/show_bug.cgi?id=21279
+</span><span class="doccomment">/// Size of a message queue attribute member
+</span><span class="attribute">#[cfg(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>))]
+#[cfg_attr(docsrs, doc(cfg(all())))]
+</span><span class="kw">pub type </span>mq_attr_member_t = i64;
+<span class="doccomment">/// Size of a message queue attribute member
+</span><span class="attribute">#[cfg(not(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
+#[cfg_attr(docsrs, doc(cfg(all())))]
+</span><span class="kw">pub type </span>mq_attr_member_t = <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">libc::c_long</a>;
+
+<span class="kw">impl </span><a href="#67">MqAttr</a> {
+    <span class="doccomment">/// Create a new message queue attribute
+    ///
+    /// # Arguments
+    ///
+    /// - `mq_flags`:   Either `0` or `O_NONBLOCK`.
+    /// - `mq_maxmsg`:  Maximum number of messages on the queue.
+    /// - `mq_msgsize`: Maximum message size in bytes.
+    /// - `mq_curmsgs`: Number of messages currently in the queue.
+    </span><span class="kw">pub fn </span>new(mq_flags: <a href="#88">mq_attr_member_t</a>,
+               mq_maxmsg: <a href="#88">mq_attr_member_t</a>,
+               mq_msgsize: <a href="#88">mq_attr_member_t</a>,
+               mq_curmsgs: <a href="#88">mq_attr_member_t</a>)
+               -&gt; <a href="#67">MqAttr</a>
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>p = <a href="#105">attr</a>.as_mut_ptr();
+            (<span class="kw-2">*</span><a href="#107">p</a>).mq_flags = <a href="#99">mq_flags</a>;
+            (<span class="kw-2">*</span><a href="#107">p</a>).mq_maxmsg = <a href="#100">mq_maxmsg</a>;
+            (<span class="kw-2">*</span><a href="#107">p</a>).mq_msgsize = <a href="#101">mq_msgsize</a>;
+            (<span class="kw-2">*</span><a href="#107">p</a>).mq_curmsgs = <a href="#102">mq_curmsgs</a>;
+            <a href="#67">MqAttr</a> { mq_attr: <a href="#105">attr</a>.assume_init() }
+        }
+    }
+
+    <span class="doccomment">/// The current flags, either `0` or `O_NONBLOCK`.
+    </span><span class="kw">pub const fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
+        <a class="self" href="#117">self</a>.mq_attr.mq_flags
+    }
+
+    <span class="doccomment">/// The max number of messages that can be held by the queue
+    </span><span class="kw">pub const fn </span>maxmsg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
+        <a class="self" href="#122">self</a>.mq_attr.mq_maxmsg
+    }
+
+    <span class="doccomment">/// The maximum size of each message (in bytes)
+    </span><span class="kw">pub const fn </span>msgsize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
+        <a class="self" href="#127">self</a>.mq_attr.mq_msgsize
+    }
+
+    <span class="doccomment">/// The number of messages currently held in the queue
+    </span><span class="kw">pub const fn </span>curmsgs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#88">mq_attr_member_t</a> {
+        <a class="self" href="#132">self</a>.mq_attr.mq_curmsgs
+    }
+}
+
+
+<span class="doccomment">/// Open a message queue
+///
+/// See also [`mq_open(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_open.html)
+</span><span class="comment">// The mode.bits cast is only lossless on some OSes
+</span><span class="attribute">#[allow(clippy::cast_lossless)]
+</span><span class="kw">pub fn </span>mq_open(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>,
+               oflag: <a href="#41-61">MQ_OFlag</a>,
+               mode: <a href="sys/stat.rs.html#33-52">Mode</a>,
+               attr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#67">MqAttr</a>&gt;)
+               -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#77">MqdT</a>&gt; {
+    <span class="kw">let </span>res = <span class="kw">match </span><a href="#146">attr</a> {
+        <span class="prelude-val">Some</span>(mq_attr) =&gt; <span class="kw">unsafe </span>{
+            libc::mq_open(<a href="#143">name</a>.as_ptr(),
+                          <a href="#144">oflag</a>.<a href="#41-61">bits</a>(),
+                          <a href="#145">mode</a>.<a href="sys/stat.rs.html#33-52">bits</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>,
+                          <span class="kw-2">&amp;</span><a href="#149">mq_attr</a>.mq_attr <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>)
+        },
+        <span class="prelude-val">None </span>=&gt; <span class="kw">unsafe </span>{ libc::mq_open(<a href="#143">name</a>.as_ptr(), <a href="#144">oflag</a>.<a href="#41-61">bits</a>()) },
+    };
+    Errno::result(<a href="#148">res</a>).map(<a href="#77">MqdT</a>)
+}
+
+<span class="doccomment">/// Remove a message queue
+///
+/// See also [`mq_unlink(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_unlink.html)
+</span><span class="kw">pub fn </span>mq_unlink(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_unlink(<a href="#163">name</a>.as_ptr()) };
+    Errno::result(<a href="#164">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+}
+
+<span class="doccomment">/// Close a message queue
+///
+/// See also [`mq_close(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_close.html)
+</span><span class="kw">pub fn </span>mq_close(mqdes: <a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_close(<a href="#171">mqdes</a>.<span class="number">0</span>) };
+    Errno::result(<a href="#172">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+}
+
+<span class="doccomment">/// Receive a message from a message queue
+///
+/// See also [`mq_receive(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_receive.html)
+</span><span class="kw">pub fn </span>mq_receive(mqdes: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, message: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], msg_prio: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">let </span>len = <a href="#179">message</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>;
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::mq_receive(<a href="#179">mqdes</a>.<span class="number">0</span>,
+                         <a href="#179">message</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+                         <a href="#180">len</a>,
+                         <a href="#179">msg_prio</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    };
+    Errno::result(<a href="#181">res</a>).map(|r| <a href="#187">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+}
+
+<span class="doccomment">/// Send a message to a message queue
+///
+/// See also [`mq_send(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_send.html)
+</span><span class="kw">pub fn </span>mq_send(mqdes: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, message: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], msq_prio: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::mq_send(<a href="#193">mqdes</a>.<span class="number">0</span>,
+                      <a href="#193">message</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+                      <a href="#193">message</a>.len(),
+                      <a href="#193">msq_prio</a>)
+    };
+    Errno::result(<a href="#194">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+}
+
+<span class="doccomment">/// Get message queue attributes
+///
+/// See also [`mq_getattr(2)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_getattr.html)
+</span><span class="kw">pub fn </span>mq_getattr(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::mq_getattr(<a href="#206">mqd</a>.<span class="number">0</span>, <a href="#207">attr</a>.as_mut_ptr()) };
+    Errno::result(<a href="#208">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe</span>{<a href="#67">MqAttr</a> { mq_attr: <a href="#207">attr</a>.assume_init() }})
+}
+
+<span class="doccomment">/// Set the attributes of the message queue. Only `O_NONBLOCK` can be set, everything else will be ignored
+/// Returns the old attributes
+/// It is recommend to use the `mq_set_nonblock()` and `mq_remove_nonblock()` convenience functions as they are easier to use
+///
+/// [Further reading](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mq_setattr.html)
+</span><span class="kw">pub fn </span>mq_setattr(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>, newattr: <span class="kw-2">&amp;</span><a href="#67">MqAttr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>attr = mem::MaybeUninit::&lt;<a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>&gt;::uninit();
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::mq_setattr(<a href="#217">mqd</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#217">newattr</a>.mq_attr <span class="kw">as </span><span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/struct.mq_attr.html">libc::mq_attr</a>, <a href="#218">attr</a>.as_mut_ptr())
+    };
+    Errno::result(<a href="#219">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe</span>{ <a href="#67">MqAttr</a> { mq_attr: <a href="#218">attr</a>.assume_init() }})
+}
+
+<span class="doccomment">/// Convenience function.
+/// Sets the `O_NONBLOCK` attribute for a given message queue descriptor
+/// Returns the old attributes
+</span><span class="attribute">#[allow(clippy::useless_conversion)]    </span><span class="comment">// Not useless on all OSes
+</span><span class="kw">pub fn </span>mq_set_nonblock(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+    <span class="kw">let </span>oldattr = mq_getattr(mqd)<span class="question-mark">?</span>;
+    <span class="kw">let </span>newattr = MqAttr::new(mq_attr_member_t::from(MQ_OFlag::O_NONBLOCK.<a href="#41-61">bits</a>()),
+                              <a href="#230">oldattr</a>.mq_attr.mq_maxmsg,
+                              <a href="#230">oldattr</a>.mq_attr.mq_msgsize,
+                              <a href="#230">oldattr</a>.mq_attr.mq_curmsgs);
+    <a href="#217">mq_setattr</a>(<a href="#229">mqd</a>, <span class="kw-2">&amp;</span><a href="#231">newattr</a>)
+}
+
+<span class="doccomment">/// Convenience function.
+/// Removes `O_NONBLOCK` attribute for a given message queue descriptor
+/// Returns the old attributes
+</span><span class="kw">pub fn </span>mq_remove_nonblock(mqd: <span class="kw-2">&amp;</span><a href="#77">MqdT</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#67">MqAttr</a>&gt; {
+    <span class="kw">let </span>oldattr = mq_getattr(mqd)<span class="question-mark">?</span>;
+    <span class="kw">let </span>newattr = MqAttr::new(<span class="number">0</span>,
+                              <a href="#242">oldattr</a>.mq_attr.mq_maxmsg,
+                              <a href="#242">oldattr</a>.mq_attr.mq_msgsize,
+                              <a href="#242">oldattr</a>.mq_attr.mq_curmsgs);
+    <a href="#217">mq_setattr</a>(<a href="#241">mqd</a>, <span class="kw-2">&amp;</span><a href="#243">newattr</a>)
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

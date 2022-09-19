@@ -52,8 +52,8 @@
 <span id="52">52</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains backend-specific code.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::mem::{<a href="../../../src/flate2/mem.rs.html#156">CompressError</a>, <a href="../../../src/flate2/mem.rs.html#126">DecompressError</a>, <a href="../../../src/flate2/mem.rs.html#46">FlushCompress</a>, <a href="../../../src/flate2/mem.rs.html#91">FlushDecompress</a>, <a href="../../../src/flate2/mem.rs.html#168">Status</a>};
-<span class="kw">use </span><a href="../../../src/flate2/lib.rs.html#157"><span class="kw">crate</span>::Compression</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::mem::{<a href="../mem.rs.html#156">CompressError</a>, <a href="../mem.rs.html#126">DecompressError</a>, <a href="../mem.rs.html#46">FlushCompress</a>, <a href="../mem.rs.html#91">FlushDecompress</a>, <a href="../mem.rs.html#168">Status</a>};
+<span class="kw">use </span><a href="../lib.rs.html#157"><span class="kw">crate</span>::Compression</a>;
 
 <span class="doccomment">/// Traits specifying the interface of the backends.
 ///
@@ -64,43 +64,43 @@
     <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 }
 
-<span class="kw">pub trait </span>InflateBackend: <a href="../../../src/flate2/ffi/mod.rs.html#10">Backend</a> {
+<span class="kw">pub trait </span>InflateBackend: <a href="#10">Backend</a> {
     <span class="kw">fn </span>make(zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>decompress(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="../../../src/flate2/mem.rs.html#91">FlushDecompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/flate2/mem.rs.html#168">Status</a>, <a href="../../../src/flate2/mem.rs.html#126">DecompressError</a>&gt;;
+        flush: <a href="../mem.rs.html#91">FlushDecompress</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../mem.rs.html#168">Status</a>, <a href="../mem.rs.html#126">DecompressError</a>&gt;;
     <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
 }
 
-<span class="kw">pub trait </span>DeflateBackend: <a href="../../../src/flate2/ffi/mod.rs.html#10">Backend</a> {
-    <span class="kw">fn </span>make(level: <a href="../../../src/flate2/lib.rs.html#157">Compression</a>, zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub trait </span>DeflateBackend: <a href="#10">Backend</a> {
+    <span class="kw">fn </span>make(level: <a href="../lib.rs.html#157">Compression</a>, zlib_header: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, window_bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>compress(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        flush: <a href="../../../src/flate2/mem.rs.html#46">FlushCompress</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/flate2/mem.rs.html#168">Status</a>, <a href="../../../src/flate2/mem.rs.html#156">CompressError</a>&gt;;
+        flush: <a href="../mem.rs.html#46">FlushCompress</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../mem.rs.html#168">Status</a>, <a href="../mem.rs.html#156">CompressError</a>&gt;;
     <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 }
 
 <span class="comment">// Default to Rust implementation unless explicitly opted in to a different backend.
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../src/flate2/ffi/c.rs.html#1-421">c</a>;
+</span><span class="kw">mod </span><a href="c.rs.html#1-421">c</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
-</span><span class="kw">pub use </span><a href="../../../src/flate2/ffi/mod.rs.html#39"><span class="self">self</span>::c</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span><a href="#39"><span class="self">self</span>::c</a>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;any_zlib&quot;</span>))]
 </span><span class="kw">mod </span>rust;
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;any_zlib&quot;</span>))]
 </span><span class="kw">pub use </span><span class="self">self</span>::rust::<span class="kw-2">*</span>;
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../../src/flate2/ffi/c.rs.html#15">ErrorMessage</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="c.rs.html#15">ErrorMessage</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="self" href="../../../src/flate2/ffi/mod.rs.html#49">self</a>.<a href="../../../src/flate2/ffi/c.rs.html#18">get</a>().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/flate2/ffi/mod.rs.html#49">f</a>)
+        <a class="self" href="#49">self</a>.<a href="c.rs.html#18">get</a>().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#49">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

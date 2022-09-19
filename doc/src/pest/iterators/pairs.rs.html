@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.0/src/iterators/pairs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pairs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../pest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.3.1/src/iterators/pairs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pairs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../pest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../pest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -445,11 +445,11 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;pretty-print&quot;</span>)]
 </span><span class="kw">use </span>serde::ser::SerializeStruct;
 
-<span class="kw">use </span><span class="kw">super</span>::flat_pairs::{<a class="self" href="../../../src/pest/iterators/mod.rs.html#12">self</a>, <a href="../../../src/pest/iterators/flat_pairs.rs.html#23">FlatPairs</a>};
-<span class="kw">use </span><span class="kw">super</span>::pair::{<a class="self" href="../../../src/pest/iterators/mod.rs.html#13">self</a>, <a href="../../../src/pest/iterators/pair.rs.html#38">Pair</a>};
-<span class="kw">use </span><a href="../../../src/pest/iterators/queueable_token.rs.html#17"><span class="kw">super</span>::queueable_token::QueueableToken</a>;
-<span class="kw">use </span><span class="kw">super</span>::tokens::{<a class="self" href="../../../src/pest/iterators/mod.rs.html#16">self</a>, <a href="../../../src/pest/iterators/tokens.rs.html#26">Tokens</a>};
-<span class="kw">use </span><a href="../../../src/pest/lib.rs.html#107"><span class="kw">crate</span>::RuleType</a>;
+<span class="kw">use </span><span class="kw">super</span>::flat_pairs::{<a class="self" href="mod.rs.html#12">self</a>, <a href="flat_pairs.rs.html#23">FlatPairs</a>};
+<span class="kw">use </span><span class="kw">super</span>::pair::{<a class="self" href="mod.rs.html#13">self</a>, <a href="pair.rs.html#38">Pair</a>};
+<span class="kw">use </span><a href="queueable_token.rs.html#17"><span class="kw">super</span>::queueable_token::QueueableToken</a>;
+<span class="kw">use </span><span class="kw">super</span>::tokens::{<a class="self" href="mod.rs.html#16">self</a>, <a href="tokens.rs.html#26">Tokens</a>};
+<span class="kw">use </span><a href="../lib.rs.html#107"><span class="kw">crate</span>::RuleType</a>;
 
 <span class="doccomment">/// An iterator over [`Pair`]s. It is created by [`pest::state`] and [`Pair::into_inner`].
 ///
@@ -464,21 +464,21 @@
     end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">pub fn </span>new&lt;R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt;(
+<span class="kw">pub fn </span>new&lt;R: <a href="../lib.rs.html#107">RuleType</a>&gt;(
     queue: Rc&lt;Vec&lt;QueueableToken&lt;R&gt;&gt;&gt;,
     input: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 ) -&gt; Pairs&lt;R&gt; {
-    <a href="../../../src/pest/iterators/pairs.rs.html#34">Pairs</a> {
-        <a href="../../../src/pest/iterators/pairs.rs.html#42">queue</a>,
-        <a href="../../../src/pest/iterators/pairs.rs.html#43">input</a>,
-        <a href="../../../src/pest/iterators/pairs.rs.html#44">start</a>,
-        <a href="../../../src/pest/iterators/pairs.rs.html#45">end</a>,
+    <a href="#34">Pairs</a> {
+        <a href="#42">queue</a>,
+        <a href="#43">input</a>,
+        <a href="#44">start</a>,
+        <a href="#45">end</a>,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt; Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#107">RuleType</a>&gt; Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="doccomment">/// Captures a slice from the `&amp;str` defined by the starting position of the first token `Pair`
     /// and the ending position of the last token `Pair` of the `Pairs`. This also captures
     /// the input between those two token `Pair`s.
@@ -507,10 +507,10 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw">if </span><span class="self">self</span>.start &lt; <span class="self">self</span>.end {
-            <span class="kw">let </span>start = <a class="self" href="../../../src/pest/iterators/pairs.rs.html#82">self</a>.<a href="../../../src/pest/iterators/pairs.rs.html#215">pos</a>(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#82">self</a>.start);
-            <span class="kw">let </span>end = <a class="self" href="../../../src/pest/iterators/pairs.rs.html#82">self</a>.<a href="../../../src/pest/iterators/pairs.rs.html#215">pos</a>(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#82">self</a>.end - <span class="number">1</span>);
+            <span class="kw">let </span>start = <a class="self" href="#82">self</a>.<a href="#215">pos</a>(<a class="self" href="#82">self</a>.start);
+            <span class="kw">let </span>end = <a class="self" href="#82">self</a>.<a href="#215">pos</a>(<a class="self" href="#82">self</a>.end - <span class="number">1</span>);
             <span class="comment">// Generated positions always come from Positions and are UTF-8 borders.
-            </span><span class="kw-2">&amp;</span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#82">self</a>.input[<a href="../../../src/pest/iterators/pairs.rs.html#84">start</a>..<a href="../../../src/pest/iterators/pairs.rs.html#85">end</a>]
+            </span><span class="kw-2">&amp;</span><a class="self" href="#82">self</a>.input[<a href="#84">start</a>..<a href="#85">end</a>]
         } <span class="kw">else </span>{
             <span class="string">&quot;&quot;
         </span>}
@@ -542,8 +542,8 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>concat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../src/pest/iterators/pairs.rs.html#118">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(String::new(), |string, pair| <a href="../../../src/pest/iterators/pairs.rs.html#120">string</a> + <a href="../../../src/pest/iterators/pairs.rs.html#120">pair</a>.<a href="../../../src/pest/iterators/pair.rs.html#115">as_str</a>())
+        <a class="self" href="#118">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(String::new(), |string, pair| <a href="#120">string</a> + <a href="#120">pair</a>.<a href="pair.rs.html#115">as_str</a>())
     }
 
     <span class="doccomment">/// Flattens the `Pairs`.
@@ -573,7 +573,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>flatten(<span class="self">self</span>) -&gt; FlatPairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../../src/pest/iterators/flat_pairs.rs.html#36-41">flat_pairs::new</a>(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#149">self</a>.queue, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#149">self</a>.input, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#149">self</a>.start, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#149">self</a>.end) }
+        <span class="kw">unsafe </span>{ <a href="flat_pairs.rs.html#36-41">flat_pairs::new</a>(<a class="self" href="#149">self</a>.queue, <a class="self" href="#149">self</a>.input, <a class="self" href="#149">self</a>.start, <a class="self" href="#149">self</a>.end) }
     }
 
     <span class="doccomment">/// Returns the `Tokens` for the `Pairs`.
@@ -600,14 +600,14 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>tokens(<span class="self">self</span>) -&gt; Tokens&lt;<span class="lifetime">&#39;i</span>, R&gt; {
-        <a href="../../../src/pest/iterators/tokens.rs.html#37-42">tokens::new</a>(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#176">self</a>.queue, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#176">self</a>.input, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#176">self</a>.start, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#176">self</a>.end)
+        <a href="tokens.rs.html#37-42">tokens::new</a>(<a class="self" href="#176">self</a>.queue, <a class="self" href="#176">self</a>.input, <a class="self" href="#176">self</a>.start, <a class="self" href="#176">self</a>.end)
     }
 
     <span class="doccomment">/// Peek at the first inner `Pair` without changing the position of this iterator.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pair&lt;<span class="lifetime">&#39;i</span>, R&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.start &lt; <span class="self">self</span>.end {
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="../../../src/pest/iterators/pair.rs.html#51-55">pair::new</a>(Rc::clone(<span class="kw-2">&amp;</span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#182">self</a>.queue), <a class="self" href="../../../src/pest/iterators/pairs.rs.html#182">self</a>.input, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#182">self</a>.start) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="pair.rs.html#51-55">pair::new</a>(Rc::clone(<span class="kw-2">&amp;</span><a class="self" href="#182">self</a>.queue), <a class="self" href="#182">self</a>.input, <a class="self" href="#182">self</a>.start) })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -621,66 +621,66 @@
     }
 
     <span class="kw">fn </span>pair(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#197">self</a>.queue[<a class="self" href="../../../src/pest/iterators/pairs.rs.html#197">self</a>.start] {
-            <a href="../../../src/pest/iterators/queueable_token.rs.html#18">QueueableToken::Start</a> {
+        <span class="kw">match </span><a class="self" href="#197">self</a>.queue[<a class="self" href="#197">self</a>.start] {
+            <a href="queueable_token.rs.html#18">QueueableToken::Start</a> {
                 end_token_index, ..
-            } =&gt; <a href="../../../src/pest/iterators/pairs.rs.html#200">end_token_index</a>,
+            } =&gt; <a href="#200">end_token_index</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
     <span class="kw">fn </span>pair_from_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#206">self</a>.queue[<a class="self" href="../../../src/pest/iterators/pairs.rs.html#206">self</a>.end - <span class="number">1</span>] {
-            <a href="../../../src/pest/iterators/queueable_token.rs.html#22">QueueableToken::End</a> {
+        <span class="kw">match </span><a class="self" href="#206">self</a>.queue[<a class="self" href="#206">self</a>.end - <span class="number">1</span>] {
+            <a href="queueable_token.rs.html#22">QueueableToken::End</a> {
                 start_token_index, ..
-            } =&gt; <a href="../../../src/pest/iterators/pairs.rs.html#209">start_token_index</a>,
+            } =&gt; <a href="#209">start_token_index</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
     <span class="kw">fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#215">self</a>.queue[<a href="../../../src/pest/iterators/pairs.rs.html#215">index</a>] {
-            <a href="../../../src/pest/iterators/queueable_token.rs.html#18">QueueableToken::Start</a> { input_pos, .. } | <a href="../../../src/pest/iterators/queueable_token.rs.html#22">QueueableToken::End</a> { input_pos, .. } =&gt; {
-                <a href="../../../src/pest/iterators/pairs.rs.html#217">input_pos</a>
+        <span class="kw">match </span><a class="self" href="#215">self</a>.queue[<a href="#215">index</a>] {
+            <a href="queueable_token.rs.html#18">QueueableToken::Start</a> { input_pos, .. } | <a href="queueable_token.rs.html#22">QueueableToken::End</a> { input_pos, .. } =&gt; {
+                <a href="#217">input_pos</a>
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">type </span>Item = Pair&lt;<span class="lifetime">&#39;i</span>, R&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>pair = <span class="self">self</span>.peek()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/pest/iterators/pairs.rs.html#227">self</a>.start = <a class="self" href="../../../src/pest/iterators/pairs.rs.html#227">self</a>.<a href="../../../src/pest/iterators/pairs.rs.html#197">pair</a>() + <span class="number">1</span>;
-        <span class="prelude-val">Some</span>(<a href="../../../src/pest/iterators/pairs.rs.html#228">pair</a>)
+        <a class="self" href="#227">self</a>.start = <a class="self" href="#227">self</a>.<a href="#197">pair</a>() + <span class="number">1</span>;
+        <span class="prelude-val">Some</span>(<a href="#228">pair</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.end &lt;= <span class="self">self</span>.start {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="self" href="../../../src/pest/iterators/pairs.rs.html#235">self</a>.end = <a class="self" href="../../../src/pest/iterators/pairs.rs.html#235">self</a>.<a href="../../../src/pest/iterators/pairs.rs.html#206">pair_from_end</a>();
+        <a class="self" href="#235">self</a>.end = <a class="self" href="#235">self</a>.<a href="#206">pair_from_end</a>();
 
-        <span class="kw">let </span>pair = <span class="kw">unsafe </span>{ <a href="../../../src/pest/iterators/pair.rs.html#51-55">pair::new</a>(Rc::clone(<span class="kw-2">&amp;</span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#235">self</a>.queue), <a class="self" href="../../../src/pest/iterators/pairs.rs.html#235">self</a>.input, <a class="self" href="../../../src/pest/iterators/pairs.rs.html#235">self</a>.end) };
+        <span class="kw">let </span>pair = <span class="kw">unsafe </span>{ <a href="pair.rs.html#51-55">pair::new</a>(Rc::clone(<span class="kw-2">&amp;</span><a class="self" href="#235">self</a>.queue), <a class="self" href="#235">self</a>.input, <a class="self" href="#235">self</a>.end) };
 
-        <span class="prelude-val">Some</span>(<a href="../../../src/pest/iterators/pairs.rs.html#242">pair</a>)
+        <span class="prelude-val">Some</span>(<a href="#242">pair</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/pest/iterators/pairs.rs.html#249">f</a>.debug_list().entries(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
+        <a href="#249">f</a>.debug_list().entries(<a class="self" href="#249">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../../../src/pest/lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="../lib.rs.html#107">RuleType</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="../../../src/pest/iterators/pairs.rs.html#255">f</a>,
+            <a href="#255">f</a>,
             <span class="string">&quot;[{}]&quot;</span>,
             <span class="self">self</span>.clone()
                 .map(|pair| <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, pair))
@@ -692,10 +692,10 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Rc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#268">self</a>.queue, <span class="kw-2">&amp;</span><a href="../../../src/pest/iterators/pairs.rs.html#268">other</a>.queue)
-            &amp;&amp; ptr::eq(<a class="self" href="../../../src/pest/iterators/pairs.rs.html#268">self</a>.input, <a href="../../../src/pest/iterators/pairs.rs.html#268">other</a>.input)
-            &amp;&amp; <a class="self" href="../../../src/pest/iterators/pairs.rs.html#268">self</a>.start == <a href="../../../src/pest/iterators/pairs.rs.html#268">other</a>.start
-            &amp;&amp; <a class="self" href="../../../src/pest/iterators/pairs.rs.html#268">self</a>.end == <a href="../../../src/pest/iterators/pairs.rs.html#268">other</a>.end
+        Rc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#268">self</a>.queue, <span class="kw-2">&amp;</span><a href="#268">other</a>.queue)
+            &amp;&amp; ptr::eq(<a class="self" href="#268">self</a>.input, <a href="#268">other</a>.input)
+            &amp;&amp; <a class="self" href="#268">self</a>.start == <a href="#268">other</a>.start
+            &amp;&amp; <a class="self" href="#268">self</a>.end == <a href="#268">other</a>.end
     }
 }
 
@@ -703,10 +703,10 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, R: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span>Pairs&lt;<span class="lifetime">&#39;i</span>, R&gt; {
     <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        (<span class="kw-2">&amp;*</span><a class="self" href="../../../src/pest/iterators/pairs.rs.html#279">self</a>.queue <span class="kw">as </span><span class="kw-2">*const </span>Vec&lt;QueueableToken&lt;R&gt;&gt;).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/pest/iterators/pairs.rs.html#279">state</a>);
-        (<a class="self" href="../../../src/pest/iterators/pairs.rs.html#279">self</a>.input <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/pest/iterators/pairs.rs.html#279">state</a>);
-        <a class="self" href="../../../src/pest/iterators/pairs.rs.html#279">self</a>.start.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/pest/iterators/pairs.rs.html#279">state</a>);
-        <a class="self" href="../../../src/pest/iterators/pairs.rs.html#279">self</a>.end.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/pest/iterators/pairs.rs.html#279">state</a>);
+        (<span class="kw-2">&amp;*</span><a class="self" href="#279">self</a>.queue <span class="kw">as </span><span class="kw-2">*const </span>Vec&lt;QueueableToken&lt;R&gt;&gt;).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#279">state</a>);
+        (<a class="self" href="#279">self</a>.input <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#279">state</a>);
+        <a class="self" href="#279">self</a>.start.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#279">state</a>);
+        <a class="self" href="#279">self</a>.end.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#279">state</a>);
     }
 }
 
@@ -851,4 +851,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

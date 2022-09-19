@@ -158,7 +158,7 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/tempfile/file/mod.rs.html#54"><span class="kw">crate</span>::file::tempfile</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="file/mod.rs.html#54"><span class="kw">crate</span>::file::tempfile</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
 <span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">Seek</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
@@ -176,7 +176,7 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>SpooledTempFile {
     max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    inner: <a href="../../src/tempfile/spooled.rs.html#7">SpooledData</a>,
+    inner: <a href="#7">SpooledData</a>,
 }
 
 <span class="doccomment">/// Create a new spooled temporary file.
@@ -219,23 +219,23 @@
 /// # }
 /// ```
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>spooled_tempfile(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
-    SpooledTempFile::new(<a href="../../src/tempfile/spooled.rs.html#62">max_size</a>)
+</span><span class="kw">pub fn </span>spooled_tempfile(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#17">SpooledTempFile</a> {
+    SpooledTempFile::new(<a href="#62">max_size</a>)
 }
 
-<span class="kw">impl </span><a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
-    <span class="kw">pub fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
-        <a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
-            max_size: <a href="../../src/tempfile/spooled.rs.html#67">max_size</a>,
-            inner: <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(Cursor::new(Vec::new())),
+<span class="kw">impl </span><a href="#17">SpooledTempFile</a> {
+    <span class="kw">pub fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#17">SpooledTempFile</a> {
+        <a href="#17">SpooledTempFile</a> {
+            max_size: <a href="#67">max_size</a>,
+            inner: <a href="#8">SpooledData::InMemory</a>(Cursor::new(Vec::new())),
         }
     }
 
     <span class="doccomment">/// Returns true if the file has been rolled over to disk.
     </span><span class="kw">pub fn </span>is_rolled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#75">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><a class="self" href="#75">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 
@@ -244,11 +244,11 @@
     </span><span class="kw">pub fn </span>roll(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_rolled() {
             <span class="kw">let </span><span class="kw-2">mut </span>file = tempfile()<span class="question-mark">?</span>;
-            <span class="kw">if let </span><a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) = <a class="self" href="../../src/tempfile/spooled.rs.html#84">self</a>.inner {
+            <span class="kw">if let </span><a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) = <a class="self" href="#84">self</a>.inner {
                 file.write_all(cursor.get_ref())<span class="question-mark">?</span>;
                 file.seek(SeekFrom::Start(cursor.position()))<span class="question-mark">?</span>;
             }
-            <a class="self" href="../../src/tempfile/spooled.rs.html#84">self</a>.inner = <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<a href="../../src/tempfile/spooled.rs.html#86">file</a>);
+            <a class="self" href="#84">self</a>.inner = <a href="#9">SpooledData::OnDisk</a>(<a href="#86">file</a>);
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -257,64 +257,64 @@
         <span class="kw">if </span>size <span class="kw">as </span>usize &gt; <span class="self">self</span>.max_size {
             <span class="self">self</span>.roll()<span class="question-mark">?</span>; <span class="comment">// does nothing if already rolled over
         </span>}
-        <span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#96">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; {
-                <a href="../../src/tempfile/spooled.rs.html#101">cursor</a>.get_mut().resize(<a href="../../src/tempfile/spooled.rs.html#96">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="number">0</span>);
+        <span class="kw">match </span><a class="self" href="#96">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; {
+                <a href="#101">cursor</a>.get_mut().resize(<a href="#96">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="number">0</span>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="../../src/tempfile/spooled.rs.html#105">file</a>.set_len(<a href="../../src/tempfile/spooled.rs.html#96">size</a>),
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#105">file</a>.set_len(<a href="#96">size</a>),
         }
     }
 
     <span class="doccomment">/// Consumes and returns the inner `SpooledData` type.
-    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <a href="../../src/tempfile/spooled.rs.html#7">SpooledData</a> {
-        <a class="self" href="../../src/tempfile/spooled.rs.html#110">self</a>.inner
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <a href="#7">SpooledData</a> {
+        <a class="self" href="#110">self</a>.inner
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#17">SpooledTempFile</a> {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#116">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="../../src/tempfile/spooled.rs.html#118">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/tempfile/spooled.rs.html#116">buf</a>),
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="../../src/tempfile/spooled.rs.html#119">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/tempfile/spooled.rs.html#116">buf</a>),
+        <span class="kw">match </span><a class="self" href="#116">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="#118">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#116">buf</a>),
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#119">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#116">buf</a>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#17">SpooledTempFile</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="comment">// roll over to file if necessary
         </span><span class="kw">let </span><span class="kw-2">mut </span>rolling = <span class="bool-val">false</span>;
-        <span class="kw">if let </span><a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) = <a class="self" href="../../src/tempfile/spooled.rs.html#125">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#127">rolling</a> = <a href="../../src/tempfile/spooled.rs.html#128">cursor</a>.position() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="../../src/tempfile/spooled.rs.html#125">buf</a>.len() &gt; <a class="self" href="../../src/tempfile/spooled.rs.html#125">self</a>.max_size;
+        <span class="kw">if let </span><a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) = <a class="self" href="#125">self</a>.inner {
+            <a href="#127">rolling</a> = <a href="#128">cursor</a>.position() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#125">buf</a>.len() &gt; <a class="self" href="#125">self</a>.max_size;
         }
         <span class="kw">if </span>rolling {
             <span class="self">self</span>.roll()<span class="question-mark">?</span>;
         }
 
         <span class="comment">// write the bytes
-        </span><span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#125">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="../../src/tempfile/spooled.rs.html#137">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/tempfile/spooled.rs.html#125">buf</a>),
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="../../src/tempfile/spooled.rs.html#138">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/tempfile/spooled.rs.html#125">buf</a>),
+        </span><span class="kw">match </span><a class="self" href="#125">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="#137">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#125">buf</a>),
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#138">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#125">buf</a>),
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#143">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="../../src/tempfile/spooled.rs.html#145">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="../../src/tempfile/spooled.rs.html#146">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+        <span class="kw">match </span><a class="self" href="#143">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="#145">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#146">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">Seek</a> <span class="kw">for </span><a href="../../src/tempfile/spooled.rs.html#17">SpooledTempFile</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">Seek</a> <span class="kw">for </span><a href="#17">SpooledTempFile</a> {
     <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/tempfile/spooled.rs.html#152">self</a>.inner {
-            <a href="../../src/tempfile/spooled.rs.html#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="../../src/tempfile/spooled.rs.html#154">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="../../src/tempfile/spooled.rs.html#152">pos</a>),
-            <a href="../../src/tempfile/spooled.rs.html#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="../../src/tempfile/spooled.rs.html#155">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="../../src/tempfile/spooled.rs.html#152">pos</a>),
+        <span class="kw">match </span><a class="self" href="#152">self</a>.inner {
+            <a href="#8">SpooledData::InMemory</a>(<span class="kw-2">ref mut </span>cursor) =&gt; <a href="#154">cursor</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="#152">pos</a>),
+            <a href="#9">SpooledData::OnDisk</a>(<span class="kw-2">ref mut </span>file) =&gt; <a href="#155">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="#152">pos</a>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

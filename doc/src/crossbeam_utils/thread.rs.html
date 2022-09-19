@@ -706,7 +706,7 @@
 <span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
 
-<span class="kw">use </span><a href="../../src/crossbeam_utils/sync/wait_group.rs.html#48"><span class="kw">crate</span>::sync::WaitGroup</a>;
+<span class="kw">use </span><a href="sync/wait_group.rs.html#48"><span class="kw">crate</span>::sync::WaitGroup</a>;
 <span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 
 <span class="kw">type </span>SharedVec&lt;T&gt; = Arc&lt;Mutex&lt;Vec&lt;T&gt;&gt;&gt;;
@@ -740,38 +740,38 @@
     <span class="kw">let </span>wg = WaitGroup::new();
     <span class="kw">let </span>scope = Scope::&lt;<span class="lifetime">&#39;env</span>&gt; {
         handles: SharedVec::default(),
-        wait_group: <a href="../../src/crossbeam_utils/thread.rs.html#153">wg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        wait_group: <a href="#153">wg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         _marker: PhantomData,
     };
 
     <span class="comment">// Execute the scoped function, but catch any panics.
-    </span><span class="kw">let </span>result = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">panic::catch_unwind</a>(panic::AssertUnwindSafe(|| <a href="../../src/crossbeam_utils/thread.rs.html#149">f</a>(<span class="kw-2">&amp;</span><a href="../../src/crossbeam_utils/thread.rs.html#154">scope</a>)));
+    </span><span class="kw">let </span>result = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">panic::catch_unwind</a>(panic::AssertUnwindSafe(|| <a href="#149">f</a>(<span class="kw-2">&amp;</span><a href="#154">scope</a>)));
 
     <span class="comment">// Wait until all nested scopes are dropped.
-    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/crossbeam_utils/thread.rs.html#154">scope</a>.wait_group);
-    <a href="../../src/crossbeam_utils/thread.rs.html#153">wg</a>.<a href="../../src/crossbeam_utils/sync/wait_group.rs.html#104">wait</a>();
+    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#154">scope</a>.wait_group);
+    <a href="#153">wg</a>.<a href="sync/wait_group.rs.html#104">wait</a>();
 
     <span class="comment">// Join all remaining spawned threads.
-    </span><span class="kw">let </span>panics: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/crossbeam_utils/thread.rs.html#154">scope</a>
+    </span><span class="kw">let </span>panics: Vec&lt;<span class="kw">_</span>&gt; = <a href="#154">scope</a>
         .handles
         .lock()
         .unwrap()
         <span class="comment">// Filter handles that haven&#39;t been joined, join them, and collect errors.
         </span>.drain(..)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="../../src/crossbeam_utils/thread.rs.html#174">handle</a>.lock().unwrap().take())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="../../src/crossbeam_utils/thread.rs.html#175">handle</a>.join().err())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="#174">handle</a>.lock().unwrap().take())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|handle| <a href="#175">handle</a>.join().err())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="comment">// If `f` has panicked, resume unwinding.
     // If any of the child threads have panicked, return the panic errors.
     // Otherwise, everything is OK and return the result of `f`.
-    </span><span class="kw">match </span><a href="../../src/crossbeam_utils/thread.rs.html#161">result</a> {
-        <span class="prelude-val">Err</span>(err) =&gt; panic::resume_unwind(<a href="../../src/crossbeam_utils/thread.rs.html#182">err</a>),
+    </span><span class="kw">match </span><a href="#161">result</a> {
+        <span class="prelude-val">Err</span>(err) =&gt; panic::resume_unwind(<a href="#182">err</a>),
         <span class="prelude-val">Ok</span>(res) =&gt; {
             <span class="kw">if </span>panics.is_empty() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/crossbeam_utils/thread.rs.html#183">res</a>)
+                <span class="prelude-val">Ok</span>(<a href="#183">res</a>)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(Box::new(<a href="../../src/crossbeam_utils/thread.rs.html#168">panics</a>))
+                <span class="prelude-val">Err</span>(Box::new(<a href="#168">panics</a>))
             }
         }
     }
@@ -783,7 +783,7 @@
     </span>handles: SharedVec&lt;SharedOption&lt;thread::JoinHandle&lt;()&gt;&gt;&gt;,
 
     <span class="doccomment">/// Used to wait until all subscopes all dropped.
-    </span>wait_group: <a href="../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a>,
+    </span>wait_group: <a href="sync/wait_group.rs.html#48">WaitGroup</a>,
 
     <span class="doccomment">/// Borrows data with invariant lifetime `&#39;env`.
     </span>_marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span><span class="kw-2">mut &amp;</span><span class="lifetime">&#39;env </span>()&gt;,
@@ -836,8 +836,8 @@
         F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
         T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>,
     {
-        <a class="self" href="../../src/crossbeam_utils/thread.rs.html#246">self</a>.<a href="../../src/crossbeam_utils/thread.rs.html#270">builder</a>()
-            .<a href="../../src/crossbeam_utils/thread.rs.html#411-415">spawn</a>(<a href="../../src/crossbeam_utils/thread.rs.html#246">f</a>)
+        <a class="self" href="#246">self</a>.<a href="#270">builder</a>()
+            .<a href="#411-415">spawn</a>(<a href="#246">f</a>)
             .expect(<span class="string">&quot;failed to spawn scoped thread&quot;</span>)
     }
 
@@ -855,8 +855,8 @@
     /// }).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>builder&lt;<span class="lifetime">&#39;scope</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="self">self</span>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a href="../../src/crossbeam_utils/thread.rs.html#317">ScopedThreadBuilder</a> {
-            scope: <a class="self" href="../../src/crossbeam_utils/thread.rs.html#270">self</a>,
+        <a href="#317">ScopedThreadBuilder</a> {
+            scope: <a class="self" href="#270">self</a>,
             builder: thread::Builder::new(),
         }
     }
@@ -864,7 +864,7 @@
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/crossbeam_utils/thread.rs.html#279">f</a>.pad(<span class="string">&quot;Scope { .. }&quot;</span>)
+        <a href="#279">f</a>.pad(<span class="string">&quot;Scope { .. }&quot;</span>)
     }
 }
 
@@ -929,8 +929,8 @@
     ///
     /// [naming-threads]: std::thread#naming-threads
     </span><span class="kw">pub fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a class="self" href="../../src/crossbeam_utils/thread.rs.html#344">self</a>.builder = <a class="self" href="../../src/crossbeam_utils/thread.rs.html#344">self</a>.builder.name(<a href="../../src/crossbeam_utils/thread.rs.html#344">name</a>);
-        <span class="self"><a href="../../src/crossbeam_utils/thread.rs.html#344">self</a>
+        <a class="self" href="#344">self</a>.builder = <a class="self" href="#344">self</a>.builder.name(<a href="#344">name</a>);
+        <span class="self"><a href="#344">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the size of the stack for the new thread.
@@ -954,8 +954,8 @@
     ///
     /// [stack-size]: std::thread#stack-size
     </span><span class="kw">pub fn </span>stack_size(<span class="kw-2">mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; ScopedThreadBuilder&lt;<span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span>&gt; {
-        <a class="self" href="../../src/crossbeam_utils/thread.rs.html#369">self</a>.builder = <a class="self" href="../../src/crossbeam_utils/thread.rs.html#369">self</a>.builder.stack_size(<a href="../../src/crossbeam_utils/thread.rs.html#369">size</a>);
-        <span class="self"><a href="../../src/crossbeam_utils/thread.rs.html#369">self</a>
+        <a class="self" href="#369">self</a>.builder = <a class="self" href="#369">self</a>.builder.stack_size(<a href="#369">size</a>);
+        <span class="self"><a href="#369">self</a>
     </span>}
 
     <span class="doccomment">/// Spawns a scoped thread with this configuration.
@@ -1006,12 +1006,12 @@
 
         <span class="comment">// Spawn the thread and grab its join handle and thread handle.
         </span><span class="kw">let </span>(handle, thread) = {
-            <span class="kw">let </span>result = Arc::clone(<span class="kw-2">&amp;</span><a href="../../src/crossbeam_utils/thread.rs.html#418">result</a>);
+            <span class="kw">let </span>result = Arc::clone(<span class="kw-2">&amp;</span><a href="#418">result</a>);
 
             <span class="comment">// A clone of the scope that will be moved into the new thread.
             </span><span class="kw">let </span>scope = Scope::&lt;<span class="lifetime">&#39;env</span>&gt; {
-                handles: Arc::clone(<span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/thread.rs.html#411">self</a>.scope.handles),
-                wait_group: <a class="self" href="../../src/crossbeam_utils/thread.rs.html#411">self</a>.scope.wait_group.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                handles: Arc::clone(<span class="kw-2">&amp;</span><a class="self" href="#411">self</a>.scope.handles),
+                wait_group: <a class="self" href="#411">self</a>.scope.wait_group.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 _marker: PhantomData,
             };
 
@@ -1019,36 +1019,36 @@
             </span><span class="kw">let </span>handle = {
                 <span class="kw">let </span>closure = <span class="kw">move </span>|| {
                     <span class="comment">// Make sure the scope is inside the closure with the proper `&#39;env` lifetime.
-                    </span><span class="kw">let </span>scope: Scope&lt;<span class="lifetime">&#39;env</span>&gt; = <a href="../../src/crossbeam_utils/thread.rs.html#425">scope</a>;
+                    </span><span class="kw">let </span>scope: Scope&lt;<span class="lifetime">&#39;env</span>&gt; = <a href="#425">scope</a>;
 
                     <span class="comment">// Run the closure.
-                    </span><span class="kw">let </span>res = <a href="../../src/crossbeam_utils/thread.rs.html#411">f</a>(<span class="kw-2">&amp;</span><a href="../../src/crossbeam_utils/thread.rs.html#435">scope</a>);
+                    </span><span class="kw">let </span>res = <a href="#411">f</a>(<span class="kw-2">&amp;</span><a href="#435">scope</a>);
 
                     <span class="comment">// Store the result if the closure didn&#39;t panic.
-                    </span><span class="kw-2">*</span><a href="../../src/crossbeam_utils/thread.rs.html#422">result</a>.lock().unwrap() = <span class="prelude-val">Some</span>(<a href="../../src/crossbeam_utils/thread.rs.html#438">res</a>);
+                    </span><span class="kw-2">*</span><a href="#422">result</a>.lock().unwrap() = <span class="prelude-val">Some</span>(<a href="#438">res</a>);
                 };
 
                 <span class="comment">// Allocate `closure` on the heap and erase the `&#39;env` bound.
-                </span><span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>&gt; = Box::new(<a href="../../src/crossbeam_utils/thread.rs.html#433">closure</a>);
+                </span><span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;env</span>&gt; = Box::new(<a href="#433">closure</a>);
                 <span class="kw">let </span>closure: Box&lt;<span class="kw">dyn </span>FnOnce() + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; =
-                    <span class="kw">unsafe </span>{ mem::transmute(<a href="../../src/crossbeam_utils/thread.rs.html#445">closure</a>) };
+                    <span class="kw">unsafe </span>{ mem::transmute(<a href="#445">closure</a>) };
 
                 <span class="comment">// Finally, spawn the closure.
                 </span><span class="self">self</span>.builder.spawn(closure)<span class="question-mark">?
             </span>};
 
-            <span class="kw">let </span>thread = <a href="../../src/crossbeam_utils/thread.rs.html#432">handle</a>.thread().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>handle = Arc::new(Mutex::new(<span class="prelude-val">Some</span>(<a href="../../src/crossbeam_utils/thread.rs.html#432">handle</a>)));
-            (<a href="../../src/crossbeam_utils/thread.rs.html#454">handle</a>, <a href="../../src/crossbeam_utils/thread.rs.html#453">thread</a>)
+            <span class="kw">let </span>thread = <a href="#432">handle</a>.thread().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>handle = Arc::new(Mutex::new(<span class="prelude-val">Some</span>(<a href="#432">handle</a>)));
+            (<a href="#454">handle</a>, <a href="#453">thread</a>)
         };
 
         <span class="comment">// Add the handle to the shared list of join handles.
-        </span><a class="self" href="../../src/crossbeam_utils/thread.rs.html#411">self</a>.scope.handles.lock().unwrap().push(Arc::clone(<span class="kw-2">&amp;</span><a href="../../src/crossbeam_utils/thread.rs.html#421">handle</a>));
+        </span><a class="self" href="#411">self</a>.scope.handles.lock().unwrap().push(Arc::clone(<span class="kw-2">&amp;</span><a href="#421">handle</a>));
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/crossbeam_utils/thread.rs.html#477">ScopedJoinHandle</a> {
-            <a href="../../src/crossbeam_utils/thread.rs.html#421">handle</a>,
-            <a href="../../src/crossbeam_utils/thread.rs.html#418">result</a>,
-            <a href="../../src/crossbeam_utils/thread.rs.html#421">thread</a>,
+        <span class="prelude-val">Ok</span>(<a href="#477">ScopedJoinHandle</a> {
+            <a href="#421">handle</a>,
+            <a href="#418">result</a>,
+            <a href="#421">thread</a>,
             _marker: PhantomData,
         })
     }
@@ -1107,12 +1107,12 @@
     </span><span class="kw">pub fn </span>join(<span class="self">self</span>) -&gt; thread::Result&lt;T&gt; {
         <span class="comment">// Take out the handle. The handle will surely be available because the root scope waits
         // for nested scopes before joining remaining threads.
-        </span><span class="kw">let </span>handle = <a class="self" href="../../src/crossbeam_utils/thread.rs.html#520">self</a>.handle.lock().unwrap().take().unwrap();
+        </span><span class="kw">let </span>handle = <a class="self" href="#520">self</a>.handle.lock().unwrap().take().unwrap();
 
         <span class="comment">// Join the thread and then take the result out of its inner closure.
-        </span><a href="../../src/crossbeam_utils/thread.rs.html#523">handle</a>
+        </span><a href="#523">handle</a>
             .join()
-            .map(|()| <a class="self" href="../../src/crossbeam_utils/thread.rs.html#520">self</a>.result.lock().unwrap().take().unwrap())
+            .map(|()| <a class="self" href="#520">self</a>.result.lock().unwrap().take().unwrap())
     }
 
     <span class="doccomment">/// Returns a handle to the underlying thread.
@@ -1128,7 +1128,7 @@
     /// }).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html">thread::Thread</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/thread.rs.html#543">self</a>.thread
+        <span class="kw-2">&amp;</span><a class="self" href="#543">self</a>.thread
     }
 }
 
@@ -1140,11 +1140,11 @@
             <span class="kw">fn </span>as_pthread_t(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/type.RawPthread.html">RawPthread</a> {
                 <span class="comment">// Borrow the handle. The handle will surely be available because the root scope waits
                 // for nested scopes before joining remaining threads.
-                </span><span class="kw">let </span>handle = <a class="self" href="../../src/crossbeam_utils/thread.rs.html#553">self</a>.handle.lock().unwrap();
-                <a href="../../src/crossbeam_utils/thread.rs.html#556">handle</a>.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
+                </span><span class="kw">let </span>handle = <a class="self" href="#553">self</a>.handle.lock().unwrap();
+                <a href="#556">handle</a>.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
             }
             <span class="kw">fn </span>into_pthread_t(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/type.RawPthread.html">RawPthread</a> {
-                <a class="self" href="../../src/crossbeam_utils/thread.rs.html#559">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
+                <a class="self" href="#559">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/thread/trait.JoinHandleExt.html">as_pthread_t</a>()
             }
         }
     } <span class="kw">else if </span><span class="attribute">#[cfg(windows)] </span>{
@@ -1169,8 +1169,8 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ScopedJoinHandle&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/crossbeam_utils/thread.rs.html#584">f</a>.pad(<span class="string">&quot;ScopedJoinHandle { .. }&quot;</span>)
+        <a href="#584">f</a>.pad(<span class="string">&quot;ScopedJoinHandle { .. }&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

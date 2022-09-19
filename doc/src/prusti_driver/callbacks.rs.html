@@ -103,7 +103,7 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/prusti_driver/verifier.rs.html#12"><span class="kw">crate</span>::verifier::verify</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="verifier.rs.html#12"><span class="kw">crate</span>::verifier::verify</a>;
 <span class="kw">use </span><a href="../../prusti_common/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span>prusti_interface::{
     environment::{<a href="../../prusti_interface/environment/mir_storage/index.html">mir_storage</a>, <a href="../../prusti_interface/environment/struct.Environment.html">Environment</a>},
@@ -127,41 +127,41 @@
 <span class="attribute">#[allow(clippy::needless_lifetimes)]
 </span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">let </span>body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-        <a href="../../src/prusti_driver/callbacks.rs.html#23">tcx</a>,
-        ty::WithOptConstParam::unknown(<a href="../../src/prusti_driver/callbacks.rs.html#23">def_id</a>),
+        <a href="#23">tcx</a>,
+        ty::WithOptConstParam::unknown(<a href="#23">def_id</a>),
     );
     <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     </span><span class="kw">unsafe </span>{
-        mir_storage::store_mir_body(<a href="../../src/prusti_driver/callbacks.rs.html#23">tcx</a>, <a href="../../src/prusti_driver/callbacks.rs.html#23">def_id</a>, <a href="../../src/prusti_driver/callbacks.rs.html#24">body_with_facts</a>);
+        mir_storage::store_mir_body(<a href="#23">tcx</a>, <a href="#23">def_id</a>, <a href="#24">body_with_facts</a>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>providers = Providers::default();
-    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#33">providers</a>);
-    <span class="kw">let </span>original_mir_borrowck = <a href="../../src/prusti_driver/callbacks.rs.html#33">providers</a>.mir_borrowck;
-    <a href="../../src/prusti_driver/callbacks.rs.html#35">original_mir_borrowck</a>(<a href="../../src/prusti_driver/callbacks.rs.html#23">tcx</a>, <a href="../../src/prusti_driver/callbacks.rs.html#23">def_id</a>)
+    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span><a href="#33">providers</a>);
+    <span class="kw">let </span>original_mir_borrowck = <a href="#33">providers</a>.mir_borrowck;
+    <a href="#35">original_mir_borrowck</a>(<a href="#23">tcx</a>, <a href="#23">def_id</a>)
 }
 
 <span class="kw">fn </span>override_queries(_session: <span class="kw-2">&amp;</span>Session, local: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>, _external: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>) {
-    <a href="../../src/prusti_driver/callbacks.rs.html#39">local</a>.mir_borrowck = <a href="../../src/prusti_driver/callbacks.rs.html#23">mir_borrowck</a>;
+    <a href="#39">local</a>.mir_borrowck = <a href="#23">mir_borrowck</a>;
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for </span><a href="../../src/prusti_driver/callbacks.rs.html#20">PrustiCompilerCalls</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for </span><a href="#20">PrustiCompilerCalls</a> {
     <span class="kw">fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;mut </span>Config) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(config.override_queries.is_none());
-        <a href="../../src/prusti_driver/callbacks.rs.html#44">config</a>.override_queries = <span class="prelude-val">Some</span>(<a href="../../src/prusti_driver/callbacks.rs.html#39">override_queries</a>);
+        <a href="#44">config</a>.override_queries = <span class="prelude-val">Some</span>(<a href="#39">override_queries</a>);
     }
     <span class="kw">fn </span>after_expansion&lt;<span class="lifetime">&#39;tcx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
-        <a href="../../src/prusti_driver/callbacks.rs.html#50">compiler</a>.session().abort_if_errors();
-        <span class="kw">let </span>(krate, _resolver, _lint_store) = <span class="kw-2">&amp;mut *</span><a href="../../src/prusti_driver/callbacks.rs.html#51">queries</a>.expansion().unwrap().peek_mut();
+        <a href="#50">compiler</a>.session().abort_if_errors();
+        <span class="kw">let </span>(krate, _resolver, _lint_store) = <span class="kw-2">&amp;mut *</span><a href="#51">queries</a>.expansion().unwrap().peek_mut();
         <span class="kw">if </span>config::print_desugared_specs() &amp;&amp; !config::is_prusti_lib_crate() {
             prusti_rustc_interface::driver::pretty::print_after_parsing(
-                <a href="../../src/prusti_driver/callbacks.rs.html#50">compiler</a>.session(),
-                <a href="../../src/prusti_driver/callbacks.rs.html#50">compiler</a>.input(),
-                <a href="../../src/prusti_driver/callbacks.rs.html#54">krate</a>,
+                <a href="#50">compiler</a>.session(),
+                <a href="#50">compiler</a>.input(),
+                <a href="#54">krate</a>,
                 prusti_rustc_interface::session::config::PpMode::Source(
                     prusti_rustc_interface::session::config::PpSourceMode::Normal,
                 ),
@@ -175,32 +175,32 @@
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
-        <a href="../../src/prusti_driver/callbacks.rs.html#70">compiler</a>.session().abort_if_errors();
-        <a href="../../src/prusti_driver/callbacks.rs.html#71">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
-            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(<a href="../../src/prusti_driver/callbacks.rs.html#74">tcx</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.env.html">env!</a>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
+        <a href="#70">compiler</a>.session().abort_if_errors();
+        <a href="#71">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(<a href="#74">tcx</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.env.html">env!</a>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
             <span class="kw">let </span>spec_checker = specs::checker::SpecChecker::new();
-            <a href="../../src/prusti_driver/callbacks.rs.html#76">spec_checker</a>.check(<span class="kw-2">&amp;</span><a href="../../src/prusti_driver/callbacks.rs.html#75">env</a>);
-            <a href="../../src/prusti_driver/callbacks.rs.html#70">compiler</a>.session().abort_if_errors();
+            <a href="#76">spec_checker</a>.check(<span class="kw-2">&amp;</span><a href="#75">env</a>);
+            <a href="#70">compiler</a>.session().abort_if_errors();
 
-            <span class="kw">let </span>hir = <a href="../../src/prusti_driver/callbacks.rs.html#75">env</a>.query.hir();
-            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#75">env</a>);
-            <a href="../../src/prusti_driver/callbacks.rs.html#80">hir</a>.walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#81">spec_collector</a>);
-            <a href="../../src/prusti_driver/callbacks.rs.html#80">hir</a>.walk_attributes(<span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#81">spec_collector</a>);
+            <span class="kw">let </span>hir = <a href="#75">env</a>.query.hir();
+            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span><a href="#75">env</a>);
+            <a href="#80">hir</a>.walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#81">spec_collector</a>);
+            <a href="#80">hir</a>.walk_attributes(<span class="kw-2">&amp;mut </span><a href="#81">spec_collector</a>);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = <a href="../../src/prusti_driver/callbacks.rs.html#81">spec_collector</a>.build_def_specs();
+            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = <a href="#81">spec_collector</a>.build_def_specs();
             <span class="comment">// Do print_typeckd_specs prior to importing cross crate
             </span><span class="kw">if </span>config::print_typeckd_specs() &amp;&amp; !config::is_prusti_lib_crate() {
                 <span class="kw">for </span>value <span class="kw">in </span>def_spec.all_values_debug(config::hide_uuids()) {
                     <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, value);
                 }
             }
-            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#75">env</a>, <span class="kw-2">&amp;mut </span><a href="../../src/prusti_driver/callbacks.rs.html#85">def_spec</a>);
+            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span><a href="#75">env</a>, <span class="kw-2">&amp;mut </span><a href="#85">def_spec</a>);
             <span class="kw">if </span>!config::no_verify() {
-                <a href="../../src/prusti_driver/verifier.rs.html#12">verify</a>(<a href="../../src/prusti_driver/callbacks.rs.html#75">env</a>, <a href="../../src/prusti_driver/callbacks.rs.html#85">def_spec</a>);
+                <a href="verifier.rs.html#12">verify</a>(<a href="#75">env</a>, <a href="#85">def_spec</a>);
             }
         });
 
-        <a href="../../src/prusti_driver/callbacks.rs.html#70">compiler</a>.session().abort_if_errors();
+        <a href="#70">compiler</a>.session().abort_if_errors();
         <span class="kw">if </span>config::full_compilation() {
             Compilation::Continue
         } <span class="kw">else </span>{
@@ -209,4 +209,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

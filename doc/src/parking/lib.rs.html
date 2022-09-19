@@ -399,19 +399,19 @@
 /// ```
 /// let (p, u) = parking::pair();
 /// ```
-</span><span class="kw">pub fn </span>pair() -&gt; (<a href="../../src/parking/lib.rs.html#57">Parker</a>, <a href="../../src/parking/lib.rs.html#207">Unparker</a>) {
+</span><span class="kw">pub fn </span>pair() -&gt; (<a href="#57">Parker</a>, <a href="#207">Unparker</a>) {
     <span class="kw">let </span>p = Parker::new();
-    <span class="kw">let </span>u = <a href="../../src/parking/lib.rs.html#51">p</a>.<a href="../../src/parking/lib.rs.html#189">unparker</a>();
-    (<a href="../../src/parking/lib.rs.html#51">p</a>, <a href="../../src/parking/lib.rs.html#52">u</a>)
+    <span class="kw">let </span>u = <a href="#51">p</a>.<a href="#189">unparker</a>();
+    (<a href="#51">p</a>, <a href="#52">u</a>)
 }
 
 <span class="doccomment">/// Waits for a notification.
 </span><span class="kw">pub struct </span>Parker {
-    unparker: <a href="../../src/parking/lib.rs.html#207">Unparker</a>,
+    unparker: <a href="#207">Unparker</a>,
     _marker: PhantomData&lt;Cell&lt;()&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/parking/lib.rs.html#57">Parker</a> {
+<span class="kw">impl </span><a href="#57">Parker</a> {
     <span class="doccomment">/// Creates a new parker.
     ///
     /// # Examples
@@ -422,11 +422,11 @@
     /// let p = Parker::new();
     /// ```
     ///
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/parking/lib.rs.html#57">Parker</a> {
-        <a href="../../src/parking/lib.rs.html#57">Parker</a> {
-            unparker: <a href="../../src/parking/lib.rs.html#207">Unparker</a> {
-                inner: Arc::new(<a href="../../src/parking/lib.rs.html#258">Inner</a> {
-                    state: AtomicUsize::new(<a href="../../src/parking/lib.rs.html#254">EMPTY</a>),
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#57">Parker</a> {
+        <a href="#57">Parker</a> {
+            unparker: <a href="#207">Unparker</a> {
+                inner: Arc::new(<a href="#258">Inner</a> {
+                    state: AtomicUsize::new(<a href="#254">EMPTY</a>),
                     lock: Mutex::new(()),
                     cvar: Condvar::new(),
                 }),
@@ -452,7 +452,7 @@
     /// p.park();
     /// ```
     </span><span class="kw">pub fn </span>park(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../src/parking/lib.rs.html#102">self</a>.unparker.inner.<a href="../../src/parking/lib.rs.html#265">park</a>(<span class="prelude-val">None</span>);
+        <a class="self" href="#102">self</a>.unparker.inner.<a href="#265">park</a>(<span class="prelude-val">None</span>);
     }
 
     <span class="doccomment">/// Blocks until notified and then goes back into unnotified state, or times out after
@@ -472,7 +472,7 @@
     /// p.park_timeout(Duration::from_millis(500));
     /// ```
     </span><span class="kw">pub fn </span>park_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/parking/lib.rs.html#122">self</a>.unparker.inner.<a href="../../src/parking/lib.rs.html#265">park</a>(<span class="prelude-val">Some</span>(<a href="../../src/parking/lib.rs.html#122">duration</a>))
+        <a class="self" href="#122">self</a>.unparker.inner.<a href="#265">park</a>(<span class="prelude-val">Some</span>(<a href="#122">duration</a>))
     }
 
     <span class="doccomment">/// Blocks until notified and then goes back into unnotified state, or times out at `instant`.
@@ -491,9 +491,9 @@
     /// p.park_deadline(Instant::now() + Duration::from_millis(500));
     /// ```
     </span><span class="kw">pub fn </span>park_deadline(<span class="kw-2">&amp;</span><span class="self">self</span>, instant: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/parking/lib.rs.html#141">self</a>.unparker
+        <a class="self" href="#141">self</a>.unparker
             .inner
-            .<a href="../../src/parking/lib.rs.html#265">park</a>(<span class="prelude-val">Some</span>(<a href="../../src/parking/lib.rs.html#141">instant</a>.saturating_duration_since(Instant::now())))
+            .<a href="#265">park</a>(<span class="prelude-val">Some</span>(<a href="#141">instant</a>.saturating_duration_since(Instant::now())))
     }
 
     <span class="doccomment">/// Notifies the parker.
@@ -517,7 +517,7 @@
     /// p.park();
     /// ```
     </span><span class="kw">pub fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/parking/lib.rs.html#167">self</a>.unparker.<a href="../../src/parking/lib.rs.html#235">unpark</a>()
+        <a class="self" href="#167">self</a>.unparker.<a href="#235">unpark</a>()
     }
 
     <span class="doccomment">/// Returns a handle for unparking.
@@ -538,29 +538,29 @@
     /// // Wakes up immediately because the parker is notified.
     /// p.park();
     /// ```
-    </span><span class="kw">pub fn </span>unparker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/parking/lib.rs.html#207">Unparker</a> {
-        <a class="self" href="../../src/parking/lib.rs.html#189">self</a>.unparker.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    </span><span class="kw">pub fn </span>unparker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#207">Unparker</a> {
+        <a class="self" href="#189">self</a>.unparker.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/parking/lib.rs.html#57">Parker</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../src/parking/lib.rs.html#57">Parker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#57">Parker</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#57">Parker</a> {
         Parker::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/parking/lib.rs.html#57">Parker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#57">Parker</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/parking/lib.rs.html#201">f</a>.pad(<span class="string">&quot;Parker { .. }&quot;</span>)
+        <a href="#201">f</a>.pad(<span class="string">&quot;Parker { .. }&quot;</span>)
     }
 }
 
 <span class="doccomment">/// Notifies a parker.
 </span><span class="kw">pub struct </span>Unparker {
-    inner: Arc&lt;<a href="../../src/parking/lib.rs.html#258">Inner</a>&gt;,
+    inner: Arc&lt;<a href="#258">Inner</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/parking/lib.rs.html#207">Unparker</a> {
+<span class="kw">impl </span><a href="#207">Unparker</a> {
     <span class="doccomment">/// Notifies the associated parker.
     ///
     /// Returns `true` if this call is the first to notify the parker, or `false` if the parker
@@ -585,20 +585,20 @@
     /// p.park();
     /// ```
     </span><span class="kw">pub fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/parking/lib.rs.html#235">self</a>.inner.<a href="../../src/parking/lib.rs.html#328">unpark</a>()
+        <a class="self" href="#235">self</a>.inner.<a href="#328">unpark</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/parking/lib.rs.html#207">Unparker</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#207">Unparker</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/parking/lib.rs.html#241">f</a>.pad(<span class="string">&quot;Unparker { .. }&quot;</span>)
+        <a href="#241">f</a>.pad(<span class="string">&quot;Unparker { .. }&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/parking/lib.rs.html#207">Unparker</a> {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/parking/lib.rs.html#207">Unparker</a> {
-        <a href="../../src/parking/lib.rs.html#207">Unparker</a> {
-            inner: <a class="self" href="../../src/parking/lib.rs.html#247">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#207">Unparker</a> {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#207">Unparker</a> {
+        <a href="#207">Unparker</a> {
+            inner: <a class="self" href="#247">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -613,7 +613,7 @@
     cvar: <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/parking/lib.rs.html#258">Inner</a> {
+<span class="kw">impl </span><a href="#258">Inner</a> {
     <span class="kw">fn </span>park(<span class="kw-2">&amp;</span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// If we were previously notified then we consume this notification and return quickly.
         </span><span class="kw">if </span><span class="self">self
@@ -625,36 +625,36 @@
         }
 
         <span class="comment">// If the timeout is zero, then there is no need to actually block.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(dur) = <a href="../../src/parking/lib.rs.html#265">timeout</a> {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(dur) = <a href="#265">timeout</a> {
             <span class="kw">if </span>dur == Duration::from_millis(<span class="number">0</span>) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
 
         <span class="comment">// Otherwise we need to coordinate going to sleep.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>m = <a class="self" href="../../src/parking/lib.rs.html#265">self</a>.lock.lock().unwrap();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>m = <a class="self" href="#265">self</a>.lock.lock().unwrap();
 
-        <span class="kw">match </span><a class="self" href="../../src/parking/lib.rs.html#265">self</a>.state.compare_exchange(<a href="../../src/parking/lib.rs.html#254">EMPTY</a>, <a href="../../src/parking/lib.rs.html#255">PARKED</a>, SeqCst, SeqCst) {
+        <span class="kw">match </span><a class="self" href="#265">self</a>.state.compare_exchange(<a href="#254">EMPTY</a>, <a href="#255">PARKED</a>, SeqCst, SeqCst) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
             <span class="comment">// Consume this notification to avoid spurious wakeups in the next park.
-            </span><span class="prelude-val">Err</span>(<a href="../../src/parking/lib.rs.html#256">NOTIFIED</a>) =&gt; {
+            </span><span class="prelude-val">Err</span>(<a href="#256">NOTIFIED</a>) =&gt; {
                 <span class="comment">// We must read `state` here, even though we know it will be `NOTIFIED`. This is
                 // because `unpark` may have been called again since we read `NOTIFIED` in the
                 // `compare_exchange` above. We must perform an acquire operation that synchronizes
                 // with that `unpark` to observe any writes it made before the call to `unpark`. To
                 // do that we must read from the write it made to `state`.
-                </span><span class="kw">let </span>old = <a class="self" href="../../src/parking/lib.rs.html#265">self</a>.state.swap(<a href="../../src/parking/lib.rs.html#254">EMPTY</a>, SeqCst);
+                </span><span class="kw">let </span>old = <a class="self" href="#265">self</a>.state.swap(<a href="#254">EMPTY</a>, SeqCst);
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(old, NOTIFIED, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
                 <span class="kw">return </span><span class="bool-val">true</span>;
             }
             <span class="prelude-val">Err</span>(n) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, n),
         }
 
-        <span class="kw">match </span><a href="../../src/parking/lib.rs.html#265">timeout</a> {
+        <span class="kw">match </span><a href="#265">timeout</a> {
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">loop </span>{
                     <span class="comment">// Block the current thread on the conditional variable.
-                    </span><a href="../../src/parking/lib.rs.html#283">m</a> = <a class="self" href="../../src/parking/lib.rs.html#265">self</a>.cvar.wait(<a href="../../src/parking/lib.rs.html#283">m</a>).unwrap();
+                    </span><a href="#283">m</a> = <a class="self" href="#265">self</a>.cvar.wait(<a href="#283">m</a>).unwrap();
 
                     <span class="kw">if </span><span class="self">self</span>.state.compare_exchange(NOTIFIED, EMPTY, SeqCst, SeqCst).is_ok() {
                         <span class="comment">// got a notification
@@ -666,11 +666,11 @@
                 <span class="comment">// Wait with a timeout, and if we spuriously wake up or otherwise wake up from a
                 // notification we just want to unconditionally set `state` back to `EMPTY`, either
                 // consuming a notification or un-flagging ourselves as parked.
-                </span><span class="kw">let </span>(_m, _result) = <a class="self" href="../../src/parking/lib.rs.html#265">self</a>.cvar.wait_timeout(<a href="../../src/parking/lib.rs.html#283">m</a>, <a href="../../src/parking/lib.rs.html#313">timeout</a>).unwrap();
+                </span><span class="kw">let </span>(_m, _result) = <a class="self" href="#265">self</a>.cvar.wait_timeout(<a href="#283">m</a>, <a href="#313">timeout</a>).unwrap();
 
-                <span class="kw">match </span><a class="self" href="../../src/parking/lib.rs.html#265">self</a>.state.swap(<a href="../../src/parking/lib.rs.html#254">EMPTY</a>, SeqCst) {
-                    <a href="../../src/parking/lib.rs.html#256">NOTIFIED</a> =&gt; <span class="bool-val">true</span>, <span class="comment">// got a notification
-                    </span><a href="../../src/parking/lib.rs.html#255">PARKED</a> =&gt; <span class="bool-val">false</span>,  <span class="comment">// no notification
+                <span class="kw">match </span><a class="self" href="#265">self</a>.state.swap(<a href="#254">EMPTY</a>, SeqCst) {
+                    <a href="#256">NOTIFIED</a> =&gt; <span class="bool-val">true</span>, <span class="comment">// got a notification
+                    </span><a href="#255">PARKED</a> =&gt; <span class="bool-val">false</span>,  <span class="comment">// no notification
                     </span>n =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, n),
                 }
             }
@@ -682,10 +682,10 @@
         // perform a release operation that `park` can synchronize with. To do that we must write
         // `NOTIFIED` even if `state` is already `NOTIFIED`. That is why this must be a swap rather
         // than a compare-and-swap that returns if it reads `NOTIFIED` on failure.
-        </span><span class="kw">match </span><a class="self" href="../../src/parking/lib.rs.html#328">self</a>.state.swap(<a href="../../src/parking/lib.rs.html#256">NOTIFIED</a>, SeqCst) {
-            <a href="../../src/parking/lib.rs.html#254">EMPTY</a> =&gt; <span class="kw">return </span><span class="bool-val">true</span>,     <span class="comment">// no one was waiting
-            </span><a href="../../src/parking/lib.rs.html#256">NOTIFIED</a> =&gt; <span class="kw">return </span><span class="bool-val">false</span>, <span class="comment">// already unparked
-            </span><a href="../../src/parking/lib.rs.html#255">PARKED</a> =&gt; {}              <span class="comment">// gotta go wake someone up
+        </span><span class="kw">match </span><a class="self" href="#328">self</a>.state.swap(<a href="#256">NOTIFIED</a>, SeqCst) {
+            <a href="#254">EMPTY</a> =&gt; <span class="kw">return </span><span class="bool-val">true</span>,     <span class="comment">// no one was waiting
+            </span><a href="#256">NOTIFIED</a> =&gt; <span class="kw">return </span><span class="bool-val">false</span>, <span class="comment">// already unparked
+            </span><a href="#255">PARKED</a> =&gt; {}              <span class="comment">// gotta go wake someone up
             </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
         }
 
@@ -697,10 +697,10 @@
         //
         // Releasing `lock` before the call to `notify_one` means that when the parked thread wakes
         // it doesn&#39;t get woken only to have to wait for us to release `lock`.
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/parking/lib.rs.html#328">self</a>.lock.lock().unwrap());
-        <a class="self" href="../../src/parking/lib.rs.html#328">self</a>.cvar.notify_one();
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#328">self</a>.lock.lock().unwrap());
+        <a class="self" href="#328">self</a>.cvar.notify_one();
         <span class="bool-val">true
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

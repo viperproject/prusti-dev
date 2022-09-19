@@ -97,10 +97,10 @@
 </pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use </span><a href="../../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
 <span class="kw">use </span><a href="../../../syn/item/struct.Signature.html">syn::Signature</a>;
-<span class="kw">use </span><a href="../../../src/prusti_specs/common.rs.html#54"><span class="kw">crate</span>::common::HasSignature</a>;
+<span class="kw">use </span><a href="../common.rs.html#54"><span class="kw">crate</span>::common::HasSignature</a>;
 
-<span class="kw">pub use </span><span class="kw">super</span>::common::{<a href="../../../src/prusti_specs/specifications/common.rs.html#12">SpecType</a>, <a href="../../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>};
-<span class="kw">pub use </span><a href="../../../src/prusti_specs/specifications/preparser.rs.html#12"><span class="kw">super</span>::preparser::Arg</a>;
+<span class="kw">pub use </span><span class="kw">super</span>::common::{<a href="common.rs.html#12">SpecType</a>, <a href="common.rs.html#52">SpecificationId</a>};
+<span class="kw">pub use </span><a href="preparser.rs.html#12"><span class="kw">super</span>::preparser::Arg</a>;
 
 <span class="doccomment">/// An abstraction over all kinds of function items.
 </span><span class="attribute">#[derive(Debug, PartialEq, Eq)]
@@ -110,84 +110,84 @@
     ImplMethod(<a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>),
 }
 
-<span class="kw">impl </span><a href="../../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem</a> {
+<span class="kw">impl </span><a href="../../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for </span><a href="#11">AnyFnItem</a> {
     <span class="kw">fn </span>parse(input: <a href="../../../syn/parse/type.ParseStream.html">syn::parse::ParseStream</a>) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">use </span><a href="../../../syn/parse/discouraged/trait.Speculative.html">syn::parse::discouraged::Speculative</a>;
-        <span class="kw">let </span>fork = <a href="../../../src/prusti_specs/specifications/untyped.rs.html#18">input</a>.fork();
-        <span class="kw">let </span>item_fn = <a href="../../../src/prusti_specs/specifications/untyped.rs.html#20">fork</a>.parse();
-        <span class="kw">match </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#21">item_fn</a> {
+        <span class="kw">let </span>fork = <a href="#18">input</a>.fork();
+        <span class="kw">let </span>item_fn = <a href="#20">fork</a>.parse();
+        <span class="kw">match </span><a href="#21">item_fn</a> {
             <span class="prelude-val">Ok</span>(res) =&gt; {
                 <span class="comment">// We have an item Fn.
-                </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#18">input</a>.<a href="../../../syn/parse/discouraged/trait.Speculative.html">advance_to</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#20">fork</a>);
-                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#23">res</a>))
+                </span><a href="#18">input</a>.<a href="../../../syn/parse/discouraged/trait.Speculative.html">advance_to</a>(<span class="kw-2">&amp;</span><a href="#20">fork</a>);
+                <span class="prelude-val">Ok</span>(<a href="#12">AnyFnItem::Fn</a>(<a href="#23">res</a>))
             },
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// It is not a valid ItemFn.
                 </span><span class="kw">let </span>item_method = input.parse()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#30">item_method</a>))
+                <span class="prelude-val">Ok</span>(<a href="#13">AnyFnItem::TraitMethod</a>(<a href="#30">item_method</a>))
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem</a> {
+<span class="kw">impl </span><a href="#11">AnyFnItem</a> {
     <span class="kw">pub fn </span>attrs_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../syn/attr/struct.Attribute.html">syn::Attribute</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#38">self</a> </span>{
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#40">item</a>.attrs,
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#41">item</a>.attrs,
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#42">item</a>.attrs,
+        <span class="kw">match </span><span class="self"><a href="#38">self</a> </span>{
+            <a href="#12">AnyFnItem::Fn</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="#40">item</a>.attrs,
+            <a href="#13">AnyFnItem::TraitMethod</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="#41">item</a>.attrs,
+            <a href="#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="kw-2">&amp;mut </span><a href="#42">item</a>.attrs,
         }
     }
 
     <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/stmt/struct.Block.html">syn::Block</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#46">self</a> </span>{
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#48">item</a>.block),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#49">item</a>.block),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#50">item</a>.default.as_ref(),
+        <span class="kw">match </span><span class="self"><a href="#46">self</a> </span>{
+            <a href="#12">AnyFnItem::Fn</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#48">item</a>.block),
+            <a href="#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#49">item</a>.block),
+            <a href="#13">AnyFnItem::TraitMethod</a>(item) =&gt; <a href="#50">item</a>.default.as_ref(),
         }
     }
 
     <span class="kw">pub fn </span>vis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/data/enum.Visibility.html">syn::Visibility</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#54">self</a> </span>{
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#56">item</a>.vis),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#57">item</a>.vis),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match </span><span class="self"><a href="#54">self</a> </span>{
+            <a href="#12">AnyFnItem::Fn</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#56">item</a>.vis),
+            <a href="#14">AnyFnItem::ImplMethod</a>(item) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="#57">item</a>.vis),
+            <a href="#13">AnyFnItem::TraitMethod</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">pub fn </span>expect_impl_item(<span class="self">self</span>) -&gt; <a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#62">self</a> </span>{
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(i) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#64">i</a>,
+        <span class="kw">match </span><span class="self"><a href="#62">self</a> </span>{
+            <a href="#14">AnyFnItem::ImplMethod</a>(i) =&gt; <a href="#64">i</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_specs/common.rs.html#54">HasSignature</a> <span class="kw">for </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem</a> {
+<span class="kw">impl </span><a href="../common.rs.html#54">HasSignature</a> <span class="kw">for </span><a href="#11">AnyFnItem</a> {
     <span class="kw">fn </span>sig(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.Signature.html">Signature</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#71">self</a> </span>{
-            <span class="self">Self</span>::Fn(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#73">item</a>.<a href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
-            <span class="self">Self</span>::ImplMethod(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#74">item</a>.<a href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
-            <span class="self">Self</span>::TraitMethod(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#75">item</a>.<a href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
+        <span class="kw">match </span><span class="self"><a href="#71">self</a> </span>{
+            <span class="self">Self</span>::Fn(item) =&gt; <a href="#73">item</a>.<a href="../common.rs.html#55">sig</a>(),
+            <span class="self">Self</span>::ImplMethod(item) =&gt; <a href="#74">item</a>.<a href="../common.rs.html#55">sig</a>(),
+            <span class="self">Self</span>::TraitMethod(item) =&gt; <a href="#75">item</a>.<a href="../common.rs.html#55">sig</a>(),
         }
     }
 
     <span class="kw">fn </span>sig_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.Signature.html">Signature</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#79">self</a> </span>{
-            <span class="self">Self</span>::Fn(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#81">item</a>.<a href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
-            <span class="self">Self</span>::ImplMethod(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#82">item</a>.<a href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
-            <span class="self">Self</span>::TraitMethod(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#83">item</a>.<a href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
+        <span class="kw">match </span><span class="self"><a href="#79">self</a> </span>{
+            <span class="self">Self</span>::Fn(item) =&gt; <a href="#81">item</a>.<a href="../common.rs.html#56">sig_mut</a>(),
+            <span class="self">Self</span>::ImplMethod(item) =&gt; <a href="#82">item</a>.<a href="../common.rs.html#56">sig_mut</a>(),
+            <span class="self">Self</span>::TraitMethod(item) =&gt; <a href="#83">item</a>.<a href="../common.rs.html#56">sig_mut</a>(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem</a> {
+<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#11">AnyFnItem</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match </span><span class="self"><a href="../../../src/prusti_specs/specifications/untyped.rs.html#89">self</a> </span>{
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#91">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#92">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
-            <a href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(item) =&gt; <a href="../../../src/prusti_specs/specifications/untyped.rs.html#93">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
+        <span class="kw">match </span><span class="self"><a href="#89">self</a> </span>{
+            <a href="#12">AnyFnItem::Fn</a>(item) =&gt; <a href="#91">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#89">tokens</a>),
+            <a href="#13">AnyFnItem::TraitMethod</a>(item) =&gt; <a href="#92">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#89">tokens</a>),
+            <a href="#14">AnyFnItem::ImplMethod</a>(item) =&gt; <a href="#93">item</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#89">tokens</a>),
         }
     }
 }</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

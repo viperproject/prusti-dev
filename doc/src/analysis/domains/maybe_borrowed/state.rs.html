@@ -50,7 +50,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="../../../../src/analysis/mir_utils.rs.html#25"><span class="kw">crate</span>::mir_utils::Place</a>;
+</span><span class="kw">use </span><a href="../../mir_utils.rs.html#25"><span class="kw">crate</span>::mir_utils::Place</a>;
 <span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashSet.html">prusti_rustc_interface::data_structures::fx::FxHashSet</a>;
 <span class="kw">use </span>serde::{<a href="../../../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
 
@@ -62,33 +62,33 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MaybeBorrowedState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>get_maybe_shared_borrowed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#18">self</a>.maybe_shared_borrowed
+        <span class="kw-2">&amp;</span><a class="self" href="#18">self</a>.maybe_shared_borrowed
     }
 
     <span class="kw">pub fn </span>get_maybe_mut_borrowed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#22">self</a>.maybe_mut_borrowed
+        <span class="kw-2">&amp;</span><a class="self" href="#22">self</a>.maybe_mut_borrowed
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>MaybeBorrowedState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>maybe_shared_borrowed_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#28">self</a>.maybe_shared_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#30">maybe_shared_borrowed_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>maybe_shared_borrowed_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#28">self</a>.maybe_shared_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#30">maybe_shared_borrowed_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>maybe_shared_borrowed_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>maybe_shared_borrowed_set {
             maybe_shared_borrowed_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;frozen&quot;</span>, <span class="kw-2">&amp;</span>maybe_shared_borrowed_strings)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>maybe_mut_borrowed_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#28">self</a>.maybe_mut_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#37">maybe_mut_borrowed_set</a>.sort();
+        <span class="kw">let </span><span class="kw-2">mut </span>maybe_mut_borrowed_set: Vec&lt;<span class="kw">_</span>&gt; = <a class="self" href="#28">self</a>.maybe_mut_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#37">maybe_mut_borrowed_set</a>.sort();
         <span class="kw">let </span><span class="kw-2">mut </span>maybe_mut_borrowed_strings = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>maybe_mut_borrowed_set {
             maybe_mut_borrowed_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, place));
         }
         seq.serialize_entry(<span class="string">&quot;blocked&quot;</span>, <span class="kw-2">&amp;</span>maybe_mut_borrowed_strings)<span class="question-mark">?</span>;
-        <a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#29">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
+        <a href="#29">seq</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

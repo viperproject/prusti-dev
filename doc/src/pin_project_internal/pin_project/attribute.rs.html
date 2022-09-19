@@ -70,8 +70,8 @@
     <a href="../../../syn/attr/struct.Attribute.html">Attribute</a>, <span class="prelude-ty">Result</span>, <a href="../../../syn/macro.Token.html">Token</a>, <a href="../../../syn/data/enum.Visibility.html">Visibility</a>,
 };
 
-<span class="kw">use </span><a href="../../../src/pin_project_internal/pin_project/mod.rs.html#9"><span class="kw">super</span>::PIN</a>;
-<span class="kw">use </span><a href="../../../src/pin_project_internal/utils.rs.html#136"><span class="kw">crate</span>::utils::SliceExt</a>;
+<span class="kw">use </span><a href="mod.rs.html#9"><span class="kw">super</span>::PIN</a>;
+<span class="kw">use </span><a href="../utils.rs.html#136"><span class="kw">crate</span>::utils::SliceExt</a>;
 
 <span class="comment">// To generate the correct `Unpin` implementation and the projection methods,
 // we need to collect the types of the pinned fields.
@@ -88,7 +88,7 @@
 //   proc-macro-derive (`InternalDerive`).
 
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse_attribute(args: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>, input: <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-    <span class="kw">let </span><a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#40">Input</a> { attrs, body } = syn::parse2(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span><a href="#40">Input</a> { attrs, body } = syn::parse2(input)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<a class="macro" href="../../../quote/macro.quote.html">quote! </a>{
         #(#attrs)*
@@ -107,26 +107,26 @@
     body: <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
 }
 
-<span class="kw">impl </span><a href="../../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#40">Input</a> {
+<span class="kw">impl </span><a href="../../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#40">Input</a> {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ahead = <a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#46">input</a>.fork();
+        <span class="kw">let </span>ahead = <a href="#46">input</a>.fork();
         <span class="kw">let </span>_vis: <a href="../../../syn/data/enum.Visibility.html">Visibility</a> = ahead.parse()<span class="question-mark">?</span>;
         <span class="kw">if </span>!ahead.peek(<span class="macro">Token!</span>[<span class="kw">struct</span>]) &amp;&amp; !ahead.peek(<span class="macro">Token!</span>[<span class="kw">enum</span>]) {
             <span class="comment">// If we check this only on proc-macro-derive, it may generate unhelpful error
             // messages. So it is preferable to be able to detect it here.
-            </span><a class="macro" href="../../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(
+            </span><a class="macro" href="../utils.rs.html#27-31">bail!</a>(
                 input.parse::&lt;TokenStream&gt;()<span class="question-mark">?</span>,
                 <span class="string">&quot;#[pin_project] attribute may only be used on structs or enums&quot;
             </span>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(attr) = <a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#47">attrs</a>.<a href="../../../src/pin_project_internal/utils.rs.html#138">find</a>(<a href="../../../src/pin_project_internal/pin_project/mod.rs.html#9">PIN</a>) {
-            <a class="macro" href="../../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;#[pin] attribute may only be used on fields of structs or variants&quot;</span>);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(attr) = <a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#47">attrs</a>.<a href="../../../src/pin_project_internal/utils.rs.html#138">find</a>(<span class="string">&quot;pin_project&quot;</span>) {
-            <a class="macro" href="../../../src/pin_project_internal/utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;duplicate #[pin_project] attribute&quot;</span>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(attr) = <a href="#47">attrs</a>.<a href="../utils.rs.html#138">find</a>(<a href="mod.rs.html#9">PIN</a>) {
+            <a class="macro" href="../utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;#[pin] attribute may only be used on fields of structs or variants&quot;</span>);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(attr) = <a href="#47">attrs</a>.<a href="../utils.rs.html#138">find</a>(<span class="string">&quot;pin_project&quot;</span>) {
+            <a class="macro" href="../utils.rs.html#27-31">bail!</a>(attr, <span class="string">&quot;duplicate #[pin_project] attribute&quot;</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ <a href="../../../src/pin_project_internal/pin_project/attribute.rs.html#47">attrs</a>, body: input.parse()<span class="question-mark">? </span>})
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ <a href="#47">attrs</a>, body: input.parse()<span class="question-mark">? </span>})
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pin_project_internal" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pin_project_internal" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

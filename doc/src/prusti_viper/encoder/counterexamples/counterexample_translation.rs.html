@@ -787,11 +787,11 @@
 <span id="787">787</span>
 <span id="788">788</span>
 <span id="789">789</span>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127"><span class="kw">super</span>::high::types::HighTypeEncoderInterface</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/mod.rs.html#11">counterexample</a>::<span class="kw-2">*</span>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../high/types/interface.rs.html#127"><span class="kw">super</span>::high::types::HighTypeEncoderInterface</a>, <a href="mod.rs.html#11">counterexample</a>::<span class="kw-2">*</span>};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    <a href="../../../../src/prusti_viper/encoder/mod.rs.html#34">counterexamples</a>::<span class="kw-2">*</span>,
-    places::{<a href="../../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>, <a href="../../../../src/prusti_viper/encoder/places.rs.html#47">LocalVariableManager</a>},
-    <a href="../../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a>,
+    <a href="../mod.rs.html#34">counterexamples</a>::<span class="kw-2">*</span>,
+    places::{<a href="../places.rs.html#15">Local</a>, <a href="../places.rs.html#47">LocalVariableManager</a>},
+    <a href="../encoder.rs.html#68">Encoder</a>,
 };
 <span class="kw">use </span>prusti_interface::{
     <a href="../../../../prusti_interface/data/type.ProcedureDefId.html">data::ProcedureDefId</a>,
@@ -807,24 +807,24 @@
 <span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
 <span class="kw">use </span><a href="../../../../viper/silicon_counterexample/index.html">viper::silicon_counterexample</a>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../../../src/prusti_viper/encoder/counterexamples/discriminants_interface.rs.html#10">DiscriminantsStateInterface</a>;
+<span class="kw">use </span><a href="discriminants_interface.rs.html#10">DiscriminantsStateInterface</a>;
 
 <span class="kw">pub fn </span>backtranslate(
-    encoder: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a>,
+    encoder: <span class="kw-2">&amp;</span><a href="../encoder.rs.html#68">Encoder</a>,
     def_id: <a href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>,
     silicon_counterexample: <span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/struct.SiliconCounterexample.html">SiliconCounterexample</a>,
-) -&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#71">Counterexample</a> {
-    <span class="kw">let </span>translator = CounterexampleTranslator::new(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#24">encoder</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#25">def_id</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#26">silicon_counterexample</a>);
+) -&gt; <a href="counterexample.rs.html#71">Counterexample</a> {
+    <span class="kw">let </span>translator = CounterexampleTranslator::new(<a href="#24">encoder</a>, <a href="#25">def_id</a>, <a href="#26">silicon_counterexample</a>);
 
     <span class="comment">// TODO: ideally we would use the &quot;main&quot; counterexample from Silicon, the
     // one not associated with any label, because it contains the values of the
     // function when it fails. But currently most values can not be obtained
     // there because they are folded.
     // Instead, we use the last *labelled* counterexample.
-    </span><span class="kw">let </span>last_label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#26">silicon_counterexample</a>
+    </span><span class="kw">let </span>last_label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; = <a href="#26">silicon_counterexample</a>
         .label_order
         .last()
-        .map(|label| <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#38">label</a>.as_str());
+        .map(|label| <a href="#38">label</a>.as_str());
 
     <span class="kw">let </span>old_impure_label = <span class="kw">if </span>silicon_counterexample
         .label_order
@@ -837,16 +837,16 @@
     <span class="kw">let </span>old_label = <span class="kw">if </span>translator.is_pure {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#40">old_impure_label</a>.as_str())
+        <span class="prelude-val">Some</span>(<a href="#40">old_impure_label</a>.as_str())
     };
 
     <span class="comment">// FIXME: there might be one too many levels of indirection here. Maybe we
     // can perform the `process_variable` part immediately with `*_to_process`.
 
     // to be processed
-    </span><span class="kw">let </span>entries_to_process = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#28">translator</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#185-188">entries_to_process</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#24">encoder</a>);
+    </span><span class="kw">let </span>entries_to_process = <a href="#28">translator</a>.<a href="#185-188">entries_to_process</a>(<a href="#24">encoder</a>);
     <span class="kw">let </span>(result_sil_name, result_span, result_typ, result_encoded_typ) =
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#28">translator</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">result_to_process</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#24">encoder</a>);
+        <a href="#28">translator</a>.<a href="#220">result_to_process</a>(<a href="#24">encoder</a>);
 
     <span class="comment">// map those needed
     </span><span class="kw">let </span><span class="kw-2">mut </span>entries = FxHashMap::default();
@@ -883,10 +883,10 @@
     }
 
     <span class="kw">let </span>(silicon_model, opt_sil_entry) =
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#28">translator</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#245-249">get_silicon_at_label</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#35">last_label</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_sil_name</a>); <span class="comment">//We cannot use the &quot;main&quot; model of silicon because of references
+        <a href="#28">translator</a>.<a href="#245-249">get_silicon_at_label</a>(<a href="#35">last_label</a>, <span class="kw-2">&amp;</span><a href="#59">result_sil_name</a>); <span class="comment">//We cannot use the &quot;main&quot; model of silicon because of references
 
-    </span><span class="kw">let </span>result_entry_heap_based = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#28">translator</a>
-        .<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#265-271">translate_silicon_entry</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#96">opt_sil_entry</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_sil_name</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#96">silicon_model</a>)
+    </span><span class="kw">let </span>result_entry_heap_based = <a href="#28">translator</a>
+        .<a href="#265-271">translate_silicon_entry</a>(<a href="#59">result_typ</a>, <a href="#96">opt_sil_entry</a>, <a href="#59">result_sil_name</a>, <a href="#96">silicon_model</a>)
         .unwrap_or_default();
 
     <span class="kw">let </span><span class="kw-2">mut </span>ce_entries = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -894,14 +894,14 @@
     <span class="comment">// Due to translation to Viper functions, there are no locals in the
     // counterexample for pure functions. We can only see the arguments.
     </span><span class="kw">let </span>entries = <span class="kw">if </span>translator.is_pure {
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#64">args</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a href="#64">args</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     } <span class="kw">else </span>{
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#63">entries</a>
+        <a href="#63">entries</a>
     };
 
     <span class="comment">// sort by span so we can compare output in tests
-    </span><span class="kw">let </span><span class="kw-2">mut </span>sorted_entries = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#107">entries</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#114">sorted_entries</a>.sort_by(|a, b| <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#115">a</a>.<span class="number">0 </span>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#115">b</a>.<span class="number">0 </span>.<span class="number">1</span>));
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sorted_entries = <a href="#107">entries</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <a href="#114">sorted_entries</a>.sort_by(|a, b| <a href="#115">a</a>.<span class="number">0 </span>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#115">b</a>.<span class="number">0 </span>.<span class="number">1</span>));
 
     <span class="comment">// add counterexample notes for arguments and locals
     </span><span class="kw">for </span>(place, entry) <span class="kw">in </span>sorted_entries.into_iter() {
@@ -915,22 +915,22 @@
 
     <span class="comment">// add counterexample note for the return value, if any
     </span><span class="kw">if </span>!result_entry_heap_based.is_unit() {
-        <span class="kw">let </span>result_entry_snapshot = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#28">translator</a>
-            .<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#528-533">translate_silicon_entry_with_snapshot</a>(
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_typ</a>,
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#96">opt_sil_entry</a>,
-                <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_encoded_typ</a>),
+        <span class="kw">let </span>result_entry_snapshot = <a href="#28">translator</a>
+            .<a href="#528-533">translate_silicon_entry_with_snapshot</a>(
+                <a href="#59">result_typ</a>,
+                <a href="#96">opt_sil_entry</a>,
+                <span class="prelude-val">Some</span>(<a href="#59">result_encoded_typ</a>),
             )
             .unwrap_or_default();
-        <span class="kw">let </span>result = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#99">result_entry_heap_based</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#121">merge</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#129">result_entry_snapshot</a>); <span class="comment">//We prefer the heap based counterexample over the snapshot one
-        </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#103">ce_entries</a>.push(CounterexampleEntry::with_one_value(
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#59">result_span</a>,
+        <span class="kw">let </span>result = <a href="#99">result_entry_heap_based</a>.<a href="counterexample.rs.html#121">merge</a>(<span class="kw-2">&amp;</span><a href="#129">result_entry_snapshot</a>); <span class="comment">//We prefer the heap based counterexample over the snapshot one
+        </span><a href="#103">ce_entries</a>.push(CounterexampleEntry::with_one_value(
+            <a href="#59">result_span</a>,
             <span class="prelude-val">None</span>,
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#136">result</a>,
+            <a href="#136">result</a>,
         ));
     }
 
-    Counterexample::new(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#103">ce_entries</a>)
+    Counterexample::new(<a href="#103">ce_entries</a>)
 }
 
 <span class="kw">pub struct </span>CounterexampleTranslator&lt;<span class="lifetime">&#39;ce</span>, <span class="lifetime">&#39;tcx</span>&gt; {
@@ -951,23 +951,23 @@
         def_id: <a href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>,
         silicon_counterexample: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ce </span><a href="../../../../viper/silicon_counterexample/struct.SiliconCounterexample.html">SiliconCounterexample</a>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>mir = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#161">encoder</a>
-            .<a href="../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>()
+        <span class="kw">let </span>mir = <a href="#161">encoder</a>
+            .<a href="../encoder.rs.html#223">env</a>()
             .body
-            .get_impure_fn_body_identity(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#162">def_id</a>.expect_local());
-        <span class="kw">let </span>var_debug_info = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#165">mir</a>.var_debug_info.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>local_variable_manager = LocalVariableManager::new(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#165">mir</a>.local_decls);
+            .get_impure_fn_body_identity(<a href="#162">def_id</a>.expect_local());
+        <span class="kw">let </span>var_debug_info = <a href="#165">mir</a>.var_debug_info.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>local_variable_manager = LocalVariableManager::new(<span class="kw-2">&amp;</span><a href="#165">mir</a>.local_decls);
         <span class="self">Self </span>{
-            env_query: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#161">encoder</a>.<a href="../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().query,
-            tcx: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#161">encoder</a>.<a href="../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().tcx(),
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#165">mir</a>,
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#162">def_id</a>,
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#163">silicon_counterexample</a>,
+            env_query: <a href="#161">encoder</a>.<a href="../encoder.rs.html#223">env</a>().query,
+            tcx: <a href="#161">encoder</a>.<a href="../encoder.rs.html#223">env</a>().tcx(),
+            <a href="#165">mir</a>,
+            <a href="#162">def_id</a>,
+            <a href="#163">silicon_counterexample</a>,
             is_pure: <span class="bool-val">false</span>, <span class="comment">// No verified functions are pure. encoder.is_pure(def_id),
             // TODO: This assumption should allow simplifying the translator quite a bit.
-            </span>disc_info: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#161">encoder</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/discriminants_interface.rs.html#12">discriminants_info</a>(),
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#169">var_debug_info</a>,
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#170">local_variable_manager</a>,
+            </span>disc_info: <a href="#161">encoder</a>.<a href="discriminants_interface.rs.html#12">discriminants_info</a>(),
+            <a href="#169">var_debug_info</a>,
+            <a href="#170">local_variable_manager</a>,
         }
     }
 
@@ -1003,7 +1003,7 @@
                 is_arg,
             ));
         }
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#189">entries_to_process</a>
+        <a href="#189">entries_to_process</a>
     }
 
     <span class="kw">fn </span>result_to_process(<span class="kw-2">&amp;</span><span class="self">self</span>, encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; (<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
@@ -1012,23 +1012,23 @@
         </span><span class="kw">let </span>return_local = Local::from(mir::Local::from_usize(<span class="number">0</span>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.local_variable_manager.is_return(return_local));
 
-        <span class="kw">let </span>hir_id = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>.env_query.as_hir_id(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>.def_id.expect_local());
-        <span class="kw">let </span>span = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>
+        <span class="kw">let </span>hir_id = <a class="self" href="#220">self</a>.env_query.as_hir_id(<a class="self" href="#220">self</a>.def_id.expect_local());
+        <span class="kw">let </span>span = <span class="self"><a href="#220">self</a>
             </span>.env_query
             .hir()
-            .fn_decl_by_hir_id(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#226">hir_id</a>)
+            .fn_decl_by_hir_id(<a href="#226">hir_id</a>)
             .unwrap()
             .output
             .span();
 
         <span class="kw">let </span>vir_name = <span class="kw">if </span>!<span class="self">self</span>.is_pure {
-            <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>.local_variable_manager.<a href="../../../../src/prusti_viper/encoder/places.rs.html#71">get_name</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#223">return_local</a>)
+            <a class="self" href="#220">self</a>.local_variable_manager.<a href="../places.rs.html#71">get_name</a>(<a href="#223">return_local</a>)
         } <span class="kw">else </span>{
             <span class="string">&quot;Result()&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
         };
-        <span class="kw">let </span>typ = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>.local_variable_manager.<a href="../../../../src/prusti_viper/encoder/places.rs.html#78">get_type</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#223">return_local</a>);
-        <span class="kw">let </span>encoded_typ = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#503">get_encoded_type</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#240">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#220">encoder</a>);
-        (<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#235">vir_name</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#227">span</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#240">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#241">encoded_typ</a>)
+        <span class="kw">let </span>typ = <a class="self" href="#220">self</a>.local_variable_manager.<a href="../places.rs.html#78">get_type</a>(<a href="#223">return_local</a>);
+        <span class="kw">let </span>encoded_typ = <a class="self" href="#220">self</a>.<a href="#503">get_encoded_type</a>(<a href="#240">typ</a>, <a href="#220">encoder</a>);
+        (<a href="#235">vir_name</a>, <a href="#227">span</a>, <a href="#240">typ</a>, <a href="#241">encoded_typ</a>)
     }
 
     <span class="kw">fn </span>get_silicon_at_label(
@@ -1036,19 +1036,19 @@
         label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
         vir_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; (<span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;) {
-        <span class="kw">let </span>silicon_model = <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#247">label</a> {
+        <span class="kw">let </span>silicon_model = <span class="kw">match </span><a href="#247">label</a> {
             <span class="comment">// should only be called on labels that actually exist
             </span><span class="prelude-val">Some</span>(lbl) =&gt; {
-                <span class="kw-2">&amp;</span><span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#246">self</a>
+                <span class="kw-2">&amp;</span><span class="self"><a href="#246">self</a>
                     </span>.silicon_counterexample
                     .old_models
-                    .get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#252">lbl</a>)
+                    .get(<a href="#252">lbl</a>)
                     .unwrap()
                     .entries
             }
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#246">self</a>.silicon_counterexample.model.entries,
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a class="self" href="#246">self</a>.silicon_counterexample.model.entries,
         };
-        (<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#250">silicon_model</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#250">silicon_model</a>.get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#248">vir_name</a>))
+        (<a href="#250">silicon_model</a>, <a href="#250">silicon_model</a>.get(<a href="#248">vir_name</a>))
     }
 
     <span class="kw">fn </span>translate_silicon_entry(
@@ -1057,44 +1057,44 @@
         sil_entry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
         vir_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         silicon_ce_entries: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a>&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw">match </span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#267">typ</a>.kind(), <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#268">sil_entry</a>) {
-            (ty::TyKind::Bool, <span class="prelude-val">Some</span>(ModelEntry::LitBool(value))) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#273">value</a>),
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="counterexample.rs.html#90">Entry</a>&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">match </span>(<a href="#267">typ</a>.kind(), <a href="#268">sil_entry</a>) {
+            (ty::TyKind::Bool, <span class="prelude-val">Some</span>(ModelEntry::LitBool(value))) =&gt; <a href="counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="#273">value</a>),
             (ty::TyKind::Bool, <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map))) =&gt; {
                 <span class="kw">let </span>entry = map.get(<span class="string">&quot;val_bool&quot;</span>)<span class="question-mark">?</span>;
-                <span class="kw">if let </span>ModelEntry::LitBool(value) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#275">entry</a> {
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#276">value</a>)
+                <span class="kw">if let </span>ModelEntry::LitBool(value) = <a href="#275">entry</a> {
+                    <a href="counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="#276">value</a>)
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             }
             (ty::TyKind::Int(<span class="kw">_</span>) | ty::TyKind::Uint(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#93">Entry::Int</a>(<span class="self">self</span>.translate_int(sil_entry)<span class="question-mark">?</span>)
+                <a href="counterexample.rs.html#93">Entry::Int</a>(<span class="self">self</span>.translate_int(sil_entry)<span class="question-mark">?</span>)
             }
             (ty::TyKind::Float(ty::FloatTy::F32), <span class="kw">_</span>) =&gt; {
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#94">Entry::Float</a>(<span class="self">self</span>.translate_float32(sil_entry)<span class="question-mark">?</span>)
+                <a href="counterexample.rs.html#94">Entry::Float</a>(<span class="self">self</span>.translate_float32(sil_entry)<span class="question-mark">?</span>)
             }
             (ty::TyKind::Float(ty::FloatTy::F64), <span class="kw">_</span>) =&gt; {
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#94">Entry::Float</a>(<span class="self">self</span>.translate_float64(sil_entry)<span class="question-mark">?</span>)
+                <a href="counterexample.rs.html#94">Entry::Float</a>(<span class="self">self</span>.translate_float64(sil_entry)<span class="question-mark">?</span>)
             }
             (ty::TyKind::Char, <span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>value_str = <span class="self">self</span>.translate_int(sil_entry)<span class="question-mark">?</span>;
                 <span class="kw">let </span>value = value_str.parse::&lt;u32&gt;().ok()<span class="question-mark">?</span>;
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#96">Entry::Char</a>(char::from_u32(value)<span class="question-mark">?</span>)
+                <a href="counterexample.rs.html#96">Entry::Char</a>(char::from_u32(value)<span class="question-mark">?</span>)
             }
-            (ty::TyKind::Ref(<span class="kw">_</span>, typ, <span class="kw">_</span>), <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map))) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#97">Entry::Ref</a>(
-                <span class="kw">box </span><span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>
-                    </span>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#265-271">translate_silicon_entry</a>(
-                        <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#296">typ</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#296">map</a>.get(<span class="string">&quot;val_ref&quot;</span>),
+            (ty::TyKind::Ref(<span class="kw">_</span>, typ, <span class="kw">_</span>), <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map))) =&gt; <a href="counterexample.rs.html#97">Entry::Ref</a>(
+                <span class="kw">box </span><span class="self"><a href="#266">self</a>
+                    </span>.<a href="#265-271">translate_silicon_entry</a>(
+                        <span class="kw-2">*</span><a href="#296">typ</a>,
+                        <a href="#296">map</a>.get(<span class="string">&quot;val_ref&quot;</span>),
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.val_ref&quot;</span>, vir_name),
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#270">silicon_ce_entries</a>,
+                        <a href="#270">silicon_ce_entries</a>,
                     )
                     .unwrap_or_default(),
             ),
-            (ty::TyKind::Ref(..), <span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>),
+            (ty::TyKind::Ref(..), <span class="kw">_</span>) =&gt; <a href="counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="counterexample.rs.html#111">Entry::Unknown</a>),
             (ty::TyKind::Tuple(subst), <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map))) =&gt; {
-                <span class="kw">let </span>len = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#307">subst</a>.len();
+                <span class="kw">let </span>len = <a href="#307">subst</a>.len();
                 <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..len {
                     <span class="kw">let </span>typ = subst[i];
@@ -1110,48 +1110,48 @@
                         .unwrap_or_default(),
                     );
                 }
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#110">Entry::Tuple</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#309">fields</a>)
+                <a href="counterexample.rs.html#110">Entry::Tuple</a>(<a href="#309">fields</a>)
             }
-            (ty::TyKind::Tuple(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#110">Entry::Tuple</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
+            (ty::TyKind::Tuple(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <a href="counterexample.rs.html#110">Entry::Tuple</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
             (ty::TyKind::Adt(adt_def, subst), <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)))
-                <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#327">adt_def</a>.is_box() =&gt;
+                <span class="kw">if </span><a href="#327">adt_def</a>.is_box() =&gt;
             {
-                <span class="kw">let </span>new_typ = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#327">subst</a>.type_at(<span class="number">0</span>);
-                <span class="kw">let </span>entry = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>
-                    </span>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#265-271">translate_silicon_entry</a>(
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#330">new_typ</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#327">map</a>.get(<span class="string">&quot;val_ref&quot;</span>),
+                <span class="kw">let </span>new_typ = <a href="#327">subst</a>.type_at(<span class="number">0</span>);
+                <span class="kw">let </span>entry = <span class="self"><a href="#266">self</a>
+                    </span>.<a href="#265-271">translate_silicon_entry</a>(
+                        <a href="#330">new_typ</a>,
+                        <a href="#327">map</a>.get(<span class="string">&quot;val_ref&quot;</span>),
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.val_ref&quot;</span>, vir_name),
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#270">silicon_ce_entries</a>,
+                        <a href="#270">silicon_ce_entries</a>,
                     )
                     .unwrap_or_default();
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#331">entry</a>)
+                <a href="counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="#331">entry</a>)
             }
-            (ty::TyKind::Adt(adt_def, <span class="kw">_</span>), <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#341">adt_def</a>.is_box() =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>),
-            (ty::TyKind::Adt(adt_def, subst), <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#342">adt_def</a>.is_struct() =&gt; {
-                <span class="kw">let </span>variant = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#342">adt_def</a>.variants().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-                <span class="kw">let </span>struct_name = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#343">variant</a>.ident(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.tcx).name.to_ident_string();
+            (ty::TyKind::Adt(adt_def, <span class="kw">_</span>), <span class="kw">_</span>) <span class="kw">if </span><a href="#341">adt_def</a>.is_box() =&gt; <a href="counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="counterexample.rs.html#111">Entry::Unknown</a>),
+            (ty::TyKind::Adt(adt_def, subst), <span class="kw">_</span>) <span class="kw">if </span><a href="#342">adt_def</a>.is_struct() =&gt; {
+                <span class="kw">let </span>variant = <a href="#342">adt_def</a>.variants().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                <span class="kw">let </span>struct_name = <a href="#343">variant</a>.ident(<a class="self" href="#266">self</a>.tcx).name.to_ident_string();
                 <span class="kw">let </span>field_entries =
-                    <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#416-423">translate_vardef</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#343">variant</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#268">sil_entry</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#269">vir_name</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#342">subst</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#270">silicon_ce_entries</a>);
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#99">Entry::Struct</a> {
-                    name: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#344">struct_name</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#345">field_entries</a>,
+                    <a class="self" href="#266">self</a>.<a href="#416-423">translate_vardef</a>(<a href="#343">variant</a>, <a href="#268">sil_entry</a>, <a href="#269">vir_name</a>, <a href="#342">subst</a>, <a href="#270">silicon_ce_entries</a>);
+                <a href="counterexample.rs.html#99">Entry::Struct</a> {
+                    name: <a href="#344">struct_name</a>,
+                    <a href="#345">field_entries</a>,
                 }
             }
             (ty::TyKind::Adt(adt_def, subst), <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)))
-                <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#352">adt_def</a>.is_enum() =&gt;
+                <span class="kw">if </span><a href="#352">adt_def</a>.is_enum() =&gt;
             {
                 <span class="kw">let </span>super_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, adt_def);
                 <span class="kw">let </span><span class="kw-2">mut </span>variant_name = <span class="string">&quot;?&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
                 <span class="kw">let </span><span class="kw-2">mut </span>field_entries = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
                 <span class="kw">let </span><span class="kw-2">mut </span>variant = <span class="prelude-val">None</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>opt_discriminant = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#458">translate_int</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#352">map</a>.get(<span class="string">&quot;discriminant&quot;</span>));
+                <span class="kw">let </span><span class="kw-2">mut </span>opt_discriminant = <a class="self" href="#266">self</a>.<a href="#458">translate_int</a>(<a href="#352">map</a>.get(<span class="string">&quot;discriminant&quot;</span>));
                 <span class="comment">//need to find a discriminant to do something
                 </span><span class="kw">if </span>opt_discriminant.is_none() {
                     <span class="comment">//try to find disc in the associated local variable
-                    </span><span class="kw">let </span>opt_discr_locations = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.disc_info.get(<span class="kw-2">&amp;</span>(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.def_id, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#269">vir_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discr_locations) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#364">opt_discr_locations</a> {
+                    </span><span class="kw">let </span>opt_discr_locations = <a class="self" href="#266">self</a>.disc_info.get(<span class="kw-2">&amp;</span>(<a class="self" href="#266">self</a>.def_id, <a href="#269">vir_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discr_locations) = <a href="#364">opt_discr_locations</a> {
                         <span class="kw">for </span>name <span class="kw">in </span>discr_locations {
                             <span class="kw">let </span>disc_entry = silicon_ce_entries.get(name);
                             <span class="kw">let </span>value = <span class="self">self</span>.translate_int(disc_entry);
@@ -1162,43 +1162,43 @@
                         }
                     }
                 }
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#360">opt_discriminant</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a href="#360">opt_discriminant</a> {
                     <span class="comment">// FIXME: should be able to handle larger discriminantes
-                    </span><span class="kw">let </span>discriminant = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#376">x</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;().unwrap();
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#359">variant</a> = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#352">adt_def</a>
+                    </span><span class="kw">let </span>discriminant = <a href="#376">x</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;().unwrap();
+                    <a href="#359">variant</a> = <a href="#352">adt_def</a>
                         .variants()
                         .iter()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|x| <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#780">get_discriminant_of_vardef</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#382">x</a>) == <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#378">discriminant</a>));
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#359">variant</a> {
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#356">variant_name</a> = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#383">v</a>.ident(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.tcx).name.to_ident_string();
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|x| <a href="#780">get_discriminant_of_vardef</a>(<a href="#382">x</a>) == <span class="prelude-val">Some</span>(<a href="#378">discriminant</a>));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#359">variant</a> {
+                        <a href="#356">variant_name</a> = <a href="#383">v</a>.ident(<a class="self" href="#266">self</a>.tcx).name.to_ident_string();
                     }
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(var_def) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#359">variant</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(var_def) = <a href="#359">variant</a> {
                     <span class="kw">let </span>sil_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;enum_{}&quot;</span>, variant_name);
-                    <span class="kw">let </span>opt_enum_entry = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#352">map</a>.get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#389">sil_name</a>);
+                    <span class="kw">let </span>opt_enum_entry = <a href="#352">map</a>.get(<span class="kw-2">&amp;</span><a href="#389">sil_name</a>);
                     <span class="comment">//at this point it should be a subroutine same for structs and enum:
-                    </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#357">field_entries</a> = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#266">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#416-423">translate_vardef</a>(
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#388">var_def</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#390">opt_enum_entry</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#269">vir_name</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#352">subst</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#270">silicon_ce_entries</a>,
+                    </span><a href="#357">field_entries</a> = <a class="self" href="#266">self</a>.<a href="#416-423">translate_vardef</a>(
+                        <a href="#388">var_def</a>,
+                        <a href="#390">opt_enum_entry</a>,
+                        <a href="#269">vir_name</a>,
+                        <a href="#352">subst</a>,
+                        <a href="#270">silicon_ce_entries</a>,
                     );
                 }
 
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#103">Entry::Enum</a> {
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#355">super_name</a>,
-                    name: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#356">variant_name</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#357">field_entries</a>,
+                <a href="counterexample.rs.html#103">Entry::Enum</a> {
+                    <a href="#355">super_name</a>,
+                    name: <a href="#356">variant_name</a>,
+                    <a href="#357">field_entries</a>,
                 }
             }
-            (ty::TyKind::Adt(adt_def, <span class="kw">_</span>), <span class="kw">_</span>) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#407">adt_def</a>.is_enum() =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#103">Entry::Enum</a> {
+            (ty::TyKind::Adt(adt_def, <span class="kw">_</span>), <span class="kw">_</span>) <span class="kw">if </span><a href="#407">adt_def</a>.is_enum() =&gt; <a href="counterexample.rs.html#103">Entry::Enum</a> {
                 super_name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, adt_def),
                 name: <span class="string">&quot;?&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 field_entries: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             },
-            <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>,
+            <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#111">Entry::Unknown</a>,
         })
     }
 
@@ -1209,7 +1209,7 @@
         vir_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         subst: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         silicon_ce_entries: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
-    ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a>)&gt; {
+    ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="counterexample.rs.html#90">Entry</a>)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>field_entries = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">for </span>f <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
             <span class="kw">let </span>field_name = f.ident(<span class="self">self</span>.tcx).name.to_ident_string();
@@ -1241,16 +1241,16 @@
             }
             field_entries.push((field_name, field_entry));
         }
-        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#424">field_entries</a>
+        <a href="#424">field_entries</a>
     }
 
     <span class="kw">fn </span>translate_int(<span class="kw-2">&amp;</span><span class="self">self</span>, opt_sil_entry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#458">opt_sil_entry</a> {
-            <span class="prelude-val">Some</span>(ModelEntry::LitInt(value)) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#460">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+        <span class="kw">match </span><a href="#458">opt_sil_entry</a> {
+            <span class="prelude-val">Some</span>(ModelEntry::LitInt(value)) =&gt; <span class="prelude-val">Some</span>(<a href="#460">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)) =&gt; {
-                <span class="kw">let </span>entry = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#461">map</a>.get(<span class="string">&quot;val_int&quot;</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitInt(value)) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#462">entry</a> {
-                    <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#463">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <span class="kw">let </span>entry = <a href="#461">map</a>.get(<span class="string">&quot;val_int&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitInt(value)) = <a href="#462">entry</a> {
+                    <span class="prelude-val">Some</span>(<a href="#463">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -1260,12 +1260,12 @@
     }
 
     <span class="kw">fn </span>translate_float32(<span class="kw-2">&amp;</span><span class="self">self</span>, opt_sil_entry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#473">opt_sil_entry</a> {
-            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#475">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+        <span class="kw">match </span><a href="#473">opt_sil_entry</a> {
+            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) =&gt; <span class="prelude-val">Some</span>(<a href="#475">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)) =&gt; {
-                <span class="kw">let </span>entry = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#476">map</a>.get(<span class="string">&quot;val_float32&quot;</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#477">entry</a> {
-                    <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#478">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <span class="kw">let </span>entry = <a href="#476">map</a>.get(<span class="string">&quot;val_float32&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) = <a href="#477">entry</a> {
+                    <span class="prelude-val">Some</span>(<a href="#478">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -1275,12 +1275,12 @@
     }
 
     <span class="kw">fn </span>translate_float64(<span class="kw-2">&amp;</span><span class="self">self</span>, opt_sil_entry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#488">opt_sil_entry</a> {
-            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#490">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+        <span class="kw">match </span><a href="#488">opt_sil_entry</a> {
+            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) =&gt; <span class="prelude-val">Some</span>(<a href="#490">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)) =&gt; {
-                <span class="kw">let </span>entry = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#491">map</a>.get(<span class="string">&quot;val_float64&quot;</span>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#492">entry</a> {
-                    <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#493">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <span class="kw">let </span>entry = <a href="#491">map</a>.get(<span class="string">&quot;val_float64&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitFloat(value)) = <a href="#492">entry</a> {
+                    <span class="prelude-val">Some</span>(<a href="#493">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -1290,7 +1290,7 @@
     }
 
     <span class="kw">fn </span>get_encoded_type(<span class="kw-2">&amp;</span><span class="self">self</span>, typ: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#503">encoder</a>.<a href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#137">encode_type</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#503">typ</a>).ok() {
+        <span class="kw">match </span><a href="#503">encoder</a>.<a href="../high/types/interface.rs.html#137">encode_type</a>(<a href="#503">typ</a>).ok() {
             <span class="prelude-val">Some</span>(poly_typ) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, poly_typ.encode_as_string()),
             <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         }
@@ -1302,13 +1302,13 @@
         params: <span class="kw-2">&amp;</span>Vec&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;&gt;,
     ) -&gt; <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt; {
         <span class="kw">let </span>function_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;snap$__$TY$__{}$&quot;</span>, encoded_typ);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(hd_function) = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#511">self</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(hd_function) = <span class="self"><a href="#511">self</a>
             </span>.silicon_counterexample
             .functions
             .entries
-            .get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#515">function_name</a>)
+            .get(<span class="kw-2">&amp;</span><a href="#515">function_name</a>)
         {
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#516">hd_function</a>.get_function_value(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#513">params</a>)
+            <a href="#516">hd_function</a>.get_function_value(<a href="#513">params</a>)
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span><span class="prelude-val">None
         </span>}
@@ -1319,20 +1319,20 @@
         typ: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         sil_entry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
         encoded_typ_option: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a>&gt; {
-        <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#531">sil_entry</a> {
-            <span class="prelude-val">Some</span>(ModelEntry::LitInt(string)) =&gt; <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#530">typ</a>.kind() {
-                ty::TyKind::Int(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#93">Entry::Int</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#535">string</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="counterexample.rs.html#90">Entry</a>&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#531">sil_entry</a> {
+            <span class="prelude-val">Some</span>(ModelEntry::LitInt(string)) =&gt; <span class="kw">match </span><a href="#530">typ</a>.kind() {
+                ty::TyKind::Int(<span class="kw">_</span>) =&gt; <a href="counterexample.rs.html#93">Entry::Int</a>(<a href="#535">string</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                 ty::TyKind::Char =&gt; {
                     <span class="kw">let </span>value_int = string.parse::&lt;u32&gt;().ok()<span class="question-mark">?</span>;
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#96">Entry::Char</a>(char::from_u32(value_int)<span class="question-mark">?</span>)
+                    <a href="counterexample.rs.html#96">Entry::Char</a>(char::from_u32(value_int)<span class="question-mark">?</span>)
                 }
-                <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>,
+                <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#111">Entry::Unknown</a>,
             },
-            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(string)) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#94">Entry::Float</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#543">string</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <span class="prelude-val">Some</span>(ModelEntry::LitBool(bool)) =&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#544">bool</a>),
+            <span class="prelude-val">Some</span>(ModelEntry::LitFloat(string)) =&gt; <a href="counterexample.rs.html#94">Entry::Float</a>(<a href="#543">string</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="prelude-val">Some</span>(ModelEntry::LitBool(bool)) =&gt; <a href="counterexample.rs.html#95">Entry::Bool</a>(<span class="kw-2">*</span><a href="#544">bool</a>),
             <span class="prelude-val">Some</span>(ModelEntry::Ref(name, <span class="kw">_</span>)) =&gt; {
-                <span class="kw">let </span>encoded_typ = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#532">encoded_typ_option</a>.unwrap_or_default();
+                <span class="kw">let </span>encoded_typ = <a href="#532">encoded_typ_option</a>.unwrap_or_default();
                 <span class="kw">if </span><span class="self">self
                     </span>.silicon_counterexample
                     .domains
@@ -1342,26 +1342,26 @@
                 {
                     <span class="comment">//need a domain to extract a counterexample
                     </span><span class="kw">let </span>hd_function_param = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">Some</span>(ModelEntry::Var(name.clone()))];
-                    <span class="kw">let </span>snapshot_var = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#510-514">get_hd_function_value</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#546">encoded_typ</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#555">hd_function_param</a>);
-                    <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#579-584">translate_snapshot_entry</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#530">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#556">snapshot_var</a>.as_ref(), <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#546">encoded_typ</a>))
+                    <span class="kw">let </span>snapshot_var = <a class="self" href="#529">self</a>.<a href="#510-514">get_hd_function_value</a>(<span class="kw-2">&amp;</span><a href="#546">encoded_typ</a>, <span class="kw-2">&amp;</span><a href="#555">hd_function_param</a>);
+                    <a class="self" href="#529">self</a>.<a href="#579-584">translate_snapshot_entry</a>(<a href="#530">typ</a>, <a href="#556">snapshot_var</a>.as_ref(), <span class="prelude-val">Some</span>(<a href="#546">encoded_typ</a>))
                 } <span class="kw">else </span>{
                     <span class="comment">//if we don&#39;t find a domain we might find the ref value in the heap based encoding
                     //this part is not perfect, alternatively we could have a map of all var_ref assignments
                     //from the viper program and choose the last one before the failing assert.
-                    </span><a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#579-584">translate_snapshot_entry</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#530">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#531">sil_entry</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#546">encoded_typ</a>))
+                    </span><a class="self" href="#529">self</a>.<a href="#579-584">translate_snapshot_entry</a>(<a href="#530">typ</a>, <a href="#531">sil_entry</a>, <span class="prelude-val">Some</span>(<a href="#546">encoded_typ</a>))
                 }
             }
             <span class="prelude-val">Some</span>(ModelEntry::RecursiveRef(ref_name)) =&gt; {
                 <span class="comment">// this unwrap should never fail unless
                 // there is a fault in the Silicon implementation
-                </span><span class="kw">let </span>real_ref_entry = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.silicon_counterexample.model.entries.get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#565">ref_name</a>);
-                <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#528-533">translate_silicon_entry_with_snapshot</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#530">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#568">real_ref_entry</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#532">encoded_typ_option</a>)
+                </span><span class="kw">let </span>real_ref_entry = <a class="self" href="#529">self</a>.silicon_counterexample.model.entries.get(<a href="#565">ref_name</a>);
+                <a class="self" href="#529">self</a>.<a href="#528-533">translate_silicon_entry_with_snapshot</a>(<a href="#530">typ</a>, <a href="#568">real_ref_entry</a>, <a href="#532">encoded_typ_option</a>)
                     .unwrap_or_default()
             }
             <span class="prelude-val">Some</span>(ModelEntry::DomainValue(<span class="kw">_</span>, <span class="kw">_</span>)) =&gt; {
-                <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#529">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#579-584">translate_snapshot_entry</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#530">typ</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#531">sil_entry</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#532">encoded_typ_option</a>)
+                <a class="self" href="#529">self</a>.<a href="#579-584">translate_snapshot_entry</a>(<a href="#530">typ</a>, <a href="#531">sil_entry</a>, <a href="#532">encoded_typ_option</a>)
             }
-            <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>,
+            <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#111">Entry::Unknown</a>,
         })
     }
 
@@ -1370,40 +1370,40 @@
         typ: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         snapshot_var: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
         encoded_typ_option: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    ) -&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a> {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#581">typ</a>.kind() {
+    ) -&gt; <a href="counterexample.rs.html#90">Entry</a> {
+        <span class="kw">match </span><a href="#581">typ</a>.kind() {
             ty::TyKind::Ref(<span class="kw">_</span>, typ, <span class="kw">_</span>) =&gt; {
-                <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a> {
+                <span class="kw">match </span><a href="#582">snapshot_var</a> {
                     <span class="prelude-val">Some</span>(ModelEntry::Ref(<span class="kw">_</span>, map)) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded_typ) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#583">encoded_typ_option</a> {
-                            <span class="kw">let </span>new_encoded_typ = <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#589">encoded_typ</a>.replacen(<span class="string">&quot;ref$&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="number">1</span>)); <span class="comment">//remove a ref
-                            </span><span class="kw">let </span>sil_entry = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#588">map</a>.get(<span class="string">&quot;val_ref&quot;</span>);
-                            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#97">Entry::Ref</a>(
-                                <span class="kw">box </span><span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>
-                                    </span>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#528-533">translate_silicon_entry_with_snapshot</a>(
-                                        <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#586">typ</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#591">sil_entry</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#590">new_encoded_typ</a>,
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded_typ) = <a href="#583">encoded_typ_option</a> {
+                            <span class="kw">let </span>new_encoded_typ = <span class="prelude-val">Some</span>(<a href="#589">encoded_typ</a>.replacen(<span class="string">&quot;ref$&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="number">1</span>)); <span class="comment">//remove a ref
+                            </span><span class="kw">let </span>sil_entry = <a href="#588">map</a>.get(<span class="string">&quot;val_ref&quot;</span>);
+                            <a href="counterexample.rs.html#97">Entry::Ref</a>(
+                                <span class="kw">box </span><span class="self"><a href="#580">self</a>
+                                    </span>.<a href="#528-533">translate_silicon_entry_with_snapshot</a>(
+                                        <span class="kw-2">*</span><a href="#586">typ</a>,
+                                        <a href="#591">sil_entry</a>,
+                                        <a href="#590">new_encoded_typ</a>,
                                     )
                                     .unwrap_or_default(),
                             )
                         } <span class="kw">else </span>{
-                            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>)
+                            <a href="counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="counterexample.rs.html#111">Entry::Unknown</a>)
                         }
                     }
-                    <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>),
+                    <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#97">Entry::Ref</a>(<span class="kw">box </span><a href="counterexample.rs.html#111">Entry::Unknown</a>),
                 }
             }
-            ty::TyKind::Tuple(subst) =&gt; <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a> {
+            ty::TyKind::Tuple(subst) =&gt; <span class="kw">match </span><a href="#582">snapshot_var</a> {
                 <span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) =&gt; {
-                    <span class="kw">let </span>sil_domain = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>
+                    <span class="kw">let </span>sil_domain = <span class="self"><a href="#580">self</a>
                         </span>.silicon_counterexample
                         .domains
                         .entries
-                        .get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#609">domain</a>)
+                        .get(<a href="#609">domain</a>)
                         .unwrap();
-                    <span class="kw">let </span>encoded_typ = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#583">encoded_typ_option</a>.unwrap_or_default();
-                    <span class="kw">let </span>len = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#608">subst</a>.len();
+                    <span class="kw">let </span>encoded_typ = <a href="#583">encoded_typ_option</a>.unwrap_or_default();
+                    <span class="kw">let </span>len = <a href="#608">subst</a>.len();
                     <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..len {
                         <span class="kw">let </span>field_typ = subst[i];
@@ -1418,85 +1418,85 @@
                         );
                         fields.push(field_entry.unwrap_or_default());
                     }
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#110">Entry::Tuple</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#618">fields</a>)
+                    <a href="counterexample.rs.html#110">Entry::Tuple</a>(<a href="#618">fields</a>)
                 }
-                <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#110">Entry::Tuple</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
+                <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#110">Entry::Tuple</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
             },
-            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#636">adt_def</a>.is_box() =&gt; {
-                <span class="kw">let </span>new_typ = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#636">subst</a>.type_at(<span class="number">0</span>);
-                <span class="kw">let </span>entry = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>
-                    </span>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#528-533">translate_silicon_entry_with_snapshot</a>(
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#637">new_typ</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a>,
-                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#583">encoded_typ_option</a>,
+            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="#636">adt_def</a>.is_box() =&gt; {
+                <span class="kw">let </span>new_typ = <a href="#636">subst</a>.type_at(<span class="number">0</span>);
+                <span class="kw">let </span>entry = <span class="self"><a href="#580">self</a>
+                    </span>.<a href="#528-533">translate_silicon_entry_with_snapshot</a>(
+                        <a href="#637">new_typ</a>,
+                        <a href="#582">snapshot_var</a>,
+                        <a href="#583">encoded_typ_option</a>,
                     )
                     .unwrap_or_default();
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#638">entry</a>)
+                <a href="counterexample.rs.html#98">Entry::Box</a>(<span class="kw">box </span><a href="#638">entry</a>)
             }
-            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#647">adt_def</a>.is_struct() =&gt; {
-                <span class="kw">let </span>variant = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#647">adt_def</a>.variants().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-                <span class="kw">let </span>struct_name = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#648">variant</a>.ident(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>.tcx).name.to_ident_string();
-                <span class="kw">let </span>field_entries = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#714-720">translate_snapshot_adt_fields</a>(
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#648">variant</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#583">encoded_typ_option</a>.unwrap_or_default(),
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#647">subst</a>,
+            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="#647">adt_def</a>.is_struct() =&gt; {
+                <span class="kw">let </span>variant = <a href="#647">adt_def</a>.variants().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+                <span class="kw">let </span>struct_name = <a href="#648">variant</a>.ident(<a class="self" href="#580">self</a>.tcx).name.to_ident_string();
+                <span class="kw">let </span>field_entries = <a class="self" href="#580">self</a>.<a href="#714-720">translate_snapshot_adt_fields</a>(
+                    <a href="#648">variant</a>,
+                    <a href="#582">snapshot_var</a>,
+                    <a href="#583">encoded_typ_option</a>.unwrap_or_default(),
+                    <a href="#647">subst</a>,
                 );
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#99">Entry::Struct</a> {
-                    name: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#649">struct_name</a>,
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#650">field_entries</a>,
+                <a href="counterexample.rs.html#99">Entry::Struct</a> {
+                    name: <a href="#649">struct_name</a>,
+                    <a href="#650">field_entries</a>,
                 }
             }
-            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#661">adt_def</a>.is_enum() =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a> {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded_typ) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#583">encoded_typ_option</a> {
+            ty::TyKind::Adt(adt_def, subst) <span class="kw">if </span><a href="#661">adt_def</a>.is_enum() =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) = <a href="#582">snapshot_var</a> {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded_typ) = <a href="#583">encoded_typ_option</a> {
                         <span class="kw">let </span>disc_function_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;discriminant$__$TY$__{}$&quot;</span>, <span class="kw-2">&amp;</span>encoded_typ);
                         <span class="comment">//this should never fail since a DomainValue can only exist if the corresponding domain exists
-                        </span><span class="kw">let </span>sil_domain = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>
+                        </span><span class="kw">let </span>sil_domain = <span class="self"><a href="#580">self</a>
                             </span>.silicon_counterexample
                             .domains
                             .entries
-                            .get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#662">domain</a>)
+                            .get(<a href="#662">domain</a>)
                             .unwrap();
                         <span class="kw">let </span>sil_fn_param = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot_var.cloned()];
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(disc_function) =
-                            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#666">sil_domain</a>.functions.entries.get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#664">disc_function_name</a>)
+                            <a href="#666">sil_domain</a>.functions.entries.get(<span class="kw-2">&amp;</span><a href="#664">disc_function_name</a>)
                         {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(ModelEntry::LitInt(disc_value)) =
-                                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#673">disc_function</a>.get_function_value(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#672">sil_fn_param</a>)
+                                <a href="#673">disc_function</a>.get_function_value(<span class="kw-2">&amp;</span><a href="#672">sil_fn_param</a>)
                             {
                                 <span class="kw">let </span>super_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, adt_def);
-                                <span class="kw">let </span>disc_value_int = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#676">disc_value</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;().unwrap();
-                                <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#661">adt_def</a>
+                                <span class="kw">let </span>disc_value_int = <a href="#676">disc_value</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;().unwrap();
+                                <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="#661">adt_def</a>
                                     .variants()
                                     .iter()
-                                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|x| <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#780">get_discriminant_of_vardef</a>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#684">x</a>) == <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#680">disc_value_int</a>))
+                                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|x| <a href="#780">get_discriminant_of_vardef</a>(<a href="#684">x</a>) == <span class="prelude-val">Some</span>(<a href="#680">disc_value_int</a>))
                                 {
                                     <span class="kw">let </span>variant_name =
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#681">variant</a>.ident(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>.tcx).name.to_ident_string();
-                                    <span class="kw">let </span>field_entries = <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#580">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#714-720">translate_snapshot_adt_fields</a>(
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#681">variant</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#582">snapshot_var</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#663">encoded_typ</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#661">subst</a>,
+                                        <a href="#681">variant</a>.ident(<a class="self" href="#580">self</a>.tcx).name.to_ident_string();
+                                    <span class="kw">let </span>field_entries = <a class="self" href="#580">self</a>.<a href="#714-720">translate_snapshot_adt_fields</a>(
+                                        <a href="#681">variant</a>,
+                                        <a href="#582">snapshot_var</a>,
+                                        <a href="#663">encoded_typ</a>,
+                                        <a href="#661">subst</a>,
                                     );
-                                    <span class="kw">return </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#103">Entry::Enum</a> {
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#679">super_name</a>,
-                                        name: <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#686">variant_name</a>,
-                                        <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#688">field_entries</a>,
+                                    <span class="kw">return </span><a href="counterexample.rs.html#103">Entry::Enum</a> {
+                                        <a href="#679">super_name</a>,
+                                        name: <a href="#686">variant_name</a>,
+                                        <a href="#688">field_entries</a>,
                                     };
                                 }
                             }
                         }
                     }
                 }
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#103">Entry::Enum</a> {
+                <a href="counterexample.rs.html#103">Entry::Enum</a> {
                     super_name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, adt_def),
                     name: <span class="string">&quot;?&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     field_entries: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 }
             }
-            <span class="kw">_ </span>=&gt; <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>,
+            <span class="kw">_ </span>=&gt; <a href="counterexample.rs.html#111">Entry::Unknown</a>,
         }
     }
 
@@ -1506,16 +1506,16 @@
         snapshot_var: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
         encoded_typ: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         subst: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a>)&gt; {
-        <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#717">snapshot_var</a> {
+    ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="counterexample.rs.html#90">Entry</a>)&gt; {
+        <span class="kw">match </span><a href="#717">snapshot_var</a> {
             <span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                 <span class="comment">//this should never fail since a DomainValue can only exist if the corresponding domain exists
-                </span><span class="kw">let </span>sil_domain = <span class="self"><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#715">self</a>
+                </span><span class="kw">let </span>sil_domain = <span class="self"><a href="#715">self</a>
                     </span>.silicon_counterexample
                     .domains
                     .entries
-                    .get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#722">domain</a>)
+                    .get(<a href="#722">domain</a>)
                     .unwrap();
                 <span class="kw">for </span>f <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
                     <span class="kw">let </span>field_name = f.ident(<span class="self">self</span>.tcx).name.to_ident_string();
@@ -1525,16 +1525,16 @@
                         <span class="self">self</span>.extract_field_value(<span class="kw-2">&amp;</span>sil_fn_name, field_typ, snapshot_var, sil_domain);
                     fields.push((field_name, field_entry.unwrap_or_default()));
                 }
-                <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#723">fields</a>
+                <a href="#723">fields</a>
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">//if snapshot_var is not a DomainValue, each field is unkown in the counterexample
                 </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/zip/fn.zip.html">iter::zip</a>(
-                    <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#716">variant</a>
+                    <a href="#716">variant</a>
                         .fields
                         .iter()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#747">x</a>.ident(<a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#715">self</a>.tcx).name.to_ident_string()),
-                    iter::repeat(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#111">Entry::Unknown</a>),
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#747">x</a>.ident(<a class="self" href="#715">self</a>.tcx).name.to_ident_string()),
+                    iter::repeat(<a href="counterexample.rs.html#111">Entry::Unknown</a>),
                 )
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
             }
@@ -1547,21 +1547,21 @@
         field_typ: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         snapshot_var: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/enum.ModelEntry.html">ModelEntry</a>&gt;,
         sil_domain: <span class="kw-2">&amp;</span><a href="../../../../viper/silicon_counterexample/struct.DomainEntry.html">DomainEntry</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample.rs.html#90">Entry</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="counterexample.rs.html#90">Entry</a>&gt; {
         <span class="kw">let </span>sil_fn_param = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot_var.cloned()];
-        <span class="kw">let </span>field_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#760">sil_domain</a>.functions.entries.get(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#757">sil_fn_name</a>) {
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#763">function</a>.get_function_value(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#762">sil_fn_param</a>)
+        <span class="kw">let </span>field_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <a href="#760">sil_domain</a>.functions.entries.get(<a href="#757">sil_fn_name</a>) {
+            <a href="#763">function</a>.get_function_value(<span class="kw-2">&amp;</span><a href="#762">sil_fn_param</a>)
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span><span class="prelude-val">None
         </span>};
-        <span class="kw">let </span>encoded_typ_field = <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#763">field_value</a> {
-            <span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#769">domain</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="kw">let </span>encoded_typ_field = <span class="kw">match </span><a href="#763">field_value</a> {
+            <span class="prelude-val">Some</span>(ModelEntry::DomainValue(domain, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<a href="#769">domain</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <a class="self" href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#756">self</a>.<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#528-533">translate_silicon_entry_with_snapshot</a>(
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#758">field_typ</a>,
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#763">field_value</a>.as_ref(),
-            <a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#768">encoded_typ_field</a>,
+        <a class="self" href="#756">self</a>.<a href="#528-533">translate_silicon_entry_with_snapshot</a>(
+            <a href="#758">field_typ</a>,
+            <a href="#763">field_value</a>.as_ref(),
+            <a href="#768">encoded_typ_field</a>,
         )
     }
 }
@@ -1571,10 +1571,10 @@
     // (might be wrong for enums with explicit discriminants, does not handle
     // large discriminant values)
     // instead we should maintain a mapping in the Enum predicate we create
-    </span><span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#780">vardef</a>.discr {
-        ty::VariantDiscr::Relative(x) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/counterexamples/counterexample_translation.rs.html#786">x</a>),
+    </span><span class="kw">match </span><a href="#780">vardef</a>.discr {
+        ty::VariantDiscr::Relative(x) =&gt; <span class="prelude-val">Some</span>(<a href="#786">x</a>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

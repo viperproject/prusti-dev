@@ -419,16 +419,16 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="../../src/git2/lib.rs.html#658">self</a>, <a href="../../src/git2/util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../src/git2/build.rs.html#74">build::CheckoutBuilder</a>, <a href="../../src/git2/lib.rs.html#1228">SubmoduleIgnore</a>, <a href="../../src/git2/lib.rs.html#1248">SubmoduleUpdate</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/remote.rs.html#41">FetchOptions</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="lib.rs.html#658">self</a>, <a href="util.rs.html#25">Binding</a>};
+<span class="kw">use crate</span>::{<a href="build.rs.html#74">build::CheckoutBuilder</a>, <a href="lib.rs.html#1228">SubmoduleIgnore</a>, <a href="lib.rs.html#1248">SubmoduleUpdate</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="error.rs.html#12">Error</a>, <a href="remote.rs.html#41">FetchOptions</a>, <a href="oid.rs.html#15">Oid</a>, <a href="repo.rs.html#108">Repository</a>};
 
 <span class="doccomment">/// A structure to represent a git [submodule][1]
 ///
 /// [1]: http://git-scm.com/book/en/Git-Tools-Submodules
 </span><span class="kw">pub struct </span>Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_submodule.html">raw::git_submodule</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="repo.rs.html#108">Repository</a>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
@@ -437,14 +437,14 @@
     /// Returns `None` if the branch is not valid utf-8 or if the branch is not
     /// yet available.
     </span><span class="kw">pub fn </span>branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../src/git2/submodule.rs.html#25">self</a>.<a href="../../src/git2/submodule.rs.html#32">branch_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/submodule.rs.html#26">s</a>).ok())
+        <a class="self" href="#25">self</a>.<a href="#32">branch_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#26">s</a>).ok())
     }
 
     <span class="doccomment">/// Get the branch for the submodule.
     ///
     /// Returns `None` if the branch is not yet available.
     </span><span class="kw">pub fn </span>branch_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/submodule.rs.html#32">self</a>, raw::git_submodule_branch(<a class="self" href="../../src/git2/submodule.rs.html#32">self</a>.raw)) }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#32">self</a>, raw::git_submodule_branch(<a class="self" href="#32">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Perform the clone step for a newly created submodule.
@@ -453,16 +453,16 @@
     </span><span class="kw">pub fn </span>clone(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>SubmoduleUpdateOptions&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="repo.rs.html#108">Repository</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>raw_opts = <a href="../../src/git2/submodule.rs.html#41">opts</a>.map(|o| <a href="../../src/git2/submodule.rs.html#44">o</a>.<a href="../../src/git2/submodule.rs.html#268">raw</a>());
+            <span class="kw">let </span>raw_opts = <a href="#41">opts</a>.map(|o| <a href="#44">o</a>.<a href="#268">raw</a>());
             <span class="kw">let </span><span class="kw-2">mut </span>raw_repo = ptr::null_mut();
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_clone(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_clone(
                 <span class="kw-2">&amp;mut </span>raw_repo,
                 <span class="self">self</span>.raw,
                 raw_opts.as_ref()
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/submodule.rs.html#45">raw_repo</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#45">raw_repo</a>))
         }
     }
 
@@ -470,14 +470,14 @@
     ///
     /// Returns `None` if the url is not valid utf-8 or if the URL isn&#39;t present
     </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../src/git2/submodule.rs.html#58">self</a>.<a href="../../src/git2/submodule.rs.html#74">opt_url_bytes</a>().and_then(|b| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/submodule.rs.html#59">b</a>).ok())
+        <a class="self" href="#58">self</a>.<a href="#74">opt_url_bytes</a>().and_then(|b| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="#59">b</a>).ok())
     }
 
     <span class="doccomment">/// Get the url for the submodule.
     </span><span class="attribute">#[doc(hidden)]
     #[deprecated(note = <span class="string">&quot;renamed to `opt_url_bytes`&quot;</span>)]
     </span><span class="kw">pub fn </span>url_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../src/git2/submodule.rs.html#65">self</a>.<a href="../../src/git2/submodule.rs.html#74">opt_url_bytes</a>().unwrap()
+        <a class="self" href="#65">self</a>.<a href="#74">opt_url_bytes</a>().unwrap()
     }
 
     <span class="doccomment">/// Get the url for the submodule.
@@ -486,36 +486,36 @@
     </span><span class="comment">// TODO: delete this method and fix the signature of `url_bytes` on next
     // major version bump
     </span><span class="kw">pub fn </span>opt_url_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/submodule.rs.html#74">self</a>, raw::git_submodule_url(<a class="self" href="../../src/git2/submodule.rs.html#74">self</a>.raw)) }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#74">self</a>, raw::git_submodule_url(<a class="self" href="#74">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the submodule&#39;s name.
     ///
     /// Returns `None` if the name is not valid utf-8
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/submodule.rs.html#81">self</a>.<a href="../../src/git2/submodule.rs.html#86">name_bytes</a>()).ok()
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#81">self</a>.<a href="#86">name_bytes</a>()).ok()
     }
 
     <span class="doccomment">/// Get the name for the submodule.
     </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/submodule.rs.html#86">self</a>, raw::git_submodule_name(<a class="self" href="../../src/git2/submodule.rs.html#86">self</a>.raw)).unwrap() }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#86">self</a>, raw::git_submodule_name(<a class="self" href="#86">self</a>.raw)).unwrap() }
     }
 
     <span class="doccomment">/// Get the path for the submodule.
     </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a> {
-        <a href="../../src/git2/util.rs.html#87">util::bytes2path</a>(<span class="kw">unsafe </span>{
-            <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/submodule.rs.html#91">self</a>, raw::git_submodule_path(<a class="self" href="../../src/git2/submodule.rs.html#91">self</a>.raw)).unwrap()
+        <a href="util.rs.html#87">util::bytes2path</a>(<span class="kw">unsafe </span>{
+            <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#91">self</a>, raw::git_submodule_path(<a class="self" href="#91">self</a>.raw)).unwrap()
         })
     }
 
     <span class="doccomment">/// Get the OID for the submodule in the current HEAD tree.
-    </span><span class="kw">pub fn </span>head_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_head_id(<a class="self" href="../../src/git2/submodule.rs.html#98">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>head_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="oid.rs.html#15">Oid</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_head_id(<a class="self" href="#98">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the OID for the submodule in the index.
-    </span><span class="kw">pub fn </span>index_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_index_id(<a class="self" href="../../src/git2/submodule.rs.html#103">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>index_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="oid.rs.html#15">Oid</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_index_id(<a class="self" href="#103">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the OID for the submodule in the current working directory.
@@ -523,18 +523,18 @@
     /// This returns the OID that corresponds to looking up &#39;HEAD&#39; in the
     /// checked out submodule. If there are pending changes in the index or
     /// anything else, this won&#39;t notice that.
-    </span><span class="kw">pub fn </span>workdir_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_wd_id(<a class="self" href="../../src/git2/submodule.rs.html#112">self</a>.raw)) }
+    </span><span class="kw">pub fn </span>workdir_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="oid.rs.html#15">Oid</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#31-34">Binding::from_raw_opt</a>(raw::git_submodule_wd_id(<a class="self" href="#112">self</a>.raw)) }
     }
 
     <span class="doccomment">/// Get the ignore rule that will be used for the submodule.
-    </span><span class="kw">pub fn </span>ignore_rule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/lib.rs.html#1228">SubmoduleIgnore</a> {
-        SubmoduleIgnore::from_raw(<span class="kw">unsafe </span>{ raw::git_submodule_ignore(<a class="self" href="../../src/git2/submodule.rs.html#117">self</a>.raw) })
+    </span><span class="kw">pub fn </span>ignore_rule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="lib.rs.html#1228">SubmoduleIgnore</a> {
+        SubmoduleIgnore::from_raw(<span class="kw">unsafe </span>{ raw::git_submodule_ignore(<a class="self" href="#117">self</a>.raw) })
     }
 
     <span class="doccomment">/// Get the update rule that will be used for the submodule.
-    </span><span class="kw">pub fn </span>update_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/lib.rs.html#1248">SubmoduleUpdate</a> {
-        SubmoduleUpdate::from_raw(<span class="kw">unsafe </span>{ raw::git_submodule_update_strategy(<a class="self" href="../../src/git2/submodule.rs.html#122">self</a>.raw) })
+    </span><span class="kw">pub fn </span>update_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="lib.rs.html#1248">SubmoduleUpdate</a> {
+        SubmoduleUpdate::from_raw(<span class="kw">unsafe </span>{ raw::git_submodule_update_strategy(<a class="self" href="#122">self</a>.raw) })
     }
 
     <span class="doccomment">/// Copy submodule info into &quot;.git/config&quot; file.
@@ -546,9 +546,9 @@
     ///
     /// By default, existing entries will not be overwritten, but passing `true`
     /// for `overwrite` forces them to be updated.
-    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, overwrite: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, overwrite: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_init(<span class="self">self</span>.raw, overwrite));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_init(<span class="self">self</span>.raw, overwrite));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -557,11 +557,11 @@
     ///
     /// This will only work if the submodule is checked out into the working
     /// directory.
-    </span><span class="kw">pub fn </span>open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>open(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="repo.rs.html#108">Repository</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_open(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/submodule.rs.html#147">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_open(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#147">raw</a>))
         }
     }
 
@@ -572,9 +572,9 @@
     ///
     /// If `force` is `true`, then data will be reloaded even if it doesn&#39;t seem
     /// out of date
-    </span><span class="kw">pub fn </span>reload(<span class="kw-2">&amp;mut </span><span class="self">self</span>, force: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>reload(<span class="kw-2">&amp;mut </span><span class="self">self</span>, force: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_reload(<span class="self">self</span>.raw, force));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_reload(<span class="self">self</span>.raw, force));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -585,9 +585,9 @@
     /// out submodule config, acting like &quot;git submodule sync&quot;. This is useful
     /// if you have altered the URL for the submodule (or it has been altered
     /// by a fetch of upstream changes) and you need to update your local repo.
-    </span><span class="kw">pub fn </span>sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_sync(<span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_sync(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -597,9 +597,9 @@
     /// If `write_index` is true, then the index file will be immediately
     /// written. Otherwise you must explicitly call `write()` on an `Index`
     /// later on.
-    </span><span class="kw">pub fn </span>add_to_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>add_to_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_add_to_index(<span class="self">self</span>.raw, write_index));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_add_to_index(<span class="self">self</span>.raw, write_index));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -610,9 +610,9 @@
     /// done the clone of the submodule. This adds the .gitmodules file and the
     /// newly cloned submodule to the index to be ready to be committed (but
     /// doesn&#39;t actually do the commit).
-    </span><span class="kw">pub fn </span>add_finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>add_finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_add_finalize(<span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_add_finalize(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -630,10 +630,10 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         init: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>SubmoduleUpdateOptions&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>raw_opts = <a href="../../src/git2/submodule.rs.html#218">opts</a>.map(|o| <a href="../../src/git2/submodule.rs.html#221">o</a>.<a href="../../src/git2/submodule.rs.html#268">raw</a>());
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_submodule_update(
+            <span class="kw">let </span><span class="kw-2">mut </span>raw_opts = <a href="#218">opts</a>.map(|o| <a href="#221">o</a>.<a href="#268">raw</a>());
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_submodule_update(
                 <span class="self">self</span>.raw,
                 init <span class="kw">as </span>c_int,
                 raw_opts.as_mut().map_or(ptr::null_mut(), |o| o)
@@ -643,22 +643,22 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_submodule.html">raw::git_submodule</a>;
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_submodule.html">raw::git_submodule</a>) -&gt; Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
-        <a href="../../src/git2/submodule.rs.html#15">Submodule</a> {
-            <a href="../../src/git2/submodule.rs.html#234">raw</a>,
+        <a href="#15">Submodule</a> {
+            <a href="#234">raw</a>,
             _marker: marker::PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_submodule.html">raw::git_submodule</a> {
-        <a class="self" href="../../src/git2/submodule.rs.html#240">self</a>.raw
+        <a class="self" href="#240">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Submodule&lt;<span class="lifetime">&#39;repo</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_submodule_free(<a class="self" href="../../src/git2/submodule.rs.html#246">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_submodule_free(<a class="self" href="#246">self</a>.raw) }
     }
 }
 
@@ -672,7 +672,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; SubmoduleUpdateOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="doccomment">/// Return default options.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="../../src/git2/submodule.rs.html#252">SubmoduleUpdateOptions</a> {
+        <a href="#252">SubmoduleUpdateOptions</a> {
             checkout_builder: CheckoutBuilder::new(),
             fetch_opts: FetchOptions::new(),
             allow_fetch: <span class="bool-val">true</span>,
@@ -682,35 +682,35 @@
     <span class="kw">unsafe fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_submodule_update_options.html">raw::git_submodule_update_options</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>checkout_opts: <a href="../../libgit2_sys/struct.git_checkout_options.html">raw::git_checkout_options</a> = mem::zeroed();
         <span class="kw">let </span>init_res =
-            raw::git_checkout_init_options(<span class="kw-2">&amp;mut </span><a href="../../src/git2/submodule.rs.html#269">checkout_opts</a>, raw::GIT_CHECKOUT_OPTIONS_VERSION);
+            raw::git_checkout_init_options(<span class="kw-2">&amp;mut </span><a href="#269">checkout_opts</a>, raw::GIT_CHECKOUT_OPTIONS_VERSION);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="number">0</span>, init_res);
-        <a class="self" href="../../src/git2/submodule.rs.html#268">self</a>.checkout_builder.<a href="../../src/git2/build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut </span><a href="../../src/git2/submodule.rs.html#269">checkout_opts</a>);
+        <a class="self" href="#268">self</a>.checkout_builder.<a href="build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut </span><a href="#269">checkout_opts</a>);
         <span class="kw">let </span>opts = <a href="../../libgit2_sys/struct.git_submodule_update_options.html">raw::git_submodule_update_options</a> {
             version: raw::GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
-            <a href="../../src/git2/submodule.rs.html#269">checkout_opts</a>,
-            fetch_opts: <a class="self" href="../../src/git2/submodule.rs.html#268">self</a>.fetch_opts.<a href="../../src/git2/util.rs.html#29">raw</a>(),
-            allow_fetch: <a class="self" href="../../src/git2/submodule.rs.html#268">self</a>.allow_fetch <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">c_int</a>,
+            <a href="#269">checkout_opts</a>,
+            fetch_opts: <a class="self" href="#268">self</a>.fetch_opts.<a href="util.rs.html#29">raw</a>(),
+            allow_fetch: <a class="self" href="#268">self</a>.allow_fetch <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">c_int</a>,
         };
-        <a href="../../src/git2/submodule.rs.html#274">opts</a>
+        <a href="#274">opts</a>
     }
 
     <span class="doccomment">/// Set checkout options.
     </span><span class="kw">pub fn </span>checkout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: CheckoutBuilder&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/git2/submodule.rs.html#284">self</a>.checkout_builder = <a href="../../src/git2/submodule.rs.html#284">opts</a>;
-        <span class="self"><a href="../../src/git2/submodule.rs.html#284">self</a>
+        <a class="self" href="#284">self</a>.checkout_builder = <a href="#284">opts</a>;
+        <span class="self"><a href="#284">self</a>
     </span>}
 
     <span class="doccomment">/// Set fetch options and allow fetching.
     </span><span class="kw">pub fn </span>fetch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: FetchOptions&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/git2/submodule.rs.html#290">self</a>.fetch_opts = <a href="../../src/git2/submodule.rs.html#290">opts</a>;
-        <a class="self" href="../../src/git2/submodule.rs.html#290">self</a>.allow_fetch = <span class="bool-val">true</span>;
-        <span class="self"><a href="../../src/git2/submodule.rs.html#290">self</a>
+        <a class="self" href="#290">self</a>.fetch_opts = <a href="#290">opts</a>;
+        <a class="self" href="#290">self</a>.allow_fetch = <span class="bool-val">true</span>;
+        <span class="self"><a href="#290">self</a>
     </span>}
 
     <span class="doccomment">/// Allow or disallow fetching.
     </span><span class="kw">pub fn </span>allow_fetch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="../../src/git2/submodule.rs.html#297">self</a>.allow_fetch = <a href="../../src/git2/submodule.rs.html#297">b</a>;
-        <span class="self"><a href="../../src/git2/submodule.rs.html#297">self</a>
+        <a class="self" href="#297">self</a>.allow_fetch = <a href="#297">b</a>;
+        <span class="self"><a href="#297">self</a>
     </span>}
 }
 
@@ -827,4 +827,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

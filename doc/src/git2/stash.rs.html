@@ -259,9 +259,9 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/git2/build.rs.html#74"><span class="kw">crate</span>::build::CheckoutBuilder</a>;
-<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/lib.rs.html#1401">StashApplyProgress</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="build.rs.html#74"><span class="kw">crate</span>::build::CheckoutBuilder</a>;
+<span class="kw">use </span><a href="util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="oid.rs.html#15">Oid</a>, <a href="lib.rs.html#1401">StashApplyProgress</a>};
 <span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
@@ -270,11 +270,11 @@
 ///
 /// Return `true` to continue processing, or `false` to
 /// abort the stash application.
-</span><span class="kw">pub type </span>StashApplyProgressCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="../../src/git2/lib.rs.html#1401">StashApplyProgress</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>StashApplyProgressCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="lib.rs.html#1401">StashApplyProgress</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
 <span class="doccomment">/// This is a callback function you can provide to iterate over all the
 /// stashed states that will be invoked per entry.
-</span><span class="kw">pub type </span>StashCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+</span><span class="kw">pub type </span>StashCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
 <span class="attribute">#[allow(unused)]
 </span><span class="doccomment">/// Stash application options structure
@@ -293,7 +293,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; StashApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
     <span class="doccomment">/// Creates a default set of merge options.
     </span><span class="kw">pub fn </span>new() -&gt; StashApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="../../src/git2/stash.rs.html#20">StashApplyOptions</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="#20">StashApplyOptions</a> {
             progress: <span class="prelude-val">None</span>,
             checkout_options: <span class="prelude-val">None</span>,
             raw_opts: <span class="kw">unsafe </span>{ mem::zeroed() },
@@ -302,19 +302,19 @@
             <span class="kw">unsafe </span>{ raw::git_stash_apply_init_options(<span class="kw-2">&amp;mut </span>opts.raw_opts, <span class="number">1</span>) },
             <span class="number">0
         </span>);
-        <a href="../../src/git2/stash.rs.html#35">opts</a>
+        <a href="#35">opts</a>
     }
 
     <span class="doccomment">/// Set stash application flag to GIT_STASH_APPLY_REINSTATE_INDEX
     </span><span class="kw">pub fn </span>reinstantiate_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>StashApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a class="self" href="../../src/git2/stash.rs.html#48">self</a>.raw_opts.flags = raw::GIT_STASH_APPLY_REINSTATE_INDEX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <span class="self"><a href="../../src/git2/stash.rs.html#48">self</a>
+        <a class="self" href="#48">self</a>.raw_opts.flags = raw::GIT_STASH_APPLY_REINSTATE_INDEX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+        <span class="self"><a href="#48">self</a>
     </span>}
 
     <span class="doccomment">/// Options to use when writing files to the working directory
     </span><span class="kw">pub fn </span>checkout_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: CheckoutBuilder&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>StashApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
-        <a class="self" href="../../src/git2/stash.rs.html#54">self</a>.checkout_options = <span class="prelude-val">Some</span>(<a href="../../src/git2/stash.rs.html#54">opts</a>);
-        <span class="self"><a href="../../src/git2/stash.rs.html#54">self</a>
+        <a class="self" href="#54">self</a>.checkout_options = <span class="prelude-val">Some</span>(<a href="#54">opts</a>);
+        <span class="self"><a href="#54">self</a>
     </span>}
 
     <span class="doccomment">/// Optional callback to notify the consumer of application progress.
@@ -323,22 +323,22 @@
     /// abort the stash application.
     </span><span class="kw">pub fn </span>progress_cb&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callback: C) -&gt; <span class="kw-2">&amp;mut </span>StashApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt;
     <span class="kw">where
-        </span>C: FnMut(<a href="../../src/git2/lib.rs.html#1401">StashApplyProgress</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;cb</span>,
+        </span>C: FnMut(<a href="lib.rs.html#1401">StashApplyProgress</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;cb</span>,
     {
-        <a class="self" href="../../src/git2/stash.rs.html#63">self</a>.progress = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/stash.rs.html#63">callback</a>) <span class="kw">as </span>Box&lt;StashApplyProgressCb&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;);
-        <a class="self" href="../../src/git2/stash.rs.html#63">self</a>.raw_opts.progress_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/stash.rs.html#132-135">stash_apply_progress_cb</a>);
-        <a class="self" href="../../src/git2/stash.rs.html#63">self</a>.raw_opts.progress_payload = <span class="self"><a href="../../src/git2/stash.rs.html#63">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-        <span class="self"><a href="../../src/git2/stash.rs.html#63">self</a>
+        <a class="self" href="#63">self</a>.progress = <span class="prelude-val">Some</span>(Box::new(<a href="#63">callback</a>) <span class="kw">as </span>Box&lt;StashApplyProgressCb&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;);
+        <a class="self" href="#63">self</a>.raw_opts.progress_cb = <span class="prelude-val">Some</span>(<a href="#132-135">stash_apply_progress_cb</a>);
+        <a class="self" href="#63">self</a>.raw_opts.progress_payload = <span class="self"><a href="#63">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="self"><a href="#63">self</a>
     </span>}
 
     <span class="doccomment">/// Pointer to a raw git_stash_apply_options
     </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../libgit2_sys/struct.git_stash_apply_options.html">raw::git_stash_apply_options</a> {
         <span class="kw">unsafe </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(opts) = <a class="self" href="../../src/git2/stash.rs.html#74">self</a>.checkout_options.as_mut() {
-                <a href="../../src/git2/stash.rs.html#76">opts</a>.<a href="../../src/git2/build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/git2/stash.rs.html#74">self</a>.raw_opts.checkout_options);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(opts) = <a class="self" href="#74">self</a>.checkout_options.as_mut() {
+                <a href="#76">opts</a>.<a href="build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#74">self</a>.raw_opts.checkout_options);
             }
         }
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/stash.rs.html#74">self</a>.raw_opts
+        <span class="kw-2">&amp;</span><a class="self" href="#74">self</a>.raw_opts
     }
 }
 
@@ -354,14 +354,14 @@
     stash_id: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
     payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/stash.rs.html#94">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>StashCbData&lt;<span class="lifetime">&#39;_</span>&gt;);
+    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw-2">&amp;mut *</span>(<a href="#94">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>StashCbData&lt;<span class="lifetime">&#39;_</span>&gt;);
         <span class="kw">let </span>res = {
-            <span class="kw">let </span><span class="kw-2">mut </span>callback = <span class="kw-2">&amp;mut </span><a href="../../src/git2/stash.rs.html#97">data</a>.callback;
-            <a href="../../src/git2/stash.rs.html#99">callback</a>(
-                <a href="../../src/git2/stash.rs.html#91">index</a>,
-                CStr::from_ptr(<a href="../../src/git2/stash.rs.html#92">message</a>).to_str().unwrap(),
-                <span class="kw-2">&amp;</span><a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/stash.rs.html#93">stash_id</a>),
+            <span class="kw">let </span><span class="kw-2">mut </span>callback = <span class="kw-2">&amp;mut </span><a href="#97">data</a>.callback;
+            <a href="#99">callback</a>(
+                <a href="#91">index</a>,
+                CStr::from_ptr(<a href="#92">message</a>).to_str().unwrap(),
+                <span class="kw-2">&amp;</span><a href="util.rs.html#28">Binding::from_raw</a>(<a href="#93">stash_id</a>),
             )
         };
 
@@ -374,18 +374,18 @@
     .unwrap_or(<span class="number">1</span>)
 }
 
-<span class="kw">fn </span>convert_progress(progress: <a href="../../libgit2_sys/type.git_stash_apply_progress_t.html">raw::git_stash_apply_progress_t</a>) -&gt; <a href="../../src/git2/lib.rs.html#1401">StashApplyProgress</a> {
-    <span class="kw">match </span><a href="../../src/git2/stash.rs.html#116">progress</a> {
-        raw::GIT_STASH_APPLY_PROGRESS_NONE =&gt; <a href="../../src/git2/lib.rs.html#1403">StashApplyProgress::None</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_LOADING_STASH =&gt; <a href="../../src/git2/lib.rs.html#1405">StashApplyProgress::LoadingStash</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX =&gt; <a href="../../src/git2/lib.rs.html#1407">StashApplyProgress::AnalyzeIndex</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED =&gt; <a href="../../src/git2/lib.rs.html#1409">StashApplyProgress::AnalyzeModified</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED =&gt; <a href="../../src/git2/lib.rs.html#1411">StashApplyProgress::AnalyzeUntracked</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED =&gt; <a href="../../src/git2/lib.rs.html#1413">StashApplyProgress::CheckoutUntracked</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED =&gt; <a href="../../src/git2/lib.rs.html#1415">StashApplyProgress::CheckoutModified</a>,
-        raw::GIT_STASH_APPLY_PROGRESS_DONE =&gt; <a href="../../src/git2/lib.rs.html#1417">StashApplyProgress::Done</a>,
+<span class="kw">fn </span>convert_progress(progress: <a href="../../libgit2_sys/type.git_stash_apply_progress_t.html">raw::git_stash_apply_progress_t</a>) -&gt; <a href="lib.rs.html#1401">StashApplyProgress</a> {
+    <span class="kw">match </span><a href="#116">progress</a> {
+        raw::GIT_STASH_APPLY_PROGRESS_NONE =&gt; <a href="lib.rs.html#1403">StashApplyProgress::None</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_LOADING_STASH =&gt; <a href="lib.rs.html#1405">StashApplyProgress::LoadingStash</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_INDEX =&gt; <a href="lib.rs.html#1407">StashApplyProgress::AnalyzeIndex</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_MODIFIED =&gt; <a href="lib.rs.html#1409">StashApplyProgress::AnalyzeModified</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_ANALYZE_UNTRACKED =&gt; <a href="lib.rs.html#1411">StashApplyProgress::AnalyzeUntracked</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_CHECKOUT_UNTRACKED =&gt; <a href="lib.rs.html#1413">StashApplyProgress::CheckoutUntracked</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_CHECKOUT_MODIFIED =&gt; <a href="lib.rs.html#1415">StashApplyProgress::CheckoutModified</a>,
+        raw::GIT_STASH_APPLY_PROGRESS_DONE =&gt; <a href="lib.rs.html#1417">StashApplyProgress::Done</a>,
 
-        <span class="kw">_ </span>=&gt; <a href="../../src/git2/lib.rs.html#1403">StashApplyProgress::None</a>,
+        <span class="kw">_ </span>=&gt; <a href="lib.rs.html#1403">StashApplyProgress::None</a>,
     }
 }
 
@@ -394,11 +394,11 @@
     progress: <a href="../../libgit2_sys/type.git_stash_apply_progress_t.html">raw::git_stash_apply_progress_t</a>,
     payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>options = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/stash.rs.html#134">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>StashApplyOptions&lt;<span class="lifetime">&#39;_</span>&gt;);
+    <a href="panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>options = <span class="kw-2">&amp;mut *</span>(<a href="#134">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>StashApplyOptions&lt;<span class="lifetime">&#39;_</span>&gt;);
         <span class="kw">let </span>res = {
-            <span class="kw">let </span><span class="kw-2">mut </span>callback = <a href="../../src/git2/stash.rs.html#137">options</a>.progress.as_mut().unwrap();
-            <a href="../../src/git2/stash.rs.html#139">callback</a>(<a href="../../src/git2/stash.rs.html#116">convert_progress</a>(<a href="../../src/git2/stash.rs.html#133">progress</a>))
+            <span class="kw">let </span><span class="kw-2">mut </span>callback = <a href="#137">options</a>.progress.as_mut().unwrap();
+            <a href="#139">callback</a>(<a href="#116">convert_progress</a>(<a href="#133">progress</a>))
         };
 
         <span class="kw">if </span>res {
@@ -521,4 +521,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -231,25 +231,25 @@
 </span><span class="attribute">#![cfg(not(feature = <span class="string">&quot;compact&quot;</span>))]
 #![doc(hidden)]
 
-</span><span class="kw">use </span><a href="../../src/minimal_lexical/extended_float.rs.html#11"><span class="kw">crate</span>::extended_float::ExtendedFloat</a>;
-<span class="kw">use </span><a href="../../src/minimal_lexical/num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
-<span class="kw">use </span><a href="../../src/minimal_lexical/number.rs.html#18"><span class="kw">crate</span>::number::Number</a>;
-<span class="kw">use </span><span class="kw">crate</span>::table::{<a href="../../src/minimal_lexical/table_lemire.rs.html#16">LARGEST_POWER_OF_FIVE</a>, <a href="../../src/minimal_lexical/table_lemire.rs.html#24">POWER_OF_FIVE_128</a>, <a href="../../src/minimal_lexical/table_lemire.rs.html#15">SMALLEST_POWER_OF_FIVE</a>};
+</span><span class="kw">use </span><a href="extended_float.rs.html#11"><span class="kw">crate</span>::extended_float::ExtendedFloat</a>;
+<span class="kw">use </span><a href="num.rs.html#18-35"><span class="kw">crate</span>::num::Float</a>;
+<span class="kw">use </span><a href="number.rs.html#18"><span class="kw">crate</span>::number::Number</a>;
+<span class="kw">use </span><span class="kw">crate</span>::table::{<a href="table_lemire.rs.html#16">LARGEST_POWER_OF_FIVE</a>, <a href="table_lemire.rs.html#24">POWER_OF_FIVE_128</a>, <a href="table_lemire.rs.html#15">SMALLEST_POWER_OF_FIVE</a>};
 
 <span class="doccomment">/// Ensure truncation of digits doesn&#39;t affect our computation, by doing 2 passes.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>lemire&lt;F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>&gt;(num: <span class="kw-2">&amp;</span><a href="../../src/minimal_lexical/number.rs.html#18">Number</a>) -&gt; <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+</span><span class="kw">pub fn </span>lemire&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(num: <span class="kw-2">&amp;</span><a href="number.rs.html#18">Number</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
     <span class="comment">// If significant digits were truncated, then we can have rounding error
     // only if `mantissa + 1` produces a different result. We also avoid
     // redundantly using the Eisel-Lemire algorithm if it was unable to
     // correctly round on the first pass.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = compute_float::&lt;F&gt;(<a href="../../src/minimal_lexical/lemire.rs.html#16">num</a>.exponent, <a href="../../src/minimal_lexical/lemire.rs.html#16">num</a>.mantissa);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>fp = compute_float::&lt;F&gt;(<a href="#16">num</a>.exponent, <a href="#16">num</a>.mantissa);
     <span class="kw">if </span>num.many_digits &amp;&amp; fp.exp &gt;= <span class="number">0 </span>&amp;&amp; fp != compute_float::&lt;F&gt;(num.exponent, num.mantissa + <span class="number">1</span>) {
         <span class="comment">// Need to re-calculate, since the previous values are rounded
         // when the slow path algorithm expects a normalized extended float.
-        </span><a href="../../src/minimal_lexical/lemire.rs.html#21">fp</a> = compute_error::&lt;F&gt;(<a href="../../src/minimal_lexical/lemire.rs.html#16">num</a>.exponent, <a href="../../src/minimal_lexical/lemire.rs.html#16">num</a>.mantissa);
+        </span><a href="#21">fp</a> = compute_error::&lt;F&gt;(<a href="#16">num</a>.exponent, <a href="#16">num</a>.mantissa);
     }
-    <a href="../../src/minimal_lexical/lemire.rs.html#21">fp</a>
+    <a href="#21">fp</a>
 }
 
 <span class="doccomment">/// Compute a float using an extended-precision representation.
@@ -270,26 +270,26 @@
 /// at a Gigabyte per Second&quot; in section 5, &quot;Fast Algorithm&quot;, and
 /// section 6, &quot;Exact Numbers And Ties&quot;, available online:
 /// &lt;https://arxiv.org/abs/2101.11408.pdf&gt;.
-</span><span class="kw">pub fn </span>compute_float&lt;F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
-    <span class="kw">let </span>fp_zero = <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+</span><span class="kw">pub fn </span>compute_float&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+    <span class="kw">let </span>fp_zero = <a href="extended_float.rs.html#11">ExtendedFloat</a> {
         mant: <span class="number">0</span>,
         exp: <span class="number">0</span>,
     };
-    <span class="kw">let </span>fp_inf = <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+    <span class="kw">let </span>fp_inf = <a href="extended_float.rs.html#11">ExtendedFloat</a> {
         mant: <span class="number">0</span>,
         exp: F::INFINITE_POWER,
     };
 
     <span class="comment">// Short-circuit if the value can only be a literal 0 or infinity.
     </span><span class="kw">if </span>w == <span class="number">0 </span>|| q &lt; F::SMALLEST_POWER_OF_TEN {
-        <span class="kw">return </span><a href="../../src/minimal_lexical/lemire.rs.html#49">fp_zero</a>;
+        <span class="kw">return </span><a href="#49">fp_zero</a>;
     } <span class="kw">else if </span>q &gt; F::LARGEST_POWER_OF_TEN {
-        <span class="kw">return </span><a href="../../src/minimal_lexical/lemire.rs.html#53">fp_inf</a>;
+        <span class="kw">return </span><a href="#53">fp_inf</a>;
     }
     <span class="comment">// Normalize our significant digits, so the most-significant bit is set.
-    </span><span class="kw">let </span>lz = <a href="../../src/minimal_lexical/lemire.rs.html#48">w</a>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-    <a href="../../src/minimal_lexical/lemire.rs.html#48">w</a> &lt;&lt;= <a href="../../src/minimal_lexical/lemire.rs.html#65">lz</a>;
-    <span class="kw">let </span>(lo, hi) = <a href="../../src/minimal_lexical/lemire.rs.html#192">compute_product_approx</a>(<a href="../../src/minimal_lexical/lemire.rs.html#48">q</a>, <a href="../../src/minimal_lexical/lemire.rs.html#48">w</a>, F::MANTISSA_SIZE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">3</span>);
+    </span><span class="kw">let </span>lz = <a href="#48">w</a>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <a href="#48">w</a> &lt;&lt;= <a href="#65">lz</a>;
+    <span class="kw">let </span>(lo, hi) = <a href="#192">compute_product_approx</a>(<a href="#48">q</a>, <a href="#48">w</a>, F::MANTISSA_SIZE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">3</span>);
     <span class="kw">if </span>lo == <span class="number">0xFFFF_FFFF_FFFF_FFFF </span>{
         <span class="comment">// If we have failed to approximate w x 5^-q with our 128-bit value.
         // Since the addition of 1 could lead to an overflow which could then
@@ -306,27 +306,27 @@
         // &lt;https://arxiv.org/pdf/2101.11408.pdf#section.9.1&gt;. For detailed
         // explanations of rounding for positive exponents, see
         // &lt;https://arxiv.org/pdf/2101.11408.pdf#section.8&gt;.
-        </span><span class="kw">let </span>inside_safe_exponent = (<a href="../../src/minimal_lexical/lemire.rs.html#48">q</a> &gt;= -<span class="number">27</span>) &amp;&amp; (<a href="../../src/minimal_lexical/lemire.rs.html#48">q</a> &lt;= <span class="number">55</span>);
+        </span><span class="kw">let </span>inside_safe_exponent = (<a href="#48">q</a> &gt;= -<span class="number">27</span>) &amp;&amp; (<a href="#48">q</a> &lt;= <span class="number">55</span>);
         <span class="kw">if </span>!inside_safe_exponent {
-            <span class="kw">return </span>compute_error_scaled::&lt;F&gt;(<a href="../../src/minimal_lexical/lemire.rs.html#48">q</a>, <a href="../../src/minimal_lexical/lemire.rs.html#67">hi</a>, <a href="../../src/minimal_lexical/lemire.rs.html#65">lz</a>);
+            <span class="kw">return </span>compute_error_scaled::&lt;F&gt;(<a href="#48">q</a>, <a href="#67">hi</a>, <a href="#65">lz</a>);
         }
     }
-    <span class="kw">let </span>upperbit = (<a href="../../src/minimal_lexical/lemire.rs.html#67">hi</a> &gt;&gt; <span class="number">63</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>mantissa = <a href="../../src/minimal_lexical/lemire.rs.html#67">hi</a> &gt;&gt; (<a href="../../src/minimal_lexical/lemire.rs.html#89">upperbit</a> + <span class="number">64 </span>- F::MANTISSA_SIZE - <span class="number">3</span>);
-    <span class="kw">let </span><span class="kw-2">mut </span>power2 = <a href="../../src/minimal_lexical/lemire.rs.html#179">power</a>(<a href="../../src/minimal_lexical/lemire.rs.html#48">q</a>) + <a href="../../src/minimal_lexical/lemire.rs.html#89">upperbit</a> - <a href="../../src/minimal_lexical/lemire.rs.html#65">lz</a> - F::MINIMUM_EXPONENT;
+    <span class="kw">let </span>upperbit = (<a href="#67">hi</a> &gt;&gt; <span class="number">63</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>mantissa = <a href="#67">hi</a> &gt;&gt; (<a href="#89">upperbit</a> + <span class="number">64 </span>- F::MANTISSA_SIZE - <span class="number">3</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>power2 = <a href="#179">power</a>(<a href="#48">q</a>) + <a href="#89">upperbit</a> - <a href="#65">lz</a> - F::MINIMUM_EXPONENT;
     <span class="kw">if </span>power2 &lt;= <span class="number">0 </span>{
         <span class="kw">if </span>-power2 + <span class="number">1 </span>&gt;= <span class="number">64 </span>{
             <span class="comment">// Have more than 64 bits below the minimum exponent, must be 0.
-            </span><span class="kw">return </span><a href="../../src/minimal_lexical/lemire.rs.html#49">fp_zero</a>;
+            </span><span class="kw">return </span><a href="#49">fp_zero</a>;
         }
         <span class="comment">// Have a subnormal value.
-        </span><a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &gt;&gt;= -<a href="../../src/minimal_lexical/lemire.rs.html#91">power2</a> + <span class="number">1</span>;
-        <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> += <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &amp; <span class="number">1</span>;
-        <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &gt;&gt;= <span class="number">1</span>;
-        <a href="../../src/minimal_lexical/lemire.rs.html#91">power2</a> = (<a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &gt;= (<span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-        <span class="kw">return </span><a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
-            mant: <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a>,
-            exp: <a href="../../src/minimal_lexical/lemire.rs.html#91">power2</a>,
+        </span><a href="#90">mantissa</a> &gt;&gt;= -<a href="#91">power2</a> + <span class="number">1</span>;
+        <a href="#90">mantissa</a> += <a href="#90">mantissa</a> &amp; <span class="number">1</span>;
+        <a href="#90">mantissa</a> &gt;&gt;= <span class="number">1</span>;
+        <a href="#91">power2</a> = (<a href="#90">mantissa</a> &gt;= (<span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        <span class="kw">return </span><a href="extended_float.rs.html#11">ExtendedFloat</a> {
+            mant: <a href="#90">mantissa</a>,
+            exp: <a href="#91">power2</a>,
         };
     }
     <span class="comment">// Need to handle rounding ties. Normally, we need to round up,
@@ -347,27 +347,27 @@
         </span>&amp;&amp; (mantissa &lt;&lt; (upperbit + <span class="number">64 </span>- F::MANTISSA_SIZE - <span class="number">3</span>)) == hi
     {
         <span class="comment">// Zero the lowest bit, so we don&#39;t round up.
-        </span><a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &amp;= !<span class="number">1_u64</span>;
+        </span><a href="#90">mantissa</a> &amp;= !<span class="number">1_u64</span>;
     }
     <span class="comment">// Round-to-even, then shift the significant digits into place.
-    </span><a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> += <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &amp; <span class="number">1</span>;
-    <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &gt;&gt;= <span class="number">1</span>;
+    </span><a href="#90">mantissa</a> += <a href="#90">mantissa</a> &amp; <span class="number">1</span>;
+    <a href="#90">mantissa</a> &gt;&gt;= <span class="number">1</span>;
     <span class="kw">if </span>mantissa &gt;= (<span class="number">2_u64 </span>&lt;&lt; F::MANTISSA_SIZE) {
         <span class="comment">// Rounding up overflowed, so the carry bit is set. Set the
         // mantissa to 1 (only the implicit, hidden bit is set) and
         // increase the exponent.
-        </span><a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> = <span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE;
-        <a href="../../src/minimal_lexical/lemire.rs.html#91">power2</a> += <span class="number">1</span>;
+        </span><a href="#90">mantissa</a> = <span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE;
+        <a href="#91">power2</a> += <span class="number">1</span>;
     }
     <span class="comment">// Zero out the hidden bit.
-    </span><a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a> &amp;= !(<span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE);
+    </span><a href="#90">mantissa</a> &amp;= !(<span class="number">1_u64 </span>&lt;&lt; F::MANTISSA_SIZE);
     <span class="kw">if </span>power2 &gt;= F::INFINITE_POWER {
         <span class="comment">// Exponent is above largest normal value, must be infinite.
-        </span><span class="kw">return </span><a href="../../src/minimal_lexical/lemire.rs.html#53">fp_inf</a>;
+        </span><span class="kw">return </span><a href="#53">fp_inf</a>;
     }
-    <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
-        mant: <a href="../../src/minimal_lexical/lemire.rs.html#90">mantissa</a>,
-        exp: <a href="../../src/minimal_lexical/lemire.rs.html#91">power2</a>,
+    <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+        mant: <a href="#90">mantissa</a>,
+        exp: <a href="#91">power2</a>,
     }
 }
 
@@ -375,24 +375,24 @@
 /// This calculates the extended representation, and then normalizes
 /// the resulting representation, so the high bit is set.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>compute_error&lt;F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
-    <span class="kw">let </span>lz = <a href="../../src/minimal_lexical/lemire.rs.html#153">w</a>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-    <a href="../../src/minimal_lexical/lemire.rs.html#153">w</a> &lt;&lt;= <a href="../../src/minimal_lexical/lemire.rs.html#154">lz</a>;
-    <span class="kw">let </span>hi = <a href="../../src/minimal_lexical/lemire.rs.html#192">compute_product_approx</a>(<a href="../../src/minimal_lexical/lemire.rs.html#153">q</a>, <a href="../../src/minimal_lexical/lemire.rs.html#153">w</a>, F::MANTISSA_SIZE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">3</span>).<span class="number">1</span>;
-    compute_error_scaled::&lt;F&gt;(<a href="../../src/minimal_lexical/lemire.rs.html#153">q</a>, <a href="../../src/minimal_lexical/lemire.rs.html#156">hi</a>, <a href="../../src/minimal_lexical/lemire.rs.html#154">lz</a>)
+</span><span class="kw">pub fn </span>compute_error&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+    <span class="kw">let </span>lz = <a href="#153">w</a>.leading_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <a href="#153">w</a> &lt;&lt;= <a href="#154">lz</a>;
+    <span class="kw">let </span>hi = <a href="#192">compute_product_approx</a>(<a href="#153">q</a>, <a href="#153">w</a>, F::MANTISSA_SIZE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">3</span>).<span class="number">1</span>;
+    compute_error_scaled::&lt;F&gt;(<a href="#153">q</a>, <a href="#156">hi</a>, <a href="#154">lz</a>)
 }
 
 <span class="doccomment">/// Compute the error from a mantissa scaled to the exponent.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub fn </span>compute_error_scaled&lt;F: <a href="../../src/minimal_lexical/num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, lz: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
+</span><span class="kw">pub fn </span>compute_error_scaled&lt;F: <a href="num.rs.html#18-35">Float</a>&gt;(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="kw-2">mut </span>w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, lz: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="extended_float.rs.html#11">ExtendedFloat</a> {
     <span class="comment">// Want to normalize the float, but this is faster than ctlz on most architectures.
-    </span><span class="kw">let </span>hilz = (<a href="../../src/minimal_lexical/lemire.rs.html#162">w</a> &gt;&gt; <span class="number">63</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> ^ <span class="number">1</span>;
-    <a href="../../src/minimal_lexical/lemire.rs.html#162">w</a> &lt;&lt;= <a href="../../src/minimal_lexical/lemire.rs.html#164">hilz</a>;
-    <span class="kw">let </span>power2 = <a href="../../src/minimal_lexical/lemire.rs.html#179">power</a>(<a href="../../src/minimal_lexical/lemire.rs.html#162">q</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) + F::EXPONENT_BIAS - <a href="../../src/minimal_lexical/lemire.rs.html#164">hilz</a> - <a href="../../src/minimal_lexical/lemire.rs.html#162">lz</a> - <span class="number">62</span>;
+    </span><span class="kw">let </span>hilz = (<a href="#162">w</a> &gt;&gt; <span class="number">63</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> ^ <span class="number">1</span>;
+    <a href="#162">w</a> &lt;&lt;= <a href="#164">hilz</a>;
+    <span class="kw">let </span>power2 = <a href="#179">power</a>(<a href="#162">q</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) + F::EXPONENT_BIAS - <a href="#164">hilz</a> - <a href="#162">lz</a> - <span class="number">62</span>;
 
-    <a href="../../src/minimal_lexical/extended_float.rs.html#11">ExtendedFloat</a> {
-        mant: <a href="../../src/minimal_lexical/lemire.rs.html#162">w</a>,
-        exp: <a href="../../src/minimal_lexical/lemire.rs.html#166">power2</a> + F::INVALID_FP,
+    <a href="extended_float.rs.html#11">ExtendedFloat</a> {
+        mant: <a href="#162">w</a>,
+        exp: <a href="#166">power2</a> + F::INVALID_FP,
     }
 }
 
@@ -402,13 +402,13 @@
 /// entire range of non-finite decimal exponents.
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>power(q: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-    (<a href="../../src/minimal_lexical/lemire.rs.html#179">q</a>.wrapping_mul(<span class="number">152_170 </span>+ <span class="number">65536</span>) &gt;&gt; <span class="number">16</span>) + <span class="number">63
+    (<a href="#179">q</a>.wrapping_mul(<span class="number">152_170 </span>+ <span class="number">65536</span>) &gt;&gt; <span class="number">16</span>) + <span class="number">63
 </span>}
 
 <span class="attribute">#[inline]
 </span><span class="kw">fn </span>full_multiplication(a: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-    <span class="kw">let </span>r = (<a href="../../src/minimal_lexical/lemire.rs.html#184">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) * (<a href="../../src/minimal_lexical/lemire.rs.html#184">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
-    (<a href="../../src/minimal_lexical/lemire.rs.html#185">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, (<a href="../../src/minimal_lexical/lemire.rs.html#185">r</a> &gt;&gt; <span class="number">64</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    <span class="kw">let </span>r = (<a href="#184">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) * (<a href="#184">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+    (<a href="#185">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, (<a href="#185">r</a> &gt;&gt; <span class="number">64</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
 }
 
 <span class="comment">// This will compute or rather approximate w * 5**q and return a pair of 64-bit words
@@ -420,7 +420,7 @@
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(precision &lt;= <span class="number">64</span>);
 
     <span class="kw">let </span>mask = <span class="kw">if </span>precision &lt; <span class="number">64 </span>{
-        <span class="number">0xFFFF_FFFF_FFFF_FFFF_u64 </span>&gt;&gt; <a href="../../src/minimal_lexical/lemire.rs.html#192">precision</a>
+        <span class="number">0xFFFF_FFFF_FFFF_FFFF_u64 </span>&gt;&gt; <a href="#192">precision</a>
     } <span class="kw">else </span>{
         <span class="number">0xFFFF_FFFF_FFFF_FFFF_u64
     </span>};
@@ -428,25 +428,25 @@
     <span class="comment">// 5^q &lt; 2^64, then the multiplication always provides an exact value.
     // That means whenever we need to round ties to even, we always have
     // an exact value.
-    </span><span class="kw">let </span>index = (<a href="../../src/minimal_lexical/lemire.rs.html#192">q</a> - <a href="../../src/minimal_lexical/table_lemire.rs.html#15">SMALLEST_POWER_OF_FIVE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let </span>(lo5, hi5) = <a href="../../src/minimal_lexical/table_lemire.rs.html#24">POWER_OF_FIVE_128</a>[<a href="../../src/minimal_lexical/lemire.rs.html#206">index</a>];
+    </span><span class="kw">let </span>index = (<a href="#192">q</a> - <a href="table_lemire.rs.html#15">SMALLEST_POWER_OF_FIVE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span>(lo5, hi5) = <a href="table_lemire.rs.html#24">POWER_OF_FIVE_128</a>[<a href="#206">index</a>];
     <span class="comment">// Only need one multiplication as long as there is 1 zero but
     // in the explicit mantissa bits, +1 for the hidden bit, +1 to
     // determine the rounding direction, +1 for if the computed
     // product has a leading zero.
-    </span><span class="kw">let </span>(<span class="kw-2">mut </span>first_lo, <span class="kw-2">mut </span>first_hi) = <a href="../../src/minimal_lexical/lemire.rs.html#184">full_multiplication</a>(<a href="../../src/minimal_lexical/lemire.rs.html#192">w</a>, <a href="../../src/minimal_lexical/lemire.rs.html#207">lo5</a>);
+    </span><span class="kw">let </span>(<span class="kw-2">mut </span>first_lo, <span class="kw-2">mut </span>first_hi) = <a href="#184">full_multiplication</a>(<a href="#192">w</a>, <a href="#207">lo5</a>);
     <span class="kw">if </span>first_hi &amp; mask == mask {
         <span class="comment">// Need to do a second multiplication to get better precision
         // for the lower product. This will always be exact
         // where q is &lt; 55, since 5^55 &lt; 2^128. If this wraps,
         // then we need to need to round up the hi product.
-        </span><span class="kw">let </span>(<span class="kw">_</span>, second_hi) = <a href="../../src/minimal_lexical/lemire.rs.html#184">full_multiplication</a>(<a href="../../src/minimal_lexical/lemire.rs.html#192">w</a>, <a href="../../src/minimal_lexical/lemire.rs.html#207">hi5</a>);
-        <a href="../../src/minimal_lexical/lemire.rs.html#212">first_lo</a> = <a href="../../src/minimal_lexical/lemire.rs.html#212">first_lo</a>.wrapping_add(<a href="../../src/minimal_lexical/lemire.rs.html#218">second_hi</a>);
+        </span><span class="kw">let </span>(<span class="kw">_</span>, second_hi) = <a href="#184">full_multiplication</a>(<a href="#192">w</a>, <a href="#207">hi5</a>);
+        <a href="#212">first_lo</a> = <a href="#212">first_lo</a>.wrapping_add(<a href="#218">second_hi</a>);
         <span class="kw">if </span>second_hi &gt; first_lo {
-            <a href="../../src/minimal_lexical/lemire.rs.html#212">first_hi</a> += <span class="number">1</span>;
+            <a href="#212">first_hi</a> += <span class="number">1</span>;
         }
     }
-    (<a href="../../src/minimal_lexical/lemire.rs.html#212">first_lo</a>, <a href="../../src/minimal_lexical/lemire.rs.html#212">first_hi</a>)
+    (<a href="#212">first_lo</a>, <a href="#212">first_hi</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

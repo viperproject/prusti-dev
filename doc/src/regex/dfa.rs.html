@@ -1987,9 +1987,9 @@ implementation.)
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use </span><a href="../../src/regex/exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
-<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="../../src/regex/prog.rs.html#268">Inst</a>, <a href="../../src/regex/prog.rs.html#18">Program</a>};
-<span class="kw">use </span><a href="../../src/regex/sparse.rs.html#16"><span class="kw">crate</span>::sparse::SparseSet</a>;
+<span class="kw">use </span><a href="exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
+<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="prog.rs.html#268">Inst</a>, <a href="prog.rs.html#18">Program</a>};
+<span class="kw">use </span><a href="sparse.rs.html#16"><span class="kw">crate</span>::sparse::SparseSet</a>;
 
 <span class="doccomment">/// Return true if and only if the given program can be executed by a DFA.
 ///
@@ -1999,8 +1999,8 @@ implementation.)
 ///
 /// This function will also return false if the given program has any Unicode
 /// instructions (Char or Ranges) since the DFA operates on bytes only.
-</span><span class="kw">pub fn </span>can_exec(insts: <span class="kw-2">&amp;</span><a href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub fn </span>can_exec(insts: <span class="kw-2">&amp;</span><a href="prog.rs.html#18">Program</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
     <span class="comment">// If for some reason we manage to allocate a regex program with more
     // than i32::MAX instructions, then we can&#39;t execute the DFA because we
     // use 32 bit instruction pointer deltas for memory savings.
@@ -2028,7 +2028,7 @@ implementation.)
 </span><span class="kw">pub struct </span>Cache {
     <span class="doccomment">/// Group persistent DFA related cache state together. The sparse sets
     /// listed below are used as scratch space while computing uncached states.
-    </span>inner: <a href="../../src/regex/dfa.rs.html#102">CacheInner</a>,
+    </span>inner: <a href="#102">CacheInner</a>,
     <span class="doccomment">/// qcur and qnext are ordered sets with constant time
     /// addition/membership/clearing-whole-set and linear time iteration. They
     /// are used to manage the sets of NFA states in DFA states when computing
@@ -2036,8 +2036,8 @@ implementation.)
     /// for leftmost-first style matching. Namely, when computing a cached
     /// state, the set of NFA states stops growing as soon as the first Match
     /// instruction is observed.
-    </span>qcur: <a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-    qnext: <a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
+    </span>qcur: <a href="sparse.rs.html#16">SparseSet</a>,
+    qnext: <a href="sparse.rs.html#16">SparseSet</a>,
 }
 
 <span class="doccomment">/// `CacheInner` is logically just a part of Cache, but groups together fields
@@ -2053,7 +2053,7 @@ implementation.)
     /// things, we just pass indexes around manually. The performance impact of
     /// this is probably an instruction or two in the inner loop. However, on
     /// 64 bit, each StatePtr is half the size of a *State.
-    </span>compiled: <a href="../../src/regex/dfa.rs.html#1594">StateMap</a>,
+    </span>compiled: <a href="#1594">StateMap</a>,
     <span class="doccomment">/// The transition table.
     ///
     /// The transition table is laid out in row-major order, where states are
@@ -2069,19 +2069,19 @@ implementation.)
     /// *equivalence classes* of bytes. Each class corresponds to a set of
     /// bytes that never discriminate a distinct path through the DFA from each
     /// other.
-    </span>trans: <a href="../../src/regex/dfa.rs.html#161">Transitions</a>,
+    </span>trans: <a href="#161">Transitions</a>,
     <span class="doccomment">/// A set of cached start states, which are limited to the number of
     /// permutations of flags set just before the initial byte of input. (The
     /// index into this vec is a `EmptyFlags`.)
     ///
     /// N.B. A start state can be &quot;dead&quot; (i.e., no possible match), so we
     /// represent it with a StatePtr.
-    </span>start_states: Vec&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;,
+    </span>start_states: Vec&lt;<a href="#358">StatePtr</a>&gt;,
     <span class="doccomment">/// Stack scratch space used to follow epsilon transitions in the NFA.
     /// (This permits us to avoid recursion.)
     ///
     /// The maximum stack size is the number of NFA states.
-    </span>stack: Vec&lt;<a href="../../src/regex/dfa.rs.html#271">InstPtr</a>&gt;,
+    </span>stack: Vec&lt;<a href="#271">InstPtr</a>&gt;,
     <span class="doccomment">/// The total number of times this cache has been flushed by the DFA
     /// because of space constraints.
     </span>flush_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
@@ -2105,7 +2105,7 @@ implementation.)
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">struct </span>Transitions {
     <span class="doccomment">/// The table.
-    </span>table: Vec&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;,
+    </span>table: Vec&lt;<a href="#358">StatePtr</a>&gt;,
     <span class="doccomment">/// The stride.
     </span>num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
@@ -2117,10 +2117,10 @@ implementation.)
     /// the `dfa` instructions or the `dfa_reverse` instructions from
     /// `exec::ExecReadOnly`. (It never uses `ExecReadOnly.nfa`, which may have
     /// Unicode opcodes that cannot be executed by the DFA.)
-    </span>prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
+    </span>prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="prog.rs.html#18">Program</a>,
     <span class="doccomment">/// The start state. We record it here because the pointer may change
     /// when the cache is wiped.
-    </span>start: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
+    </span>start: <a href="#358">StatePtr</a>,
     <span class="doccomment">/// The current position in the input.
     </span>at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// Should we quit after seeing the first match? e.g., When the caller
@@ -2133,13 +2133,13 @@ implementation.)
     /// This is only useful when matching regex sets. The last match state
     /// is useful because it contains all of the match instructions seen,
     /// thereby allowing us to enumerate which regexes in the set matched.
-    </span>last_match_si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
+    </span>last_match_si: <a href="#358">StatePtr</a>,
     <span class="doccomment">/// The input position of the last cache flush. We use this to determine
     /// if we&#39;re thrashing in the cache too often. If so, the DFA quits so
     /// that we can fall back to the NFA algorithm.
     </span>last_cache_flush: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// All cached DFA information that is persisted between searches.
-    </span>cache: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../src/regex/dfa.rs.html#102">CacheInner</a>,
+    </span>cache: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="#102">CacheInner</a>,
 }
 
 <span class="doccomment">/// The result of running the DFA.
@@ -2160,9 +2160,9 @@ implementation.)
 <span class="kw">impl</span>&lt;T&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
     <span class="doccomment">/// Returns true if this result corresponds to a match.
     </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/regex/dfa.rs.html#217">self</a> </span>{
-            <a href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) | <a href="../../src/regex/dfa.rs.html#212">Result::Quit</a> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#217">self</a> </span>{
+            <a href="#210">Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#211">Result::NoMatch</a>(<span class="kw">_</span>) | <a href="#212">Result::Quit</a> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -2171,10 +2171,10 @@ implementation.)
     /// If this isn&#39;t a match, then this is a no-op.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
     </span><span class="kw">pub fn </span>map&lt;U, F: FnMut(T) -&gt; U&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;U&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../src/regex/dfa.rs.html#228">self</a> </span>{
-            <a href="../../src/regex/dfa.rs.html#210">Result::Match</a>(t) =&gt; <a href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<a href="../../src/regex/dfa.rs.html#228">f</a>(<a href="../../src/regex/dfa.rs.html#230">t</a>)),
-            <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(x) =&gt; <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a href="../../src/regex/dfa.rs.html#231">x</a>),
-            <a href="../../src/regex/dfa.rs.html#212">Result::Quit</a> =&gt; <a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+        <span class="kw">match </span><span class="self"><a href="#228">self</a> </span>{
+            <a href="#210">Result::Match</a>(t) =&gt; <a href="#210">Result::Match</a>(<a href="#228">f</a>(<a href="#230">t</a>)),
+            <a href="#211">Result::NoMatch</a>(x) =&gt; <a href="#211">Result::NoMatch</a>(<a href="#231">x</a>),
+            <a href="#212">Result::Quit</a> =&gt; <a href="#212">Result::Quit</a>,
         }
     }
 
@@ -2182,9 +2182,9 @@ implementation.)
     ///
     /// If this isn&#39;t a non-match, then this is a no-op.
     </span><span class="kw">fn </span>set_non_match(<span class="self">self</span>, at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../src/regex/dfa.rs.html#239">self</a> </span>{
-            <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a href="../../src/regex/dfa.rs.html#239">at</a>),
-            r =&gt; <a href="../../src/regex/dfa.rs.html#242">r</a>,
+        <span class="kw">match </span><span class="self"><a href="#239">self</a> </span>{
+            <a href="#211">Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <a href="#211">Result::NoMatch</a>(<a href="#239">at</a>),
+            r =&gt; <a href="#242">r</a>,
         }
     }
 }
@@ -2218,10 +2218,10 @@ implementation.)
 <span class="doccomment">/// Adds ip to data using delta encoding with respect to prev.
 ///
 /// After completion, `data` will contain `ip` and `prev` will be set to `ip`.
-</span><span class="kw">fn </span>push_inst_ptr(data: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, prev: <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#271">InstPtr</a>, ip: <a href="../../src/regex/dfa.rs.html#271">InstPtr</a>) {
-    <span class="kw">let </span>delta = (<a href="../../src/regex/dfa.rs.html#276">ip</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) - (<span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#276">prev</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-    <a href="../../src/regex/dfa.rs.html#1843">write_vari32</a>(<a href="../../src/regex/dfa.rs.html#276">data</a>, <a href="../../src/regex/dfa.rs.html#277">delta</a>);
-    <span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#276">prev</a> = <a href="../../src/regex/dfa.rs.html#276">ip</a>;
+</span><span class="kw">fn </span>push_inst_ptr(data: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, prev: <span class="kw-2">&amp;mut </span><a href="#271">InstPtr</a>, ip: <a href="#271">InstPtr</a>) {
+    <span class="kw">let </span>delta = (<a href="#276">ip</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) - (<span class="kw-2">*</span><a href="#276">prev</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+    <a href="#1843">write_vari32</a>(<a href="#276">data</a>, <a href="#277">delta</a>);
+    <span class="kw-2">*</span><a href="#276">prev</a> = <a href="#276">ip</a>;
 }
 
 <span class="kw">struct </span>InstPtrs&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -2236,23 +2236,23 @@ implementation.)
         <span class="kw">if </span><span class="self">self</span>.data.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>(delta, nread) = <a href="../../src/regex/dfa.rs.html#1852">read_vari32</a>(<a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.data);
-        <span class="kw">let </span>base = <a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.base <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> + <a href="../../src/regex/dfa.rs.html#294">delta</a>;
+        <span class="kw">let </span>(delta, nread) = <a href="#1852">read_vari32</a>(<a class="self" href="#290">self</a>.data);
+        <span class="kw">let </span>base = <a class="self" href="#290">self</a>.base <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> + <a href="#294">delta</a>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(base &gt;= <span class="number">0</span>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(nread &gt; <span class="number">0</span>);
-        <a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.data = <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.data[<a href="../../src/regex/dfa.rs.html#294">nread</a>..];
-        <a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.base = <a href="../../src/regex/dfa.rs.html#295">base</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="prelude-val">Some</span>(<a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.base)
+        <a class="self" href="#290">self</a>.data = <span class="kw-2">&amp;</span><a class="self" href="#290">self</a>.data[<a href="#294">nread</a>..];
+        <a class="self" href="#290">self</a>.base = <a href="#295">base</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="prelude-val">Some</span>(<a class="self" href="#290">self</a>.base)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#262">State</a> {
-    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
-        <a href="../../src/regex/dfa.rs.html#410">StateFlags</a>(<a class="self" href="../../src/regex/dfa.rs.html#305">self</a>.data[<span class="number">0</span>])
+<span class="kw">impl </span><a href="#262">State</a> {
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#410">StateFlags</a> {
+        <a href="#410">StateFlags</a>(<a class="self" href="#305">self</a>.data[<span class="number">0</span>])
     }
 
     <span class="kw">fn </span>inst_ptrs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InstPtrs&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../src/regex/dfa.rs.html#282">InstPtrs</a> { base: <span class="number">0</span>, data: <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#309">self</a>.data[<span class="number">1</span>..] }
+        <a href="#282">InstPtrs</a> { base: <span class="number">0</span>, data: <span class="kw-2">&amp;</span><a class="self" href="#309">self</a>.data[<span class="number">1</span>..] }
     }
 }
 
@@ -2304,26 +2304,26 @@ implementation.)
 
 <span class="doccomment">/// An unknown state means that the state has not been computed yet, and that
 /// the only way to progress is to compute it.
-</span><span class="kw">const </span>STATE_UNKNOWN: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">31</span>;
+</span><span class="kw">const </span>STATE_UNKNOWN: <a href="#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">31</span>;
 
 <span class="doccomment">/// A dead state means that the state has been computed and it is known that
 /// once it is entered, no future match can ever occur.
-</span><span class="kw">const </span>STATE_DEAD: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> + <span class="number">1</span>;
+</span><span class="kw">const </span>STATE_DEAD: <a href="#358">StatePtr</a> = <a href="#362">STATE_UNKNOWN</a> + <span class="number">1</span>;
 
 <span class="doccomment">/// A quit state means that the DFA came across some input that it doesn&#39;t
 /// know how to process correctly. The DFA should quit and another matching
 /// engine should be run in its place.
-</span><span class="kw">const </span>STATE_QUIT: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> + <span class="number">1</span>;
+</span><span class="kw">const </span>STATE_QUIT: <a href="#358">StatePtr</a> = <a href="#366">STATE_DEAD</a> + <span class="number">1</span>;
 
 <span class="doccomment">/// A start state is a state that the DFA can start in.
 ///
 /// Note that start states have their lower bits set to a state pointer.
-</span><span class="kw">const </span>STATE_START: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">30</span>;
+</span><span class="kw">const </span>STATE_START: <a href="#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">30</span>;
 
 <span class="doccomment">/// A match state means that the regex has successfully matched.
 ///
 /// Note that match states have their lower bits set to a state pointer.
-</span><span class="kw">const </span>STATE_MATCH: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">29</span>;
+</span><span class="kw">const </span>STATE_MATCH: <a href="#358">StatePtr</a> = <span class="number">1 </span>&lt;&lt; <span class="number">29</span>;
 
 <span class="doccomment">/// The maximum state pointer. This is useful to mask out the &quot;valid&quot; state
 /// pointer from a state with the &quot;start&quot; or &quot;match&quot; bits set.
@@ -2331,7 +2331,7 @@ implementation.)
 /// It doesn&#39;t make sense to use this with unknown, dead or quit state
 /// pointers, since those pointers are sentinels and never have their lower
 /// bits set to anything meaningful.
-</span><span class="kw">const </span>STATE_MAX: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> = <a href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a> - <span class="number">1</span>;
+</span><span class="kw">const </span>STATE_MAX: <a href="#358">StatePtr</a> = <a href="#381">STATE_MATCH</a> - <span class="number">1</span>;
 
 <span class="doccomment">/// Byte is a u8 in spirit, but a u16 in practice so that we can represent the
 /// special EOF sentinel value.
@@ -2354,132 +2354,132 @@ implementation.)
 </span><span class="attribute">#[derive(Clone, Copy, Eq, Default, Hash, PartialEq)]
 </span><span class="kw">struct </span>StateFlags(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#83">Cache</a> {
+<span class="kw">impl </span><a href="#83">Cache</a> {
     <span class="doccomment">/// Create new empty cache for the DFA engine.
-    </span><span class="kw">pub fn </span>new(prog: <span class="kw-2">&amp;</span><a href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(prog: <span class="kw-2">&amp;</span><a href="prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// We add 1 to account for the special EOF byte.
-        </span><span class="kw">let </span>num_byte_classes = (<a href="../../src/regex/dfa.rs.html#414">prog</a>.byte_classes[<span class="number">255</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>) + <span class="number">1</span>;
+        </span><span class="kw">let </span>num_byte_classes = (<a href="#414">prog</a>.byte_classes[<span class="number">255</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>) + <span class="number">1</span>;
         <span class="kw">let </span>starts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[STATE_UNKNOWN; <span class="number">256</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/dfa.rs.html#83">Cache</a> {
-            inner: <a href="../../src/regex/dfa.rs.html#102">CacheInner</a> {
-                compiled: StateMap::new(<a href="../../src/regex/dfa.rs.html#416">num_byte_classes</a>),
-                trans: Transitions::new(<a href="../../src/regex/dfa.rs.html#416">num_byte_classes</a>),
-                start_states: <a href="../../src/regex/dfa.rs.html#417">starts</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#83">Cache</a> {
+            inner: <a href="#102">CacheInner</a> {
+                compiled: StateMap::new(<a href="#416">num_byte_classes</a>),
+                trans: Transitions::new(<a href="#416">num_byte_classes</a>),
+                start_states: <a href="#417">starts</a>,
                 stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 flush_count: <span class="number">0</span>,
                 size: <span class="number">0</span>,
                 insts_scratch_space: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             },
-            qcur: SparseSet::new(<a href="../../src/regex/dfa.rs.html#414">prog</a>.insts.len()),
-            qnext: SparseSet::new(<a href="../../src/regex/dfa.rs.html#414">prog</a>.insts.len()),
+            qcur: SparseSet::new(<a href="#414">prog</a>.insts.len()),
+            qnext: SparseSet::new(<a href="#414">prog</a>.insts.len()),
         };
-        <a href="../../src/regex/dfa.rs.html#418">cache</a>.inner.<a href="../../src/regex/dfa.rs.html#439">reset_size</a>();
-        <a href="../../src/regex/dfa.rs.html#418">cache</a>
+        <a href="#418">cache</a>.inner.<a href="#439">reset_size</a>();
+        <a href="#418">cache</a>
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#102">CacheInner</a> {
+<span class="kw">impl </span><a href="#102">CacheInner</a> {
     <span class="doccomment">/// Resets the cache size to account for fixed costs, such as the program
     /// and stack sizes.
     </span><span class="kw">fn </span>reset_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#439">self</a>.size = (<a class="self" href="../../src/regex/dfa.rs.html#439">self</a>.start_states.len() * mem::size_of::&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;())
-            + (<a class="self" href="../../src/regex/dfa.rs.html#439">self</a>.stack.len() * mem::size_of::&lt;<a href="../../src/regex/dfa.rs.html#271">InstPtr</a>&gt;());
+        <a class="self" href="#439">self</a>.size = (<a class="self" href="#439">self</a>.start_states.len() * mem::size_of::&lt;<a href="#358">StatePtr</a>&gt;())
+            + (<a class="self" href="#439">self</a>.stack.len() * mem::size_of::&lt;<a href="#271">InstPtr</a>&gt;());
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fsm&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>forward(
-        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
-        cache: <span class="kw-2">&amp;</span><a href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="prog.rs.html#18">Program</a>,
+        cache: <span class="kw-2">&amp;</span><a href="exec.rs.html#1521">ProgramCache</a>,
         quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/dfa.rs.html#449">cache</a>.borrow_mut();
-        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#454">cache</a>.dfa;
-        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="../../src/regex/dfa.rs.html#170">Fsm</a> {
-            <a href="../../src/regex/dfa.rs.html#448">prog</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#449">cache</a>.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="#454">cache</a>.dfa;
+        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="#170">Fsm</a> {
+            <a href="#448">prog</a>,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span><a href="../../src/regex/dfa.rs.html#452">at</a>,
-            <a href="../../src/regex/dfa.rs.html#450">quit_after_match</a>,
-            last_match_si: <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>,
-            last_cache_flush: <a href="../../src/regex/dfa.rs.html#452">at</a>,
-            cache: <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#455">cache</a>.inner,
+            </span><a href="#452">at</a>,
+            <a href="#450">quit_after_match</a>,
+            last_match_si: <a href="#362">STATE_UNKNOWN</a>,
+            last_cache_flush: <a href="#452">at</a>,
+            cache: <span class="kw-2">&amp;mut </span><a href="#455">cache</a>.inner,
         };
-        <span class="kw">let </span>(empty_flags, state_flags) = <a href="../../src/regex/dfa.rs.html#456">dfa</a>.<a href="../../src/regex/dfa.rs.html#1410">start_flags</a>(<a href="../../src/regex/dfa.rs.html#451">text</a>, <a href="../../src/regex/dfa.rs.html#452">at</a>);
-        <a href="../../src/regex/dfa.rs.html#456">dfa</a>.start =
-            <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#456">dfa</a>.<a href="../../src/regex/dfa.rs.html#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#455">cache</a>.qcur, <a href="../../src/regex/dfa.rs.html#465">empty_flags</a>, <a href="../../src/regex/dfa.rs.html#465">state_flags</a>) {
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a href="../../src/regex/dfa.rs.html#452">at</a>),
-                <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#470">si</a>,
+        <span class="kw">let </span>(empty_flags, state_flags) = <a href="#456">dfa</a>.<a href="#1410">start_flags</a>(<a href="#451">text</a>, <a href="#452">at</a>);
+        <a href="#456">dfa</a>.start =
+            <span class="kw">match </span><a href="#456">dfa</a>.<a href="#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="#455">cache</a>.qcur, <a href="#465">empty_flags</a>, <a href="#465">state_flags</a>) {
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="#211">Result::NoMatch</a>(<a href="#452">at</a>),
+                <span class="prelude-val">Some</span>(si) =&gt; <a href="#470">si</a>,
             };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(dfa.start != STATE_UNKNOWN);
-        <a href="../../src/regex/dfa.rs.html#456">dfa</a>.<a href="../../src/regex/dfa.rs.html#555-560">exec_at</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#455">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#455">cache</a>.qnext, <a href="../../src/regex/dfa.rs.html#451">text</a>)
+        <a href="#456">dfa</a>.<a href="#555-560">exec_at</a>(<span class="kw-2">&amp;mut </span><a href="#455">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="#455">cache</a>.qnext, <a href="#451">text</a>)
     }
 
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>reverse(
-        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
-        cache: <span class="kw-2">&amp;</span><a href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="prog.rs.html#18">Program</a>,
+        cache: <span class="kw-2">&amp;</span><a href="exec.rs.html#1521">ProgramCache</a>,
         quit_after_match: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/dfa.rs.html#479">cache</a>.borrow_mut();
-        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#484">cache</a>.dfa_reverse;
-        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="../../src/regex/dfa.rs.html#170">Fsm</a> {
-            <a href="../../src/regex/dfa.rs.html#478">prog</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#479">cache</a>.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="#484">cache</a>.dfa_reverse;
+        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="#170">Fsm</a> {
+            <a href="#478">prog</a>,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span><a href="../../src/regex/dfa.rs.html#482">at</a>,
-            <a href="../../src/regex/dfa.rs.html#480">quit_after_match</a>,
-            last_match_si: <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>,
-            last_cache_flush: <a href="../../src/regex/dfa.rs.html#482">at</a>,
-            cache: <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#485">cache</a>.inner,
+            </span><a href="#482">at</a>,
+            <a href="#480">quit_after_match</a>,
+            last_match_si: <a href="#362">STATE_UNKNOWN</a>,
+            last_cache_flush: <a href="#482">at</a>,
+            cache: <span class="kw-2">&amp;mut </span><a href="#485">cache</a>.inner,
         };
-        <span class="kw">let </span>(empty_flags, state_flags) = <a href="../../src/regex/dfa.rs.html#486">dfa</a>.<a href="../../src/regex/dfa.rs.html#1435-1439">start_flags_reverse</a>(<a href="../../src/regex/dfa.rs.html#481">text</a>, <a href="../../src/regex/dfa.rs.html#482">at</a>);
-        <a href="../../src/regex/dfa.rs.html#486">dfa</a>.start =
-            <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#486">dfa</a>.<a href="../../src/regex/dfa.rs.html#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#485">cache</a>.qcur, <a href="../../src/regex/dfa.rs.html#495">empty_flags</a>, <a href="../../src/regex/dfa.rs.html#495">state_flags</a>) {
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a href="../../src/regex/dfa.rs.html#482">at</a>),
-                <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#500">si</a>,
+        <span class="kw">let </span>(empty_flags, state_flags) = <a href="#486">dfa</a>.<a href="#1435-1439">start_flags_reverse</a>(<a href="#481">text</a>, <a href="#482">at</a>);
+        <a href="#486">dfa</a>.start =
+            <span class="kw">match </span><a href="#486">dfa</a>.<a href="#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="#485">cache</a>.qcur, <a href="#495">empty_flags</a>, <a href="#495">state_flags</a>) {
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="#211">Result::NoMatch</a>(<a href="#482">at</a>),
+                <span class="prelude-val">Some</span>(si) =&gt; <a href="#500">si</a>,
             };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(dfa.start != STATE_UNKNOWN);
-        <a href="../../src/regex/dfa.rs.html#486">dfa</a>.<a href="../../src/regex/dfa.rs.html#748-753">exec_at_reverse</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#485">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#485">cache</a>.qnext, <a href="../../src/regex/dfa.rs.html#481">text</a>)
+        <a href="#486">dfa</a>.<a href="#748-753">exec_at_reverse</a>(<span class="kw-2">&amp;mut </span><a href="#485">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="#485">cache</a>.qnext, <a href="#481">text</a>)
     }
 
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>forward_many(
-        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
-        cache: <span class="kw-2">&amp;</span><a href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="prog.rs.html#18">Program</a>,
+        cache: <span class="kw-2">&amp;</span><a href="exec.rs.html#1521">ProgramCache</a>,
         matches: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(matches.len() == prog.matches.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/dfa.rs.html#509">cache</a>.borrow_mut();
-        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#515">cache</a>.dfa;
-        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="../../src/regex/dfa.rs.html#170">Fsm</a> {
-            <a href="../../src/regex/dfa.rs.html#508">prog</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="#509">cache</a>.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="#515">cache</a>.dfa;
+        <span class="kw">let </span><span class="kw-2">mut </span>dfa = <a href="#170">Fsm</a> {
+            <a href="#508">prog</a>,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span><a href="../../src/regex/dfa.rs.html#512">at</a>,
+            </span><a href="#512">at</a>,
             quit_after_match: <span class="bool-val">false</span>,
-            last_match_si: <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>,
-            last_cache_flush: <a href="../../src/regex/dfa.rs.html#512">at</a>,
-            cache: <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#516">cache</a>.inner,
+            last_match_si: <a href="#362">STATE_UNKNOWN</a>,
+            last_cache_flush: <a href="#512">at</a>,
+            cache: <span class="kw-2">&amp;mut </span><a href="#516">cache</a>.inner,
         };
-        <span class="kw">let </span>(empty_flags, state_flags) = <a href="../../src/regex/dfa.rs.html#517">dfa</a>.<a href="../../src/regex/dfa.rs.html#1410">start_flags</a>(<a href="../../src/regex/dfa.rs.html#511">text</a>, <a href="../../src/regex/dfa.rs.html#512">at</a>);
-        <a href="../../src/regex/dfa.rs.html#517">dfa</a>.start =
-            <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#517">dfa</a>.<a href="../../src/regex/dfa.rs.html#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#516">cache</a>.qcur, <a href="../../src/regex/dfa.rs.html#526">empty_flags</a>, <a href="../../src/regex/dfa.rs.html#526">state_flags</a>) {
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a href="../../src/regex/dfa.rs.html#512">at</a>),
-                <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#531">si</a>,
+        <span class="kw">let </span>(empty_flags, state_flags) = <a href="#517">dfa</a>.<a href="#1410">start_flags</a>(<a href="#511">text</a>, <a href="#512">at</a>);
+        <a href="#517">dfa</a>.start =
+            <span class="kw">match </span><a href="#517">dfa</a>.<a href="#1367-1372">start_state</a>(<span class="kw-2">&amp;mut </span><a href="#516">cache</a>.qcur, <a href="#526">empty_flags</a>, <a href="#526">state_flags</a>) {
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="#211">Result::NoMatch</a>(<a href="#512">at</a>),
+                <span class="prelude-val">Some</span>(si) =&gt; <a href="#531">si</a>,
             };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(dfa.start != STATE_UNKNOWN);
-        <span class="kw">let </span>result = <a href="../../src/regex/dfa.rs.html#517">dfa</a>.<a href="../../src/regex/dfa.rs.html#555-560">exec_at</a>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#516">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#516">cache</a>.qnext, <a href="../../src/regex/dfa.rs.html#511">text</a>);
+        <span class="kw">let </span>result = <a href="#517">dfa</a>.<a href="#555-560">exec_at</a>(<span class="kw-2">&amp;mut </span><a href="#516">cache</a>.qcur, <span class="kw-2">&amp;mut </span><a href="#516">cache</a>.qnext, <a href="#511">text</a>);
         <span class="kw">if </span>result.is_match() {
             <span class="kw">if </span>matches.len() == <span class="number">1 </span>{
-                <a href="../../src/regex/dfa.rs.html#510">matches</a>[<span class="number">0</span>] = <span class="bool-val">true</span>;
+                <a href="#510">matches</a>[<span class="number">0</span>] = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(dfa.last_match_si != STATE_UNKNOWN);
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(dfa.last_match_si != STATE_DEAD);
@@ -2490,7 +2490,7 @@ implementation.)
                 }
             }
         }
-        <a href="../../src/regex/dfa.rs.html#534">result</a>
+        <a href="#534">result</a>
     }
 
     <span class="doccomment">/// Executes the DFA on a forward NFA.
@@ -2499,8 +2499,8 @@ implementation.)
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>exec_at(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        qcur: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        qnext: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
+        qcur: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        qnext: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="comment">// For the most part, the DFA is basically:
@@ -2541,9 +2541,9 @@ implementation.)
         // reported as an index to the most recent byte that resulted in a
         // transition to a match state and is always stored in capture slot `1`
         // when searching forwards. Its maximum value is `text.len()`.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.at);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>prev_si, <span class="kw-2">mut </span>next_si) = (<a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.start, <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.start);
-        <span class="kw">let </span><span class="kw-2">mut </span>at = <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.at;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <a href="#211">Result::NoMatch</a>(<a class="self" href="#556">self</a>.at);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>prev_si, <span class="kw-2">mut </span>next_si) = (<a class="self" href="#556">self</a>.start, <a class="self" href="#556">self</a>.start);
+        <span class="kw">let </span><span class="kw-2">mut </span>at = <a class="self" href="#556">self</a>.at;
         <span class="kw">while </span>at &lt; text.len() {
             <span class="comment">// This is the real inner loop. We take advantage of special bits
             // set in the state pointer to determine whether a state is in the
@@ -2673,27 +2673,27 @@ implementation.)
         <span class="comment">// Run the DFA once more on the special EOF sentinel value.
         // We don&#39;t care about the special bits in the state pointer any more,
         // so get rid of them.
-        </span><a href="../../src/regex/dfa.rs.html#600">prev_si</a> &amp;= <a href="../../src/regex/dfa.rs.html#389">STATE_MAX</a>;
-        <a href="../../src/regex/dfa.rs.html#600">prev_si</a> = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.<a href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a href="../../src/regex/dfa.rs.html#557">qcur</a>, <a href="../../src/regex/dfa.rs.html#558">qnext</a>, <a href="../../src/regex/dfa.rs.html#600">prev_si</a>, Byte::eof()) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-            <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#599">result</a>.<a href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a href="../../src/regex/dfa.rs.html#559">text</a>.len()),
-            <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#735">si</a> &amp; !<a href="../../src/regex/dfa.rs.html#376">STATE_START</a>,
+        </span><a href="#600">prev_si</a> &amp;= <a href="#389">STATE_MAX</a>;
+        <a href="#600">prev_si</a> = <span class="kw">match </span><a class="self" href="#556">self</a>.<a href="#1343-1349">next_state</a>(<a href="#557">qcur</a>, <a href="#558">qnext</a>, <a href="#600">prev_si</a>, Byte::eof()) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#212">Result::Quit</a>,
+            <span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="#599">result</a>.<a href="#239">set_non_match</a>(<a href="#559">text</a>.len()),
+            <span class="prelude-val">Some</span>(si) =&gt; <a href="#735">si</a> &amp; !<a href="#376">STATE_START</a>,
         };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(prev_si != STATE_UNKNOWN);
         <span class="kw">if </span>prev_si &amp; STATE_MATCH &gt; <span class="number">0 </span>{
-            <a href="../../src/regex/dfa.rs.html#600">prev_si</a> &amp;= !<a href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>;
-            <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.last_match_si = <a href="../../src/regex/dfa.rs.html#600">prev_si</a>;
-            <a href="../../src/regex/dfa.rs.html#599">result</a> = <a href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<a href="../../src/regex/dfa.rs.html#559">text</a>.len());
+            <a href="#600">prev_si</a> &amp;= !<a href="#381">STATE_MATCH</a>;
+            <a class="self" href="#556">self</a>.last_match_si = <a href="#600">prev_si</a>;
+            <a href="#599">result</a> = <a href="#210">Result::Match</a>(<a href="#559">text</a>.len());
         }
-        <a href="../../src/regex/dfa.rs.html#599">result</a>
+        <a href="#599">result</a>
     }
 
     <span class="doccomment">/// Executes the DFA on a reverse NFA.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>exec_at_reverse(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        qcur: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        qnext: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
+        qcur: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        qnext: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="comment">// The comments in `exec_at` above mostly apply here too. The main
@@ -2703,9 +2703,9 @@ implementation.)
         // N.B. The code duplication here is regrettable. Efforts to improve
         // it without sacrificing performance are welcome. ---AG
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.prog.is_reverse);
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.at);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>prev_si, <span class="kw-2">mut </span>next_si) = (<a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.start, <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.start);
-        <span class="kw">let </span><span class="kw-2">mut </span>at = <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.at;
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="#211">Result::NoMatch</a>(<a class="self" href="#749">self</a>.at);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>prev_si, <span class="kw-2">mut </span>next_si) = (<a class="self" href="#749">self</a>.start, <a class="self" href="#749">self</a>.start);
+        <span class="kw">let </span><span class="kw-2">mut </span>at = <a class="self" href="#749">self</a>.at;
         <span class="kw">while </span>at &gt; <span class="number">0 </span>{
             <span class="kw">while </span>next_si &lt;= STATE_MAX &amp;&amp; at &gt; <span class="number">0 </span>{
                 <span class="comment">// Argument for safety is in the definition of next_si.
@@ -2776,18 +2776,18 @@ implementation.)
         }
 
         <span class="comment">// Run the DFA once more on the special EOF sentinel value.
-        </span><a href="../../src/regex/dfa.rs.html#762">prev_si</a> = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.<a href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a href="../../src/regex/dfa.rs.html#750">qcur</a>, <a href="../../src/regex/dfa.rs.html#751">qnext</a>, <a href="../../src/regex/dfa.rs.html#762">prev_si</a>, Byte::eof()) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-            <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="../../src/regex/dfa.rs.html#761">result</a>.<a href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<span class="number">0</span>),
-            <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#837">si</a>,
+        </span><a href="#762">prev_si</a> = <span class="kw">match </span><a class="self" href="#749">self</a>.<a href="#1343-1349">next_state</a>(<a href="#750">qcur</a>, <a href="#751">qnext</a>, <a href="#762">prev_si</a>, Byte::eof()) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="#212">Result::Quit</a>,
+            <span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>) =&gt; <span class="kw">return </span><a href="#761">result</a>.<a href="#239">set_non_match</a>(<span class="number">0</span>),
+            <span class="prelude-val">Some</span>(si) =&gt; <a href="#837">si</a>,
         };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(prev_si != STATE_UNKNOWN);
         <span class="kw">if </span>prev_si &amp; STATE_MATCH &gt; <span class="number">0 </span>{
-            <a href="../../src/regex/dfa.rs.html#762">prev_si</a> &amp;= !<a href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>;
-            <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.last_match_si = <a href="../../src/regex/dfa.rs.html#762">prev_si</a>;
-            <a href="../../src/regex/dfa.rs.html#761">result</a> = <a href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="number">0</span>);
+            <a href="#762">prev_si</a> &amp;= !<a href="#381">STATE_MATCH</a>;
+            <a class="self" href="#749">self</a>.last_match_si = <a href="#762">prev_si</a>;
+            <a href="#761">result</a> = <a href="#210">Result::Match</a>(<span class="number">0</span>);
         }
-        <a href="../../src/regex/dfa.rs.html#761">result</a>
+        <a href="#761">result</a>
     }
 
     <span class="doccomment">/// next_si transitions to the next state, where the transition input
@@ -2795,7 +2795,7 @@ implementation.)
     ///
     /// This elides bounds checks, and is therefore not safe.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">unsafe fn </span>next_si(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    </span><span class="kw">unsafe fn </span>next_si(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#358">StatePtr</a> {
         <span class="comment">// What is the argument for safety here?
         // We have three unchecked accesses that could possibly violate safety:
         //
@@ -2818,10 +2818,10 @@ implementation.)
         // relies on `si` being correct, but StatePtrs should only ever be
         // retrieved from the transition table, which ensures they are correct.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(i &lt; text.len());
-        <span class="kw">let </span>b = <span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#853">text</a>.get_unchecked(<a href="../../src/regex/dfa.rs.html#853">i</a>);
+        <span class="kw">let </span>b = <span class="kw-2">*</span><a href="#853">text</a>.get_unchecked(<a href="#853">i</a>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>((b <span class="kw">as </span>usize) &lt; <span class="self">self</span>.prog.byte_classes.len());
-        <span class="kw">let </span>cls = <span class="kw-2">*</span><a class="self" href="../../src/regex/dfa.rs.html#853">self</a>.prog.byte_classes.get_unchecked(<a href="../../src/regex/dfa.rs.html#876">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a class="self" href="../../src/regex/dfa.rs.html#853">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1686">next_unchecked</a>(<a href="../../src/regex/dfa.rs.html#853">si</a>, <a href="../../src/regex/dfa.rs.html#878">cls</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="kw">let </span>cls = <span class="kw-2">*</span><a class="self" href="#853">self</a>.prog.byte_classes.get_unchecked(<a href="#876">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a class="self" href="#853">self</a>.cache.trans.<a href="#1686">next_unchecked</a>(<a href="#853">si</a>, <a href="#878">cls</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
     <span class="doccomment">/// Computes the next state given the current state and the current input
@@ -2834,15 +2834,15 @@ implementation.)
     /// STATE_UNKNOWN can never be returned.
     </span><span class="kw">fn </span>exec_byte(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        qcur: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        qnext: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        <span class="kw-2">mut </span>si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
-        b: <a href="../../src/regex/dfa.rs.html#394">Byte</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
-        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        qcur: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        qnext: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        <span class="kw-2">mut </span>si: <a href="#358">StatePtr</a>,
+        b: <a href="#394">Byte</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
+        <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Initialize a queue with the current DFA state&#39;s NFA states.
-        </span><a href="../../src/regex/dfa.rs.html#892">qcur</a>.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
+        </span><a href="#892">qcur</a>.<a href="sparse.rs.html#59">clear</a>();
         <span class="kw">for </span>ip <span class="kw">in </span><span class="self">self</span>.state(si).inst_ptrs() {
             qcur.insert(ip);
         }
@@ -2853,8 +2853,8 @@ implementation.)
         //
         // We only need to do this step if there are any empty assertions in
         // the current state.
-        </span><span class="kw">let </span>is_word_last = <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a href="../../src/regex/dfa.rs.html#1462">state</a>(<a href="../../src/regex/dfa.rs.html#894">si</a>).<a href="../../src/regex/dfa.rs.html#305">flags</a>().<a href="../../src/regex/dfa.rs.html#1702">is_word</a>();
-        <span class="kw">let </span>is_word = <a href="../../src/regex/dfa.rs.html#895">b</a>.<a href="../../src/regex/dfa.rs.html#1730">is_ascii_word</a>();
+        </span><span class="kw">let </span>is_word_last = <a class="self" href="#891">self</a>.<a href="#1462">state</a>(<a href="#894">si</a>).<a href="#305">flags</a>().<a href="#1702">is_word</a>();
+        <span class="kw">let </span>is_word = <a href="#895">b</a>.<a href="#1730">is_ascii_word</a>();
         <span class="kw">if </span><span class="self">self</span>.state(si).flags().has_empty() {
             <span class="comment">// Compute the flags immediately preceding the current byte.
             // This means we only care about the &quot;end&quot; or &quot;end line&quot; flags.
@@ -2862,23 +2862,23 @@ implementation.)
             // current byte and are handled below.)
             </span><span class="kw">let </span><span class="kw-2">mut </span>flags = EmptyFlags::default();
             <span class="kw">if </span>b.is_eof() {
-                <a href="../../src/regex/dfa.rs.html#918">flags</a>.end = <span class="bool-val">true</span>;
-                <a href="../../src/regex/dfa.rs.html#918">flags</a>.end_line = <span class="bool-val">true</span>;
+                <a href="#918">flags</a>.end = <span class="bool-val">true</span>;
+                <a href="#918">flags</a>.end_line = <span class="bool-val">true</span>;
             } <span class="kw">else if </span>b.as_byte().map_or(<span class="bool-val">false</span>, |b| b == <span class="string">b&#39;\n&#39;</span>) {
-                <a href="../../src/regex/dfa.rs.html#918">flags</a>.end_line = <span class="bool-val">true</span>;
+                <a href="#918">flags</a>.end_line = <span class="bool-val">true</span>;
             }
             <span class="kw">if </span>is_word_last == is_word {
-                <a href="../../src/regex/dfa.rs.html#918">flags</a>.not_word_boundary = <span class="bool-val">true</span>;
+                <a href="#918">flags</a>.not_word_boundary = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
-                <a href="../../src/regex/dfa.rs.html#918">flags</a>.word_boundary = <span class="bool-val">true</span>;
+                <a href="#918">flags</a>.word_boundary = <span class="bool-val">true</span>;
             }
             <span class="comment">// Now follow epsilon transitions from every NFA state, but make
             // sure we only follow transitions that satisfy our flags.
-            </span><a href="../../src/regex/dfa.rs.html#893">qnext</a>.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
+            </span><a href="#893">qnext</a>.<a href="sparse.rs.html#59">clear</a>();
             <span class="kw">for </span><span class="kw-2">&amp;</span>ip <span class="kw">in </span><span class="kw-2">&amp;*</span>qcur {
                 <span class="self">self</span>.follow_epsilons(usize_to_u32(ip), qnext, flags);
             }
-            mem::swap(<a href="../../src/regex/dfa.rs.html#892">qcur</a>, <a href="../../src/regex/dfa.rs.html#893">qnext</a>);
+            mem::swap(<a href="#892">qcur</a>, <a href="#893">qnext</a>);
         }
 
         <span class="comment">// Now we set flags for immediately after the current byte. Since start
@@ -2893,13 +2893,13 @@ implementation.)
         // then it is the *next* DFA state that is marked as a match.
         </span><span class="kw">let </span><span class="kw-2">mut </span>empty_flags = EmptyFlags::default();
         <span class="kw">let </span><span class="kw-2">mut </span>state_flags = StateFlags::default();
-        <a href="../../src/regex/dfa.rs.html#949">empty_flags</a>.start_line = <a href="../../src/regex/dfa.rs.html#895">b</a>.<a href="../../src/regex/dfa.rs.html#1741">as_byte</a>().map_or(<span class="bool-val">false</span>, |b| <a href="../../src/regex/dfa.rs.html#951">b</a> == <span class="string">b&#39;\n&#39;</span>);
+        <a href="#949">empty_flags</a>.start_line = <a href="#895">b</a>.<a href="#1741">as_byte</a>().map_or(<span class="bool-val">false</span>, |b| <a href="#951">b</a> == <span class="string">b&#39;\n&#39;</span>);
         <span class="kw">if </span>b.is_ascii_word() {
-            <a href="../../src/regex/dfa.rs.html#950">state_flags</a>.<a href="../../src/regex/dfa.rs.html#1706">set_word</a>();
+            <a href="#950">state_flags</a>.<a href="#1706">set_word</a>();
         }
         <span class="comment">// Now follow all epsilon transitions again, but only after consuming
         // the current byte.
-        </span><a href="../../src/regex/dfa.rs.html#893">qnext</a>.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
+        </span><a href="#893">qnext</a>.<a href="sparse.rs.html#59">clear</a>();
         <span class="kw">for </span><span class="kw-2">&amp;</span>ip <span class="kw">in </span><span class="kw-2">&amp;*</span>qcur {
             <span class="kw">match </span><span class="self">self</span>.prog[ip <span class="kw">as </span>usize] {
                 <span class="comment">// These states never happen in a byte-based program.
@@ -2935,7 +2935,7 @@ implementation.)
             // matching a regex set, then make the next state contain the
             // previous states transitions. We do this so that the main
             // matching loop can extract all of the match instructions.
-            </span>mem::swap(<a href="../../src/regex/dfa.rs.html#892">qcur</a>, <a href="../../src/regex/dfa.rs.html#893">qnext</a>);
+            </span>mem::swap(<a href="#892">qcur</a>, <a href="#893">qnext</a>);
             <span class="comment">// And don&#39;t cache this state because it&#39;s totally bunk.
             </span><span class="bool-val">false
         </span>} <span class="kw">else </span>{
@@ -2950,26 +2950,26 @@ implementation.)
         // it has gotten too full. When that happens, the location of the
         // current state may change.
         </span><span class="kw">let </span><span class="kw-2">mut </span>next =
-            <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a href="../../src/regex/dfa.rs.html#1146-1151">cached_state</a>(<a href="../../src/regex/dfa.rs.html#893">qnext</a>, <a href="../../src/regex/dfa.rs.html#950">state_flags</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#894">si</a>)) {
+            <span class="kw">match </span><a class="self" href="#891">self</a>.<a href="#1146-1151">cached_state</a>(<a href="#893">qnext</a>, <a href="#950">state_flags</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span><a href="#894">si</a>)) {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(next) =&gt; <a href="../../src/regex/dfa.rs.html#1010">next</a>,
+                <span class="prelude-val">Some</span>(next) =&gt; <a href="#1010">next</a>,
             };
         <span class="kw">if </span>(<span class="self">self</span>.start &amp; !STATE_START) == next {
             <span class="comment">// Start states can never be match states since all matches are
             // delayed by one byte.
             </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.state(next).flags().is_match());
-            <a href="../../src/regex/dfa.rs.html#1007">next</a> = <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a href="../../src/regex/dfa.rs.html#1565">start_ptr</a>(<a href="../../src/regex/dfa.rs.html#1007">next</a>);
+            <a href="#1007">next</a> = <a class="self" href="#891">self</a>.<a href="#1565">start_ptr</a>(<a href="#1007">next</a>);
         }
         <span class="kw">if </span>next &lt;= STATE_MAX &amp;&amp; <span class="self">self</span>.state(next).flags().is_match() {
-            <a href="../../src/regex/dfa.rs.html#1007">next</a> |= <a href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>;
+            <a href="#1007">next</a> |= <a href="#381">STATE_MATCH</a>;
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(next != STATE_UNKNOWN);
         <span class="comment">// And now store our state in the current state&#39;s next list.
         </span><span class="kw">if </span>cache {
-            <span class="kw">let </span>cls = <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a href="../../src/regex/dfa.rs.html#1528">byte_class</a>(<a href="../../src/regex/dfa.rs.html#895">b</a>);
-            <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1671">set_next</a>(<a href="../../src/regex/dfa.rs.html#894">si</a>, <a href="../../src/regex/dfa.rs.html#1024">cls</a>, <a href="../../src/regex/dfa.rs.html#1007">next</a>);
+            <span class="kw">let </span>cls = <a class="self" href="#891">self</a>.<a href="#1528">byte_class</a>(<a href="#895">b</a>);
+            <a class="self" href="#891">self</a>.cache.trans.<a href="#1671">set_next</a>(<a href="#894">si</a>, <a href="#1024">cls</a>, <a href="#1007">next</a>);
         }
-        <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1007">next</a>)
+        <span class="prelude-val">Some</span>(<a href="#1007">next</a>)
     }
 
     <span class="doccomment">/// Follows the epsilon transitions starting at (and including) `ip`. The
@@ -2997,16 +2997,16 @@ implementation.)
     /// be handled in a subsequent DFA state.)
     </span><span class="kw">fn </span>follow_epsilons(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        ip: <a href="../../src/regex/dfa.rs.html#271">InstPtr</a>,
-        q: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        flags: <a href="../../src/regex/dfa.rs.html#398">EmptyFlags</a>,
+        ip: <a href="#271">InstPtr</a>,
+        q: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        flags: <a href="#398">EmptyFlags</a>,
     ) {
-        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#341"><span class="kw">crate</span>::prog::EmptyLook</a>::<span class="kw-2">*</span>;
-        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="prog.rs.html#341"><span class="kw">crate</span>::prog::EmptyLook</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to traverse the NFA to follow epsilon transitions, so avoid
         // recursion with an explicit stack.
-        </span><a class="self" href="../../src/regex/dfa.rs.html#1054">self</a>.cache.stack.push(<a href="../../src/regex/dfa.rs.html#1055">ip</a>);
+        </span><a class="self" href="#1054">self</a>.cache.stack.push(<a href="#1055">ip</a>);
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>ip) = <span class="self">self</span>.cache.stack.pop() {
             <span class="comment">// Try to munch through as many states as possible without
             // pushes/pops to the stack.
@@ -3090,10 +3090,10 @@ implementation.)
     /// location may change.
     </span><span class="kw">fn </span>cached_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        q: <span class="kw-2">&amp;</span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        <span class="kw-2">mut </span>state_flags: <a href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
-        current_state: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
+        q: <span class="kw-2">&amp;</span><a href="sparse.rs.html#16">SparseSet</a>,
+        <span class="kw-2">mut </span>state_flags: <a href="#410">StateFlags</a>,
+        current_state: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#358">StatePtr</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
         <span class="comment">// If we couldn&#39;t come up with a non-empty key to represent this state,
         // then it is dead and can never lead to a match.
         //
@@ -3101,13 +3101,13 @@ implementation.)
         // in q. We use this as an optimization in exec_byte to determine when
         // we should follow epsilon transitions at the empty string preceding
         // the current byte.
-        </span><span class="kw">let </span>key = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1147">self</a>.<a href="../../src/regex/dfa.rs.html#1188-1192">cached_state_key</a>(<a href="../../src/regex/dfa.rs.html#1148">q</a>, <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#1149">state_flags</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
-            <span class="prelude-val">Some</span>(v) =&gt; <a href="../../src/regex/dfa.rs.html#1161">v</a>,
+        </span><span class="kw">let </span>key = <span class="kw">match </span><a class="self" href="#1147">self</a>.<a href="#1188-1192">cached_state_key</a>(<a href="#1148">q</a>, <span class="kw-2">&amp;mut </span><a href="#1149">state_flags</a>) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>),
+            <span class="prelude-val">Some</span>(v) =&gt; <a href="#1161">v</a>,
         };
         <span class="comment">// In the cache? Cool. Done.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(si) = <a class="self" href="../../src/regex/dfa.rs.html#1147">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1620">get_ptr</a>(<span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#1159">key</a>) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1164">si</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(si) = <a class="self" href="#1147">self</a>.cache.compiled.<a href="#1620">get_ptr</a>(<span class="kw-2">&amp;</span><a href="#1159">key</a>) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1164">si</a>);
         }
         <span class="comment">// If the cache has gotten too big, wipe it.
         </span><span class="kw">if </span><span class="self">self</span>.approximate_size() &gt; <span class="self">self</span>.prog.dfa_size_limit
@@ -3117,7 +3117,7 @@ implementation.)
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="comment">// Allocate room for our state and add it.
-        </span><a class="self" href="../../src/regex/dfa.rs.html#1147">self</a>.<a href="../../src/regex/dfa.rs.html#1474">add_state</a>(<a href="../../src/regex/dfa.rs.html#1159">key</a>)
+        </span><a class="self" href="#1147">self</a>.<a href="#1474">add_state</a>(<a href="#1159">key</a>)
     }
 
     <span class="doccomment">/// Produces a key suitable for describing a state in the DFA cache.
@@ -3132,10 +3132,10 @@ implementation.)
     /// state.
     </span><span class="kw">fn </span>cached_state_key(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        q: <span class="kw-2">&amp;</span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        state_flags: <span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#262">State</a>&gt; {
-        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        q: <span class="kw-2">&amp;</span><a href="sparse.rs.html#16">SparseSet</a>,
+        state_flags: <span class="kw-2">&amp;mut </span><a href="#410">StateFlags</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#262">State</a>&gt; {
+        <span class="kw">use </span><a href="prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to build up enough information to recognize pre-built states
         // in the DFA. Generally speaking, this includes every instruction
@@ -3147,10 +3147,10 @@ implementation.)
         // cache.
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>insts =
-            mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/regex/dfa.rs.html#1189">self</a>.cache.insts_scratch_space, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
-        <a href="../../src/regex/dfa.rs.html#1204">insts</a>.clear();
+            mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#1189">self</a>.cache.insts_scratch_space, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <a href="#1204">insts</a>.clear();
         <span class="comment">// Reserve 1 byte for flags.
-        </span><a href="../../src/regex/dfa.rs.html#1204">insts</a>.push(<span class="number">0</span>);
+        </span><a href="#1204">insts</a>.push(<span class="number">0</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>prev = <span class="number">0</span>;
         <span class="kw">for </span><span class="kw-2">&amp;</span>ip <span class="kw">in </span>q {
@@ -3178,12 +3178,12 @@ implementation.)
         </span><span class="kw">let </span>opt_state = <span class="kw">if </span>insts.len() == <span class="number">1 </span>&amp;&amp; !state_flags.is_match() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span><a href="../../src/regex/dfa.rs.html#410">StateFlags</a>(f) = <span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#1191">state_flags</a>;
-            <a href="../../src/regex/dfa.rs.html#1204">insts</a>[<span class="number">0</span>] = <a href="../../src/regex/dfa.rs.html#1236">f</a>;
-            <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#262">State</a> { data: Arc::from(<span class="kw-2">&amp;*</span><a href="../../src/regex/dfa.rs.html#1204">insts</a>) })
+            <span class="kw">let </span><a href="#410">StateFlags</a>(f) = <span class="kw-2">*</span><a href="#1191">state_flags</a>;
+            <a href="#1204">insts</a>[<span class="number">0</span>] = <a href="#1236">f</a>;
+            <span class="prelude-val">Some</span>(<a href="#262">State</a> { data: Arc::from(<span class="kw-2">&amp;*</span><a href="#1204">insts</a>) })
         };
-        <a class="self" href="../../src/regex/dfa.rs.html#1189">self</a>.cache.insts_scratch_space = <a href="../../src/regex/dfa.rs.html#1204">insts</a>;
-        <a href="../../src/regex/dfa.rs.html#1233">opt_state</a>
+        <a class="self" href="#1189">self</a>.cache.insts_scratch_space = <a href="#1204">insts</a>;
+        <a href="#1233">opt_state</a>
     }
 
     <span class="doccomment">/// Clears the cache, but saves and restores current_state if it is not
@@ -3196,23 +3196,23 @@ implementation.)
     /// give up.
     </span><span class="kw">fn </span>clear_cache_and_save(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        current_state: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;,
+        current_state: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="#358">StatePtr</a>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if </span><span class="self">self</span>.cache.compiled.is_empty() {
             <span class="comment">// Nothing to clear...
             </span><span class="kw">return </span><span class="bool-val">true</span>;
         }
-        <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#1254">current_state</a> {
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a href="../../src/regex/dfa.rs.html#1280">clear_cache</a>(),
+        <span class="kw">match </span><a href="#1254">current_state</a> {
+            <span class="prelude-val">None </span>=&gt; <a class="self" href="#1253">self</a>.<a href="#1280">clear_cache</a>(),
             <span class="prelude-val">Some</span>(si) =&gt; {
-                <span class="kw">let </span>cur = <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a href="../../src/regex/dfa.rs.html#1462">state</a>(<span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#1262">si</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <span class="kw">let </span>cur = <a class="self" href="#1253">self</a>.<a href="#1462">state</a>(<span class="kw-2">*</span><a href="#1262">si</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 <span class="kw">if </span>!<span class="self">self</span>.clear_cache() {
                     <span class="kw">return </span><span class="bool-val">false</span>;
                 }
                 <span class="comment">// The unwrap is OK because we just cleared the cache and
                 // therefore know that the next state pointer won&#39;t exceed
                 // STATE_MAX.
-                </span><span class="kw-2">*</span><a href="../../src/regex/dfa.rs.html#1262">si</a> = <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a href="../../src/regex/dfa.rs.html#1322">restore_state</a>(<a href="../../src/regex/dfa.rs.html#1263">cur</a>).unwrap();
+                </span><span class="kw-2">*</span><a href="#1262">si</a> = <a class="self" href="#1253">self</a>.<a href="#1322">restore_state</a>(<a href="#1263">cur</a>).unwrap();
                 <span class="bool-val">true
             </span>}
         }
@@ -3228,7 +3228,7 @@ implementation.)
         // 10 or fewer bytes per state.
         // Additionally, we permit the cache to be flushed a few times before
         // caling it quits.
-        </span><span class="kw">let </span>nstates = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1612">len</a>();
+        </span><span class="kw">let </span>nstates = <a class="self" href="#1280">self</a>.cache.compiled.<a href="#1612">len</a>();
         <span class="kw">if </span><span class="self">self</span>.cache.flush_count &gt;= <span class="number">3
             </span>&amp;&amp; <span class="self">self</span>.at &gt;= <span class="self">self</span>.last_cache_flush
             &amp;&amp; (<span class="self">self</span>.at - <span class="self">self</span>.last_cache_flush) &lt;= <span class="number">10 </span>* nstates
@@ -3236,41 +3236,41 @@ implementation.)
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
         <span class="comment">// Update statistics tracking cache flushes.
-        </span><a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.last_cache_flush = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.at;
-        <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.cache.flush_count += <span class="number">1</span>;
+        </span><a class="self" href="#1280">self</a>.last_cache_flush = <a class="self" href="#1280">self</a>.at;
+        <a class="self" href="#1280">self</a>.cache.flush_count += <span class="number">1</span>;
 
         <span class="comment">// OK, actually flush the cache.
-        </span><span class="kw">let </span>start = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.<a href="../../src/regex/dfa.rs.html#1462">state</a>(<a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.start &amp; !<a href="../../src/regex/dfa.rs.html#376">STATE_START</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        </span><span class="kw">let </span>start = <a class="self" href="#1280">self</a>.<a href="#1462">state</a>(<a class="self" href="#1280">self</a>.start &amp; !<a href="#376">STATE_START</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span>last_match = <span class="kw">if </span><span class="self">self</span>.last_match_si &lt;= STATE_MAX {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.<a href="../../src/regex/dfa.rs.html#1462">state</a>(<a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.last_match_si).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <span class="prelude-val">Some</span>(<a class="self" href="#1280">self</a>.<a href="#1462">state</a>(<a class="self" href="#1280">self</a>.last_match_si).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
-        <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.cache.<a href="../../src/regex/dfa.rs.html#439">reset_size</a>();
-        <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1666">clear</a>();
-        <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1633">clear</a>();
+        <a class="self" href="#1280">self</a>.cache.<a href="#439">reset_size</a>();
+        <a class="self" href="#1280">self</a>.cache.trans.<a href="#1666">clear</a>();
+        <a class="self" href="#1280">self</a>.cache.compiled.<a href="#1633">clear</a>();
         <span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.cache.start_states {
             <span class="kw-2">*</span>s = STATE_UNKNOWN;
         }
         <span class="comment">// The unwraps are OK because we just cleared the cache and therefore
         // know that the next state pointer won&#39;t exceed STATE_MAX.
-        </span><span class="kw">let </span>start_ptr = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.<a href="../../src/regex/dfa.rs.html#1322">restore_state</a>(<a href="../../src/regex/dfa.rs.html#1298">start</a>).unwrap();
-        <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.start = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.<a href="../../src/regex/dfa.rs.html#1565">start_ptr</a>(<a href="../../src/regex/dfa.rs.html#1312">start_ptr</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(last_match) = <a href="../../src/regex/dfa.rs.html#1299">last_match</a> {
-            <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.last_match_si = <a class="self" href="../../src/regex/dfa.rs.html#1280">self</a>.<a href="../../src/regex/dfa.rs.html#1322">restore_state</a>(<a href="../../src/regex/dfa.rs.html#1314">last_match</a>).unwrap();
+        </span><span class="kw">let </span>start_ptr = <a class="self" href="#1280">self</a>.<a href="#1322">restore_state</a>(<a href="#1298">start</a>).unwrap();
+        <a class="self" href="#1280">self</a>.start = <a class="self" href="#1280">self</a>.<a href="#1565">start_ptr</a>(<a href="#1312">start_ptr</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last_match) = <a href="#1299">last_match</a> {
+            <a class="self" href="#1280">self</a>.last_match_si = <a class="self" href="#1280">self</a>.<a href="#1322">restore_state</a>(<a href="#1314">last_match</a>).unwrap();
         }
         <span class="bool-val">true
     </span>}
 
     <span class="doccomment">/// Restores the given state back into the cache, and returns a pointer
     /// to it.
-    </span><span class="kw">fn </span>restore_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="../../src/regex/dfa.rs.html#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
+    </span><span class="kw">fn </span>restore_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
         <span class="comment">// If we&#39;ve already stored this state, just return a pointer to it.
         // None will be the wiser.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(si) = <a class="self" href="../../src/regex/dfa.rs.html#1322">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1620">get_ptr</a>(<span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#1322">state</a>) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1325">si</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(si) = <a class="self" href="#1322">self</a>.cache.compiled.<a href="#1620">get_ptr</a>(<span class="kw-2">&amp;</span><a href="#1322">state</a>) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1325">si</a>);
         }
-        <a class="self" href="../../src/regex/dfa.rs.html#1322">self</a>.<a href="../../src/regex/dfa.rs.html#1474">add_state</a>(<a href="../../src/regex/dfa.rs.html#1322">state</a>)
+        <a class="self" href="#1322">self</a>.<a href="#1474">add_state</a>(<a href="#1322">state</a>)
     }
 
     <span class="doccomment">/// Returns the next state given the current state si and current byte
@@ -3287,18 +3287,18 @@ implementation.)
     /// ran out of space and thinks it&#39;s running too slowly).
     </span><span class="kw">fn </span>next_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        qcur: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        qnext: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
-        b: <a href="../../src/regex/dfa.rs.html#394">Byte</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
+        qcur: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        qnext: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        si: <a href="#358">StatePtr</a>,
+        b: <a href="#394">Byte</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
         <span class="kw">if </span>si == STATE_DEAD {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#366">STATE_DEAD</a>);
         }
-        <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1676">next</a>(<a href="../../src/regex/dfa.rs.html#1347">si</a>, <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<a href="../../src/regex/dfa.rs.html#1528">byte_class</a>(<a href="../../src/regex/dfa.rs.html#1348">b</a>)) {
-            <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<a href="../../src/regex/dfa.rs.html#890-896">exec_byte</a>(<a href="../../src/regex/dfa.rs.html#1345">qcur</a>, <a href="../../src/regex/dfa.rs.html#1346">qnext</a>, <a href="../../src/regex/dfa.rs.html#1347">si</a>, <a href="../../src/regex/dfa.rs.html#1348">b</a>),
-            <a href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> =&gt; <span class="prelude-val">None</span>,
-            nsi =&gt; <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1356">nsi</a>),
+        <span class="kw">match </span><a class="self" href="#1344">self</a>.cache.trans.<a href="#1676">next</a>(<a href="#1347">si</a>, <a class="self" href="#1344">self</a>.<a href="#1528">byte_class</a>(<a href="#1348">b</a>)) {
+            <a href="#362">STATE_UNKNOWN</a> =&gt; <a class="self" href="#1344">self</a>.<a href="#890-896">exec_byte</a>(<a href="#1345">qcur</a>, <a href="#1346">qnext</a>, <a href="#1347">si</a>, <a href="#1348">b</a>),
+            <a href="#371">STATE_QUIT</a> =&gt; <span class="prelude-val">None</span>,
+            nsi =&gt; <span class="prelude-val">Some</span>(<a href="#1356">nsi</a>),
         }
     }
 
@@ -3311,66 +3311,66 @@ implementation.)
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>start_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        q: <span class="kw-2">&amp;mut </span><a href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
-        empty_flags: <a href="../../src/regex/dfa.rs.html#398">EmptyFlags</a>,
-        state_flags: <a href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
+        q: <span class="kw-2">&amp;mut </span><a href="sparse.rs.html#16">SparseSet</a>,
+        empty_flags: <a href="#398">EmptyFlags</a>,
+        state_flags: <a href="#410">StateFlags</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
         <span class="comment">// Compute an index into our cache of start states based on the set
         // of empty/state flags set at the current position in the input. We
         // don&#39;t use every flag since not all flags matter. For example, since
         // matches are delayed by one byte, start states can never be match
         // states.
         </span><span class="kw">let </span>flagi = {
-            (((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.start <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">0</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.end <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">1</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.start_line <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">2</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.end_line <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">3</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.word_boundary <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">4</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>.not_word_boundary <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">5</span>)
-                | ((<a href="../../src/regex/dfa.rs.html#1371">state_flags</a>.<a href="../../src/regex/dfa.rs.html#1702">is_word</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">6</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+            (((<a href="#1370">empty_flags</a>.start <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">0</span>)
+                | ((<a href="#1370">empty_flags</a>.end <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">1</span>)
+                | ((<a href="#1370">empty_flags</a>.start_line <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">2</span>)
+                | ((<a href="#1370">empty_flags</a>.end_line <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">3</span>)
+                | ((<a href="#1370">empty_flags</a>.word_boundary <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">4</span>)
+                | ((<a href="#1370">empty_flags</a>.not_word_boundary <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">5</span>)
+                | ((<a href="#1371">state_flags</a>.<a href="#1702">is_word</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) &lt;&lt; <span class="number">6</span>)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
         };
-        <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.cache.start_states[<a href="../../src/regex/dfa.rs.html#1378">flagi</a>] {
-            <a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> =&gt; {}
-            si =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1389">si</a>),
+        <span class="kw">match </span><a class="self" href="#1368">self</a>.cache.start_states[<a href="#1378">flagi</a>] {
+            <a href="#362">STATE_UNKNOWN</a> =&gt; {}
+            si =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1389">si</a>),
         }
-        <a href="../../src/regex/dfa.rs.html#1369">q</a>.<a href="../../src/regex/sparse.rs.html#59">clear</a>();
-        <span class="kw">let </span>start = <a href="../../src/regex/dfa.rs.html#1814">usize_to_u32</a>(<a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.prog.start);
-        <a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.<a href="../../src/regex/dfa.rs.html#1053-1058">follow_epsilons</a>(<a href="../../src/regex/dfa.rs.html#1392">start</a>, <a href="../../src/regex/dfa.rs.html#1369">q</a>, <a href="../../src/regex/dfa.rs.html#1370">empty_flags</a>);
+        <a href="#1369">q</a>.<a href="sparse.rs.html#59">clear</a>();
+        <span class="kw">let </span>start = <a href="#1814">usize_to_u32</a>(<a class="self" href="#1368">self</a>.prog.start);
+        <a class="self" href="#1368">self</a>.<a href="#1053-1058">follow_epsilons</a>(<a href="#1392">start</a>, <a href="#1369">q</a>, <a href="#1370">empty_flags</a>);
         <span class="comment">// Start states can never be match states because we delay every match
         // by one byte. Given an empty string and an empty match, the match
         // won&#39;t actually occur until the DFA processes the special EOF
         // sentinel byte.
-        </span><span class="kw">let </span>sp = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.<a href="../../src/regex/dfa.rs.html#1146-1151">cached_state</a>(<a href="../../src/regex/dfa.rs.html#1369">q</a>, <a href="../../src/regex/dfa.rs.html#1371">state_flags</a>, <span class="prelude-val">None</span>) {
+        </span><span class="kw">let </span>sp = <span class="kw">match </span><a class="self" href="#1368">self</a>.<a href="#1146-1151">cached_state</a>(<a href="#1369">q</a>, <a href="#1371">state_flags</a>, <span class="prelude-val">None</span>) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(sp) =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.<a href="../../src/regex/dfa.rs.html#1565">start_ptr</a>(<a href="../../src/regex/dfa.rs.html#1400">sp</a>),
+            <span class="prelude-val">Some</span>(sp) =&gt; <a class="self" href="#1368">self</a>.<a href="#1565">start_ptr</a>(<a href="#1400">sp</a>),
         };
-        <a class="self" href="../../src/regex/dfa.rs.html#1368">self</a>.cache.start_states[<a href="../../src/regex/dfa.rs.html#1378">flagi</a>] = <a href="../../src/regex/dfa.rs.html#1398">sp</a>;
-        <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1398">sp</a>)
+        <a class="self" href="#1368">self</a>.cache.start_states[<a href="#1378">flagi</a>] = <a href="#1398">sp</a>;
+        <span class="prelude-val">Some</span>(<a href="#1398">sp</a>)
     }
 
     <span class="doccomment">/// Computes the set of starting flags for the given position in text.
     ///
     /// This should only be used when executing the DFA forwards over the
     /// input.
-    </span><span class="kw">fn </span>start_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="../../src/regex/dfa.rs.html#398">EmptyFlags</a>, <a href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
+    </span><span class="kw">fn </span>start_flags(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="#398">EmptyFlags</a>, <a href="#410">StateFlags</a>) {
         <span class="kw">let </span><span class="kw-2">mut </span>empty_flags = EmptyFlags::default();
         <span class="kw">let </span><span class="kw-2">mut </span>state_flags = StateFlags::default();
-        <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.start = <a href="../../src/regex/dfa.rs.html#1410">at</a> == <span class="number">0</span>;
-        <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.end = <a href="../../src/regex/dfa.rs.html#1410">text</a>.is_empty();
-        <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.start_line = <a href="../../src/regex/dfa.rs.html#1410">at</a> == <span class="number">0 </span>|| <a href="../../src/regex/dfa.rs.html#1410">text</a>[<a href="../../src/regex/dfa.rs.html#1410">at</a> - <span class="number">1</span>] == <span class="string">b&#39;\n&#39;</span>;
-        <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.end_line = <a href="../../src/regex/dfa.rs.html#1410">text</a>.is_empty();
+        <a href="#1411">empty_flags</a>.start = <a href="#1410">at</a> == <span class="number">0</span>;
+        <a href="#1411">empty_flags</a>.end = <a href="#1410">text</a>.is_empty();
+        <a href="#1411">empty_flags</a>.start_line = <a href="#1410">at</a> == <span class="number">0 </span>|| <a href="#1410">text</a>[<a href="#1410">at</a> - <span class="number">1</span>] == <span class="string">b&#39;\n&#39;</span>;
+        <a href="#1411">empty_flags</a>.end_line = <a href="#1410">text</a>.is_empty();
 
-        <span class="kw">let </span>is_word_last = <a href="../../src/regex/dfa.rs.html#1410">at</a> &gt; <span class="number">0 </span>&amp;&amp; Byte::byte(<a href="../../src/regex/dfa.rs.html#1410">text</a>[<a href="../../src/regex/dfa.rs.html#1410">at</a> - <span class="number">1</span>]).<a href="../../src/regex/dfa.rs.html#1730">is_ascii_word</a>();
-        <span class="kw">let </span>is_word = <a href="../../src/regex/dfa.rs.html#1410">at</a> &lt; <a href="../../src/regex/dfa.rs.html#1410">text</a>.len() &amp;&amp; Byte::byte(<a href="../../src/regex/dfa.rs.html#1410">text</a>[<a href="../../src/regex/dfa.rs.html#1410">at</a>]).<a href="../../src/regex/dfa.rs.html#1730">is_ascii_word</a>();
+        <span class="kw">let </span>is_word_last = <a href="#1410">at</a> &gt; <span class="number">0 </span>&amp;&amp; Byte::byte(<a href="#1410">text</a>[<a href="#1410">at</a> - <span class="number">1</span>]).<a href="#1730">is_ascii_word</a>();
+        <span class="kw">let </span>is_word = <a href="#1410">at</a> &lt; <a href="#1410">text</a>.len() &amp;&amp; Byte::byte(<a href="#1410">text</a>[<a href="#1410">at</a>]).<a href="#1730">is_ascii_word</a>();
         <span class="kw">if </span>is_word_last {
-            <a href="../../src/regex/dfa.rs.html#1412">state_flags</a>.<a href="../../src/regex/dfa.rs.html#1706">set_word</a>();
+            <a href="#1412">state_flags</a>.<a href="#1706">set_word</a>();
         }
         <span class="kw">if </span>is_word == is_word_last {
-            <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.not_word_boundary = <span class="bool-val">true</span>;
+            <a href="#1411">empty_flags</a>.not_word_boundary = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>.word_boundary = <span class="bool-val">true</span>;
+            <a href="#1411">empty_flags</a>.word_boundary = <span class="bool-val">true</span>;
         }
-        (<a href="../../src/regex/dfa.rs.html#1411">empty_flags</a>, <a href="../../src/regex/dfa.rs.html#1412">state_flags</a>)
+        (<a href="#1411">empty_flags</a>, <a href="#1412">state_flags</a>)
     }
 
     <span class="doccomment">/// Computes the set of starting flags for the given position in text.
@@ -3381,31 +3381,31 @@ implementation.)
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; (<a href="../../src/regex/dfa.rs.html#398">EmptyFlags</a>, <a href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
+    ) -&gt; (<a href="#398">EmptyFlags</a>, <a href="#410">StateFlags</a>) {
         <span class="kw">let </span><span class="kw-2">mut </span>empty_flags = EmptyFlags::default();
         <span class="kw">let </span><span class="kw-2">mut </span>state_flags = StateFlags::default();
-        <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.start = <a href="../../src/regex/dfa.rs.html#1438">at</a> == <a href="../../src/regex/dfa.rs.html#1437">text</a>.len();
-        <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.end = <a href="../../src/regex/dfa.rs.html#1437">text</a>.is_empty();
-        <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.start_line = <a href="../../src/regex/dfa.rs.html#1438">at</a> == <a href="../../src/regex/dfa.rs.html#1437">text</a>.len() || <a href="../../src/regex/dfa.rs.html#1437">text</a>[<a href="../../src/regex/dfa.rs.html#1438">at</a>] == <span class="string">b&#39;\n&#39;</span>;
-        <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.end_line = <a href="../../src/regex/dfa.rs.html#1437">text</a>.is_empty();
+        <a href="#1440">empty_flags</a>.start = <a href="#1438">at</a> == <a href="#1437">text</a>.len();
+        <a href="#1440">empty_flags</a>.end = <a href="#1437">text</a>.is_empty();
+        <a href="#1440">empty_flags</a>.start_line = <a href="#1438">at</a> == <a href="#1437">text</a>.len() || <a href="#1437">text</a>[<a href="#1438">at</a>] == <span class="string">b&#39;\n&#39;</span>;
+        <a href="#1440">empty_flags</a>.end_line = <a href="#1437">text</a>.is_empty();
 
         <span class="kw">let </span>is_word_last =
-            <a href="../../src/regex/dfa.rs.html#1438">at</a> &lt; <a href="../../src/regex/dfa.rs.html#1437">text</a>.len() &amp;&amp; Byte::byte(<a href="../../src/regex/dfa.rs.html#1437">text</a>[<a href="../../src/regex/dfa.rs.html#1438">at</a>]).<a href="../../src/regex/dfa.rs.html#1730">is_ascii_word</a>();
-        <span class="kw">let </span>is_word = <a href="../../src/regex/dfa.rs.html#1438">at</a> &gt; <span class="number">0 </span>&amp;&amp; Byte::byte(<a href="../../src/regex/dfa.rs.html#1437">text</a>[<a href="../../src/regex/dfa.rs.html#1438">at</a> - <span class="number">1</span>]).<a href="../../src/regex/dfa.rs.html#1730">is_ascii_word</a>();
+            <a href="#1438">at</a> &lt; <a href="#1437">text</a>.len() &amp;&amp; Byte::byte(<a href="#1437">text</a>[<a href="#1438">at</a>]).<a href="#1730">is_ascii_word</a>();
+        <span class="kw">let </span>is_word = <a href="#1438">at</a> &gt; <span class="number">0 </span>&amp;&amp; Byte::byte(<a href="#1437">text</a>[<a href="#1438">at</a> - <span class="number">1</span>]).<a href="#1730">is_ascii_word</a>();
         <span class="kw">if </span>is_word_last {
-            <a href="../../src/regex/dfa.rs.html#1441">state_flags</a>.<a href="../../src/regex/dfa.rs.html#1706">set_word</a>();
+            <a href="#1441">state_flags</a>.<a href="#1706">set_word</a>();
         }
         <span class="kw">if </span>is_word == is_word_last {
-            <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.not_word_boundary = <span class="bool-val">true</span>;
+            <a href="#1440">empty_flags</a>.not_word_boundary = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>.word_boundary = <span class="bool-val">true</span>;
+            <a href="#1440">empty_flags</a>.word_boundary = <span class="bool-val">true</span>;
         }
-        (<a href="../../src/regex/dfa.rs.html#1440">empty_flags</a>, <a href="../../src/regex/dfa.rs.html#1441">state_flags</a>)
+        (<a href="#1440">empty_flags</a>, <a href="#1441">state_flags</a>)
     }
 
     <span class="doccomment">/// Returns a reference to a State given a pointer to it.
-    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#262">State</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1462">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1624">get_state</a>(<a href="../../src/regex/dfa.rs.html#1462">si</a>).unwrap()
+    </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>) -&gt; <span class="kw-2">&amp;</span><a href="#262">State</a> {
+        <a class="self" href="#1462">self</a>.cache.compiled.<a href="#1624">get_state</a>(<a href="#1462">si</a>).unwrap()
     }
 
     <span class="doccomment">/// Adds the given state to the DFA.
@@ -3416,13 +3416,13 @@ implementation.)
     ///
     /// If None is returned, then the state limit was reached and the DFA
     /// should quit.
-    </span><span class="kw">fn </span>add_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="../../src/regex/dfa.rs.html#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
+    </span><span class="kw">fn </span>add_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
         <span class="comment">// This will fail if the next state pointer exceeds STATE_PTR. In
         // practice, the cache limit will prevent us from ever getting here,
         // but maybe callers will set the cache size to something ridiculous...
-        </span><span class="kw">let </span>si = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1474">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1656">add</a>() {
+        </span><span class="kw">let </span>si = <span class="kw">match </span><a class="self" href="#1474">self</a>.cache.trans.<a href="#1656">add</a>() {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(si) =&gt; <a href="../../src/regex/dfa.rs.html#1480">si</a>,
+            <span class="prelude-val">Some</span>(si) =&gt; <a href="#1480">si</a>,
         };
         <span class="comment">// If the program has a Unicode word boundary, then set any transitions
         // for non-ASCII bytes to STATE_QUIT. If the DFA stumbles over such a
@@ -3436,16 +3436,16 @@ implementation.)
         }
         <span class="comment">// Finally, put our actual state on to our heap of states and index it
         // so we can find it later.
-        </span><a class="self" href="../../src/regex/dfa.rs.html#1474">self</a>.cache.size += <a class="self" href="../../src/regex/dfa.rs.html#1474">self</a>.cache.trans.<a href="../../src/regex/dfa.rs.html#1681">state_heap_size</a>()
-            + <a href="../../src/regex/dfa.rs.html#1474">state</a>.data.len()
-            + (<span class="number">2 </span>* mem::size_of::&lt;<a href="../../src/regex/dfa.rs.html#262">State</a>&gt;())
-            + mem::size_of::&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;();
-        <a class="self" href="../../src/regex/dfa.rs.html#1474">self</a>.cache.compiled.<a href="../../src/regex/dfa.rs.html#1628">insert</a>(<a href="../../src/regex/dfa.rs.html#1474">state</a>, <a href="../../src/regex/dfa.rs.html#1478">si</a>);
+        </span><a class="self" href="#1474">self</a>.cache.size += <a class="self" href="#1474">self</a>.cache.trans.<a href="#1681">state_heap_size</a>()
+            + <a href="#1474">state</a>.data.len()
+            + (<span class="number">2 </span>* mem::size_of::&lt;<a href="#262">State</a>&gt;())
+            + mem::size_of::&lt;<a href="#358">StatePtr</a>&gt;();
+        <a class="self" href="#1474">self</a>.cache.compiled.<a href="#1628">insert</a>(<a href="#1474">state</a>, <a href="#1478">si</a>);
         <span class="comment">// Transition table and set of states and map should all be in sync.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
             <span class="self">self</span>.cache.compiled.len() == <span class="self">self</span>.cache.trans.num_states()
         );
-        <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1478">si</a>)
+        <span class="prelude-val">Some</span>(<a href="#1478">si</a>)
     }
 
     <span class="doccomment">/// Quickly finds the next occurrence of any literal prefixes in the regex.
@@ -3455,7 +3455,7 @@ implementation.)
     ///
     /// This should only be called when the DFA is in a start state.
     </span><span class="kw">fn </span>prefix_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../src/regex/dfa.rs.html#1512">self</a>.prog.prefixes.<a href="../../src/regex/literal/imp.rs.html#79">find</a>(<span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#1512">text</a>[<a href="../../src/regex/dfa.rs.html#1512">at</a>..]).map(|(s, <span class="kw">_</span>)| <a href="../../src/regex/dfa.rs.html#1512">at</a> + <a href="../../src/regex/dfa.rs.html#1513">s</a>)
+        <a class="self" href="#1512">self</a>.prog.prefixes.<a href="literal/imp.rs.html#79">find</a>(<span class="kw-2">&amp;</span><a href="#1512">text</a>[<a href="#1512">at</a>..]).map(|(s, <span class="kw">_</span>)| <a href="#1512">at</a> + <a href="#1513">s</a>)
     }
 
     <span class="doccomment">/// Returns the number of byte classes required to discriminate transitions
@@ -3464,23 +3464,23 @@ implementation.)
     /// invariant: num_byte_classes() == len(State.next)
     </span><span class="kw">fn </span>num_byte_classes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="comment">// We add 1 to account for the special EOF byte.
-        </span>(<a class="self" href="../../src/regex/dfa.rs.html#1520">self</a>.prog.byte_classes[<span class="number">255</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>) + <span class="number">1
+        </span>(<a class="self" href="#1520">self</a>.prog.byte_classes[<span class="number">255</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>) + <span class="number">1
     </span>}
 
     <span class="doccomment">/// Given an input byte or the special EOF sentinel, return its
     /// corresponding byte class.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">fn </span>byte_class(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="../../src/regex/dfa.rs.html#394">Byte</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#1528">b</a>.<a href="../../src/regex/dfa.rs.html#1741">as_byte</a>() {
-            <span class="prelude-val">None </span>=&gt; <a class="self" href="../../src/regex/dfa.rs.html#1528">self</a>.<a href="../../src/regex/dfa.rs.html#1520">num_byte_classes</a>() - <span class="number">1</span>,
-            <span class="prelude-val">Some</span>(b) =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1528">self</a>.<a href="../../src/regex/dfa.rs.html#1537">u8_class</a>(<a href="../../src/regex/dfa.rs.html#1531">b</a>),
+    </span><span class="kw">fn </span>byte_class(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="#394">Byte</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">match </span><a href="#1528">b</a>.<a href="#1741">as_byte</a>() {
+            <span class="prelude-val">None </span>=&gt; <a class="self" href="#1528">self</a>.<a href="#1520">num_byte_classes</a>() - <span class="number">1</span>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a class="self" href="#1528">self</a>.<a href="#1537">u8_class</a>(<a href="#1531">b</a>),
         }
     }
 
     <span class="doccomment">/// Like byte_class, but explicitly for u8s.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>u8_class(<span class="kw-2">&amp;</span><span class="self">self</span>, b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1537">self</a>.prog.byte_classes[<a href="../../src/regex/dfa.rs.html#1537">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <a class="self" href="#1537">self</a>.prog.byte_classes[<a href="#1537">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="doccomment">/// Returns true if the DFA should continue searching past the first match.
@@ -3492,14 +3492,14 @@ implementation.)
     /// the longest match (for reverse search) or all possible matches (for
     /// regex sets).
     </span><span class="kw">fn </span>continue_past_first_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1549">self</a>.prog.is_reverse || <a class="self" href="../../src/regex/dfa.rs.html#1549">self</a>.prog.matches.len() &gt; <span class="number">1
+        <a class="self" href="#1549">self</a>.prog.is_reverse || <a class="self" href="#1549">self</a>.prog.matches.len() &gt; <span class="number">1
     </span>}
 
     <span class="doccomment">/// Returns true if there is a prefix we can quickly search for.
     </span><span class="kw">fn </span>has_prefix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="../../src/regex/dfa.rs.html#1554">self</a>.prog.is_reverse
-            &amp;&amp; !<a class="self" href="../../src/regex/dfa.rs.html#1554">self</a>.prog.prefixes.<a href="../../src/regex/literal/imp.rs.html#142">is_empty</a>()
-            &amp;&amp; !<a class="self" href="../../src/regex/dfa.rs.html#1554">self</a>.prog.is_anchored_start
+        !<a class="self" href="#1554">self</a>.prog.is_reverse
+            &amp;&amp; !<a class="self" href="#1554">self</a>.prog.prefixes.<a href="literal/imp.rs.html#142">is_empty</a>()
+            &amp;&amp; !<a class="self" href="#1554">self</a>.prog.is_anchored_start
     }
 
     <span class="doccomment">/// Sets the STATE_START bit in the given state pointer if and only if
@@ -3507,11 +3507,11 @@ implementation.)
     ///
     /// If there&#39;s no prefix, then it&#39;s a waste to treat the start state
     /// specially.
-    </span><span class="kw">fn </span>start_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    </span><span class="kw">fn </span>start_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>) -&gt; <a href="#358">StatePtr</a> {
         <span class="kw">if </span><span class="self">self</span>.has_prefix() {
-            <a href="../../src/regex/dfa.rs.html#1565">si</a> | <a href="../../src/regex/dfa.rs.html#376">STATE_START</a>
+            <a href="#1565">si</a> | <a href="#376">STATE_START</a>
         } <span class="kw">else </span>{
-            <a href="../../src/regex/dfa.rs.html#1565">si</a>
+            <a href="#1565">si</a>
         }
     }
 
@@ -3521,7 +3521,7 @@ implementation.)
     /// inputs, a new state could be created for every byte of input. (This is
     /// bad for memory use, so we bound it with a cache.)
     </span><span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1578">self</a>.cache.size + <a class="self" href="../../src/regex/dfa.rs.html#1578">self</a>.prog.<a href="../../src/regex/prog.rs.html#147">approximate_size</a>()
+        <a class="self" href="#1578">self</a>.cache.size + <a class="self" href="#1578">self</a>.prog.<a href="prog.rs.html#147">approximate_size</a>()
     }
 }
 
@@ -3541,143 +3541,143 @@ implementation.)
     /// buffer in `states` which will never be moved except when clearing
     /// the map or on drop, in which case the keys of this map will be
     /// removed before
-    </span>map: HashMap&lt;<a href="../../src/regex/dfa.rs.html#262">State</a>, <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;,
+    </span>map: HashMap&lt;<a href="#262">State</a>, <a href="#358">StatePtr</a>&gt;,
     <span class="doccomment">/// Our set of states. Note that `StatePtr / num_byte_classes` indexes
     /// this Vec rather than just a `StatePtr`.
-    </span>states: Vec&lt;<a href="../../src/regex/dfa.rs.html#262">State</a>&gt;,
+    </span>states: Vec&lt;<a href="#262">State</a>&gt;,
     <span class="doccomment">/// The number of byte classes in the DFA. Used to index `states`.
     </span>num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#1594">StateMap</a> {
-    <span class="kw">fn </span>new(num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/regex/dfa.rs.html#1594">StateMap</a> {
-        <a href="../../src/regex/dfa.rs.html#1594">StateMap</a> { map: HashMap::new(), states: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a href="../../src/regex/dfa.rs.html#1608">num_byte_classes</a> }
+<span class="kw">impl </span><a href="#1594">StateMap</a> {
+    <span class="kw">fn </span>new(num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#1594">StateMap</a> {
+        <a href="#1594">StateMap</a> { map: HashMap::new(), states: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a href="#1608">num_byte_classes</a> }
     }
 
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1612">self</a>.states.len()
+        <a class="self" href="#1612">self</a>.states.len()
     }
 
     <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1616">self</a>.states.is_empty()
+        <a class="self" href="#1616">self</a>.states.is_empty()
     }
 
-    <span class="kw">fn </span>get_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
-        <a class="self" href="../../src/regex/dfa.rs.html#1620">self</a>.map.get(<a href="../../src/regex/dfa.rs.html#1620">state</a>).cloned()
+    <span class="kw">fn </span>get_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><a href="#262">State</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
+        <a class="self" href="#1620">self</a>.map.get(<a href="#1620">state</a>).cloned()
     }
 
-    <span class="kw">fn </span>get_state(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#262">State</a>&gt; {
-        <a class="self" href="../../src/regex/dfa.rs.html#1624">self</a>.states.get(<a href="../../src/regex/dfa.rs.html#1624">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a class="self" href="../../src/regex/dfa.rs.html#1624">self</a>.num_byte_classes)
+    <span class="kw">fn </span>get_state(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#262">State</a>&gt; {
+        <a class="self" href="#1624">self</a>.states.get(<a href="#1624">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> / <a class="self" href="#1624">self</a>.num_byte_classes)
     }
 
-    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="../../src/regex/dfa.rs.html#262">State</a>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1628">self</a>.map.insert(<a href="../../src/regex/dfa.rs.html#1628">state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../src/regex/dfa.rs.html#1628">si</a>);
-        <a class="self" href="../../src/regex/dfa.rs.html#1628">self</a>.states.push(<a href="../../src/regex/dfa.rs.html#1628">state</a>);
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <a href="#262">State</a>, si: <a href="#358">StatePtr</a>) {
+        <a class="self" href="#1628">self</a>.map.insert(<a href="#1628">state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1628">si</a>);
+        <a class="self" href="#1628">self</a>.states.push(<a href="#1628">state</a>);
     }
 
     <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1633">self</a>.map.clear();
-        <a class="self" href="../../src/regex/dfa.rs.html#1633">self</a>.states.clear();
+        <a class="self" href="#1633">self</a>.map.clear();
+        <a class="self" href="#1633">self</a>.states.clear();
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#161">Transitions</a> {
+<span class="kw">impl </span><a href="#161">Transitions</a> {
     <span class="doccomment">/// Create a new transition table.
     ///
     /// The number of byte classes corresponds to the stride. Every state will
     /// have `num_byte_classes` slots for transitions.
-    </span><span class="kw">fn </span>new(num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/regex/dfa.rs.html#161">Transitions</a> {
-        <a href="../../src/regex/dfa.rs.html#161">Transitions</a> { table: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a href="../../src/regex/dfa.rs.html#1644">num_byte_classes</a> }
+    </span><span class="kw">fn </span>new(num_byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#161">Transitions</a> {
+        <a href="#161">Transitions</a> { table: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <a href="#1644">num_byte_classes</a> }
     }
 
     <span class="doccomment">/// Returns the total number of states currently in this table.
     </span><span class="kw">fn </span>num_states(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1649">self</a>.table.len() / <a class="self" href="../../src/regex/dfa.rs.html#1649">self</a>.num_byte_classes
+        <a class="self" href="#1649">self</a>.table.len() / <a class="self" href="#1649">self</a>.num_byte_classes
     }
 
     <span class="doccomment">/// Allocates room for one additional state and returns a pointer to it.
     ///
     /// If there&#39;s no more room, None is returned.
-    </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt; {
-        <span class="kw">let </span>si = <a class="self" href="../../src/regex/dfa.rs.html#1656">self</a>.table.len();
+    </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#358">StatePtr</a>&gt; {
+        <span class="kw">let </span>si = <a class="self" href="#1656">self</a>.table.len();
         <span class="kw">if </span>si &gt; STATE_MAX <span class="kw">as </span>usize {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../src/regex/dfa.rs.html#1656">self</a>.table.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/repeat/fn.repeat.html">repeat</a>(<a href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a class="self" href="../../src/regex/dfa.rs.html#1656">self</a>.num_byte_classes));
-        <span class="prelude-val">Some</span>(<a href="../../src/regex/dfa.rs.html#1814">usize_to_u32</a>(<a href="../../src/regex/dfa.rs.html#1657">si</a>))
+        <a class="self" href="#1656">self</a>.table.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/repeat/fn.repeat.html">repeat</a>(<a href="#362">STATE_UNKNOWN</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a class="self" href="#1656">self</a>.num_byte_classes));
+        <span class="prelude-val">Some</span>(<a href="#1814">usize_to_u32</a>(<a href="#1657">si</a>))
     }
 
     <span class="doccomment">/// Clears the table of all states.
     </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1666">self</a>.table.clear();
+        <a class="self" href="#1666">self</a>.table.clear();
     }
 
     <span class="doccomment">/// Sets the transition from (si, cls) to next.
-    </span><span class="kw">fn </span>set_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, next: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1671">self</a>.table[<a href="../../src/regex/dfa.rs.html#1671">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="../../src/regex/dfa.rs.html#1671">cls</a>] = <a href="../../src/regex/dfa.rs.html#1671">next</a>;
+    </span><span class="kw">fn </span>set_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, si: <a href="#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, next: <a href="#358">StatePtr</a>) {
+        <a class="self" href="#1671">self</a>.table[<a href="#1671">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#1671">cls</a>] = <a href="#1671">next</a>;
     }
 
     <span class="doccomment">/// Returns the transition corresponding to (si, cls).
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1676">self</a>.table[<a href="../../src/regex/dfa.rs.html#1676">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="../../src/regex/dfa.rs.html#1676">cls</a>]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#358">StatePtr</a> {
+        <a class="self" href="#1676">self</a>.table[<a href="#1676">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#1676">cls</a>]
     }
 
     <span class="doccomment">/// The heap size, in bytes, of a single state in the transition table.
     </span><span class="kw">fn </span>state_heap_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1681">self</a>.num_byte_classes * mem::size_of::&lt;<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>&gt;()
+        <a class="self" href="#1681">self</a>.num_byte_classes * mem::size_of::&lt;<a href="#358">StatePtr</a>&gt;()
     }
 
     <span class="doccomment">/// Like `next`, but uses unchecked access and is therefore not safe.
-    </span><span class="kw">unsafe fn </span>next_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    </span><span class="kw">unsafe fn </span>next_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, si: <a href="#358">StatePtr</a>, cls: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#358">StatePtr</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>((si <span class="kw">as </span>usize) &lt; <span class="self">self</span>.table.len());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(cls &lt; <span class="self">self</span>.num_byte_classes);
-        <span class="kw-2">*</span><a class="self" href="../../src/regex/dfa.rs.html#1686">self</a>.table.get_unchecked(<a href="../../src/regex/dfa.rs.html#1686">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="../../src/regex/dfa.rs.html#1686">cls</a>)
+        <span class="kw-2">*</span><a class="self" href="#1686">self</a>.table.get_unchecked(<a href="#1686">si</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <a href="#1686">cls</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
+<span class="kw">impl </span><a href="#410">StateFlags</a> {
     <span class="kw">fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1694">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0001 </span>&gt; <span class="number">0
+        <a class="self" href="#1694">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0001 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_match(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1698">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0001</span>;
+        <a class="self" href="#1698">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0001</span>;
     }
 
     <span class="kw">fn </span>is_word(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1702">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0010 </span>&gt; <span class="number">0
+        <a class="self" href="#1702">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0010 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1706">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0010</span>;
+        <a class="self" href="#1706">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0010</span>;
     }
 
     <span class="kw">fn </span>has_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1710">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0100 </span>&gt; <span class="number">0
+        <a class="self" href="#1710">self</a>.<span class="number">0 </span>&amp; <span class="number">0b0000_0100 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../src/regex/dfa.rs.html#1714">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0100</span>;
+        <a class="self" href="#1714">self</a>.<span class="number">0 </span>|= <span class="number">0b0000_0100</span>;
     }
 }
 
-<span class="kw">impl </span><a href="../../src/regex/dfa.rs.html#394">Byte</a> {
+<span class="kw">impl </span><a href="#394">Byte</a> {
     <span class="kw">fn </span>byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/regex/dfa.rs.html#394">Byte</a>(<a href="../../src/regex/dfa.rs.html#1720">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+        <a href="#394">Byte</a>(<a href="#1720">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
     }
     <span class="kw">fn </span>eof() -&gt; <span class="self">Self </span>{
-        <a href="../../src/regex/dfa.rs.html#394">Byte</a>(<span class="number">256</span>)
+        <a href="#394">Byte</a>(<span class="number">256</span>)
     }
     <span class="kw">fn </span>is_eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1726">self</a>.<span class="number">0 </span>== <span class="number">256
+        <a class="self" href="#1726">self</a>.<span class="number">0 </span>== <span class="number">256
     </span>}
 
     <span class="kw">fn </span>is_ascii_word(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>b = <span class="kw">match </span><a class="self" href="../../src/regex/dfa.rs.html#1730">self</a>.<a href="../../src/regex/dfa.rs.html#1741">as_byte</a>() {
+        <span class="kw">let </span>b = <span class="kw">match </span><a class="self" href="#1730">self</a>.<a href="#1741">as_byte</a>() {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="../../src/regex/dfa.rs.html#1733">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1733">b</a>,
         };
-        <span class="kw">match </span><a href="../../src/regex/dfa.rs.html#1731">b</a> {
+        <span class="kw">match </span><a href="#1731">b</a> {
             <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39; </span>| <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39; </span>| <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;_&#39; </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
@@ -3687,38 +3687,38 @@ implementation.)
         <span class="kw">if </span><span class="self">self</span>.is_eof() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a class="self" href="../../src/regex/dfa.rs.html#1741">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+            <span class="prelude-val">Some</span>(<a class="self" href="#1741">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/regex/dfa.rs.html#262">State</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#262">State</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>ips: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = <a class="self" href="../../src/regex/dfa.rs.html#1751">self</a>.<a href="../../src/regex/dfa.rs.html#309">inst_ptrs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="../../src/regex/dfa.rs.html#1751">f</a>.debug_struct(<span class="string">&quot;State&quot;</span>)
-            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1751">self</a>.<a href="../../src/regex/dfa.rs.html#305">flags</a>())
-            .field(<span class="string">&quot;insts&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#1752">ips</a>)
+        <span class="kw">let </span>ips: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = <a class="self" href="#1751">self</a>.<a href="#309">inst_ptrs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#1751">f</a>.debug_struct(<span class="string">&quot;State&quot;</span>)
+            .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1751">self</a>.<a href="#305">flags</a>())
+            .field(<span class="string">&quot;insts&quot;</span>, <span class="kw-2">&amp;</span><a href="#1752">ips</a>)
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/regex/dfa.rs.html#161">Transitions</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#161">Transitions</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>fmtd = <a href="../../src/regex/dfa.rs.html#1761">f</a>.debug_map();
+        <span class="kw">let </span><span class="kw-2">mut </span>fmtd = <a href="#1761">f</a>.debug_map();
         <span class="kw">for </span>si <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.num_states() {
             <span class="kw">let </span>s = si * <span class="self">self</span>.num_byte_classes;
             <span class="kw">let </span>e = s + <span class="self">self</span>.num_byte_classes;
             fmtd.entry(<span class="kw-2">&amp;</span>si.to_string(), <span class="kw-2">&amp;</span>TransitionsRow(<span class="kw-2">&amp;</span><span class="self">self</span>.table[s..e]));
         }
-        <a href="../../src/regex/dfa.rs.html#1762">fmtd</a>.finish()
+        <a href="#1762">fmtd</a>.finish()
     }
 }
 
-<span class="kw">struct </span>TransitionsRow&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../src/regex/dfa.rs.html#358">StatePtr</a>]);
+<span class="kw">struct </span>TransitionsRow&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="#358">StatePtr</a>]);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TransitionsRow&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>fmtd = <a href="../../src/regex/dfa.rs.html#1775">f</a>.debug_map();
+        <span class="kw">let </span><span class="kw-2">mut </span>fmtd = <a href="#1775">f</a>.debug_map();
         <span class="kw">for </span>(b, si) <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter().enumerate() {
             <span class="kw">match </span><span class="kw-2">*</span>si {
                 STATE_UNKNOWN =&gt; {}
@@ -3730,16 +3730,16 @@ implementation.)
                 }
             }
         }
-        <a href="../../src/regex/dfa.rs.html#1776">fmtd</a>.finish()
+        <a href="#1776">fmtd</a>.finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#410">StateFlags</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/regex/dfa.rs.html#1793">f</a>.debug_struct(<span class="string">&quot;StateFlags&quot;</span>)
-            .field(<span class="string">&quot;is_match&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1793">self</a>.<a href="../../src/regex/dfa.rs.html#1694">is_match</a>())
-            .field(<span class="string">&quot;is_word&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1793">self</a>.<a href="../../src/regex/dfa.rs.html#1702">is_word</a>())
-            .field(<span class="string">&quot;has_empty&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1793">self</a>.<a href="../../src/regex/dfa.rs.html#1710">has_empty</a>())
+        <a href="#1793">f</a>.debug_struct(<span class="string">&quot;StateFlags&quot;</span>)
+            .field(<span class="string">&quot;is_match&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1793">self</a>.<a href="#1694">is_match</a>())
+            .field(<span class="string">&quot;is_word&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1793">self</a>.<a href="#1702">is_word</a>())
+            .field(<span class="string">&quot;has_empty&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1793">self</a>.<a href="#1710">has_empty</a>())
             .finish()
     }
 }
@@ -3751,8 +3751,8 @@ implementation.)
     <span class="kw">if </span>b &gt; ::std::u8::MAX <span class="kw">as </span>usize {
         <span class="string">&quot;EOF&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     } <span class="kw">else </span>{
-        <span class="kw">let </span>escaped = escape_default(<a href="../../src/regex/dfa.rs.html#1803">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;();
-        String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="../../src/regex/dfa.rs.html#1809">escaped</a>).into_owned()
+        <span class="kw">let </span>escaped = escape_default(<a href="#1803">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;();
+        String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#1809">escaped</a>).into_owned()
     }
 }
 
@@ -3760,47 +3760,47 @@ implementation.)
     <span class="kw">if </span>(n <span class="kw">as </span>u64) &gt; (::std::u32::MAX <span class="kw">as </span>u64) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, n)
     }
-    <a href="../../src/regex/dfa.rs.html#1814">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <a href="#1814">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
 }
 
 <span class="attribute">#[allow(dead_code)] </span><span class="comment">// useful for debugging
-</span><span class="kw">fn </span>show_state_ptr(si: <a href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+</span><span class="kw">fn </span>show_state_ptr(si: <a href="#358">StatePtr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>s = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, si &amp; STATE_MAX);
     <span class="kw">if </span>si == STATE_UNKNOWN {
-        <a href="../../src/regex/dfa.rs.html#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (unknown)&quot;</span>, s);
+        <a href="#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (unknown)&quot;</span>, s);
     }
     <span class="kw">if </span>si == STATE_DEAD {
-        <a href="../../src/regex/dfa.rs.html#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (dead)&quot;</span>, s);
+        <a href="#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (dead)&quot;</span>, s);
     }
     <span class="kw">if </span>si == STATE_QUIT {
-        <a href="../../src/regex/dfa.rs.html#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (quit)&quot;</span>, s);
+        <a href="#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (quit)&quot;</span>, s);
     }
     <span class="kw">if </span>si &amp; STATE_START &gt; <span class="number">0 </span>{
-        <a href="../../src/regex/dfa.rs.html#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (start)&quot;</span>, s);
+        <a href="#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (start)&quot;</span>, s);
     }
     <span class="kw">if </span>si &amp; STATE_MATCH &gt; <span class="number">0 </span>{
-        <a href="../../src/regex/dfa.rs.html#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (match)&quot;</span>, s);
+        <a href="#1823">s</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} (match)&quot;</span>, s);
     }
-    <a href="../../src/regex/dfa.rs.html#1823">s</a>
+    <a href="#1823">s</a>
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints
 </span><span class="kw">fn </span>write_vari32(data: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-    <span class="kw">let </span><span class="kw-2">mut </span>un = (<a href="../../src/regex/dfa.rs.html#1843">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>un = (<a href="#1843">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) &lt;&lt; <span class="number">1</span>;
     <span class="kw">if </span>n &lt; <span class="number">0 </span>{
-        <a href="../../src/regex/dfa.rs.html#1844">un</a> = !<a href="../../src/regex/dfa.rs.html#1844">un</a>;
+        <a href="#1844">un</a> = !<a href="#1844">un</a>;
     }
-    <a href="../../src/regex/dfa.rs.html#1862">write_varu32</a>(<a href="../../src/regex/dfa.rs.html#1843">data</a>, <a href="../../src/regex/dfa.rs.html#1844">un</a>)
+    <a href="#1862">write_varu32</a>(<a href="#1843">data</a>, <a href="#1844">un</a>)
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints
 </span><span class="kw">fn </span>read_vari32(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let </span>(un, i) = <a href="../../src/regex/dfa.rs.html#1871">read_varu32</a>(<a href="../../src/regex/dfa.rs.html#1852">data</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>n = (<a href="../../src/regex/dfa.rs.html#1853">un</a> &gt;&gt; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <span class="kw">let </span>(un, i) = <a href="#1871">read_varu32</a>(<a href="#1852">data</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>n = (<a href="#1853">un</a> &gt;&gt; <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
     <span class="kw">if </span>un &amp; <span class="number">1 </span>!= <span class="number">0 </span>{
-        <a href="../../src/regex/dfa.rs.html#1854">n</a> = !<a href="../../src/regex/dfa.rs.html#1854">n</a>;
+        <a href="#1854">n</a> = !<a href="#1854">n</a>;
     }
-    (<a href="../../src/regex/dfa.rs.html#1854">n</a>, <a href="../../src/regex/dfa.rs.html#1853">i</a>)
+    (<a href="#1854">n</a>, <a href="#1853">i</a>)
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints
@@ -3809,7 +3809,7 @@ implementation.)
         data.push((n <span class="kw">as </span>u8) | <span class="number">0b1000_0000</span>);
         n &gt;&gt;= <span class="number">7</span>;
     }
-    <a href="../../src/regex/dfa.rs.html#1862">data</a>.push(<a href="../../src/regex/dfa.rs.html#1862">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+    <a href="#1862">data</a>.push(<a href="#1862">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints
@@ -3889,4 +3889,4 @@ implementation.)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

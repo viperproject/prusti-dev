@@ -513,19 +513,19 @@
 <span id="513">513</span>
 <span id="514">514</span>
 <span id="515">515</span>
-</pre><pre class="rust"><code><span class="kw">use </span>config::{<a href="../../../src/bincode/config/endian.rs.html#1">BincodeByteOrder</a>, <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>config::{<a href="../config/endian.rs.html#1">BincodeByteOrder</a>, <a href="../config/mod.rs.html#128">Options</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
 
-<span class="kw">use </span><span class="self">self</span>::read::{<a href="../../../src/bincode/de/read.rs.html#13">BincodeRead</a>, <a href="../../../src/bincode/de/read.rs.html#35">IoReader</a>, <a href="../../../src/bincode/de/read.rs.html#30">SliceReader</a>};
-<span class="kw">use </span><a href="../../../src/bincode/byteorder.rs.html#211">byteorder::ReadBytesExt</a>;
-<span class="kw">use </span>config::{<a href="../../../src/bincode/config/int.rs.html#8">IntEncoding</a>, <a href="../../../src/bincode/config/limit.rs.html#4">SizeLimit</a>};
+<span class="kw">use </span><span class="self">self</span>::read::{<a href="read.rs.html#13">BincodeRead</a>, <a href="read.rs.html#35">IoReader</a>, <a href="read.rs.html#30">SliceReader</a>};
+<span class="kw">use </span><a href="../byteorder.rs.html#211">byteorder::ReadBytesExt</a>;
+<span class="kw">use </span>config::{<a href="../config/int.rs.html#8">IntEncoding</a>, <a href="../config/limit.rs.html#4">SizeLimit</a>};
 <span class="kw">use </span><a href="../../../serde/index.html">serde</a>;
 <span class="kw">use </span><a href="../../../serde/de/trait.Error.html">serde::de::Error</a> <span class="kw">as </span>DeError;
 <span class="kw">use </span><a href="../../../serde/de/trait.IntoDeserializer.html">serde::de::IntoDeserializer</a>;
-<span class="kw">use </span>{<a href="../../../src/bincode/error.rs.html#12">Error</a>, <a href="../../../src/bincode/error.rs.html#16">ErrorKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>{<a href="../error.rs.html#12">Error</a>, <a href="../error.rs.html#16">ErrorKind</a>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// Specialized ways to read data into bincode.
-</span><span class="kw">pub mod </span><a href="../../../src/bincode/de/read.rs.html#1-202">read</a>;
+</span><span class="kw">pub mod </span><a href="read.rs.html#1-202">read</a>;
 
 <span class="doccomment">/// A Deserializer that reads bytes from a buffer.
 ///
@@ -540,7 +540,7 @@
 /// serde::Deserialize::deserialize(&amp;mut deserializer);
 /// let bytes_read = d.bytes_read();
 /// ```
-</span><span class="kw">pub struct </span>Deserializer&lt;R, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; {
+</span><span class="kw">pub struct </span>Deserializer&lt;R, O: <a href="../config/mod.rs.html#128">Options</a>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) reader: R,
     options: O,
 }
@@ -557,63 +557,63 @@
     };
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, IR: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;IoReader&lt;IR&gt;, O&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, IR: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, O: <a href="../config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;IoReader&lt;IR&gt;, O&gt; {
     <span class="doccomment">/// Creates a new Deserializer with a given `Read`er and options.
     </span><span class="kw">pub fn </span>with_reader(r: IR, options: O) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/bincode/de/mod.rs.html#28">Deserializer</a> {
-            reader: IoReader::new(<a href="../../../src/bincode/de/mod.rs.html#47">r</a>),
-            <a href="../../../src/bincode/de/mod.rs.html#47">options</a>,
+        <a href="#28">Deserializer</a> {
+            reader: IoReader::new(<a href="#47">r</a>),
+            <a href="#47">options</a>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;SliceReader&lt;<span class="lifetime">&#39;de</span>&gt;, O&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, O: <a href="../config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;SliceReader&lt;<span class="lifetime">&#39;de</span>&gt;, O&gt; {
     <span class="doccomment">/// Creates a new Deserializer that will read from the given slice.
     </span><span class="kw">pub fn </span>from_slice(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], options: O) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/bincode/de/mod.rs.html#28">Deserializer</a> {
-            reader: SliceReader::new(<a href="../../../src/bincode/de/mod.rs.html#57">slice</a>),
-            <a href="../../../src/bincode/de/mod.rs.html#57">options</a>,
+        <a href="#28">Deserializer</a> {
+            reader: SliceReader::new(<a href="#57">slice</a>),
+            <a href="#57">options</a>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt;, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;R, O&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt;, O: <a href="../config/mod.rs.html#128">Options</a>&gt; Deserializer&lt;R, O&gt; {
     <span class="doccomment">/// Creates a new Deserializer with the given `BincodeRead`er
     </span><span class="kw">pub fn </span>with_bincode_read(r: R, options: O) -&gt; Deserializer&lt;R, O&gt; {
-        <a href="../../../src/bincode/de/mod.rs.html#28">Deserializer</a> { reader: <a href="../../../src/bincode/de/mod.rs.html#67">r</a>, <a href="../../../src/bincode/de/mod.rs.html#67">options</a> }
+        <a href="#28">Deserializer</a> { reader: <a href="#67">r</a>, <a href="#67">options</a> }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
         <span class="self">self</span>.read_literal_type::&lt;u8&gt;()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#71">self</a>.reader.<a href="../../../src/bincode/byteorder.rs.html#213">read_u8</a>().map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+        <a class="self" href="#71">self</a>.reader.<a href="../byteorder.rs.html#213">read_u8</a>().map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u16 : u16 = read_u16() }
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u32 : u32 = read_u32() }
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u64 : u64 = read_u64() }
+    <a class="macro" href="#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u16 : u16 = read_u16() }
+    <a class="macro" href="#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u32 : u32 = read_u32() }
+    <a class="macro" href="#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u64 : u64 = read_u64() }
 
     <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="../../../src/bincode/de/mod.rs.html#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u128 : u128 = read_u128() }
+        <a class="macro" href="#33-43">impl_deserialize_literal! </a>{ deserialize_literal_u128 : u128 = read_u128() }
     }
 
     <span class="kw">fn </span>read_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#84">self</a>.options.<a href="../../../src/bincode/config/mod.rs.html#394">limit</a>().<a href="../../../src/bincode/config/limit.rs.html#7">add</a>(<a href="../../../src/bincode/de/mod.rs.html#84">count</a>)
+        <a class="self" href="#84">self</a>.options.<a href="../config/mod.rs.html#394">limit</a>().<a href="../config/limit.rs.html#7">add</a>(<a href="#84">count</a>)
     }
 
     <span class="kw">fn </span>read_literal_type&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#88">self</a>.<a href="../../../src/bincode/de/mod.rs.html#84">read_bytes</a>(size_of::&lt;T&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+        <a class="self" href="#88">self</a>.<a href="#84">read_bytes</a>(size_of::&lt;T&gt;() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
     }
 
     <span class="kw">fn </span>read_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
         <span class="kw">let </span>len = O::IntEncoding::deserialize_len(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.read_bytes(len <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#93">self</a>.reader.<a href="../../../src/bincode/de/read.rs.html#21">get_byte_buffer</a>(<a href="../../../src/bincode/de/mod.rs.html#94">len</a>)
+        <a class="self" href="#93">self</a>.reader.<a href="read.rs.html#21">get_byte_buffer</a>(<a href="#94">len</a>)
     }
 
     <span class="kw">fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
         <span class="kw">let </span>vec = <span class="self">self</span>.read_vec()<span class="question-mark">?</span>;
-        String::from_utf8(<a href="../../../src/bincode/de/mod.rs.html#100">vec</a>).map_err(|e| <a href="../../../src/bincode/error.rs.html#21">ErrorKind::InvalidUtf8Encoding</a>(<a href="../../../src/bincode/de/mod.rs.html#101">e</a>.utf8_error()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        String::from_utf8(<a href="#100">vec</a>).map_err(|e| <a href="../error.rs.html#21">ErrorKind::InvalidUtf8Encoding</a>(<a href="#101">e</a>.utf8_error()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 
@@ -632,16 +632,16 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, O&gt; serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R, O&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt;,
-    O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>,
+    O: <a href="../config/mod.rs.html#128">Options</a>,
 {
-    <span class="kw">type </span>Error = <a href="../../../src/bincode/error.rs.html#12">Error</a>;
+    <span class="kw">type </span>Error = <a href="../error.rs.html#12">Error</a>;
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="prelude-val">Err</span>(Box::new(<a href="../../../src/bincode/error.rs.html#32">ErrorKind::DeserializeAnyNotSupported</a>))
+        <span class="prelude-val">Err</span>(Box::new(<a href="../error.rs.html#32">ErrorKind::DeserializeAnyNotSupported</a>))
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -649,18 +649,18 @@
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.deserialize_byte()<span class="question-mark">? </span>{
-            <span class="number">1 </span>=&gt; <a href="../../../src/bincode/de/mod.rs.html#132">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>),
-            <span class="number">0 </span>=&gt; <a href="../../../src/bincode/de/mod.rs.html#132">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>),
-            value =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/bincode/error.rs.html#24">ErrorKind::InvalidBoolEncoding</a>(<a href="../../../src/bincode/de/mod.rs.html#139">value</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <span class="number">1 </span>=&gt; <a href="#132">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>),
+            <span class="number">0 </span>=&gt; <a href="#132">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>),
+            value =&gt; <span class="prelude-val">Err</span>(<a href="../error.rs.html#24">ErrorKind::InvalidBoolEncoding</a>(<a href="#139">value</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_u16 = visit_u16(deserialize_u16));
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_u32 = visit_u32(deserialize_u32));
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_u64 = visit_u64(deserialize_u64));
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_i16 = visit_i16(deserialize_i16));
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_i32 = visit_i32(deserialize_i32));
-    <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_i64 = visit_i64(deserialize_i64));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_u16 = visit_u16(deserialize_u16));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_u32 = visit_u32(deserialize_u32));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_u64 = visit_u64(deserialize_u64));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_i16 = visit_i16(deserialize_i16));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_i32 = visit_i32(deserialize_i32));
+    <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_i64 = visit_i64(deserialize_i64));
 
     <span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
@@ -670,7 +670,7 @@
         <span class="kw">let </span>value = <span class="self">self
             </span>.reader
             .read_f32::&lt;&lt;O::Endian <span class="kw">as </span>BincodeByteOrder&gt;::Endian&gt;()<span class="question-mark">?</span>;
-        <a href="../../../src/bincode/de/mod.rs.html#150">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_f32</a>(<a href="../../../src/bincode/de/mod.rs.html#155">value</a>)
+        <a href="#150">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_f32</a>(<a href="#155">value</a>)
     }
 
     <span class="kw">fn </span>deserialize_f64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -681,12 +681,12 @@
         <span class="kw">let </span>value = <span class="self">self
             </span>.reader
             .read_f64::&lt;&lt;O::Endian <span class="kw">as </span>BincodeByteOrder&gt;::Endian&gt;()<span class="question-mark">?</span>;
-        <a href="../../../src/bincode/de/mod.rs.html#161">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_f64</a>(<a href="../../../src/bincode/de/mod.rs.html#166">value</a>)
+        <a href="#161">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_f64</a>(<a href="#166">value</a>)
     }
 
     <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_u128 = visit_u128(deserialize_u128));
-        <a class="macro" href="../../../src/bincode/de/mod.rs.html#105-115">impl_deserialize_int!</a>(deserialize_i128 = visit_i128(deserialize_i128));
+        <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_u128 = visit_u128(deserialize_u128));
+        <a class="macro" href="#105-115">impl_deserialize_int!</a>(deserialize_i128 = visit_i128(deserialize_i128));
     }
 
     <span class="attribute">#[inline]
@@ -694,7 +694,7 @@
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#178">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_u8</a>(<span class="self">self</span>.deserialize_byte()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+        <a href="#178">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_u8</a>(<span class="self">self</span>.deserialize_byte()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
     }
 
     <span class="attribute">#[inline]
@@ -702,14 +702,14 @@
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#186">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_i8</a>(<span class="self">self</span>.deserialize_byte()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
+        <a href="#186">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_i8</a>(<span class="self">self</span>.deserialize_byte()<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
     }
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#193">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+        <a href="#193">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
     }
 
     <span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -718,29 +718,29 @@
     {
         <span class="kw">use </span>std::str;
 
-        <span class="kw">let </span>error = || <a href="../../../src/bincode/error.rs.html#26">ErrorKind::InvalidCharEncoding</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>error = || <a href="../error.rs.html#26">ErrorKind::InvalidCharEncoding</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">4</span>];
 
         <span class="comment">// Look at the first byte to see how many bytes must be read
         </span><span class="self">self</span>.reader.read_exact(<span class="kw-2">&amp;mut </span>buf[..<span class="number">1</span>])<span class="question-mark">?</span>;
-        <span class="kw">let </span>width = <a href="../../../src/bincode/de/mod.rs.html#513">utf8_char_width</a>(<a href="../../../src/bincode/de/mod.rs.html#208">buf</a>[<span class="number">0</span>]);
+        <span class="kw">let </span>width = <a href="#513">utf8_char_width</a>(<a href="#208">buf</a>[<span class="number">0</span>]);
         <span class="kw">if </span>width == <span class="number">1 </span>{
-            <span class="kw">return </span><a href="../../../src/bincode/de/mod.rs.html#200">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_char</a>(<a href="../../../src/bincode/de/mod.rs.html#208">buf</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
+            <span class="kw">return </span><a href="#200">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_char</a>(<a href="#208">buf</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
         }
         <span class="kw">if </span>width == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/bincode/de/mod.rs.html#206">error</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#206">error</a>());
         }
 
         <span class="kw">if </span><span class="self">self</span>.reader.read_exact(<span class="kw-2">&amp;mut </span>buf[<span class="number">1</span>..width]).is_err() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/bincode/de/mod.rs.html#206">error</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#206">error</a>());
         }
 
         <span class="kw">let </span>res = str::from_utf8(<span class="kw-2">&amp;</span>buf[..width])
             .ok()
             .and_then(|s| s.chars().next())
             .ok_or_else(error)<span class="question-mark">?</span>;
-        <a href="../../../src/bincode/de/mod.rs.html#200">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_char</a>(<a href="../../../src/bincode/de/mod.rs.html#224">res</a>)
+        <a href="#200">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_char</a>(<a href="#224">res</a>)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -749,14 +749,14 @@
     {
         <span class="kw">let </span>len = O::IntEncoding::deserialize_len(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.read_bytes(len <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#231">self</a>.reader.<a href="../../../src/bincode/de/read.rs.html#16-18">forward_read_str</a>(<a href="../../../src/bincode/de/mod.rs.html#235">len</a>, <a href="../../../src/bincode/de/mod.rs.html#231">visitor</a>)
+        <a class="self" href="#231">self</a>.reader.<a href="read.rs.html#16-18">forward_read_str</a>(<a href="#235">len</a>, <a href="#231">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#240">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<span class="self">self</span>.read_string()<span class="question-mark">?</span>)
+        <a href="#240">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<span class="self">self</span>.read_string()<span class="question-mark">?</span>)
     }
 
     <span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -765,14 +765,14 @@
     {
         <span class="kw">let </span>len = O::IntEncoding::deserialize_len(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.read_bytes(len <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#247">self</a>.reader.<a href="../../../src/bincode/de/read.rs.html#24-26">forward_read_bytes</a>(<a href="../../../src/bincode/de/mod.rs.html#251">len</a>, <a href="../../../src/bincode/de/mod.rs.html#247">visitor</a>)
+        <a class="self" href="#247">self</a>.reader.<a href="read.rs.html#24-26">forward_read_bytes</a>(<a href="#251">len</a>, <a href="#247">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#256">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_byte_buf</a>(<span class="self">self</span>.read_vec()<span class="question-mark">?</span>)
+        <a href="#256">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_byte_buf</a>(<span class="self">self</span>.read_vec()<span class="question-mark">?</span>)
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
@@ -787,9 +787,9 @@
         <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a</span>, O&gt; serde::de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R, O&gt;
         <span class="kw">where
             </span>R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt;,
-            O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>,
+            O: <a href="../config/mod.rs.html#128">Options</a>,
         {
-            <span class="kw">type </span>Error = <a href="../../../src/bincode/error.rs.html#12">Error</a>;
+            <span class="kw">type </span>Error = <a href="../error.rs.html#12">Error</a>;
             <span class="kw">type </span>Variant = <span class="self">Self</span>;
 
             <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant)&gt;
@@ -797,50 +797,50 @@
                 </span>V: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">let </span>idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = O::IntEncoding::deserialize_u32(<span class="self">self</span>)<span class="question-mark">?</span>;
-                <span class="kw">let </span>val: <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>&gt; = <a href="../../../src/bincode/de/mod.rs.html#280">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="../../../src/bincode/de/mod.rs.html#284">idx</a>.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>());
-                <span class="prelude-val">Ok</span>((val<span class="question-mark">?</span>, <a class="self" href="../../../src/bincode/de/mod.rs.html#280">self</a>))
+                <span class="kw">let </span>val: <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>&gt; = <a href="#280">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#284">idx</a>.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>());
+                <span class="prelude-val">Ok</span>((val<span class="question-mark">?</span>, <a class="self" href="#280">self</a>))
             }
         }
 
-        <a href="../../../src/bincode/de/mod.rs.html#267">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="self" href="../../../src/bincode/de/mod.rs.html#264">self</a>)
+        <a href="#267">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="self" href="#264">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_tuple&lt;V&gt;(<span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct </span>Access&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <span class="lifetime">&#39;a</span>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a> + <span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">struct </span>Access&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <span class="lifetime">&#39;a</span>, O: <a href="../config/mod.rs.html#128">Options</a> + <span class="lifetime">&#39;a</span>&gt; {
             deserializer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R, O&gt;,
             len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt; + <span class="lifetime">&#39;b</span>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; serde::de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt; + <span class="lifetime">&#39;b</span>, O: <a href="../config/mod.rs.html#128">Options</a>&gt; serde::de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;
             <span class="kw">for </span>Access&lt;<span class="lifetime">&#39;a</span>, R, O&gt;
         {
-            <span class="kw">type </span>Error = <a href="../../../src/bincode/error.rs.html#12">Error</a>;
+            <span class="kw">type </span>Error = <a href="../error.rs.html#12">Error</a>;
 
             <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;&gt;
             <span class="kw">where
                 </span>T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">if </span><span class="self">self</span>.len &gt; <span class="number">0 </span>{
-                    <a class="self" href="../../../src/bincode/de/mod.rs.html#307">self</a>.len -= <span class="number">1</span>;
+                    <a class="self" href="#307">self</a>.len -= <span class="number">1</span>;
                     <span class="kw">let </span>value =
                         serde::de::DeserializeSeed::deserialize(seed, <span class="kw-2">&amp;mut *</span><span class="self">self</span>.deserializer)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/bincode/de/mod.rs.html#313">value</a>))
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#313">value</a>))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                 }
             }
 
             <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-                <span class="prelude-val">Some</span>(<a class="self" href="../../../src/bincode/de/mod.rs.html#321">self</a>.len)
+                <span class="prelude-val">Some</span>(<a class="self" href="#321">self</a>.len)
             }
         }
 
-        <a href="../../../src/bincode/de/mod.rs.html#293">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_seq</a>(<a href="../../../src/bincode/de/mod.rs.html#297">Access</a> {
-            deserializer: <a class="self" href="../../../src/bincode/de/mod.rs.html#293">self</a>,
-            <a href="../../../src/bincode/de/mod.rs.html#293">len</a>,
+        <a href="#293">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_seq</a>(<a href="#297">Access</a> {
+            deserializer: <a class="self" href="#293">self</a>,
+            <a href="#293">len</a>,
         })
     }
 
@@ -849,10 +849,10 @@
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = serde::de::Deserialize::deserialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="../../../src/bincode/de/mod.rs.html#336">value</a> {
-            <span class="number">0 </span>=&gt; <a href="../../../src/bincode/de/mod.rs.html#332">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="number">1 </span>=&gt; <a href="../../../src/bincode/de/mod.rs.html#332">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/bincode/de/mod.rs.html#332">self</a>),
-            v =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/bincode/error.rs.html#29">ErrorKind::InvalidTagEncoding</a>(<a href="../../../src/bincode/de/mod.rs.html#340">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><a href="#336">value</a> {
+            <span class="number">0 </span>=&gt; <a href="#332">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <span class="number">1 </span>=&gt; <a href="#332">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#332">self</a>),
+            v =&gt; <span class="prelude-val">Err</span>(<a href="../error.rs.html#29">ErrorKind::InvalidTagEncoding</a>(<a href="#340">v</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 
@@ -862,32 +862,32 @@
     {
         <span class="kw">let </span>len = O::IntEncoding::deserialize_len(<span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#344">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="../../../src/bincode/de/mod.rs.html#348">len</a>, <a href="../../../src/bincode/de/mod.rs.html#344">visitor</a>)
+        <a class="self" href="#344">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="#348">len</a>, <a href="#344">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct </span>Access&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <span class="lifetime">&#39;a</span>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a> + <span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">struct </span>Access&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <span class="lifetime">&#39;a</span>, O: <a href="../config/mod.rs.html#128">Options</a> + <span class="lifetime">&#39;a</span>&gt; {
             deserializer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R, O&gt;,
             len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt; + <span class="lifetime">&#39;b</span>, O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>&gt; serde::de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt; + <span class="lifetime">&#39;b</span>, O: <a href="../config/mod.rs.html#128">Options</a>&gt; serde::de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;
             <span class="kw">for </span>Access&lt;<span class="lifetime">&#39;a</span>, R, O&gt;
         {
-            <span class="kw">type </span>Error = <a href="../../../src/bincode/error.rs.html#12">Error</a>;
+            <span class="kw">type </span>Error = <a href="../error.rs.html#12">Error</a>;
 
             <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;&gt;
             <span class="kw">where
                 </span>K: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">if </span><span class="self">self</span>.len &gt; <span class="number">0 </span>{
-                    <a class="self" href="../../../src/bincode/de/mod.rs.html#367">self</a>.len -= <span class="number">1</span>;
+                    <a class="self" href="#367">self</a>.len -= <span class="number">1</span>;
                     <span class="kw">let </span>key =
                         serde::de::DeserializeSeed::deserialize(seed, <span class="kw-2">&amp;mut *</span><span class="self">self</span>.deserializer)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/bincode/de/mod.rs.html#373">key</a>))
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#373">key</a>))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                 }
@@ -898,19 +898,19 @@
                 </span>V: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">let </span>value = serde::de::DeserializeSeed::deserialize(seed, <span class="kw-2">&amp;mut *</span><span class="self">self</span>.deserializer)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="../../../src/bincode/de/mod.rs.html#385">value</a>)
+                <span class="prelude-val">Ok</span>(<a href="#385">value</a>)
             }
 
             <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-                <span class="prelude-val">Some</span>(<a class="self" href="../../../src/bincode/de/mod.rs.html#389">self</a>.len)
+                <span class="prelude-val">Some</span>(<a class="self" href="#389">self</a>.len)
             }
         }
 
         <span class="kw">let </span>len = O::IntEncoding::deserialize_len(<span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <a href="../../../src/bincode/de/mod.rs.html#353">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_map</a>(<a href="../../../src/bincode/de/mod.rs.html#357">Access</a> {
-            deserializer: <a class="self" href="../../../src/bincode/de/mod.rs.html#353">self</a>,
-            <a href="../../../src/bincode/de/mod.rs.html#394">len</a>,
+        <a href="#353">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_map</a>(<a href="#357">Access</a> {
+            deserializer: <a class="self" href="#353">self</a>,
+            <a href="#394">len</a>,
         })
     }
 
@@ -923,7 +923,7 @@
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#403">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="../../../src/bincode/de/mod.rs.html#405">fields</a>.len(), <a href="../../../src/bincode/de/mod.rs.html#406">visitor</a>)
+        <a class="self" href="#403">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="#405">fields</a>.len(), <a href="#406">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -931,21 +931,21 @@
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>message = <span class="string">&quot;Bincode does not support Deserializer::deserialize_identifier&quot;</span>;
-        <span class="prelude-val">Err</span>(Error::custom(<a href="../../../src/bincode/de/mod.rs.html#418">message</a>))
+        <span class="prelude-val">Err</span>(Error::custom(<a href="#418">message</a>))
     }
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#422">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="../../../src/bincode/de/mod.rs.html#422">self</a>)
+        <a href="#422">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#422">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../src/bincode/de/mod.rs.html#429">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+        <a href="#429">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
@@ -957,7 +957,7 @@
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../../src/bincode/de/mod.rs.html#437">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="../../../src/bincode/de/mod.rs.html#439">len</a>, <a href="../../../src/bincode/de/mod.rs.html#440">visitor</a>)
+        <a class="self" href="#437">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="#439">len</a>, <a href="#440">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -965,7 +965,7 @@
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>message = <span class="string">&quot;Bincode does not support Deserializer::deserialize_ignored_any&quot;</span>;
-        <span class="prelude-val">Err</span>(Error::custom(<a href="../../../src/bincode/de/mod.rs.html#452">message</a>))
+        <span class="prelude-val">Err</span>(Error::custom(<a href="#452">message</a>))
     }
 
     <span class="kw">fn </span>is_human_readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -976,9 +976,9 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, O&gt; serde::de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R, O&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;de</span>&gt;,
-    O: <a href="../../../src/bincode/config/mod.rs.html#128">Options</a>,
+    O: <a href="../config/mod.rs.html#128">Options</a>,
 {
-    <span class="kw">type </span>Error = <a href="../../../src/bincode/error.rs.html#12">Error</a>;
+    <span class="kw">type </span>Error = <a href="../error.rs.html#12">Error</a>;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
@@ -988,21 +988,21 @@
     <span class="kw">where
         </span>T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../serde/de/trait.DeserializeSeed.html">serde::de::DeserializeSeed::deserialize</a>(<a href="../../../src/bincode/de/mod.rs.html#472">seed</a>, <a class="self" href="../../../src/bincode/de/mod.rs.html#472">self</a>)
+        <a href="../../../serde/de/trait.DeserializeSeed.html">serde::de::DeserializeSeed::deserialize</a>(<a href="#472">seed</a>, <a class="self" href="#472">self</a>)
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../serde/de/trait.Deserializer.html">serde::de::Deserializer::deserialize_tuple</a>(<a class="self" href="../../../src/bincode/de/mod.rs.html#479">self</a>, <a href="../../../src/bincode/de/mod.rs.html#479">len</a>, <a href="../../../src/bincode/de/mod.rs.html#479">visitor</a>)
+        <a href="../../../serde/de/trait.Deserializer.html">serde::de::Deserializer::deserialize_tuple</a>(<a class="self" href="#479">self</a>, <a href="#479">len</a>, <a href="#479">visitor</a>)
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="self">self</span>, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>], visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../../serde/de/trait.Deserializer.html">serde::de::Deserializer::deserialize_tuple</a>(<a class="self" href="../../../src/bincode/de/mod.rs.html#486">self</a>, <a href="../../../src/bincode/de/mod.rs.html#486">fields</a>.len(), <a href="../../../src/bincode/de/mod.rs.html#486">visitor</a>)
+        <a href="../../../serde/de/trait.Deserializer.html">serde::de::Deserializer::deserialize_tuple</a>(<a class="self" href="#486">self</a>, <a href="#486">fields</a>.len(), <a href="#486">visitor</a>)
     }
 }
 <span class="kw">static </span>UTF8_CHAR_WIDTH: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">256</span>] = [
@@ -1026,7 +1026,7 @@
 
 <span class="comment">// This function is a copy of core::str::utf8_char_width
 </span><span class="kw">fn </span>utf8_char_width(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/bincode/de/mod.rs.html#493">UTF8_CHAR_WIDTH</a>[<a href="../../../src/bincode/de/mod.rs.html#513">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    <a href="#493">UTF8_CHAR_WIDTH</a>[<a href="#513">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -238,21 +238,21 @@
 <span id="238">238</span>
 <span id="239">239</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::borrowck::{
-    facts::{<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>, <a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>},
-    lifetimes::{<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>, <a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#21">LifetimesGraphviz</a>},
+    facts::{<a href="borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a href="borrowck/facts/mod.rs.html#83">LocationTable</a>, <a href="borrowck/facts/mod.rs.html#42">RichLocation</a>},
+    lifetimes::{<a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>, <a href="borrowck/lifetimes/graphviz.rs.html#21">LifetimesGraphviz</a>},
 };
 <span class="kw">use </span><span class="kw">crate</span>::environment::debug_utils::to_text::{
-    <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#117">loans_to_text</a>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#103">point_to_text</a>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#107">points_to_text</a>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#5">ToText</a>,
+    <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>, <a href="../debug_utils/to_text.rs.html#5">ToText</a>,
 };
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
 <span class="kw">use </span>vir::common::graphviz::{<a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, <a href="../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>};
 
 <span class="kw">pub fn </span>to_graphviz&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-    borrowck_input_facts: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
-    location_table: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
+    borrowck_input_facts: <span class="kw-2">&amp;</span><a href="borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
+    location_table: <span class="kw-2">&amp;</span><a href="borrowck/facts/mod.rs.html#83">LocationTable</a>,
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; <a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a> {
-    <span class="kw">let </span>lifetimes = Lifetimes::new(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#12">borrowck_input_facts</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#13">location_table</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="kw">let </span>lifetimes = Lifetimes::new(<a href="#12">borrowck_input_facts</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#13">location_table</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
     <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::with_columns(<span class="kw-2">&amp;</span>[
         <span class="string">&quot;location&quot;</span>,
@@ -267,40 +267,40 @@
         <span class="string">&quot;derived lifetimes&quot;</span>,
     ]);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>opaque_lifetimes_table = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>.create_table(<span class="string">&quot;Opaque lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>opaque_lifetimes_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Opaque lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
     <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes.get_opaque_lifetimes_with_inclusions() {
         opaque_lifetimes_table.add_row(<span class="macro">vec!</span>[lifetime.to_text()]);
     }
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#31">opaque_lifetimes_table</a>.build();
+    <a href="#31">opaque_lifetimes_table</a>.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>original_lifetimes_table = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>.create_table(<span class="string">&quot;Original lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>original_lifetimes_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Original lifetimes&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;lifetime&quot;</span>]);
     <span class="kw">for </span>lifetime <span class="kw">in </span>lifetimes.get_original_lifetimes() {
         original_lifetimes_table.add_row(<span class="macro">vec!</span>[lifetime.to_text()]);
     }
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#37">original_lifetimes_table</a>.build();
+    <a href="#37">original_lifetimes_table</a>.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>parameters_table = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>.create_table(<span class="string">&quot;Function parameters&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;parameter&quot;</span>, <span class="string">&quot;type&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>parameters_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Function parameters&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;parameter&quot;</span>, <span class="string">&quot;type&quot;</span>]);
     <span class="kw">for </span>parameter <span class="kw">in </span>mir.args_iter() {
         parameters_table.add_row(<span class="macro">vec!</span>[
             parameter.to_text(),
             mir.local_decls[parameter].ty.to_text(),
         ]);
     }
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#43">parameters_table</a>.add_row(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;result&quot;</span>.to_text(), mir.return_ty().to_text()]);
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#43">parameters_table</a>.build();
+    <a href="#43">parameters_table</a>.add_row(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;result&quot;</span>.to_text(), mir.return_ty().to_text()]);
+    <a href="#43">parameters_table</a>.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>locals_table = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>.create_table(<span class="string">&quot;Function locals&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;local&quot;</span>, <span class="string">&quot;type&quot;</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>locals_table = <a href="#18">graph</a>.create_table(<span class="string">&quot;Function locals&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;local&quot;</span>, <span class="string">&quot;type&quot;</span>]);
     <span class="kw">for </span>local <span class="kw">in </span>mir.vars_and_temps_iter() {
         locals_table.add_row(<span class="macro">vec!</span>[local.to_text(), mir.local_decls[local].ty.to_text()]);
     }
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#53">locals_table</a>.build();
+    <a href="#53">locals_table</a>.build();
 
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#64">visit_body</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#14">mir</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#16">lifetimes</a>);
+    <a href="#64">visit_body</a>(<span class="kw-2">&amp;mut </span><a href="#18">graph</a>, <a href="#14">mir</a>, <span class="kw-2">&amp;</span><a href="#16">lifetimes</a>);
 
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#18">graph</a>
+    <a href="#18">graph</a>
 }
 
-<span class="kw">fn </span>visit_body(graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;, lifetimes: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>) {
+<span class="kw">fn </span>visit_body(graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;, lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>) {
     <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
         visit_basic_block(graph, mir, bb, lifetimes);
     }
@@ -310,19 +310,19 @@
     graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>,
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;,
     bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    lifetimes: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
+    lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>node_builder = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#71">graph</a>.create_node(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#73">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+    <span class="kw">let </span><span class="kw-2">mut </span>node_builder = <a href="#71">graph</a>.create_node(<a href="#73">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
     <span class="kw">let </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">mir::BasicBlockData</a> {
         statements,
         terminator,
         ..
-    } = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#72">mir</a>[<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#73">bb</a>];
+    } = <span class="kw-2">&amp;</span><a href="#72">mir</a>[<a href="#73">bb</a>];
     <span class="kw">let </span><span class="kw-2">mut </span>location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-        block: <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#73">bb</a>,
+        block: <a href="#73">bb</a>,
         statement_index: <span class="number">0</span>,
     };
-    <span class="kw">let </span>terminator_index = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#78">statements</a>.len();
+    <span class="kw">let </span>terminator_index = <a href="#78">statements</a>.len();
     <span class="kw">while </span>location.statement_index &lt; terminator_index {
         visit_statement(
             <span class="kw-2">&amp;mut </span>node_builder,
@@ -332,12 +332,12 @@
         );
         location.statement_index += <span class="number">1</span>;
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#79">terminator</a> {
-        <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#105-110">visit_statement</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#76">node_builder</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#82">location</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#96">terminator</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#74">lifetimes</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="#79">terminator</a> {
+        <a href="#105-110">visit_statement</a>(<span class="kw-2">&amp;mut </span><a href="#76">node_builder</a>, <a href="#82">location</a>, <a href="#96">terminator</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#74">lifetimes</a>);
     }
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#76">node_builder</a>.build();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#79">terminator</a> {
-        <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">visit_terminator</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#71">graph</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#73">bb</a>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#100">terminator</a>);
+    <a href="#76">node_builder</a>.build();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(terminator) = <a href="#79">terminator</a> {
+        <a href="#164">visit_terminator</a>(<a href="#71">graph</a>, <a href="#73">bb</a>, <a href="#100">terminator</a>);
     }
 }
 
@@ -345,67 +345,67 @@
     node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>,
     location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     statement_text: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    lifetimes: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
+    lifetimes: <span class="kw-2">&amp;</span><a href="borrowck/lifetimes/mod.rs.html#13">Lifetimes</a>,
 ) {
-    <span class="kw">let </span>point_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>point_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>cfg_in_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#111">point_start</a>);
-    <span class="kw">let </span>cfg_out_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#111">point_start</a>);
-    <span class="kw">let </span>cfg_in_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#112">point_mid</a>);
-    <span class="kw">let </span>cfg_out_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#112">point_mid</a>);
-    <span class="kw">let </span>subset_base_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>subset_base_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>subset_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>subset_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
+    <span class="kw">let </span>point_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>point_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#29">location_to_point</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>cfg_in_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="#111">point_start</a>);
+    <span class="kw">let </span>cfg_out_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="#111">point_start</a>);
+    <span class="kw">let </span>cfg_in_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#22">get_cfg_incoming</a>(<a href="#112">point_mid</a>);
+    <span class="kw">let </span>cfg_out_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#23">get_cfg_outgoing</a>(<a href="#112">point_mid</a>);
+    <span class="kw">let </span>subset_base_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>subset_base_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#25">get_subset_base</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>subset_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>subset_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#26">get_subset</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
     <span class="kw">let </span>origin_live_on_entry_start =
-        <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>origin_live_on_entry_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>loan_live_at_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
-    <span class="kw">let </span>loan_live_at_mid = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
+        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>origin_live_on_entry_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#27">get_origin_live_on_entry</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>loan_live_at_start = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
+    <span class="kw">let </span>loan_live_at_mid = <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#30">get_loan_live_at</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
     <span class="kw">let </span>origin_contains_loan_at_start =
-        <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
+        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="#107">location</a>));
     <span class="kw">let </span>origin_contains_loan_at_mid =
-        <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#109">lifetimes</a>.<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>));
+        <a href="#109">lifetimes</a>.<a href="borrowck/lifetimes/graphviz.rs.html#31-34">get_origin_contains_loan_at</a>(<a href="borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="#107">location</a>));
 
-    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_start = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#106">node_builder</a>.create_row();
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;location&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#107">location</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#111">point_start</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#113">cfg_in_start</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#114">cfg_out_start</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;statement&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#108">statement_text</a>);
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#117">subset_base_start</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#119">subset_start</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#121">origin_live_on_entry_start</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#124">loan_live_at_start</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.set(
+    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_start = <a href="#106">node_builder</a>.create_row();
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;location&quot;</span>, <a href="#107">location</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="#111">point_start</a>));
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#113">cfg_in_start</a>));
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#114">cfg_out_start</a>));
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;statement&quot;</span>, <a href="#108">statement_text</a>);
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="#117">subset_base_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="#119">subset_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="#121">origin_live_on_entry_start</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#131">row_builder_start</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="#124">loan_live_at_start</a>));
+    <a href="#131">row_builder_start</a>.set(
         <span class="string">&quot;derived lifetimes&quot;</span>,
-        <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#126">origin_contains_loan_at_start</a>),
+        <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="#126">origin_contains_loan_at_start</a>),
     );
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#131">row_builder_start</a>.build();
+    <a href="#131">row_builder_start</a>.build();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_end = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#106">node_builder</a>.create_row();
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;location&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#112">point_mid</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#115">cfg_in_mid</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#116">cfg_out_mid</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;statement&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#118">subset_base_mid</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#120">subset_mid</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#123">origin_live_on_entry_mid</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#125">loan_live_at_mid</a>));
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.set(
+    <span class="kw">let </span><span class="kw-2">mut </span>row_builder_end = <a href="#106">node_builder</a>.create_row();
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;location&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;point&quot;</span>, <a href="../debug_utils/to_text.rs.html#103">point_to_text</a>(<span class="kw-2">&amp;</span><a href="#112">point_mid</a>));
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;cfg_in&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#115">cfg_in_mid</a>));
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;cfg_out&quot;</span>, <a href="../debug_utils/to_text.rs.html#107">points_to_text</a>(<span class="kw-2">&amp;</span><a href="#116">cfg_out_mid</a>));
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;statement&quot;</span>, <span class="string">&quot;&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;subset_base&quot;</span>, <a href="#118">subset_base_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;subset&quot;</span>, <a href="#120">subset_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;origin_live_on_entry&quot;</span>, <a href="#123">origin_live_on_entry_mid</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+    <a href="#147">row_builder_end</a>.set(<span class="string">&quot;original lifetimes&quot;</span>, <a href="../debug_utils/to_text.rs.html#117">loans_to_text</a>(<span class="kw-2">&amp;</span><a href="#125">loan_live_at_mid</a>));
+    <a href="#147">row_builder_end</a>.set(
         <span class="string">&quot;derived lifetimes&quot;</span>,
-        <a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#128">origin_contains_loan_at_mid</a>),
+        <a href="../debug_utils/to_text.rs.html#130-135">loan_containment_to_text</a>(<span class="kw-2">&amp;</span><a href="#128">origin_contains_loan_at_mid</a>),
     );
-    <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#147">row_builder_end</a>.build();
+    <a href="#147">row_builder_end</a>.build();
 }
 
 <span class="kw">fn </span>visit_terminator(graph: <span class="kw-2">&amp;mut </span><a href="../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, terminator: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;_</span>&gt;) {
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">prusti_rustc_interface::middle::mir::TerminatorKind</a>;
-    <span class="kw">let </span>bb = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">bb</a>;
-    <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">terminator</a>.kind {
+    <span class="kw">let </span>bb = <span class="kw-2">&amp;</span><a href="#164">bb</a>;
+    <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#164">terminator</a>.kind {
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#168">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#168">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::SwitchInt</a> { <span class="kw-2">ref </span>targets, .. } =&gt; {
             <span class="kw">for </span>target <span class="kw">in </span>targets.all_targets() {
@@ -413,68 +413,68 @@
             }
         }
         TerminatorKind::Resume =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;resume&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;resume&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         TerminatorKind::Abort =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;abort&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;abort&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         TerminatorKind::Return =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;return&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;return&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         TerminatorKind::Unreachable =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;unreachable&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;unreachable&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::DropAndReplace</a> { target, unwind, .. }
         | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> { target, unwind, .. } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#188">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#188">unwind</a> {
-                <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_unwind_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#191">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#188">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#188">unwind</a> {
+                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#191">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
             }
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> {
             target, cleanup, ..
         } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#196">target</a> {
-                <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#198">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#196">target</a> {
+                <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#198">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#196">cleanup</a> {
-                <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_unwind_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#201">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#196">cleanup</a> {
+                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#201">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
             }
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Assert</a> {
             target, cleanup, ..
         } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#206">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#206">cleanup</a> {
-                <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_unwind_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#209">target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#206">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <a href="#206">cleanup</a> {
+                <a href="#164">graph</a>.add_unwind_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#209">target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
             }
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Yield</a> { .. } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;yield&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;yield&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         TerminatorKind::GeneratorDrop =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;generator_drop&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;generator_drop&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseEdge</a> {
             real_target,
             imaginary_target,
         } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#220">real_target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_imaginary_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#221">imaginary_target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#220">real_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_imaginary_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#221">imaginary_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseUnwind</a> {
             real_target,
             unwind,
         } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_regular_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#227">real_target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(imaginary_target) = <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#228">unwind</a> {
-                <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_imaginary_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#231">imaginary_target</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_regular_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#227">real_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(imaginary_target) = <a href="#228">unwind</a> {
+                <a href="#164">graph</a>.add_imaginary_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <a href="#231">imaginary_target</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
             }
         }
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::InlineAsm</a> { .. } =&gt; {
-            <a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#164">graph</a>.add_exit_edge(<a href="../../../../src/prusti_interface/environment/mir_body/graphviz.rs.html#166">bb</a>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;inline_asm&quot;</span>.<a href="../../../../src/prusti_interface/environment/debug_utils/to_text.rs.html#6">to_text</a>());
+            <a href="#164">graph</a>.add_exit_edge(<a href="#166">bb</a>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>(), <span class="string">&quot;inline_asm&quot;</span>.<a href="../debug_utils/to_text.rs.html#6">to_text</a>());
         }
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

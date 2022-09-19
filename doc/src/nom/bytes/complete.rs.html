@@ -756,14 +756,14 @@
 <span id="756">756</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, complete input version
 
-</span><span class="kw">use </span><a href="../../../src/nom/error.rs.html#366"><span class="kw">crate</span>::error::ErrorKind</a>;
-<span class="kw">use </span><a href="../../../src/nom/error.rs.html#16"><span class="kw">crate</span>::error::ParseError</a>;
-<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../../../src/nom/internal.rs.html#18">IResult</a>, <a href="../../../src/nom/internal.rs.html#241">Parser</a>};
+</span><span class="kw">use </span><a href="../error.rs.html#366"><span class="kw">crate</span>::error::ErrorKind</a>;
+<span class="kw">use </span><a href="../error.rs.html#16"><span class="kw">crate</span>::error::ParseError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../internal.rs.html#18">IResult</a>, <a href="../internal.rs.html#241">Parser</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html"><span class="kw">crate</span>::lib::std::ops::RangeFrom</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html"><span class="kw">crate</span>::lib::std::result::Result</a>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::traits::{
-  <a href="../../../src/nom/traits.rs.html#717">Compare</a>, <a href="../../../src/nom/traits.rs.html#707">CompareResult</a>, <a href="../../../src/nom/traits.rs.html#930">FindSubstring</a>, <a href="../../../src/nom/traits.rs.html#876">FindToken</a>, <a href="../../../src/nom/traits.rs.html#302">InputIter</a>, <a href="../../../src/nom/traits.rs.html#18">InputLength</a>, <a href="../../../src/nom/traits.rs.html#328">InputTake</a>,
-  <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>, <a href="../../../src/nom/traits.rs.html#1006">Slice</a>, <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+  <a href="../traits.rs.html#717">Compare</a>, <a href="../traits.rs.html#707">CompareResult</a>, <a href="../traits.rs.html#930">FindSubstring</a>, <a href="../traits.rs.html#876">FindToken</a>, <a href="../traits.rs.html#302">InputIter</a>, <a href="../traits.rs.html#18">InputLength</a>, <a href="../traits.rs.html#328">InputTake</a>,
+  <a href="../traits.rs.html#444">InputTakeAtPosition</a>, <a href="../traits.rs.html#1006">Slice</a>, <a href="../traits.rs.html#1234">ToUsize</a>,
 };
 
 <span class="doccomment">/// Recognizes a pattern
@@ -789,20 +789,20 @@
   tag: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + Compare&lt;T&gt;,
-  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  </span>Input: <a href="../traits.rs.html#328">InputTake</a> + Compare&lt;T&gt;,
+  T: <a href="../traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>tag_len = <a href="../../../src/nom/bytes/complete.rs.html#33">tag</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
-    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/complete.rs.html#33">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#39">i</a>.<a href="../../../src/nom/traits.rs.html#719">compare</a>(<a href="../../../src/nom/bytes/complete.rs.html#41">t</a>) {
-      <a href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#39">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#40">tag_len</a>)),
+    <span class="kw">let </span>tag_len = <a href="#33">tag</a>.<a href="../traits.rs.html#21">input_len</a>();
+    <span class="kw">let </span>t = <a href="#33">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="#39">i</a>.<a href="../traits.rs.html#719">compare</a>(<a href="#41">t</a>) {
+      <a href="../traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#39">i</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#40">tag_len</a>)),
       <span class="kw">_ </span>=&gt; {
-        <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
-        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#39">i</a>, <a href="../../../src/nom/bytes/complete.rs.html#45">e</a>)))
+        <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#367">ErrorKind::Tag</a>;
+        <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#39">i</a>, <a href="#45">e</a>)))
       }
     };
-    <a href="../../../src/nom/bytes/complete.rs.html#42">res</a>
+    <a href="#42">res</a>
   }
 }
 
@@ -831,21 +831,21 @@
   tag: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + Compare&lt;T&gt;,
-  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  </span>Input: <a href="../traits.rs.html#328">InputTake</a> + Compare&lt;T&gt;,
+  T: <a href="../traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>tag_len = <a href="../../../src/nom/bytes/complete.rs.html#75">tag</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
-    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/complete.rs.html#75">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>tag_len = <a href="#75">tag</a>.<a href="../traits.rs.html#21">input_len</a>();
+    <span class="kw">let </span>t = <a href="#75">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>(<a href="../../../src/nom/bytes/complete.rs.html#81">i</a>).<a href="../../../src/nom/traits.rs.html#727">compare_no_case</a>(<a href="../../../src/nom/bytes/complete.rs.html#83">t</a>) {
-      <a href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#81">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#82">tag_len</a>)),
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>(<a href="#81">i</a>).<a href="../traits.rs.html#727">compare_no_case</a>(<a href="#83">t</a>) {
+      <a href="../traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="#81">i</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#82">tag_len</a>)),
       <span class="kw">_ </span>=&gt; {
-        <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
-        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#81">i</a>, <a href="../../../src/nom/bytes/complete.rs.html#88">e</a>)))
+        <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#367">ErrorKind::Tag</a>;
+        <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#81">i</a>, <a href="#88">e</a>)))
       }
     };
-    <a href="../../../src/nom/bytes/complete.rs.html#85">res</a>
+    <a href="#85">res</a>
   }
 }
 
@@ -874,12 +874,12 @@
   arr: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#371">ErrorKind::IsNot</a>;
-    <a href="../../../src/nom/bytes/complete.rs.html#124">i</a>.<a href="../../../src/nom/traits.rs.html#489-495">split_at_position1_complete</a>(|c| <a href="../../../src/nom/bytes/complete.rs.html#118">arr</a>.<a href="../../../src/nom/traits.rs.html#878">find_token</a>(<a href="../../../src/nom/bytes/complete.rs.html#126">c</a>), <a href="../../../src/nom/bytes/complete.rs.html#125">e</a>)
+    <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#371">ErrorKind::IsNot</a>;
+    <a href="#124">i</a>.<a href="../traits.rs.html#489-495">split_at_position1_complete</a>(|c| <a href="#118">arr</a>.<a href="../traits.rs.html#878">find_token</a>(<a href="#126">c</a>), <a href="#125">e</a>)
   }
 }
 
@@ -908,12 +908,12 @@
   arr: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#372">ErrorKind::IsA</a>;
-    <a href="../../../src/nom/bytes/complete.rs.html#158">i</a>.<a href="../../../src/nom/traits.rs.html#489-495">split_at_position1_complete</a>(|c| !<a href="../../../src/nom/bytes/complete.rs.html#152">arr</a>.<a href="../../../src/nom/traits.rs.html#878">find_token</a>(<a href="../../../src/nom/bytes/complete.rs.html#160">c</a>), <a href="../../../src/nom/bytes/complete.rs.html#159">e</a>)
+    <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#372">ErrorKind::IsA</a>;
+    <a href="#158">i</a>.<a href="../traits.rs.html#489-495">split_at_position1_complete</a>(|c| !<a href="#152">arr</a>.<a href="../traits.rs.html#878">find_token</a>(<a href="#160">c</a>), <a href="#159">e</a>)
   }
 }
 
@@ -940,10 +940,10 @@
   cond: F,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move </span>|i: Input| <a href="../../../src/nom/bytes/complete.rs.html#190">i</a>.<a href="../../../src/nom/traits.rs.html#476-481">split_at_position_complete</a>(|c| !<a href="../../../src/nom/bytes/complete.rs.html#184">cond</a>(<a href="../../../src/nom/bytes/complete.rs.html#190">c</a>))
+  <span class="kw">move </span>|i: Input| <a href="#190">i</a>.<a href="../traits.rs.html#476-481">split_at_position_complete</a>(|c| !<a href="#184">cond</a>(<a href="#190">c</a>))
 }
 
 <span class="doccomment">/// Returns the longest (at least 1) input slice that matches the predicate.
@@ -970,12 +970,12 @@
   cond: F,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#402">ErrorKind::TakeWhile1</a>;
-    <a href="../../../src/nom/bytes/complete.rs.html#220">i</a>.<a href="../../../src/nom/traits.rs.html#489-495">split_at_position1_complete</a>(|c| !<a href="../../../src/nom/bytes/complete.rs.html#214">cond</a>(<a href="../../../src/nom/bytes/complete.rs.html#222">c</a>), <a href="../../../src/nom/bytes/complete.rs.html#221">e</a>)
+    <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#402">ErrorKind::TakeWhile1</a>;
+    <a href="#220">i</a>.<a href="../traits.rs.html#489-495">split_at_position1_complete</a>(|c| !<a href="#214">cond</a>(<a href="#222">c</a>), <a href="#221">e</a>)
   }
 }
 
@@ -1008,57 +1008,57 @@
   cond: F,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#302">InputIter</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
+  </span>Input: <a href="../traits.rs.html#328">InputTake</a> + <a href="../traits.rs.html#302">InputIter</a> + <a href="../traits.rs.html#18">InputLength</a> + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
   F: Fn(&lt;Input <span class="kw">as </span>InputIter&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>input = <a href="../../../src/nom/bytes/complete.rs.html#258">i</a>;
+    <span class="kw">let </span>input = <a href="#258">i</a>;
 
-    <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#320-322">position</a>(|c| !<a href="../../../src/nom/bytes/complete.rs.html#252">cond</a>(<a href="../../../src/nom/bytes/complete.rs.html#261">c</a>)) {
+    <span class="kw">match </span><a href="#259">input</a>.<a href="../traits.rs.html#320-322">position</a>(|c| !<a href="#252">cond</a>(<a href="#261">c</a>)) {
       <span class="prelude-val">Some</span>(idx) =&gt; {
         <span class="kw">if </span>idx &gt;= m {
           <span class="kw">if </span>idx &lt;= n {
-            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/complete.rs.html#262">idx</a>) {
-              <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#265">index</a>))
+            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="#259">input</a>.<a href="../traits.rs.html#324">slice_index</a>(<a href="#262">idx</a>) {
+              <span class="prelude-val">Ok</span>(<a href="#259">input</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#265">index</a>))
             } <span class="kw">else </span>{
-              <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
-                <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>,
-                <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+              <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+                <a href="#259">input</a>,
+                <a href="../error.rs.html#413">ErrorKind::TakeWhileMN</a>,
               )))
             };
-            <a href="../../../src/nom/bytes/complete.rs.html#265">res</a>
+            <a href="#265">res</a>
           } <span class="kw">else </span>{
-            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/complete.rs.html#251">n</a>) {
-              <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#275">index</a>))
+            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="#259">input</a>.<a href="../traits.rs.html#324">slice_index</a>(<a href="#251">n</a>) {
+              <span class="prelude-val">Ok</span>(<a href="#259">input</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#275">index</a>))
             } <span class="kw">else </span>{
-              <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
-                <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>,
-                <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+              <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+                <a href="#259">input</a>,
+                <a href="../error.rs.html#413">ErrorKind::TakeWhileMN</a>,
               )))
             };
-            <a href="../../../src/nom/bytes/complete.rs.html#275">res</a>
+            <a href="#275">res</a>
           }
         } <span class="kw">else </span>{
-          <span class="kw">let </span>e = <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>;
-          <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>, <a href="../../../src/nom/bytes/complete.rs.html#286">e</a>)))
+          <span class="kw">let </span>e = <a href="../error.rs.html#413">ErrorKind::TakeWhileMN</a>;
+          <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#259">input</a>, <a href="#286">e</a>)))
         }
       }
       <span class="prelude-val">None </span>=&gt; {
-        <span class="kw">let </span>len = <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
+        <span class="kw">let </span>len = <a href="#259">input</a>.<a href="../traits.rs.html#21">input_len</a>();
         <span class="kw">if </span>len &gt;= n {
-          <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/complete.rs.html#251">n</a>) {
-            <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#294">index</a>)),
-            <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
-              <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>,
-              <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+          <span class="kw">match </span><a href="#259">input</a>.<a href="../traits.rs.html#324">slice_index</a>(<a href="#251">n</a>) {
+            <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="#259">input</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#294">index</a>)),
+            <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+              <a href="#259">input</a>,
+              <a href="../error.rs.html#413">ErrorKind::TakeWhileMN</a>,
             ))),
           }
         } <span class="kw">else if </span>len &gt;= m &amp;&amp; len &lt;= n {
-          <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="prelude-val">Ok</span>((<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>(<a href="../../../src/nom/bytes/complete.rs.html#291">len</a>..), <a href="../../../src/nom/bytes/complete.rs.html#259">input</a>));
-          <a href="../../../src/nom/bytes/complete.rs.html#301">res</a>
+          <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="prelude-val">Ok</span>((<a href="#259">input</a>.<a href="../traits.rs.html#1008">slice</a>(<a href="#291">len</a>..), <a href="#259">input</a>));
+          <a href="#301">res</a>
         } <span class="kw">else </span>{
-          <span class="kw">let </span>e = <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>;
-          <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#259">input</a>, <a href="../../../src/nom/bytes/complete.rs.html#304">e</a>)))
+          <span class="kw">let </span>e = <a href="../error.rs.html#413">ErrorKind::TakeWhileMN</a>;
+          <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#259">input</a>, <a href="#304">e</a>)))
         }
       }
     }
@@ -1087,10 +1087,10 @@
   cond: F,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move </span>|i: Input| <a href="../../../src/nom/bytes/complete.rs.html#337">i</a>.<a href="../../../src/nom/traits.rs.html#476-481">split_at_position_complete</a>(|c| <a href="../../../src/nom/bytes/complete.rs.html#331">cond</a>(<a href="../../../src/nom/bytes/complete.rs.html#337">c</a>))
+  <span class="kw">move </span>|i: Input| <a href="#337">i</a>.<a href="../traits.rs.html#476-481">split_at_position_complete</a>(|c| <a href="#331">cond</a>(<a href="#337">c</a>))
 }
 
 <span class="doccomment">/// Returns the longest (at least 1) input slice till a predicate is met.
@@ -1118,12 +1118,12 @@
   cond: F,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  </span>Input: <a href="../traits.rs.html#444">InputTakeAtPosition</a>,
   F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#412">ErrorKind::TakeTill1</a>;
-    <a href="../../../src/nom/bytes/complete.rs.html#368">i</a>.<a href="../../../src/nom/traits.rs.html#489-495">split_at_position1_complete</a>(|c| <a href="../../../src/nom/bytes/complete.rs.html#362">cond</a>(<a href="../../../src/nom/bytes/complete.rs.html#370">c</a>), <a href="../../../src/nom/bytes/complete.rs.html#369">e</a>)
+    <span class="kw">let </span>e: <a href="../error.rs.html#366">ErrorKind</a> = <a href="../error.rs.html#412">ErrorKind::TakeTill1</a>;
+    <a href="#368">i</a>.<a href="../traits.rs.html#489-495">split_at_position1_complete</a>(|c| <a href="#362">cond</a>(<a href="#370">c</a>), <a href="#369">e</a>)
   }
 }
 
@@ -1160,13 +1160,13 @@
   count: C,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#302">InputIter</a> + <a href="../../../src/nom/traits.rs.html#328">InputTake</a>,
-  C: <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+  </span>Input: <a href="../traits.rs.html#302">InputIter</a> + <a href="../traits.rs.html#328">InputTake</a>,
+  C: <a href="../traits.rs.html#1234">ToUsize</a>,
 {
-  <span class="kw">let </span>c = <a href="../../../src/nom/bytes/complete.rs.html#404">count</a>.<a href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move </span>|i: Input| <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#411">i</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/complete.rs.html#410">c</a>) {
-    <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#411">i</a>, <a href="../../../src/nom/error.rs.html#390">ErrorKind::Eof</a>))),
-    <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#411">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#413">index</a>)),
+  <span class="kw">let </span>c = <a href="#404">count</a>.<a href="../traits.rs.html#1236">to_usize</a>();
+  <span class="kw">move </span>|i: Input| <span class="kw">match </span><a href="#411">i</a>.<a href="../traits.rs.html#324">slice_index</a>(<a href="#410">c</a>) {
+    <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#411">i</a>, <a href="../error.rs.html#390">ErrorKind::Eof</a>))),
+    <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="#411">i</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#413">index</a>)),
   }
 }
 
@@ -1192,16 +1192,16 @@
   tag: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + FindSubstring&lt;T&gt;,
-  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  </span>Input: <a href="../traits.rs.html#328">InputTake</a> + FindSubstring&lt;T&gt;,
+  T: <a href="../traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/complete.rs.html#436">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#442">i</a>.<a href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a href="../../../src/nom/bytes/complete.rs.html#443">t</a>) {
-      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#442">i</a>, <a href="../../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>))),
-      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#442">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#446">index</a>)),
+    <span class="kw">let </span>t = <a href="#436">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="#442">i</a>.<a href="../traits.rs.html#932">find_substring</a>(<a href="#443">t</a>) {
+      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#442">i</a>, <a href="../error.rs.html#379">ErrorKind::TakeUntil</a>))),
+      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="#442">i</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#446">index</a>)),
     };
-    <a href="../../../src/nom/bytes/complete.rs.html#444">res</a>
+    <a href="#444">res</a>
   }
 }
 
@@ -1228,17 +1228,17 @@
   tag: T,
 ) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
-  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + FindSubstring&lt;T&gt;,
-  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  </span>Input: <a href="../traits.rs.html#328">InputTake</a> + FindSubstring&lt;T&gt;,
+  T: <a href="../traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
   <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/complete.rs.html#472">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/complete.rs.html#478">i</a>.<a href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a href="../../../src/nom/bytes/complete.rs.html#479">t</a>) {
-      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#478">i</a>, <a href="../../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>))),
-      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/complete.rs.html#478">i</a>, <a href="../../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>))),
-      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/complete.rs.html#478">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/complete.rs.html#483">index</a>)),
+    <span class="kw">let </span>t = <a href="#472">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="#478">i</a>.<a href="../traits.rs.html#932">find_substring</a>(<a href="#479">t</a>) {
+      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#478">i</a>, <a href="../error.rs.html#379">ErrorKind::TakeUntil</a>))),
+      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="#478">i</a>, <a href="../error.rs.html#379">ErrorKind::TakeUntil</a>))),
+      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="#478">i</a>.<a href="../traits.rs.html#332">take_split</a>(<a href="#483">index</a>)),
     };
-    <a href="../../../src/nom/bytes/complete.rs.html#480">res</a>
+    <a href="#480">res</a>
   }
 }
 
@@ -1269,21 +1269,21 @@
 ) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Input, Error&gt;
 <span class="kw">where
   </span>Input: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
-    + <a href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
-    + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>
-    + <a href="../../../src/nom/traits.rs.html#328">InputTake</a>
-    + <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
+    + <a href="../traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
+    + <a href="../traits.rs.html#18">InputLength</a>
+    + <a href="../traits.rs.html#328">InputTake</a>
+    + <a href="../traits.rs.html#444">InputTakeAtPosition</a>
     + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
-    + <a href="../../../src/nom/traits.rs.html#302">InputIter</a>,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
+    + <a href="../traits.rs.html#302">InputIter</a>,
+  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
   F: Parser&lt;Input, O1, Error&gt;,
   G: Parser&lt;Input, O2, Error&gt;,
   Error: ParseError&lt;Input&gt;,
 {
-  <span class="kw">use </span><a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
+  <span class="kw">use </span><a href="../traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
 
   <span class="kw">move </span>|input: Input| {
-    <span class="kw">let </span><span class="kw-2">mut </span>i = <a href="../../../src/nom/bytes/complete.rs.html#529">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <a href="#529">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
     <span class="kw">while </span>i.input_len() &gt; <span class="number">0 </span>{
       <span class="kw">let </span>current_len = i.input_len();
@@ -1339,7 +1339,7 @@
       }
     }
 
-    <span class="prelude-val">Ok</span>((<a href="../../../src/nom/bytes/complete.rs.html#529">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>(<a href="../../../src/nom/bytes/complete.rs.html#529">input</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>()..), <a href="../../../src/nom/bytes/complete.rs.html#529">input</a>))
+    <span class="prelude-val">Ok</span>((<a href="#529">input</a>.<a href="../traits.rs.html#1008">slice</a>(<a href="#529">input</a>.<a href="../traits.rs.html#21">input_len</a>()..), <a href="#529">input</a>))
   }
 }
 
@@ -1383,27 +1383,27 @@
 ) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Output, Error&gt;
 <span class="kw">where
   </span>Input: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
-    + <a href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
-    + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>
-    + <a href="../../../src/nom/traits.rs.html#328">InputTake</a>
-    + <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
+    + <a href="../traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
+    + <a href="../traits.rs.html#18">InputLength</a>
+    + <a href="../traits.rs.html#328">InputTake</a>
+    + <a href="../traits.rs.html#444">InputTakeAtPosition</a>
     + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
-    + <a href="../../../src/nom/traits.rs.html#302">InputIter</a>,
+    + <a href="../traits.rs.html#302">InputIter</a>,
   Input: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
   O1: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
   O2: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
+  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
   F: Parser&lt;Input, O1, Error&gt;,
   G: Parser&lt;Input, O2, Error&gt;,
   Error: ParseError&lt;Input&gt;,
 {
-  <span class="kw">use </span><a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
+  <span class="kw">use </span><a href="../traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
 
   <span class="kw">move </span>|input: Input| {
     <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="../../../src/nom/bytes/complete.rs.html#646">input</a>.<a href="../../../src/nom/traits.rs.html#1148">new_builder</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="#646">input</a>.<a href="../traits.rs.html#1148">new_builder</a>();
 
-    <span class="kw">let </span>i = <a href="../../../src/nom/bytes/complete.rs.html#646">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>i = <a href="#646">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
     <span class="kw">while </span>index &lt; i.input_len() {
       <span class="kw">let </span>current_len = i.input_len();
@@ -1456,7 +1456,7 @@
         <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
       }
     }
-    <span class="prelude-val">Ok</span>((<a href="../../../src/nom/bytes/complete.rs.html#646">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>(<a href="../../../src/nom/bytes/complete.rs.html#647">index</a>..), <a href="../../../src/nom/bytes/complete.rs.html#648">res</a>))
+    <span class="prelude-val">Ok</span>((<a href="#646">input</a>.<a href="../traits.rs.html#1008">slice</a>(<a href="#647">index</a>..), <a href="#648">res</a>))
   }
 }
 
@@ -1511,4 +1511,4 @@
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

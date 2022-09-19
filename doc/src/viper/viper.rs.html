@@ -111,7 +111,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use crate</span>::{<a href="../../src/viper/jni_utils.rs.html#20">jni_utils::JniUtils</a>, <a href="../../src/viper/lib.rs.html#20">verification_context</a>::<span class="kw-2">*</span>};
+</span><span class="kw">use crate</span>::{<a href="jni_utils.rs.html#20">jni_utils::JniUtils</a>, <a href="lib.rs.html#20">verification_context</a>::<span class="kw-2">*</span>};
 <span class="kw">use </span><a href="../../jni/index.html">jni</a>::<span class="kw-2">*</span>;
 <span class="kw">use </span>log::{<a href="../../log/macro.debug.html">debug</a>, <a href="../../log/macro.info.html">info</a>};
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/macro.env.html">env</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">path::Path</a>};
@@ -121,15 +121,15 @@
     jvm: <a href="../../jni/wrapper/java_vm/vm/struct.JavaVM.html">JavaVM</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/viper/viper.rs.html#13">Viper</a> {
+<span class="kw">impl </span><a href="#13">Viper</a> {
     <span class="kw">pub fn </span>new_for_tests() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>viper_home = env::var(<span class="string">&quot;VIPER_HOME&quot;</span>)
             .expect(<span class="string">&quot;the VIPER_HOME environment variable should not be empty when running tests&quot;</span>);
-        <span class="self">Self</span>::new(<span class="kw-2">&amp;</span><a href="../../src/viper/viper.rs.html#19">viper_home</a>)
+        <span class="self">Self</span>::new(<span class="kw-2">&amp;</span><a href="#19">viper_home</a>)
     }
 
     <span class="kw">pub fn </span>new(viper_home: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new_with_args(<a href="../../src/viper/viper.rs.html#24">viper_home</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])
+        <span class="self">Self</span>::new_with_args(<a href="#24">viper_home</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])
     }
 
     <span class="kw">pub fn </span>new_with_args(viper_home: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, java_args: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="self">Self </span>{
@@ -142,9 +142,9 @@
             viper_home
         );
 
-        <span class="kw">let </span>jar_paths: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="https://doc.rust-lang.org/nightly/std/fs/fn.read_dir.html">fs::read_dir</a>(<span class="kw-2">&amp;</span><a href="../../src/viper/viper.rs.html#28">viper_home</a>)
+        <span class="kw">let </span>jar_paths: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="https://doc.rust-lang.org/nightly/std/fs/fn.read_dir.html">fs::read_dir</a>(<a href="#28">viper_home</a>)
             .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;failed to open {:?}&quot;</span>, viper_home))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="../../src/viper/viper.rs.html#40">x</a>.unwrap().path().to_str().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#40">x</a>.unwrap().path().to_str().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
         <a class="macro" href="../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Java classpath: {}&quot;</span>, jar_paths.join(<span class="string">&quot;:&quot;</span>));
@@ -167,50 +167,50 @@
         //.option(&quot;-Djava.security.debug=all&quot;)
         //.option(&quot;-verbose:jni&quot;)
         //.option(&quot;-XX:+TraceJNICalls&quot;)
-        </span><span class="kw">let </span>jvm_args = <a href="../../src/viper/viper.rs.html#28">java_args</a>
+        </span><span class="kw">let </span>jvm_args = <a href="#28">java_args</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="../../src/viper/viper.rs.html#46">init_args</a>, |curr_args, opt| <a href="../../src/viper/viper.rs.html#65">curr_args</a>.option(<span class="kw-2">&amp;</span><a href="../../src/viper/viper.rs.html#65">opt</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="#46">init_args</a>, |curr_args, opt| <a href="#65">curr_args</a>.option(<span class="kw-2">&amp;</span><a href="#65">opt</a>))
             .build()
             .unwrap_or_else(|e| {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{} source: {:?}&quot;</span>, e, std::error::Error::source(<span class="kw-2">&amp;</span>e));
             });
 
-        <span class="kw">let </span>jvm = JavaVM::new(<a href="../../src/viper/viper.rs.html#63">jvm_args</a>).unwrap_or_else(|e| {
+        <span class="kw">let </span>jvm = JavaVM::new(<a href="#63">jvm_args</a>).unwrap_or_else(|e| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{} source: {:?}&quot;</span>, e, std::error::Error::source(<span class="kw-2">&amp;</span>e));
         });
 
         <span class="comment">// Log JVM and Java version
         </span>{
-            <span class="kw">let </span>env = <a href="../../src/viper/viper.rs.html#71">jvm</a>
+            <span class="kw">let </span>env = <a href="#71">jvm</a>
                 .attach_current_thread()
                 .expect(<span class="string">&quot;failed to attach jvm thread&quot;</span>);
 
-            <span class="kw">let </span>jni = JniUtils::new(<span class="kw-2">&amp;</span><a href="../../src/viper/viper.rs.html#77">env</a>);
+            <span class="kw">let </span>jni = JniUtils::new(<span class="kw-2">&amp;</span><a href="#77">env</a>);
 
-            <span class="kw">let </span>system_wrapper = java::lang::System::with(<span class="kw-2">&amp;</span><a href="../../src/viper/viper.rs.html#77">env</a>);
+            <span class="kw">let </span>system_wrapper = java::lang::System::with(<span class="kw-2">&amp;</span><a href="#77">env</a>);
 
-            <span class="kw">let </span>vm_name = <a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#118">to_string</a>(
-                <a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#63">unwrap_result</a>(<a href="../../src/viper/viper.rs.html#83">system_wrapper</a>.call_getProperty(<a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;java.vm.name&quot;</span>))),
+            <span class="kw">let </span>vm_name = <a href="#81">jni</a>.<a href="jni_utils.rs.html#118">to_string</a>(
+                <a href="#81">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(<a href="#83">system_wrapper</a>.call_getProperty(<a href="#81">jni</a>.<a href="jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;java.vm.name&quot;</span>))),
             );
 
-            <span class="kw">let </span>java_version = <a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#118">to_string</a>(
-                <a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#63">unwrap_result</a>(<a href="../../src/viper/viper.rs.html#83">system_wrapper</a>.call_getProperty(<a href="../../src/viper/viper.rs.html#81">jni</a>.<a href="../../src/viper/jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;java.version&quot;</span>))),
+            <span class="kw">let </span>java_version = <a href="#81">jni</a>.<a href="jni_utils.rs.html#118">to_string</a>(
+                <a href="#81">jni</a>.<a href="jni_utils.rs.html#63">unwrap_result</a>(<a href="#83">system_wrapper</a>.call_getProperty(<a href="#81">jni</a>.<a href="jni_utils.rs.html#77">new_string</a>(<span class="string">&quot;java.version&quot;</span>))),
             );
 
             <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Using JVM {}, Java {}&quot;</span>, vm_name, java_version);
         }
 
-        <a href="../../src/viper/viper.rs.html#13">Viper</a> { <a href="../../src/viper/viper.rs.html#71">jvm</a> }
+        <a href="#13">Viper</a> { <a href="#71">jvm</a> }
     }
 
-    <span class="kw">pub fn </span>attach_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/viper/verification_context.rs.html#19">VerificationContext</a> {
-        <span class="kw">let </span>env_guard = <span class="self"><a href="../../src/viper/viper.rs.html#99">self</a>
+    <span class="kw">pub fn </span>attach_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="verification_context.rs.html#19">VerificationContext</a> {
+        <span class="kw">let </span>env_guard = <span class="self"><a href="#99">self</a>
             </span>.jvm
             .attach_current_thread()
             .expect(<span class="string">&quot;failed to attach jvm thread&quot;</span>);
 
-        VerificationContext::new(<a href="../../src/viper/viper.rs.html#100">env_guard</a>)
+        VerificationContext::new(<a href="#100">env_guard</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

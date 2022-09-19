@@ -92,82 +92,82 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use </span><a href="../../../../src/object/endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as </span>LE;
-<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
+<span class="kw">use </span><a href="../../endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as </span>LE;
+<span class="kw">use </span><a href="../../lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <a href="../../../../src/object/common.rs.html#316">RelocationEncoding</a>, <a href="../../../../src/object/common.rs.html#276">RelocationKind</a>, <a href="../../../../src/object/read/mod.rs.html#529">RelocationTarget</a>, <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
+    <a href="../read_ref.rs.html#37">ReadRef</a>, <a href="../mod.rs.html#540">Relocation</a>, <a href="../../common.rs.html#316">RelocationEncoding</a>, <a href="../../common.rs.html#276">RelocationKind</a>, <a href="../mod.rs.html#529">RelocationTarget</a>, <a href="../mod.rs.html#267">SymbolIndex</a>,
 };
 
-<span class="kw">use </span><a href="../../../../src/object/read/coff/file.rs.html#26"><span class="kw">super</span>::CoffFile</a>;
+<span class="kw">use </span><a href="file.rs.html#26"><span class="kw">super</span>::CoffFile</a>;
 
 <span class="doccomment">/// An iterator over the relocations in a `CoffSection`.
 </span><span class="kw">pub struct </span>CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>CoffFile&lt;<span class="lifetime">&#39;data</span>, R&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../../../src/object/pe.rs.html#1053">pe::ImageRelocation</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../pe.rs.html#1053">pe::ImageRelocation</a>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
-    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../mod.rs.html#540">Relocation</a>);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="../../../../src/object/read/coff/relocation.rs.html#21">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|relocation| {
-            <span class="kw">let </span>(kind, size, addend) = <span class="kw">match </span><a class="self" href="../../../../src/object/read/coff/relocation.rs.html#21">self</a>.file.header.machine.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) {
-                <a href="../../../../src/object/pe.rs.html#333">pe::IMAGE_FILE_MACHINE_ARMNT</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.typ.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) {
-                    <a href="../../../../src/object/pe.rs.html#1265">pe::IMAGE_REL_ARM_ADDR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1267">pe::IMAGE_REL_ARM_ADDR32NB</a> =&gt; (<a href="../../../../src/object/common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1281">pe::IMAGE_REL_ARM_REL32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
-                    <a href="../../../../src/object/pe.rs.html#1283">pe::IMAGE_REL_ARM_SECTION</a> =&gt; (<a href="../../../../src/object/common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1285">pe::IMAGE_REL_ARM_SECREL</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    typ =&gt; (<a href="../../../../src/object/common.rs.html#307">RelocationKind::Coff</a>(<a href="../../../../src/object/read/coff/relocation.rs.html#30">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
+        <a class="self" href="#21">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|relocation| {
+            <span class="kw">let </span>(kind, size, addend) = <span class="kw">match </span><a class="self" href="#21">self</a>.file.header.machine.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
+                <a href="../../pe.rs.html#333">pe::IMAGE_FILE_MACHINE_ARMNT</a> =&gt; <span class="kw">match </span><a href="#22">relocation</a>.typ.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
+                    <a href="../../pe.rs.html#1265">pe::IMAGE_REL_ARM_ADDR32</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1267">pe::IMAGE_REL_ARM_ADDR32NB</a> =&gt; (<a href="../../common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1281">pe::IMAGE_REL_ARM_REL32</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
+                    <a href="../../pe.rs.html#1283">pe::IMAGE_REL_ARM_SECTION</a> =&gt; (<a href="../../common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1285">pe::IMAGE_REL_ARM_SECREL</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    typ =&gt; (<a href="../../common.rs.html#307">RelocationKind::Coff</a>(<a href="#30">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
                 },
-                <a href="../../../../src/object/pe.rs.html#359">pe::IMAGE_FILE_MACHINE_ARM64</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.typ.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) {
-                    <a href="../../../../src/object/pe.rs.html#1325">pe::IMAGE_REL_ARM64_ADDR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1327">pe::IMAGE_REL_ARM64_ADDR32NB</a> =&gt; (<a href="../../../../src/object/common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1339">pe::IMAGE_REL_ARM64_SECREL</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1348">pe::IMAGE_REL_ARM64_SECTION</a> =&gt; (<a href="../../../../src/object/common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1350">pe::IMAGE_REL_ARM64_ADDR64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1356">pe::IMAGE_REL_ARM64_REL32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
-                    typ =&gt; (<a href="../../../../src/object/common.rs.html#307">RelocationKind::Coff</a>(<a href="../../../../src/object/read/coff/relocation.rs.html#39">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
+                <a href="../../pe.rs.html#359">pe::IMAGE_FILE_MACHINE_ARM64</a> =&gt; <span class="kw">match </span><a href="#22">relocation</a>.typ.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
+                    <a href="../../pe.rs.html#1325">pe::IMAGE_REL_ARM64_ADDR32</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1327">pe::IMAGE_REL_ARM64_ADDR32NB</a> =&gt; (<a href="../../common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1339">pe::IMAGE_REL_ARM64_SECREL</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1348">pe::IMAGE_REL_ARM64_SECTION</a> =&gt; (<a href="../../common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1350">pe::IMAGE_REL_ARM64_ADDR64</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1356">pe::IMAGE_REL_ARM64_REL32</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
+                    typ =&gt; (<a href="../../common.rs.html#307">RelocationKind::Coff</a>(<a href="#39">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
                 },
-                <a href="../../../../src/object/pe.rs.html#308">pe::IMAGE_FILE_MACHINE_I386</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.typ.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) {
-                    <a href="../../../../src/object/pe.rs.html#1066">pe::IMAGE_REL_I386_DIR16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1068">pe::IMAGE_REL_I386_REL16</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1070">pe::IMAGE_REL_I386_DIR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1072">pe::IMAGE_REL_I386_DIR32NB</a> =&gt; (<a href="../../../../src/object/common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1075">pe::IMAGE_REL_I386_SECTION</a> =&gt; (<a href="../../../../src/object/common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1076">pe::IMAGE_REL_I386_SECREL</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1080">pe::IMAGE_REL_I386_SECREL7</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">7</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1082">pe::IMAGE_REL_I386_REL32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
-                    typ =&gt; (<a href="../../../../src/object/common.rs.html#307">RelocationKind::Coff</a>(<a href="../../../../src/object/read/coff/relocation.rs.html#50">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
+                <a href="../../pe.rs.html#308">pe::IMAGE_FILE_MACHINE_I386</a> =&gt; <span class="kw">match </span><a href="#22">relocation</a>.typ.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
+                    <a href="../../pe.rs.html#1066">pe::IMAGE_REL_I386_DIR16</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1068">pe::IMAGE_REL_I386_REL16</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1070">pe::IMAGE_REL_I386_DIR32</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1072">pe::IMAGE_REL_I386_DIR32NB</a> =&gt; (<a href="../../common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1075">pe::IMAGE_REL_I386_SECTION</a> =&gt; (<a href="../../common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1076">pe::IMAGE_REL_I386_SECREL</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1080">pe::IMAGE_REL_I386_SECREL7</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">7</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1082">pe::IMAGE_REL_I386_REL32</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
+                    typ =&gt; (<a href="../../common.rs.html#307">RelocationKind::Coff</a>(<a href="#50">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
                 },
-                <a href="../../../../src/object/pe.rs.html#355">pe::IMAGE_FILE_MACHINE_AMD64</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.typ.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) {
-                    <a href="../../../../src/object/pe.rs.html#1364">pe::IMAGE_REL_AMD64_ADDR64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1366">pe::IMAGE_REL_AMD64_ADDR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1368">pe::IMAGE_REL_AMD64_ADDR32NB</a> =&gt; (<a href="../../../../src/object/common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1370">pe::IMAGE_REL_AMD64_REL32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
-                    <a href="../../../../src/object/pe.rs.html#1372">pe::IMAGE_REL_AMD64_REL32_1</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">5</span>),
-                    <a href="../../../../src/object/pe.rs.html#1374">pe::IMAGE_REL_AMD64_REL32_2</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">6</span>),
-                    <a href="../../../../src/object/pe.rs.html#1376">pe::IMAGE_REL_AMD64_REL32_3</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">7</span>),
-                    <a href="../../../../src/object/pe.rs.html#1378">pe::IMAGE_REL_AMD64_REL32_4</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">8</span>),
-                    <a href="../../../../src/object/pe.rs.html#1380">pe::IMAGE_REL_AMD64_REL32_5</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">9</span>),
-                    <a href="../../../../src/object/pe.rs.html#1382">pe::IMAGE_REL_AMD64_SECTION</a> =&gt; (<a href="../../../../src/object/common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1384">pe::IMAGE_REL_AMD64_SECREL</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
-                    <a href="../../../../src/object/pe.rs.html#1386">pe::IMAGE_REL_AMD64_SECREL7</a> =&gt; (<a href="../../../../src/object/common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">7</span>, <span class="number">0</span>),
-                    typ =&gt; (<a href="../../../../src/object/common.rs.html#307">RelocationKind::Coff</a>(<a href="../../../../src/object/read/coff/relocation.rs.html#65">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
+                <a href="../../pe.rs.html#355">pe::IMAGE_FILE_MACHINE_AMD64</a> =&gt; <span class="kw">match </span><a href="#22">relocation</a>.typ.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>) {
+                    <a href="../../pe.rs.html#1364">pe::IMAGE_REL_AMD64_ADDR64</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1366">pe::IMAGE_REL_AMD64_ADDR32</a> =&gt; (<a href="../../common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1368">pe::IMAGE_REL_AMD64_ADDR32NB</a> =&gt; (<a href="../../common.rs.html#292">RelocationKind::ImageOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1370">pe::IMAGE_REL_AMD64_REL32</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">4</span>),
+                    <a href="../../pe.rs.html#1372">pe::IMAGE_REL_AMD64_REL32_1</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">5</span>),
+                    <a href="../../pe.rs.html#1374">pe::IMAGE_REL_AMD64_REL32_2</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">6</span>),
+                    <a href="../../pe.rs.html#1376">pe::IMAGE_REL_AMD64_REL32_3</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">7</span>),
+                    <a href="../../pe.rs.html#1378">pe::IMAGE_REL_AMD64_REL32_4</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">8</span>),
+                    <a href="../../pe.rs.html#1380">pe::IMAGE_REL_AMD64_REL32_5</a> =&gt; (<a href="../../common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>, -<span class="number">9</span>),
+                    <a href="../../pe.rs.html#1382">pe::IMAGE_REL_AMD64_SECTION</a> =&gt; (<a href="../../common.rs.html#296">RelocationKind::SectionIndex</a>, <span class="number">16</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1384">pe::IMAGE_REL_AMD64_SECREL</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">32</span>, <span class="number">0</span>),
+                    <a href="../../pe.rs.html#1386">pe::IMAGE_REL_AMD64_SECREL7</a> =&gt; (<a href="../../common.rs.html#294">RelocationKind::SectionOffset</a>, <span class="number">7</span>, <span class="number">0</span>),
+                    typ =&gt; (<a href="../../common.rs.html#307">RelocationKind::Coff</a>(<a href="#65">typ</a>), <span class="number">0</span>, <span class="number">0</span>),
                 },
-                <span class="kw">_ </span>=&gt; (<a href="../../../../src/object/common.rs.html#307">RelocationKind::Coff</a>(<a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.typ.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)), <span class="number">0</span>, <span class="number">0</span>),
+                <span class="kw">_ </span>=&gt; (<a href="../../common.rs.html#307">RelocationKind::Coff</a>(<a href="#22">relocation</a>.typ.<a href="../../endian.rs.html#599">get</a>(<a href="../../endian.rs.html#317">LE</a>)), <span class="number">0</span>, <span class="number">0</span>),
             };
-            <span class="kw">let </span>target = <a href="../../../../src/object/read/mod.rs.html#531">RelocationTarget::Symbol</a>(<a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>(
-                <a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.symbol_table_index.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            <span class="kw">let </span>target = <a href="../mod.rs.html#531">RelocationTarget::Symbol</a>(<a href="../mod.rs.html#267">SymbolIndex</a>(
+                <a href="#22">relocation</a>.symbol_table_index.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             ));
             (
-                u64::from(<a href="../../../../src/object/read/coff/relocation.rs.html#22">relocation</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)),
-                <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
-                    <a href="../../../../src/object/read/coff/relocation.rs.html#23">kind</a>,
-                    encoding: <a href="../../../../src/object/common.rs.html#318">RelocationEncoding::Generic</a>,
-                    <a href="../../../../src/object/read/coff/relocation.rs.html#23">size</a>,
-                    <a href="../../../../src/object/read/coff/relocation.rs.html#69">target</a>,
-                    <a href="../../../../src/object/read/coff/relocation.rs.html#23">addend</a>,
+                u64::from(<a href="#22">relocation</a>.virtual_address.<a href="../../endian.rs.html#621">get</a>(<a href="../../endian.rs.html#317">LE</a>)),
+                <a href="../mod.rs.html#540">Relocation</a> {
+                    <a href="#23">kind</a>,
+                    encoding: <a href="../../common.rs.html#318">RelocationEncoding::Generic</a>,
+                    <a href="#23">size</a>,
+                    <a href="#69">target</a>,
+                    <a href="#23">addend</a>,
                     implicit_addend: <span class="bool-val">true</span>,
                 },
             )
@@ -177,8 +177,8 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>CoffRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../../src/object/read/coff/relocation.rs.html#88">f</a>.debug_struct(<span class="string">&quot;CoffRelocationIterator&quot;</span>).finish()
+        <a href="#88">f</a>.debug_struct(<span class="string">&quot;CoffRelocationIterator&quot;</span>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

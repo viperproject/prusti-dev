@@ -217,7 +217,7 @@
 // NOTE: this implementation is lifted from the standard library and only
 //       slightly modified
 
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><a href="../../../src/futures_channel/mpsc/queue.rs.html#52"><span class="self">self</span>::PopResult</a>::<span class="kw-2">*</span>;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><a href="#52"><span class="self">self</span>::PopResult</a>::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
@@ -257,7 +257,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; Node&lt;T&gt; {
     <span class="kw">unsafe fn </span>new(v: <span class="prelude-ty">Option</span>&lt;T&gt;) -&gt; <span class="kw-2">*mut </span><span class="self">Self </span>{
-        Box::into_raw(Box::new(<span class="self">Self </span>{ next: AtomicPtr::new(ptr::null_mut()), value: <a href="../../../src/futures_channel/mpsc/queue.rs.html#83">v</a> }))
+        Box::into_raw(Box::new(<span class="self">Self </span>{ next: AtomicPtr::new(ptr::null_mut()), value: <a href="#83">v</a> }))
     }
 }
 
@@ -266,15 +266,15 @@
     /// one consumer.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>stub = <span class="kw">unsafe </span>{ Node::new(<span class="prelude-val">None</span>) };
-        <span class="self">Self </span>{ head: AtomicPtr::new(<a href="../../../src/futures_channel/mpsc/queue.rs.html#92">stub</a>), tail: UnsafeCell::new(<a href="../../../src/futures_channel/mpsc/queue.rs.html#92">stub</a>) }
+        <span class="self">Self </span>{ head: AtomicPtr::new(<a href="#92">stub</a>), tail: UnsafeCell::new(<a href="#92">stub</a>) }
     }
 
     <span class="doccomment">/// Pushes a new value onto this queue.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, t: T) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>n = Node::new(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/queue.rs.html#97">t</a>));
-            <span class="kw">let </span>prev = <a class="self" href="../../../src/futures_channel/mpsc/queue.rs.html#97">self</a>.head.swap(<a href="../../../src/futures_channel/mpsc/queue.rs.html#99">n</a>, Ordering::AcqRel);
-            (<span class="kw-2">*</span><a href="../../../src/futures_channel/mpsc/queue.rs.html#100">prev</a>).next.store(<a href="../../../src/futures_channel/mpsc/queue.rs.html#99">n</a>, Ordering::Release);
+            <span class="kw">let </span>n = Node::new(<span class="prelude-val">Some</span>(<a href="#97">t</a>));
+            <span class="kw">let </span>prev = <a class="self" href="#97">self</a>.head.swap(<a href="#99">n</a>, Ordering::AcqRel);
+            (<span class="kw-2">*</span><a href="#100">prev</a>).next.store(<a href="#99">n</a>, Ordering::Release);
         }
     }
 
@@ -291,22 +291,22 @@
     ///
     /// This function is unsafe because only one thread can call it at a time.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PopResult&lt;T&gt; {
-        <span class="kw">let </span>tail = <span class="kw-2">*</span><a class="self" href="../../../src/futures_channel/mpsc/queue.rs.html#117">self</a>.tail.get();
-        <span class="kw">let </span>next = (<span class="kw-2">*</span><a href="../../../src/futures_channel/mpsc/queue.rs.html#118">tail</a>).next.load(Ordering::Acquire);
+        <span class="kw">let </span>tail = <span class="kw-2">*</span><a class="self" href="#117">self</a>.tail.get();
+        <span class="kw">let </span>next = (<span class="kw-2">*</span><a href="#118">tail</a>).next.load(Ordering::Acquire);
 
         <span class="kw">if </span>!next.is_null() {
-            <span class="kw-2">*</span><a class="self" href="../../../src/futures_channel/mpsc/queue.rs.html#117">self</a>.tail.get() = <a href="../../../src/futures_channel/mpsc/queue.rs.html#119">next</a>;
+            <span class="kw-2">*</span><a class="self" href="#117">self</a>.tail.get() = <a href="#119">next</a>;
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>((<span class="kw-2">*</span>tail).value.is_none());
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>((<span class="kw-2">*</span>next).value.is_some());
-            <span class="kw">let </span>ret = (<span class="kw-2">*</span><a href="../../../src/futures_channel/mpsc/queue.rs.html#119">next</a>).value.take().unwrap();
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a href="../../../src/futures_channel/mpsc/queue.rs.html#118">tail</a>));
-            <span class="kw">return </span><a href="../../../src/futures_channel/mpsc/queue.rs.html#54">Data</a>(<a href="../../../src/futures_channel/mpsc/queue.rs.html#125">ret</a>);
+            <span class="kw">let </span>ret = (<span class="kw-2">*</span><a href="#119">next</a>).value.take().unwrap();
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a href="#118">tail</a>));
+            <span class="kw">return </span><a href="#54">Data</a>(<a href="#125">ret</a>);
         }
 
         <span class="kw">if </span><span class="self">self</span>.head.load(Ordering::Acquire) == tail {
-            <a href="../../../src/futures_channel/mpsc/queue.rs.html#56">Empty</a>
+            <a href="#56">Empty</a>
         } <span class="kw">else </span>{
-            <a href="../../../src/futures_channel/mpsc/queue.rs.html#61">Inconsistent</a>
+            <a href="#61">Inconsistent</a>
         }
     }
 
@@ -316,9 +316,9 @@
     /// This function is unsafe because only one thread can call it at a time.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>pop_spin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/queue.rs.html#141">self</a>.<a href="../../../src/futures_channel/mpsc/queue.rs.html#117">pop</a>() {
-                <a href="../../../src/futures_channel/mpsc/queue.rs.html#56">Empty</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-                <a href="../../../src/futures_channel/mpsc/queue.rs.html#54">Data</a>(t) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/queue.rs.html#145">t</a>),
+            <span class="kw">match </span><a class="self" href="#141">self</a>.<a href="#117">pop</a>() {
+                <a href="#56">Empty</a> =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                <a href="#54">Data</a>(t) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#145">t</a>),
                 <span class="comment">// Inconsistent means that there will be a message to pop
                 // in a short time. This branch can only be reached if
                 // values are being produced from another thread, so there
@@ -330,7 +330,7 @@
                 //
                 // For now, thread::yield_now() is used, but it would
                 // probably be better to spin a few times then yield.
-                </span><a href="../../../src/futures_channel/mpsc/queue.rs.html#61">Inconsistent</a> =&gt; {
+                </span><a href="#61">Inconsistent</a> =&gt; {
                     thread::yield_now();
                 }
             }
@@ -341,7 +341,7 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Queue&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="kw-2">*</span><a class="self" href="../../../src/futures_channel/mpsc/queue.rs.html#166">self</a>.tail.get();
+            <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="kw-2">*</span><a class="self" href="#166">self</a>.tail.get();
             <span class="kw">while </span>!cur.is_null() {
                 <span class="kw">let </span>next = (<span class="kw-2">*</span>cur).next.load(Ordering::Relaxed);
                 drop(Box::from_raw(cur));
@@ -351,4 +351,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

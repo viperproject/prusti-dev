@@ -1641,10 +1641,10 @@
 //! assert_eq!(&quot;Foo bar&quot;, output_string);
 //! println!(&quot;Decrypted: &#39;{}&#39;&quot;, output_string);
 //! ```
-</span><span class="kw">use </span><a href="../../src/openssl/cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use </span><span class="kw">crate</span>::cipher_ctx::{<a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtx</a>, <a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtxRef</a>};
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+</span><span class="kw">use </span><a href="cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
+<span class="kw">use </span><span class="kw">crate</span>::cipher_ctx::{<a href="cipher_ctx.rs.html#72-80">CipherCtx</a>, <a href="cipher_ctx.rs.html#72-80">CipherCtxRef</a>};
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
 <span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
 
@@ -1662,18 +1662,18 @@
 </span><span class="attribute">#[derive(Copy, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Cipher(<span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER.html">ffi::EVP_CIPHER</a>);
 
-<span class="kw">impl </span><a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
+<span class="kw">impl </span><a href="#73">Cipher</a> {
     <span class="doccomment">/// Looks up the cipher for a certain nid.
     ///
     /// This corresponds to [`EVP_get_cipherbynid`]
     ///
     /// [`EVP_get_cipherbynid`]: https://www.openssl.org/docs/man1.0.2/crypto/EVP_get_cipherbyname.html
-    </span><span class="kw">pub fn </span>from_nid(nid: <a href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/symm.rs.html#73">Cipher</a>&gt; {
-        <span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ ffi::EVP_get_cipherbyname(ffi::OBJ_nid2sn(<a href="../../src/openssl/symm.rs.html#81">nid</a>.<a href="../../src/openssl/nid.rs.html#60">as_raw</a>())) };
+    </span><span class="kw">pub fn </span>from_nid(nid: <a href="nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#73">Cipher</a>&gt; {
+        <span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ ffi::EVP_get_cipherbyname(ffi::OBJ_nid2sn(<a href="#81">nid</a>.<a href="nid.rs.html#60">as_raw</a>())) };
         <span class="kw">if </span>ptr.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="../../src/openssl/symm.rs.html#73">Cipher</a>(<a href="../../src/openssl/symm.rs.html#82">ptr</a>))
+            <span class="prelude-val">Some</span>(<a href="#73">Cipher</a>(<a href="#82">ptr</a>))
         }
     }
 
@@ -1682,244 +1682,244 @@
     /// This corresponds to [`EVP_CIPHER_nid`]
     ///
     /// [`EVP_CIPHER_nid`]: https://www.openssl.org/docs/man1.0.2/crypto/EVP_CIPHER_nid.html
-    </span><span class="kw">pub fn </span>nid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/nid.rs.html#49">Nid</a> {
-        <span class="kw">let </span>nid = <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_nid(<a class="self" href="../../src/openssl/symm.rs.html#95">self</a>.<span class="number">0</span>) };
-        Nid::from_raw(<a href="../../src/openssl/symm.rs.html#96">nid</a>)
+    </span><span class="kw">pub fn </span>nid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="nid.rs.html#49">Nid</a> {
+        <span class="kw">let </span>nid = <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_nid(<a class="self" href="#95">self</a>.<span class="number">0</span>) };
+        Nid::from_raw(<a href="#96">nid</a>)
     }
 
-    <span class="kw">pub fn </span>aes_128_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_ecb()) }
+    <span class="kw">pub fn </span>aes_128_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_ecb()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_cbc()) }
+    <span class="kw">pub fn </span>aes_128_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_cbc()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_xts() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_xts()) }
+    <span class="kw">pub fn </span>aes_128_xts() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_xts()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_ctr() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_ctr()) }
+    <span class="kw">pub fn </span>aes_128_ctr() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_ctr()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_cfb1() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_cfb1()) }
+    <span class="kw">pub fn </span>aes_128_cfb1() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_cfb1()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_cfb128() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_cfb128()) }
+    <span class="kw">pub fn </span>aes_128_cfb128() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_cfb128()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_cfb8() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_cfb8()) }
+    <span class="kw">pub fn </span>aes_128_cfb8() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_cfb8()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_gcm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_gcm()) }
+    <span class="kw">pub fn </span>aes_128_gcm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_gcm()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_ccm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_ccm()) }
+    <span class="kw">pub fn </span>aes_128_ccm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_ccm()) }
     }
 
-    <span class="kw">pub fn </span>aes_128_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_ofb()) }
-    }
-
-    <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
-    </span><span class="attribute">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>aes_128_ocb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_128_ocb()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_ecb()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_cbc()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_ctr() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_ctr()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_cfb1() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_cfb1()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_cfb128() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_cfb128()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_cfb8() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_cfb8()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_gcm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_gcm()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_ccm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_ccm()) }
-    }
-
-    <span class="kw">pub fn </span>aes_192_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_ofb()) }
+    <span class="kw">pub fn </span>aes_128_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_ofb()) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
     </span><span class="attribute">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>aes_192_ocb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_192_ocb()) }
+    </span><span class="kw">pub fn </span>aes_128_ocb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_128_ocb()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_ecb()) }
+    <span class="kw">pub fn </span>aes_192_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_ecb()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_cbc()) }
+    <span class="kw">pub fn </span>aes_192_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_cbc()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_xts() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_xts()) }
+    <span class="kw">pub fn </span>aes_192_ctr() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_ctr()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_ctr() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_ctr()) }
+    <span class="kw">pub fn </span>aes_192_cfb1() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_cfb1()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_cfb1() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_cfb1()) }
+    <span class="kw">pub fn </span>aes_192_cfb128() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_cfb128()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_cfb128() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_cfb128()) }
+    <span class="kw">pub fn </span>aes_192_cfb8() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_cfb8()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_cfb8() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_cfb8()) }
+    <span class="kw">pub fn </span>aes_192_gcm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_gcm()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_gcm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_gcm()) }
+    <span class="kw">pub fn </span>aes_192_ccm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_ccm()) }
     }
 
-    <span class="kw">pub fn </span>aes_256_ccm() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_ccm()) }
-    }
-
-    <span class="kw">pub fn </span>aes_256_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_ofb()) }
+    <span class="kw">pub fn </span>aes_192_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_ofb()) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
     </span><span class="attribute">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>aes_256_ocb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_aes_256_ocb()) }
+    </span><span class="kw">pub fn </span>aes_192_ocb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_192_ocb()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_ecb()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_cbc()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_xts() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_xts()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_ctr() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_ctr()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_cfb1() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_cfb1()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_cfb128() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_cfb128()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_cfb8() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_cfb8()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_gcm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_gcm()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_ccm() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_ccm()) }
+    }
+
+    <span class="kw">pub fn </span>aes_256_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_ofb()) }
+    }
+
+    <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
+    </span><span class="attribute">#[cfg(ossl110)]
+    </span><span class="kw">pub fn </span>aes_256_ocb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_aes_256_ocb()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]
-    </span><span class="kw">pub fn </span>bf_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_bf_cbc()) }
+    </span><span class="kw">pub fn </span>bf_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_bf_cbc()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]
-    </span><span class="kw">pub fn </span>bf_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_bf_ecb()) }
+    </span><span class="kw">pub fn </span>bf_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_bf_ecb()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]
-    </span><span class="kw">pub fn </span>bf_cfb64() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_bf_cfb64()) }
+    </span><span class="kw">pub fn </span>bf_cfb64() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_bf_cfb64()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]
-    </span><span class="kw">pub fn </span>bf_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_bf_ofb()) }
+    </span><span class="kw">pub fn </span>bf_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_bf_ofb()) }
     }
 
-    <span class="kw">pub fn </span>des_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_des_cbc()) }
+    <span class="kw">pub fn </span>des_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_des_cbc()) }
     }
 
-    <span class="kw">pub fn </span>des_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_des_ecb()) }
+    <span class="kw">pub fn </span>des_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_des_ecb()) }
     }
 
-    <span class="kw">pub fn </span>des_ede3() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_des_ede3()) }
+    <span class="kw">pub fn </span>des_ede3() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_des_ede3()) }
     }
 
-    <span class="kw">pub fn </span>des_ede3_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_des_ede3_cbc()) }
+    <span class="kw">pub fn </span>des_ede3_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_des_ede3_cbc()) }
     }
 
-    <span class="kw">pub fn </span>des_ede3_cfb64() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_des_ede3_cfb64()) }
+    <span class="kw">pub fn </span>des_ede3_cfb64() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_des_ede3_cfb64()) }
     }
 
-    <span class="kw">pub fn </span>rc4() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_rc4()) }
+    <span class="kw">pub fn </span>rc4() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_rc4()) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
     </span><span class="attribute">#[cfg(all(ossl110, not(osslconf = <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]
-    </span><span class="kw">pub fn </span>chacha20() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_chacha20()) }
+    </span><span class="kw">pub fn </span>chacha20() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_chacha20()) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
     </span><span class="attribute">#[cfg(all(ossl110, not(osslconf = <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]
-    </span><span class="kw">pub fn </span>chacha20_poly1305() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_chacha20_poly1305()) }
+    </span><span class="kw">pub fn </span>chacha20_poly1305() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_chacha20_poly1305()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>seed_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_seed_cbc()) }
+    </span><span class="kw">pub fn </span>seed_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_seed_cbc()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>seed_cfb128() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_seed_cfb128()) }
+    </span><span class="kw">pub fn </span>seed_cfb128() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_seed_cfb128()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>seed_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_seed_ecb()) }
+    </span><span class="kw">pub fn </span>seed_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_seed_ecb()) }
     }
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]
-    </span><span class="kw">pub fn </span>seed_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_seed_ofb()) }
+    </span><span class="kw">pub fn </span>seed_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_seed_ofb()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm4_ecb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_sm4_ecb()) }
+    </span><span class="kw">pub fn </span>sm4_ecb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_sm4_ecb()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm4_cbc() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_sm4_cbc()) }
+    </span><span class="kw">pub fn </span>sm4_cbc() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_sm4_cbc()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm4_ctr() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_sm4_ctr()) }
+    </span><span class="kw">pub fn </span>sm4_ctr() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_sm4_ctr()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm4_cfb128() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_sm4_cfb128()) }
+    </span><span class="kw">pub fn </span>sm4_cfb128() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_sm4_cfb128()) }
     }
 
     <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]
-    </span><span class="kw">pub fn </span>sm4_ofb() -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <span class="kw">unsafe </span>{ <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(ffi::EVP_sm4_ofb()) }
+    </span><span class="kw">pub fn </span>sm4_ofb() -&gt; <a href="#73">Cipher</a> {
+        <span class="kw">unsafe </span>{ <a href="#73">Cipher</a>(ffi::EVP_sm4_ofb()) }
     }
 
     <span class="doccomment">/// Creates a `Cipher` from a raw pointer to its OpenSSL type.
@@ -1927,19 +1927,19 @@
     /// # Safety
     ///
     /// The caller must ensure the pointer is valid for the `&#39;static` lifetime.
-    </span><span class="kw">pub unsafe fn </span>from_ptr(ptr: <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER.html">ffi::EVP_CIPHER</a>) -&gt; <a href="../../src/openssl/symm.rs.html#73">Cipher</a> {
-        <a href="../../src/openssl/symm.rs.html#73">Cipher</a>(<a href="../../src/openssl/symm.rs.html#340">ptr</a>)
+    </span><span class="kw">pub unsafe fn </span>from_ptr(ptr: <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER.html">ffi::EVP_CIPHER</a>) -&gt; <a href="#73">Cipher</a> {
+        <a href="#73">Cipher</a>(<a href="#340">ptr</a>)
     }
 
     <span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER.html">ffi::EVP_CIPHER</a> {
-        <a class="self" href="../../src/openssl/symm.rs.html#345">self</a>.<span class="number">0
+        <a class="self" href="#345">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the length of keys used with this cipher.
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>key_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_key_length.html">EVP_CIPHER_key_length</a>(<a class="self" href="../../src/openssl/symm.rs.html#351">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_key_length.html">EVP_CIPHER_key_length</a>(<a class="self" href="#351">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Returns the length of the IV used with this cipher, or `None` if the
@@ -1947,11 +1947,11 @@
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>iv_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>len = <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_iv_length.html">EVP_CIPHER_iv_length</a>(<a class="self" href="../../src/openssl/symm.rs.html#358">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">let </span>len = <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_iv_length.html">EVP_CIPHER_iv_length</a>(<a class="self" href="#358">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
             <span class="kw">if </span>len == <span class="number">0 </span>{
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<a href="../../src/openssl/symm.rs.html#360">len</a>)
+                <span class="prelude-val">Some</span>(<a href="#360">len</a>)
             }
         }
     }
@@ -1963,21 +1963,21 @@
     /// Stream ciphers such as RC4 have a block size of 1.
     </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
     </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_block_size.html">EVP_CIPHER_block_size</a>(<a class="self" href="../../src/openssl/symm.rs.html#375">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_block_size.html">EVP_CIPHER_block_size</a>(<a class="self" href="#375">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Determines whether the cipher is using CCM mode
     </span><span class="kw">fn </span>is_ccm(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// NOTE: OpenSSL returns pointers to static structs, which makes this work as expected
-        </span><span class="self"><a href="../../src/openssl/symm.rs.html#380">self</a> </span>== Cipher::aes_128_ccm() || <span class="self"><a href="../../src/openssl/symm.rs.html#380">self</a> </span>== Cipher::aes_256_ccm()
+        </span><span class="self"><a href="#380">self</a> </span>== Cipher::aes_128_ccm() || <span class="self"><a href="#380">self</a> </span>== Cipher::aes_256_ccm()
     }
 
     <span class="doccomment">/// Determines whether the cipher is using OCB mode
     </span><span class="attribute">#[cfg(ossl110)]
     </span><span class="kw">fn </span>is_ocb(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="self"><a href="../../src/openssl/symm.rs.html#387">self</a> </span>== Cipher::aes_128_ocb()
-            || <span class="self"><a href="../../src/openssl/symm.rs.html#387">self</a> </span>== Cipher::aes_192_ocb()
-            || <span class="self"><a href="../../src/openssl/symm.rs.html#387">self</a> </span>== Cipher::aes_256_ocb()
+        <span class="self"><a href="#387">self</a> </span>== Cipher::aes_128_ocb()
+            || <span class="self"><a href="#387">self</a> </span>== Cipher::aes_192_ocb()
+            || <span class="self"><a href="#387">self</a> </span>== Cipher::aes_256_ocb()
     }
 
     <span class="attribute">#[cfg(not(ossl110))]
@@ -1986,8 +1986,8 @@
     </span>}
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/openssl/symm.rs.html#73">Cipher</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/openssl/symm.rs.html#73">Cipher</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#73">Cipher</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#73">Cipher</a> {}
 
 <span class="doccomment">/// Represents a symmetric cipher context.
 ///
@@ -2050,10 +2050,10 @@
 /// assert_eq!(b&quot;Some Stream of Crypto Text&quot;, &amp;plaintext[..]);
 /// ```
 </span><span class="kw">pub struct </span>Crypter {
-    ctx: <a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtx</a>,
+    ctx: <a href="cipher_ctx.rs.html#72-80">CipherCtx</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/symm.rs.html#462">Crypter</a> {
+<span class="kw">impl </span><a href="#462">Crypter</a> {
     <span class="doccomment">/// Creates a new `Crypter`.  The initialisation vector, `iv`, is not necessary for certain
     /// types of `Cipher`.
     ///
@@ -2062,16 +2062,16 @@
     /// Panics if an IV is required by the cipher but not provided.  Also make sure that the key
     /// and IV size are appropriate for your cipher.
     </span><span class="kw">pub fn </span>new(
-        t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-        mode: <a href="../../src/openssl/symm.rs.html#62">Mode</a>,
+        t: <a href="#73">Cipher</a>,
+        mode: <a href="#62">Mode</a>,
         key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/symm.rs.html#462">Crypter</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#462">Crypter</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = CipherCtx::new()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>f = <span class="kw">match </span><a href="../../src/openssl/symm.rs.html#476">mode</a> {
-            <a href="../../src/openssl/symm.rs.html#63">Mode::Encrypt</a> =&gt; CipherCtxRef::encrypt_init,
-            <a href="../../src/openssl/symm.rs.html#64">Mode::Decrypt</a> =&gt; CipherCtxRef::decrypt_init,
+        <span class="kw">let </span>f = <span class="kw">match </span><a href="#476">mode</a> {
+            <a href="#63">Mode::Encrypt</a> =&gt; CipherCtxRef::encrypt_init,
+            <a href="#64">Mode::Decrypt</a> =&gt; CipherCtxRef::decrypt_init,
         };
 
         f(
@@ -2083,7 +2083,7 @@
 
         ctx.set_key_length(key.len())<span class="question-mark">?</span>;
 
-        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(iv), <span class="prelude-val">Some</span>(iv_len)) = (<a href="../../src/openssl/symm.rs.html#478">iv</a>, <a href="../../src/openssl/symm.rs.html#475">t</a>.<a href="../../src/openssl/symm.rs.html#358">iv_len</a>()) {
+        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(iv), <span class="prelude-val">Some</span>(iv_len)) = (<a href="#478">iv</a>, <a href="#475">t</a>.<a href="#358">iv_len</a>()) {
             <span class="kw">if </span>iv.len() != iv_len {
                 ctx.set_iv_length(iv.len())<span class="question-mark">?</span>;
             }
@@ -2091,7 +2091,7 @@
 
         f(<span class="kw-2">&amp;mut </span>ctx, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(key), iv)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/symm.rs.html#462">Crypter</a> { <a href="../../src/openssl/symm.rs.html#480">ctx</a> })
+        <span class="prelude-val">Ok</span>(<a href="#462">Crypter</a> { <a href="#480">ctx</a> })
     }
 
     <span class="doccomment">/// Enables or disables padding.
@@ -2099,30 +2099,30 @@
     /// If padding is disabled, total amount of data encrypted/decrypted must
     /// be a multiple of the cipher&#39;s block size.
     </span><span class="kw">pub fn </span>pad(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/openssl/symm.rs.html#511">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#465">set_padding</a>(<a href="../../src/openssl/symm.rs.html#511">padding</a>)
+        <a class="self" href="#511">self</a>.ctx.<a href="cipher_ctx.rs.html#465">set_padding</a>(<a href="#511">padding</a>)
     }
 
     <span class="doccomment">/// Sets the tag used to authenticate ciphertext in AEAD ciphers such as AES GCM.
     ///
     /// When decrypting cipher text using an AEAD cipher, this must be called before `finalize`.
-    </span><span class="kw">pub fn </span>set_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#518">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#446">set_tag</a>(<a href="../../src/openssl/symm.rs.html#518">tag</a>)
+    </span><span class="kw">pub fn </span>set_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#518">self</a>.ctx.<a href="cipher_ctx.rs.html#446">set_tag</a>(<a href="#518">tag</a>)
     }
 
     <span class="doccomment">/// Sets the length of the authentication tag to generate in AES CCM.
     ///
     /// When encrypting with AES CCM, the tag length needs to be explicitly set in order
     /// to use a value different than the default 12 bytes.
-    </span><span class="kw">pub fn </span>set_tag_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#526">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#429">set_tag_length</a>(<a href="../../src/openssl/symm.rs.html#526">tag_len</a>)
+    </span><span class="kw">pub fn </span>set_tag_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#526">self</a>.ctx.<a href="cipher_ctx.rs.html#429">set_tag_length</a>(<a href="#526">tag_len</a>)
     }
 
     <span class="doccomment">/// Feeds total plaintext length to the cipher.
     ///
     /// The total plaintext or ciphertext length MUST be passed to the cipher when it operates in
     /// CCM mode.
-    </span><span class="kw">pub fn </span>set_data_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#534">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#475">set_data_len</a>(<a href="../../src/openssl/symm.rs.html#534">data_len</a>)
+    </span><span class="kw">pub fn </span>set_data_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#534">self</a>.ctx.<a href="cipher_ctx.rs.html#475">set_data_len</a>(<a href="#534">data_len</a>)
     }
 
     <span class="doccomment">/// Feeds Additional Authenticated Data (AAD) through the cipher.
@@ -2130,7 +2130,7 @@
     /// This can only be used with AEAD ciphers such as AES GCM. Data fed in is not encrypted, but
     /// is factored into the authentication tag. It must be called before the first call to
     /// `update`.
-    </span><span class="kw">pub fn </span>aad_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>aad_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <span class="self">self</span>.ctx.cipher_update(input, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -2149,8 +2149,8 @@
     /// where `block_size` is the block size of the cipher (see `Cipher::block_size`).
     ///
     /// Panics if `output.len() &gt; c_int::max_value()`.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#562">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="../../src/openssl/symm.rs.html#562">input</a>, <span class="prelude-val">Some</span>(<a href="../../src/openssl/symm.rs.html#562">output</a>))
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#562">self</a>.ctx.<a href="cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="#562">input</a>, <span class="prelude-val">Some</span>(<a href="#562">output</a>))
     }
 
     <span class="doccomment">/// Finishes the encryption/decryption process, writing any remaining data
@@ -2164,8 +2164,8 @@
     ///
     /// Panics for block ciphers if `output.len() &lt; block_size`,
     /// where `block_size` is the block size of the cipher (see `Cipher::block_size`).
-    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#577">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#554">cipher_final</a>(<a href="../../src/openssl/symm.rs.html#577">output</a>)
+    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#577">self</a>.ctx.<a href="cipher_ctx.rs.html#554">cipher_final</a>(<a href="#577">output</a>)
     }
 
     <span class="doccomment">/// Retrieves the authentication tag used to authenticate ciphertext in AEAD ciphers such
@@ -2176,8 +2176,8 @@
     /// The size of the buffer indicates the required size of the tag. While some ciphers support a
     /// range of tag sizes, it is recommended to pick the maximum size. For AES GCM, this is 16
     /// bytes, for example.
-    </span><span class="kw">pub fn </span>get_tag(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/symm.rs.html#589">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#410">tag</a>(<a href="../../src/openssl/symm.rs.html#589">tag</a>)
+    </span><span class="kw">pub fn </span>get_tag(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#589">self</a>.ctx.<a href="cipher_ctx.rs.html#410">tag</a>(<a href="#589">tag</a>)
     }
 }
 
@@ -2212,12 +2212,12 @@
 ///     &amp;ciphertext[..]);
 /// ```
 </span><span class="kw">pub fn </span>encrypt(
-    t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+    t: <a href="#73">Cipher</a>,
     key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-    <a href="../../src/openssl/symm.rs.html#672-678">cipher</a>(<a href="../../src/openssl/symm.rs.html#625">t</a>, <a href="../../src/openssl/symm.rs.html#63">Mode::Encrypt</a>, <a href="../../src/openssl/symm.rs.html#626">key</a>, <a href="../../src/openssl/symm.rs.html#627">iv</a>, <a href="../../src/openssl/symm.rs.html#628">data</a>)
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    <a href="#672-678">cipher</a>(<a href="#625">t</a>, <a href="#63">Mode::Encrypt</a>, <a href="#626">key</a>, <a href="#627">iv</a>, <a href="#628">data</a>)
 }
 
 <span class="doccomment">/// Decrypts data in one go, and returns the decrypted data.
@@ -2251,27 +2251,27 @@
 ///     &amp;ciphertext[..]);
 /// ```
 </span><span class="kw">pub fn </span>decrypt(
-    t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+    t: <a href="#73">Cipher</a>,
     key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-    <a href="../../src/openssl/symm.rs.html#672-678">cipher</a>(<a href="../../src/openssl/symm.rs.html#664">t</a>, <a href="../../src/openssl/symm.rs.html#64">Mode::Decrypt</a>, <a href="../../src/openssl/symm.rs.html#665">key</a>, <a href="../../src/openssl/symm.rs.html#666">iv</a>, <a href="../../src/openssl/symm.rs.html#667">data</a>)
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    <a href="#672-678">cipher</a>(<a href="#664">t</a>, <a href="#64">Mode::Decrypt</a>, <a href="#665">key</a>, <a href="#666">iv</a>, <a href="#667">data</a>)
 }
 
 <span class="kw">fn </span>cipher(
-    t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-    mode: <a href="../../src/openssl/symm.rs.html#62">Mode</a>,
+    t: <a href="#73">Cipher</a>,
+    mode: <a href="#62">Mode</a>,
     key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>c = Crypter::new(t, mode, key, iv)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; data.len() + t.block_size()];
     <span class="kw">let </span>count = c.update(data, <span class="kw-2">&amp;mut </span>out)<span class="question-mark">?</span>;
     <span class="kw">let </span>rest = c.finalize(<span class="kw-2">&amp;mut </span>out[count..])<span class="question-mark">?</span>;
-    <a href="../../src/openssl/symm.rs.html#680">out</a>.truncate(<a href="../../src/openssl/symm.rs.html#681">count</a> + <a href="../../src/openssl/symm.rs.html#682">rest</a>);
-    <span class="prelude-val">Ok</span>(<a href="../../src/openssl/symm.rs.html#680">out</a>)
+    <a href="#680">out</a>.truncate(<a href="#681">count</a> + <a href="#682">rest</a>);
+    <span class="prelude-val">Ok</span>(<a href="#680">out</a>)
 }
 
 <span class="doccomment">/// Like `encrypt`, but for AEAD ciphers such as AES GCM.
@@ -2283,17 +2283,17 @@
 /// a range of tag sizes, it is recommended to pick the maximum size. For AES GCM, this is 16 bytes,
 /// for example.
 </span><span class="kw">pub fn </span>encrypt_aead(
-    t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+    t: <a href="#73">Cipher</a>,
     key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     aad: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     tag: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>c = Crypter::new(t, Mode::Encrypt, key, iv)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; data.len() + t.block_size()];
 
-    <span class="kw">let </span>is_ccm = <a href="../../src/openssl/symm.rs.html#696">t</a>.<a href="../../src/openssl/symm.rs.html#380">is_ccm</a>();
+    <span class="kw">let </span>is_ccm = <a href="#696">t</a>.<a href="#380">is_ccm</a>();
     <span class="kw">if </span>is_ccm || t.is_ocb() {
         c.set_tag_len(tag.len())<span class="question-mark">?</span>;
         <span class="kw">if </span>is_ccm {
@@ -2305,8 +2305,8 @@
     <span class="kw">let </span>count = c.update(data, <span class="kw-2">&amp;mut </span>out)<span class="question-mark">?</span>;
     <span class="kw">let </span>rest = c.finalize(<span class="kw-2">&amp;mut </span>out[count..])<span class="question-mark">?</span>;
     c.get_tag(tag)<span class="question-mark">?</span>;
-    <a href="../../src/openssl/symm.rs.html#704">out</a>.truncate(<a href="../../src/openssl/symm.rs.html#715">count</a> + <a href="../../src/openssl/symm.rs.html#716">rest</a>);
-    <span class="prelude-val">Ok</span>(<a href="../../src/openssl/symm.rs.html#704">out</a>)
+    <a href="#704">out</a>.truncate(<a href="#715">count</a> + <a href="#716">rest</a>);
+    <span class="prelude-val">Ok</span>(<a href="#704">out</a>)
 }
 
 <span class="doccomment">/// Like `decrypt`, but for AEAD ciphers such as AES GCM.
@@ -2314,17 +2314,17 @@
 /// Additional Authenticated Data can be provided in the `aad` field, and the authentication tag
 /// should be provided in the `tag` field.
 </span><span class="kw">pub fn </span>decrypt_aead(
-    t: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+    t: <a href="#73">Cipher</a>,
     key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     aad: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     tag: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>c = Crypter::new(t, Mode::Decrypt, key, iv)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; data.len() + t.block_size()];
 
-    <span class="kw">let </span>is_ccm = <a href="../../src/openssl/symm.rs.html#727">t</a>.<a href="../../src/openssl/symm.rs.html#380">is_ccm</a>();
+    <span class="kw">let </span>is_ccm = <a href="#727">t</a>.<a href="#380">is_ccm</a>();
     <span class="kw">if </span>is_ccm || t.is_ocb() {
         c.set_tag(tag)<span class="question-mark">?</span>;
         <span class="kw">if </span>is_ccm {
@@ -2342,8 +2342,8 @@
         c.finalize(<span class="kw-2">&amp;mut </span>out[count..])<span class="question-mark">?
     </span>};
 
-    <a href="../../src/openssl/symm.rs.html#735">out</a>.truncate(<a href="../../src/openssl/symm.rs.html#746">count</a> + <a href="../../src/openssl/symm.rs.html#748">rest</a>);
-    <span class="prelude-val">Ok</span>(<a href="../../src/openssl/symm.rs.html#735">out</a>)
+    <a href="#735">out</a>.truncate(<a href="#746">count</a> + <a href="#748">rest</a>);
+    <span class="prelude-val">Ok</span>(<a href="#735">out</a>)
 }
 
 <span class="macro">cfg_if! </span>{
@@ -3179,4 +3179,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

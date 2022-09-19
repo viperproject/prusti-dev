@@ -124,7 +124,7 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 <span class="kw">use </span>futures_core::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
@@ -150,13 +150,13 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#26">self</a>.<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#26">self</a>.<a href="#7-17">project</a>();
         <span class="kw">let </span>inner =
-            <a href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.future.as_mut().as_pin_mut().expect(<span class="string">&quot;PollImmediate polled after completion&quot;</span>);
-        <span class="kw">match </span><a href="../../../src/futures_util/future/poll_immediate.rs.html#28">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#26">cx</a>) {
+            <a href="#27">this</a>.future.as_mut().as_pin_mut().expect(<span class="string">&quot;PollImmediate polled after completion&quot;</span>);
+        <span class="kw">match </span><a href="#28">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#26">cx</a>) {
             Poll::Ready(t) =&gt; {
-                <a href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.future.set(<span class="prelude-val">None</span>);
-                Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#31">t</a>))
+                <a href="#27">this</a>.future.set(<span class="prelude-val">None</span>);
+                Poll::Ready(<span class="prelude-val">Some</span>(<a href="#31">t</a>))
             }
             Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">None</span>),
         }
@@ -165,7 +165,7 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>PollImmediate&lt;T&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#41">self</a>.future.is_none()
+        <a class="self" href="#41">self</a>.future.is_none()
     }
 }
 
@@ -200,13 +200,13 @@
     <span class="kw">type </span>Item = Poll&lt;T&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#76">self</a>.<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
-        <span class="kw">match </span><a href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.future.as_mut().as_pin_mut() {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#76">self</a>.<a href="#7-17">project</a>();
+        <span class="kw">match </span><a href="#77">this</a>.future.as_mut().as_pin_mut() {
             <span class="comment">// inner is gone, so we can signal that the stream is closed.
             </span><span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(fut) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#81">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#76">cx</a>).map(|t| {
-                <a href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.future.set(<span class="prelude-val">None</span>);
-                <a href="../../../src/futures_util/future/poll_immediate.rs.html#81">t</a>
+            <span class="prelude-val">Some</span>(fut) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="#81">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#76">cx</a>).map(|t| {
+                <a href="#77">this</a>.future.set(<span class="prelude-val">None</span>);
+                <a href="#81">t</a>
             }))),
         }
     }
@@ -248,7 +248,7 @@
 /// # });
 /// ```
 </span><span class="kw">pub fn </span>poll_immediate&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(f: F) -&gt; PollImmediate&lt;F&gt; {
-    assert_future::&lt;<span class="prelude-ty">Option</span>&lt;F::Output&gt;, PollImmediate&lt;F&gt;&gt;(<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">PollImmediate</a> { future: <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#124">f</a>) })
+    assert_future::&lt;<span class="prelude-ty">Option</span>&lt;F::Output&gt;, PollImmediate&lt;F&gt;&gt;(<a href="#7-17">PollImmediate</a> { future: <span class="prelude-val">Some</span>(<a href="#124">f</a>) })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -154,7 +154,7 @@
 
 <span class="attribute">#[derive(Default)]
 </span><span class="kw">pub struct </span>SmtManager {
-    connection: <span class="prelude-ty">Option</span>&lt;<a href="../../src/viper/smt_manager.rs.html#21">Connection</a>&gt;,
+    connection: <span class="prelude-ty">Option</span>&lt;<a href="#21">Connection</a>&gt;,
     preserve_trace_files: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     write_smt_statistics: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     quantifier_instantiations_ignore_builtin: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -171,7 +171,7 @@
     port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/viper/smt_manager.rs.html#9">SmtManager</a> {
+<span class="kw">impl </span><a href="#9">SmtManager</a> {
     <span class="attribute">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub fn </span>new(
         log_path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
@@ -184,7 +184,7 @@
         unique_triggers_bound: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
         unique_triggers_bound_total: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>log_path = <a href="https://doc.rust-lang.org/nightly/std/fs/fn.canonicalize.html">std::fs::canonicalize</a>(<a href="../../src/viper/smt_manager.rs.html#30">log_path</a>).unwrap();
+        <span class="kw">let </span>log_path = <a href="https://doc.rust-lang.org/nightly/std/fs/fn.canonicalize.html">std::fs::canonicalize</a>(<a href="#30">log_path</a>).unwrap();
         <span class="kw">let </span>(termination_sender, termination_receiver) = oneshot::channel();
         <span class="kw">let </span>(port_sender, port_receiver) = std::sync::mpsc::channel();
         <span class="kw">let </span>smt_listener = thread::spawn(<span class="kw">move </span>|| {
@@ -193,18 +193,18 @@
                 .enable_all()
                 .build()
                 .expect(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
-            <a href="../../src/viper/smt_manager.rs.html#44">runtime</a>.block_on(<span class="kw">async </span>{
+            <a href="#44">runtime</a>.block_on(<span class="kw">async </span>{
                 <span class="kw">let </span>listener = TcpListener::bind(<span class="string">&quot;127.0.0.1:0&quot;</span>).<span class="kw">await</span>.unwrap();
-                <span class="kw">let </span>address = <a href="../../src/viper/smt_manager.rs.html#50">listener</a>.local_addr().unwrap();
-                <a href="../../src/viper/smt_manager.rs.html#42">port_sender</a>.send(<a href="../../src/viper/smt_manager.rs.html#51">address</a>.port()).unwrap();
+                <span class="kw">let </span>address = <a href="#50">listener</a>.local_addr().unwrap();
+                <a href="#42">port_sender</a>.send(<a href="#51">address</a>.port()).unwrap();
 
-                <span class="kw">let </span><span class="kw-2">mut </span>termination_receiver = <a href="../../src/viper/smt_manager.rs.html#41">termination_receiver</a>.<a href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
+                <span class="kw">let </span><span class="kw-2">mut </span>termination_receiver = <a href="#41">termination_receiver</a>.<a href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
 
                 <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>trace_files = Vec::new();
 
                 <span class="kw">loop </span>{
-                    <span class="kw">let </span>accept = <a href="../../src/viper/smt_manager.rs.html#50">listener</a>.accept().<a href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
+                    <span class="kw">let </span>accept = <a href="#50">listener</a>.accept().<a href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
                     <a class="macro" href="../../pin_utils/pin_utils/macro.pin_mut.html">futures::pin_mut!</a>(accept);
                     <a class="macro" href="../../futures_util/macro.select.html">futures::select! </a>{
                         value = termination_receiver =&gt; {
@@ -228,35 +228,35 @@
                         }
                     }
                 }
-                <a href="../../src/viper/smt_manager.rs.html#57">trace_files</a>
+                <a href="#57">trace_files</a>
             })
         });
-        <span class="kw">let </span>connection = <a href="../../src/viper/smt_manager.rs.html#21">Connection</a> {
-            <a href="../../src/viper/smt_manager.rs.html#43">smt_listener</a>,
-            termination_shot: <a href="../../src/viper/smt_manager.rs.html#41">termination_sender</a>,
-            port: <a href="../../src/viper/smt_manager.rs.html#42">port_receiver</a>.recv().unwrap(),
+        <span class="kw">let </span>connection = <a href="#21">Connection</a> {
+            <a href="#43">smt_listener</a>,
+            termination_shot: <a href="#41">termination_sender</a>,
+            port: <a href="#42">port_receiver</a>.recv().unwrap(),
         };
         <span class="self">Self </span>{
-            connection: <span class="prelude-val">Some</span>(<a href="../../src/viper/smt_manager.rs.html#87">connection</a>),
-            <a href="../../src/viper/smt_manager.rs.html#31">preserve_trace_files</a>,
-            <a href="../../src/viper/smt_manager.rs.html#32">write_smt_statistics</a>,
-            <a href="../../src/viper/smt_manager.rs.html#33">quantifier_instantiations_ignore_builtin</a>,
-            <a href="../../src/viper/smt_manager.rs.html#34">quantifier_instantiations_bound_global_kind</a>,
-            <a href="../../src/viper/smt_manager.rs.html#35">quantifier_instantiations_bound_trace</a>,
-            <a href="../../src/viper/smt_manager.rs.html#36">quantifier_instantiations_bound_trace_kind</a>,
-            <a href="../../src/viper/smt_manager.rs.html#37">unique_triggers_bound</a>,
-            <a href="../../src/viper/smt_manager.rs.html#38">unique_triggers_bound_total</a>,
+            connection: <span class="prelude-val">Some</span>(<a href="#87">connection</a>),
+            <a href="#31">preserve_trace_files</a>,
+            <a href="#32">write_smt_statistics</a>,
+            <a href="#33">quantifier_instantiations_ignore_builtin</a>,
+            <a href="#34">quantifier_instantiations_bound_global_kind</a>,
+            <a href="#35">quantifier_instantiations_bound_trace</a>,
+            <a href="#36">quantifier_instantiations_bound_trace_kind</a>,
+            <a href="#37">unique_triggers_bound</a>,
+            <a href="#38">unique_triggers_bound_total</a>,
         }
     }
 
     <span class="kw">pub fn </span>port(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../src/viper/smt_manager.rs.html#105">self</a>.connection.as_ref().unwrap().port
+        <a class="self" href="#105">self</a>.connection.as_ref().unwrap().port
     }
 
     <span class="kw">pub fn </span>stop_and_check(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(connection) = <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.connection.take() {
-            <a href="../../src/viper/smt_manager.rs.html#110">connection</a>.termination_shot.send(()).unwrap();
-            <span class="kw">let </span>trace_files = <a href="../../src/viper/smt_manager.rs.html#110">connection</a>.smt_listener.join().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(connection) = <a class="self" href="#109">self</a>.connection.take() {
+            <a href="#110">connection</a>.termination_shot.send(()).unwrap();
+            <span class="kw">let </span>trace_files = <a href="#110">connection</a>.smt_listener.join().unwrap();
             <span class="kw">for </span>trace_file <span class="kw">in </span>trace_files {
                 <span class="kw">let </span>trace_file = PathBuf::from(trace_file);
                 <span class="comment">// Since Silicon kills the SMT solver, there is no guarantee
@@ -287,10 +287,10 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/viper/smt_manager.rs.html#9">SmtManager</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#9">SmtManager</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.connection.is_none(), <span class="string">&quot;`stop_and_check` was not called&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

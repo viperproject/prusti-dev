@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/async_fd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_fd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/io/async_fd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_fd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -670,7 +670,9 @@
 <span id="670">670</span>
 <span id="671">671</span>
 <span id="672">672</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::driver::{<a href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>, <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>, <a href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>};
+<span id="673">673</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="interest.rs.html#14"><span class="kw">crate</span>::io::Interest</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::io::{<a href="../runtime/io/mod.rs.html#46">Handle</a>, <a href="../runtime/io/mod.rs.html#51">ReadyEvent</a>, <a href="../runtime/io/registration.rs.html#45">Registration</a>};
 
 <span class="kw">use </span>mio::unix::SourceFd;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -810,7 +812,7 @@
 /// [`AsyncFdReadyGuard`]: struct@self::AsyncFdReadyGuard
 /// [`TcpStream::poll_read_ready`]: struct@crate::net::TcpStream
 </span><span class="kw">pub struct </span>AsyncFd&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
-    registration: <a href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>,
+    registration: <a href="../runtime/io/registration.rs.html#45">Registration</a>,
     inner: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
@@ -822,7 +824,7 @@
 </span><span class="attribute">#[must_use = <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]
 </span><span class="kw">pub struct </span>AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
     async_fd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;T&gt;,
-    event: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;,
+    event: <span class="prelude-ty">Option</span>&lt;<a href="../runtime/io/mod.rs.html#51">ReadyEvent</a>&gt;,
 }
 
 <span class="doccomment">/// Represents an IO-ready event detected on a particular file descriptor that
@@ -833,10 +835,10 @@
 </span><span class="attribute">#[must_use = <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]
 </span><span class="kw">pub struct </span>AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
     async_fd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>AsyncFd&lt;T&gt;,
-    event: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;,
+    event: <span class="prelude-ty">Option</span>&lt;<a href="../runtime/io/mod.rs.html#51">ReadyEvent</a>&gt;,
 }
 
-<span class="kw">const </span>ALL_INTEREST: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a> = Interest::READABLE.<a href="../../../src/tokio/io/driver/interest.rs.html#94">add</a>(Interest::WRITABLE);
+<span class="kw">const </span>ALL_INTEREST: <a href="interest.rs.html#14">Interest</a> = Interest::READABLE.<a href="interest.rs.html#94">add</a>(Interest::WRITABLE);
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; AsyncFd&lt;T&gt; {
     <span class="doccomment">/// Creates an AsyncFd backed by (and taking ownership of) an object
@@ -855,7 +857,7 @@
     <span class="kw">where
         </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
     {
-        <span class="self">Self</span>::with_interest(<a href="../../../src/tokio/io/async_fd.rs.html#182">inner</a>, <a href="../../../src/tokio/io/async_fd.rs.html#167">ALL_INTEREST</a>)
+        <span class="self">Self</span>::with_interest(<a href="#183">inner</a>, <a href="#168">ALL_INTEREST</a>)
     }
 
     <span class="doccomment">/// Creates new instance as `new` with additional ability to customize interest,
@@ -867,55 +869,55 @@
     /// feature flag is not enabled.
     </span><span class="attribute">#[inline]
     #[track_caller]
-    </span><span class="kw">pub fn </span>with_interest(inner: T, interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">pub fn </span>with_interest(inner: T, interest: <a href="interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
     {
-        <span class="self">Self</span>::new_with_handle_and_interest(<a href="../../../src/tokio/io/async_fd.rs.html#198">inner</a>, Handle::current(), <a href="../../../src/tokio/io/async_fd.rs.html#198">interest</a>)
+        <span class="self">Self</span>::new_with_handle_and_interest(<a href="#199">inner</a>, Handle::current(), <a href="#199">interest</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_handle_and_interest(
         inner: T,
-        handle: <a href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
-        interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+        handle: <a href="../runtime/io/mod.rs.html#46">Handle</a>,
+        interest: <a href="interest.rs.html#14">Interest</a>,
     ) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>fd = <a href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
+        <span class="kw">let </span>fd = <a href="#207">inner</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
 
         <span class="kw">let </span>registration =
             Registration::new_with_interest_and_handle(<span class="kw-2">&amp;mut </span>SourceFd(<span class="kw-2">&amp;</span>fd), interest, handle)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#140">AsyncFd</a> {
-            <a href="../../../src/tokio/io/async_fd.rs.html#212">registration</a>,
-            inner: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>),
+        <span class="prelude-val">Ok</span>(<a href="#141">AsyncFd</a> {
+            <a href="#213">registration</a>,
+            inner: <span class="prelude-val">Some</span>(<a href="#207">inner</a>),
         })
     }
 
     <span class="doccomment">/// Returns a shared reference to the backing object of this [`AsyncFd`].
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#223">self</a>.inner.as_ref().unwrap()
+        <a class="self" href="#224">self</a>.inner.as_ref().unwrap()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the backing object of this [`AsyncFd`].
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#229">self</a>.inner.as_mut().unwrap()
+        <a class="self" href="#230">self</a>.inner.as_mut().unwrap()
     }
 
     <span class="kw">fn </span>take_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>fd = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.inner.as_ref().map(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd::as_raw_fd</a>);
+        <span class="kw">let </span>fd = <a class="self" href="#234">self</a>.inner.as_ref().map(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd::as_raw_fd</a>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(fd) = <a href="../../../src/tokio/io/async_fd.rs.html#234">fd</a> {
-            <span class="kw">let _ </span>= <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#96">deregister</a>(<span class="kw-2">&amp;mut </span>SourceFd(<span class="kw-2">&amp;</span><a href="../../../src/tokio/io/async_fd.rs.html#236">fd</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(fd) = <a href="#235">fd</a> {
+            <span class="kw">let _ </span>= <a class="self" href="#234">self</a>.registration.<a href="../runtime/io/registration.rs.html#97">deregister</a>(<span class="kw-2">&amp;mut </span>SourceFd(<span class="kw-2">&amp;</span><a href="#237">fd</a>));
         }
 
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.inner.take()
+        <a class="self" href="#234">self</a>.inner.take()
     }
 
     <span class="doccomment">/// Deregisters this file descriptor and returns ownership of the backing
     /// object.
     </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#245">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>().unwrap()
+        <a class="self" href="#246">self</a>.<a href="#234">take_inner</a>().unwrap()
     }
 
     <span class="doccomment">/// Polls for read readiness.
@@ -951,9 +953,9 @@
     ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
         <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_read_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
-            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#277">self</a>,
-            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#280">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="#152">AsyncFdReadyGuard</a> {
+            async_fd: <a class="self" href="#278">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="#281">event</a>),
         })
         .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
@@ -989,9 +991,9 @@
     ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
         <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_read_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
-            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#315">self</a>,
-            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#318">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="#163">AsyncFdReadyMutGuard</a> {
+            async_fd: <a class="self" href="#316">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="#319">event</a>),
         })
         .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
@@ -1029,9 +1031,9 @@
     ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
         <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_write_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
-            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#355">self</a>,
-            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#358">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="#152">AsyncFdReadyGuard</a> {
+            async_fd: <a class="self" href="#356">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="#359">event</a>),
         })
         .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
@@ -1067,14 +1069,14 @@
     ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
         <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_write_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
-            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#393">self</a>,
-            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#396">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="#163">AsyncFdReadyMutGuard</a> {
+            async_fd: <a class="self" href="#394">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="#397">event</a>),
         })
         .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="kw">async fn </span>readiness(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+    <span class="kw">async fn </span>readiness(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="kw">let </span>event = <span class="self">self</span>.registration.readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(AsyncFdReadyGuard {
@@ -1085,7 +1087,7 @@
 
     <span class="kw">async fn </span>readiness_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+        interest: <a href="interest.rs.html#14">Interest</a>,
     ) -&gt; io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
         <span class="kw">let </span>event = <span class="self">self</span>.registration.readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -1146,21 +1148,21 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#476">self</a>.inner.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="#477">self</a>.inner.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a href="../../../src/tokio/io/async_fd.rs.html#482">f</a>.debug_struct(<span class="string">&quot;AsyncFd&quot;</span>)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#482">self</a>.inner)
+        <a href="#483">f</a>.debug_struct(<span class="string">&quot;AsyncFd&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#483">self</a>.inner)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let _ </span>= <a class="self" href="../../../src/tokio/io/async_fd.rs.html#490">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>();
+        <span class="kw">let _ </span>= <a class="self" href="#491">self</a>.<a href="#234">take_inner</a>();
     }
 }
 
@@ -1176,8 +1178,8 @@
     ///
     /// [`drop`]: method@std::mem::drop
     </span><span class="kw">pub fn </span>clear_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.event.take() {
-            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.async_fd.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../src/tokio/io/async_fd.rs.html#507">event</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="#507">self</a>.event.take() {
+            <a class="self" href="#507">self</a>.async_fd.registration.<a href="../runtime/io/registration.rs.html#101">clear_readiness</a>(<a href="#508">event</a>);
         }
     }
 
@@ -1211,29 +1213,29 @@
     </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;Inner&gt;) -&gt; io::Result&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>&gt; {
-        <span class="kw">let </span>result = <a href="../../../src/tokio/io/async_fd.rs.html#541">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.async_fd);
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="#673">TryIoError</a>&gt; {
+        <span class="kw">let </span>result = <a href="#542">f</a>(<a class="self" href="#541">self</a>.async_fd);
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/tokio/io/async_fd.rs.html#543">result</a>.as_ref() {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="#544">result</a>.as_ref() {
             <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock {
-                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#506">clear_ready</a>();
+                <a class="self" href="#541">self</a>.<a href="#507">clear_ready</a>();
             }
         }
 
-        <span class="kw">match </span><a href="../../../src/tokio/io/async_fd.rs.html#543">result</a> {
-            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="../../../src/tokio/io/async_fd.rs.html#552">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
-            result =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#553">result</a>),
+        <span class="kw">match </span><a href="#544">result</a> {
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="#553">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="#673">TryIoError</a>(())),
+            result =&gt; <span class="prelude-val">Ok</span>(<a href="#554">result</a>),
         }
     }
 
     <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;Inner&gt; {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#558">self</a>.async_fd
+        <a class="self" href="#559">self</a>.async_fd
     }
 
     <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Inner {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#563">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#558">get_ref</a>().<a href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
+        <a class="self" href="#564">self</a>.<a href="#559">get_ref</a>().<a href="#224">get_ref</a>()
     }
 }
 
@@ -1249,8 +1251,8 @@
     ///
     /// [`drop`]: method@std::mem::drop
     </span><span class="kw">pub fn </span>clear_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.event.take() {
-            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.async_fd.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../src/tokio/io/async_fd.rs.html#580">event</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="#580">self</a>.event.take() {
+            <a class="self" href="#580">self</a>.async_fd.registration.<a href="../runtime/io/registration.rs.html#101">clear_readiness</a>(<a href="#581">event</a>);
         }
     }
 
@@ -1282,54 +1284,54 @@
     </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>AsyncFd&lt;Inner&gt;) -&gt; io::Result&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>&gt; {
-        <span class="kw">let </span>result = <a href="../../../src/tokio/io/async_fd.rs.html#612">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.async_fd);
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="#673">TryIoError</a>&gt; {
+        <span class="kw">let </span>result = <a href="#613">f</a>(<a class="self" href="#612">self</a>.async_fd);
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/tokio/io/async_fd.rs.html#614">result</a>.as_ref() {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="#615">result</a>.as_ref() {
             <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock {
-                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#579">clear_ready</a>();
+                <a class="self" href="#612">self</a>.<a href="#580">clear_ready</a>();
             }
         }
 
-        <span class="kw">match </span><a href="../../../src/tokio/io/async_fd.rs.html#614">result</a> {
-            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="../../../src/tokio/io/async_fd.rs.html#623">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
-            result =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#624">result</a>),
+        <span class="kw">match </span><a href="#615">result</a> {
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="#624">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="#673">TryIoError</a>(())),
+            result =&gt; <span class="prelude-val">Ok</span>(<a href="#625">result</a>),
         }
     }
 
     <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AsyncFd&lt;Inner&gt; {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#629">self</a>.async_fd
+        <a class="self" href="#630">self</a>.async_fd
     }
 
     <span class="doccomment">/// Returns a mutable reference to the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>AsyncFd&lt;Inner&gt; {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#634">self</a>.async_fd
+        <a class="self" href="#635">self</a>.async_fd
     }
 
     <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Inner {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#639">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#629">get_ref</a>().<a href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
+        <a class="self" href="#640">self</a>.<a href="#630">get_ref</a>().<a href="#224">get_ref</a>()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the backing object of the inner [`AsyncFd`].
     </span><span class="kw">pub fn </span>get_inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Inner {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#644">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#634">get_mut</a>().<a href="../../../src/tokio/io/async_fd.rs.html#229">get_mut</a>()
+        <a class="self" href="#645">self</a>.<a href="#635">get_mut</a>().<a href="#230">get_mut</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a href="../../../src/tokio/io/async_fd.rs.html#650">f</a>.debug_struct(<span class="string">&quot;ReadyGuard&quot;</span>)
-            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#650">self</a>.async_fd)
+        <a href="#651">f</a>.debug_struct(<span class="string">&quot;ReadyGuard&quot;</span>)
+            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#651">self</a>.async_fd)
             .finish()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a href="../../../src/tokio/io/async_fd.rs.html#658">f</a>.debug_struct(<span class="string">&quot;MutReadyGuard&quot;</span>)
-            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#658">self</a>.async_fd)
+        <a href="#659">f</a>.debug_struct(<span class="string">&quot;MutReadyGuard&quot;</span>)
+            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#659">self</a>.async_fd)
             .finish()
     }
 }
@@ -1343,4 +1345,4 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>TryIoError(());
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

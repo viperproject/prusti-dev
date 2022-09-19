@@ -238,9 +238,9 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::diff::{<a href="../../src/git2/diff.rs.html#326-331">print_cb</a>, <a href="../../src/git2/diff.rs.html#120">LineCb</a>};
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../src/git2/util.rs.html#180-182">into_opt_c_string</a>, <a href="../../src/git2/util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/blob.rs.html#12">Blob</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/diff.rs.html#19">Diff</a>, <a href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a href="../../src/git2/diff.rs.html#79">DiffHunk</a>, <a href="../../src/git2/diff.rs.html#73">DiffLine</a>, <a href="../../src/git2/diff.rs.html#43">DiffOptions</a>, <a href="../../src/git2/error.rs.html#12">Error</a>};
+<span class="kw">use </span><span class="kw">crate</span>::diff::{<a href="diff.rs.html#326-331">print_cb</a>, <a href="diff.rs.html#120">LineCb</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="util.rs.html#180-182">into_opt_c_string</a>, <a href="util.rs.html#25">Binding</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="blob.rs.html#12">Blob</a>, <a href="buf.rs.html#13">Buf</a>, <a href="diff.rs.html#19">Diff</a>, <a href="diff.rs.html#27">DiffDelta</a>, <a href="diff.rs.html#79">DiffHunk</a>, <a href="diff.rs.html#73">DiffLine</a>, <a href="diff.rs.html#43">DiffOptions</a>, <a href="error.rs.html#12">Error</a>};
 
 <span class="doccomment">/// A structure representing the text changes in a single diff delta.
 ///
@@ -252,22 +252,22 @@
 
 <span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;buffers</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Patch&lt;<span class="lifetime">&#39;buffers</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buffers</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Patch&lt;<span class="lifetime">&#39;buffers</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buffers</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>Patch&lt;<span class="lifetime">&#39;buffers</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_patch.html">raw::git_patch</a>;
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="self">Self</span>::Raw) -&gt; <span class="self">Self </span>{
-        <a href="../../src/git2/patch.rs.html#13">Patch</a> {
-            <a href="../../src/git2/patch.rs.html#22">raw</a>,
+        <a href="#13">Patch</a> {
+            <a href="#22">raw</a>,
             buffers: PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Raw {
-        <a class="self" href="../../src/git2/patch.rs.html#28">self</a>.raw
+        <a class="self" href="#28">self</a>.raw
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;buffers</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Patch&lt;<span class="lifetime">&#39;buffers</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_patch_free(<a class="self" href="../../src/git2/patch.rs.html#34">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_patch_free(<a class="self" href="#34">self</a>.raw) }
     }
 }
 
@@ -275,11 +275,11 @@
     <span class="doccomment">/// Return a Patch for one file in a Diff.
     ///
     /// Returns Ok(None) for an unchanged or binary file.
-    </span><span class="kw">pub fn </span>from_diff(diff: <span class="kw-2">&amp;</span>Diff&lt;<span class="lifetime">&#39;buffers</span>&gt;, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>from_diff(diff: <span class="kw-2">&amp;</span>Diff&lt;<span class="lifetime">&#39;buffers</span>&gt;, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_from_diff(<span class="kw-2">&amp;mut </span>ret, diff.raw(), idx));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/patch.rs.html#44">ret</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_from_diff(<span class="kw-2">&amp;mut </span>ret, diff.raw(), idx));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="#44">ret</a>))
         }
     }
 
@@ -289,13 +289,13 @@
         old_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         new_blob: <span class="kw-2">&amp;</span>Blob&lt;<span class="lifetime">&#39;buffers</span>&gt;,
         new_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
-        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/git2/diff.rs.html#43">DiffOptions</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="diff.rs.html#43">DiffOptions</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>old_path = into_opt_c_string(old_path)<span class="question-mark">?</span>;
         <span class="kw">let </span>new_path = into_opt_c_string(new_path)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_from_blobs(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_from_blobs(
                 <span class="kw-2">&amp;mut </span>ret,
                 old_blob.raw(),
                 old_path,
@@ -303,7 +303,7 @@
                 new_path,
                 opts.map(|s| s.raw())
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/patch.rs.html#59">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#59">ret</a>))
         }
     }
 
@@ -313,13 +313,13 @@
         old_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         new_buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buffers </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         new_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
-        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/git2/diff.rs.html#43">DiffOptions</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="diff.rs.html#43">DiffOptions</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>old_path = into_opt_c_string(old_path)<span class="question-mark">?</span>;
         <span class="kw">let </span>new_path = into_opt_c_string(new_path)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_from_blob_and_buffer(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_from_blob_and_buffer(
                 <span class="kw-2">&amp;mut </span>ret,
                 old_blob.raw(),
                 old_path,
@@ -328,7 +328,7 @@
                 new_path,
                 opts.map(|s| s.raw())
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/patch.rs.html#83">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#83">ret</a>))
         }
     }
 
@@ -338,14 +338,14 @@
         old_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
         new_buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buffers </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         new_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
-        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/git2/diff.rs.html#43">DiffOptions</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="diff.rs.html#43">DiffOptions</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>old_path = into_opt_c_string(old_path)<span class="question-mark">?</span>;
         <span class="kw">let </span>new_path = into_opt_c_string(new_path)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_from_buffers(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_from_buffers(
                 <span class="kw-2">&amp;mut </span>ret,
                 old_buffer.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_void,
                 old_buffer.len(),
@@ -355,51 +355,51 @@
                 new_path,
                 opts.map(|s| s.raw())
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/patch.rs.html#109">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#109">ret</a>))
         }
     }
 
     <span class="doccomment">/// Get the DiffDelta associated with the Patch.
     </span><span class="kw">pub fn </span>delta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DiffDelta&lt;<span class="lifetime">&#39;buffers</span>&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_patch_get_delta(<a class="self" href="../../src/git2/patch.rs.html#128">self</a>.raw) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
+        <span class="kw">unsafe </span>{ <a href="util.rs.html#28">Binding::from_raw</a>(raw::git_patch_get_delta(<a class="self" href="#128">self</a>.raw) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Get the number of hunks in the Patch.
     </span><span class="kw">pub fn </span>num_hunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe </span>{ raw::git_patch_num_hunks(<a class="self" href="../../src/git2/patch.rs.html#133">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_patch_num_hunks(<a class="self" href="#133">self</a>.raw) }
     }
 
     <span class="doccomment">/// Get the number of lines of context, additions, and deletions in the Patch.
-    </span><span class="kw">pub fn </span>line_stats(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>line_stats(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>context = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>additions = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>deletions = <span class="number">0</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_line_stats(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_line_stats(
                 <span class="kw-2">&amp;mut </span>context,
                 <span class="kw-2">&amp;mut </span>additions,
                 <span class="kw-2">&amp;mut </span>deletions,
                 <span class="self">self</span>.raw
             ));
         }
-        <span class="prelude-val">Ok</span>((<a href="../../src/git2/patch.rs.html#139">context</a>, <a href="../../src/git2/patch.rs.html#140">additions</a>, <a href="../../src/git2/patch.rs.html#141">deletions</a>))
+        <span class="prelude-val">Ok</span>((<a href="#139">context</a>, <a href="#140">additions</a>, <a href="#141">deletions</a>))
     }
 
     <span class="doccomment">/// Get a DiffHunk and its total line count from the Patch.
-    </span><span class="kw">pub fn </span>hunk(<span class="kw-2">&amp;</span><span class="self">self</span>, hunk_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(DiffHunk&lt;<span class="lifetime">&#39;buffers</span>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>hunk(<span class="kw-2">&amp;</span><span class="self">self</span>, hunk_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(DiffHunk&lt;<span class="lifetime">&#39;buffers</span>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null();
         <span class="kw">let </span><span class="kw-2">mut </span>lines = <span class="number">0</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_get_hunk(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_get_hunk(
                 <span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;mut </span>lines, <span class="self">self</span>.raw, hunk_idx
             ));
-            <span class="prelude-val">Ok</span>((<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/patch.rs.html#155">ret</a>), <a href="../../src/git2/patch.rs.html#156">lines</a>))
+            <span class="prelude-val">Ok</span>((<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#155">ret</a>), <a href="#156">lines</a>))
         }
     }
 
     <span class="doccomment">/// Get the number of lines in a hunk.
-    </span><span class="kw">pub fn </span>num_lines_in_hunk(<span class="kw-2">&amp;</span><span class="self">self</span>, hunk_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_num_lines_in_hunk(<span class="self">self</span>.raw, hunk_idx)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) }
+    </span><span class="kw">pub fn </span>num_lines_in_hunk(<span class="kw-2">&amp;</span><span class="self">self</span>, hunk_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_num_lines_in_hunk(<span class="self">self</span>.raw, hunk_idx)) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) }
     }
 
     <span class="doccomment">/// Get a DiffLine from a hunk of the Patch.
@@ -407,16 +407,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         hunk_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         line_of_hunk: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DiffLine&lt;<span class="lifetime">&#39;buffers</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DiffLine&lt;<span class="lifetime">&#39;buffers</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_get_line_in_hunk(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_get_line_in_hunk(
                 <span class="kw-2">&amp;mut </span>ret,
                 <span class="self">self</span>.raw,
                 hunk_idx,
                 line_of_hunk
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/patch.rs.html#176">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#176">ret</a>))
         }
     }
 
@@ -429,44 +429,44 @@
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">unsafe </span>{
             raw::git_patch_size(
-                <a class="self" href="../../src/git2/patch.rs.html#190">self</a>.raw,
-                <a href="../../src/git2/patch.rs.html#191">include_context</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a href="../../src/git2/patch.rs.html#192">include_hunk_headers</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a href="../../src/git2/patch.rs.html#193">include_file_headers</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="self" href="#190">self</a>.raw,
+                <a href="#191">include_context</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#192">include_hunk_headers</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#193">include_file_headers</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
 
     <span class="doccomment">/// Print the Patch to text via a callback.
-    </span><span class="kw">pub fn </span>print(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>line_cb: <span class="kw-2">&amp;mut </span>LineCb&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut </span><a href="../../src/git2/patch.rs.html#206">line_cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+    </span><span class="kw">pub fn </span>print(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>line_cb: <span class="kw-2">&amp;mut </span>LineCb&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut </span><a href="#206">line_cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>cb: raw::git_diff_line_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/diff.rs.html#326-331">print_cb</a>);
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_print(<span class="self">self</span>.raw, cb, ptr));
+            <span class="kw">let </span>cb: raw::git_diff_line_cb = <span class="prelude-val">Some</span>(<a href="diff.rs.html#326-331">print_cb</a>);
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_print(<span class="self">self</span>.raw, cb, ptr));
             <span class="prelude-val">Ok</span>(())
         }
     }
 
     <span class="doccomment">/// Get the Patch text as a Buf.
-    </span><span class="kw">pub fn </span>to_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>to_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="buf.rs.html#13">Buf</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>buf = Buf::new();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_patch_to_buf(buf.raw(), <span class="self">self</span>.raw));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_patch_to_buf(buf.raw(), <span class="self">self</span>.raw));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/patch.rs.html#217">buf</a>)
+        <span class="prelude-val">Ok</span>(<a href="#217">buf</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;buffers</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>Patch&lt;<span class="lifetime">&#39;buffers</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ds = <a href="../../src/git2/patch.rs.html#226">f</a>.debug_struct(<span class="string">&quot;Patch&quot;</span>);
-        <a href="../../src/git2/patch.rs.html#227">ds</a>.field(<span class="string">&quot;delta&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/patch.rs.html#226">self</a>.<a href="../../src/git2/patch.rs.html#128">delta</a>())
-            .field(<span class="string">&quot;num_hunks&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/patch.rs.html#226">self</a>.<a href="../../src/git2/patch.rs.html#133">num_hunks</a>());
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(line_stats) = <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/patch.rs.html#226">self</a>.<a href="../../src/git2/patch.rs.html#138">line_stats</a>() {
-            <a href="../../src/git2/patch.rs.html#227">ds</a>.field(<span class="string">&quot;line_stats&quot;</span>, <a href="../../src/git2/patch.rs.html#230">line_stats</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ds = <a href="#226">f</a>.debug_struct(<span class="string">&quot;Patch&quot;</span>);
+        <a href="#227">ds</a>.field(<span class="string">&quot;delta&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#226">self</a>.<a href="#128">delta</a>())
+            .field(<span class="string">&quot;num_hunks&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#226">self</a>.<a href="#133">num_hunks</a>());
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(line_stats) = <span class="kw-2">&amp;</span><a class="self" href="#226">self</a>.<a href="#138">line_stats</a>() {
+            <a href="#227">ds</a>.field(<span class="string">&quot;line_stats&quot;</span>, <a href="#230">line_stats</a>);
         }
-        <a href="../../src/git2/patch.rs.html#227">ds</a>.finish()
+        <a href="#227">ds</a>.finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

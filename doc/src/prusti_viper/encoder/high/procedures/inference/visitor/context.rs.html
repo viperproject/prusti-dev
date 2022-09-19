@@ -132,11 +132,11 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#16"><span class="kw">super</span>::ensurer::ExpandedPermissionKind</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/mod.rs.html#31">Visitor</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../ensurer.rs.html#16"><span class="kw">super</span>::ensurer::ExpandedPermissionKind</a>, <a href="mod.rs.html#31">Visitor</a>};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="../../../../../../../src/prusti_viper/encoder/high/to_typed/types/interface.rs.html#14">high::to_typed::types::HighToTypedTypeEncoderInterface</a>,
-    <a href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
+    errors::{<a href="../../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    <a href="../../../to_typed/types/interface.rs.html#14">high::to_typed::types::HighToTypedTypeEncoderInterface</a>,
+    <a href="../../../../mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
 };
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
 <span class="kw">use </span>vir_crate::{
@@ -144,29 +144,29 @@
     typed::{<span class="self"><a href="../../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed, <a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>},
 };
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#23"><span class="kw">super</span>::<span class="kw">super</span>::ensurer::Context</a> <span class="kw">for </span>Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="../ensurer.rs.html#23"><span class="kw">super</span>::<span class="kw">super</span>::ensurer::Context</a> <span class="kw">for </span>Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>expand_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
         guiding_place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#16">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt;&gt; {
-        <span class="kw">let </span>ty = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">get_type</a>();
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;(<a href="../ensurer.rs.html#16">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt;&gt; {
+        <span class="kw">let </span>ty = <a href="#16">place</a>.<a href="../../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">get_type</a>();
         <span class="comment">// FIXME: For expansion we should use not the TypeDef const generic and
         // lifetime variables, but concrete values from `ty`. However, for this
         // it seams we need to use Rust compiler&#39;s `SubstsRef` design, which
         // means one more refactoring…
-        </span><span class="kw">let </span>normalized_type = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#19">ty</a>.normalize_type();
+        </span><span class="kw">let </span>normalized_type = <a href="#19">ty</a>.normalize_type();
         <span class="kw">let </span>type_decl = <span class="self">self</span>.encoder.encode_type_def_typed(<span class="kw-2">&amp;</span>normalized_type)<span class="question-mark">?</span>;
         <span class="kw">fn </span>expand_fields&lt;<span class="lifetime">&#39;a</span>&gt;(
             place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
             fields: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../../vir/gen/typed/ast/field/struct.FieldDecl.html">vir_typed::FieldDecl</a>&gt;,
-        ) -&gt; Vec&lt;(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#16">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt; {
-            <span class="kw">let </span>places = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#28">fields</a>
+        ) -&gt; Vec&lt;(<a href="../ensurer.rs.html#16">ExpandedPermissionKind</a>, <a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt; {
+            <span class="kw">let </span>places = <a href="#28">fields</a>
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| {
-                    <span class="kw">let </span>position = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#27">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
+                    <span class="kw">let </span>position = <a href="#27">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
                     (
-                        <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#18">ExpandedPermissionKind::Same</a>,
-                        vir_typed::Expression::field(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#27">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#31">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#32">position</a>),
+                        <a href="../ensurer.rs.html#18">ExpandedPermissionKind::Same</a>,
+                        vir_typed::Expression::field(<a href="#27">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#31">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#32">position</a>),
                     )
                 })
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -175,10 +175,10 @@
                 // block at the same place.
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::MemoryBlock, place.clone())]
             } <span class="kw">else </span>{
-                <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#30">places</a>
+                <a href="#30">places</a>
             }
         }
-        <span class="kw">let </span>expansion = <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#25">type_decl</a> {
+        <span class="kw">let </span>expansion = <span class="kw">match </span><a href="#25">type_decl</a> {
             vir_typed::TypeDecl::Bool
             | vir_typed::TypeDecl::Int(<span class="kw">_</span>)
             | vir_typed::TypeDecl::Float(<span class="kw">_</span>)
@@ -188,30 +188,30 @@
             }
             vir_typed::TypeDecl::Trusted(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
             vir_typed::TypeDecl::TypeVar(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
-            vir_typed::TypeDecl::Struct(decl) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#26-29">expand_fields</a>(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#57">decl</a>.fields.iter()),
+            vir_typed::TypeDecl::Struct(decl) =&gt; <a href="#26-29">expand_fields</a>(<a href="#16">place</a>, <a href="#57">decl</a>.fields.iter()),
             vir_typed::TypeDecl::Enum(decl) =&gt; {
-                <span class="kw">let </span>position = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
-                <span class="kw">let </span>variant_name = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.get_variant_name(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">guiding_place</a>);
-                <span class="kw">let </span>variant_place = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_variant(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#60">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>position = <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>();
+                <span class="kw">let </span>variant_name = <a href="#16">place</a>.get_variant_name(<a href="#17">guiding_place</a>);
+                <span class="kw">let </span>variant_place = <a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().into_variant(<a href="#60">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">let </span><span class="kw-2">mut </span>expansion = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::Same, variant_place)];
                 <span class="kw">if </span>decl.safety.is_enum() {
-                    <span class="kw">let </span>discriminant_field = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#58">decl</a>.discriminant_field();
+                    <span class="kw">let </span>discriminant_field = <a href="#58">decl</a>.discriminant_field();
                     <span class="kw">let </span>discriminant_place =
-                        vir_typed::Expression::field(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#64">discriminant_field</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#59">position</a>);
-                    <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#62">expansion</a>.push((<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#18">ExpandedPermissionKind::Same</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#65">discriminant_place</a>));
+                        vir_typed::Expression::field(<a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#64">discriminant_field</a>, <a href="#59">position</a>);
+                    <a href="#62">expansion</a>.push((<a href="../ensurer.rs.html#18">ExpandedPermissionKind::Same</a>, <a href="#65">discriminant_place</a>));
                 }
-                <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#62">expansion</a>
+                <a href="#62">expansion</a>
             }
             vir_typed::TypeDecl::Array(_decl) =&gt; {
                 <span class="comment">// TODO: Instead of a concrete index use a wildcard that would match any index.
-                </span><span class="kw">let </span>index = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.get_index(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">guiding_place</a>);
-                <span class="kw">let </span>element_type = <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#19">ty</a> {
+                </span><span class="kw">let </span>index = <a href="#16">place</a>.get_index(<a href="#17">guiding_place</a>);
+                <span class="kw">let </span>element_type = <span class="kw">match </span><a href="#19">ty</a> {
                     vir_typed::Type::Array(<a href="../../../../../../../vir/gen/typed/ast/ty/struct.Array.html">vir_typed::ty::Array</a> {
                         <span class="kw">box </span>element_type, ..
-                    }) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#76">element_type</a>,
+                    }) =&gt; <a href="#76">element_type</a>,
                     vir_typed::Type::Slice(<a href="../../../../../../../vir/gen/typed/ast/ty/struct.Slice.html">vir_typed::ty::Slice</a> {
                         <span class="kw">box </span>element_type, ..
-                    }) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#79">element_type</a>,
+                    }) =&gt; <a href="#79">element_type</a>,
                     <span class="kw">_ </span>=&gt; {
                         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
                     }
@@ -220,23 +220,23 @@
                     vir_typed::BuiltinFunc::Index,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[element_type.clone()],
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[place.clone(), index.clone()],
-                    <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#74">element_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+                    <a href="#74">element_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
                 );
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(ExpandedPermissionKind::Same, index_place)]
             }
             vir_typed::TypeDecl::Reference(_decl) =&gt; {
-                <span class="kw">let </span>target_type = <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#19">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference().target_type;
+                <span class="kw">let </span>target_type = <a href="#19">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference().target_type;
                 <span class="kw">let </span>deref_place =
-                    vir_typed::Expression::deref(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#95">target_type</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>());
+                    vir_typed::Expression::deref(<a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="#95">target_type</a>, <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>());
                 <span class="kw">let </span>address_place = vir_typed::Expression::field(
-                    <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#16">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     vir_typed::FieldDecl::new(
                         <span class="string">&quot;address$&quot;</span>,
                         <span class="number">0usize</span>,
                         vir_typed::Type::Int(vir_typed::ty::Int::Usize),
                     ),
-                    <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+                    <a href="#16">place</a>.<a href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
                 );
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                     (ExpandedPermissionKind::Same, deref_place),
@@ -249,22 +249,22 @@
             vir_typed::TypeDecl::Closure(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
             vir_typed::TypeDecl::Unsupported(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, ty),
         };
-        <span class="prelude-val">Ok</span>(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#47">expansion</a>)
+        <span class="prelude-val">Ok</span>(<a href="#47">expansion</a>)
     }
     <span class="kw">fn </span>get_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>) -&gt; <span class="prelude-ty">Option</span>&lt;MultiSpan&gt; {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#120">self</a>.encoder
-            .<a href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#227">error_manager</a>()
-            .<a href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#186">position_manager</a>()
-            .<a href="../../../../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">get_span</a>(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#120">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <a class="self" href="#120">self</a>.encoder
+            .<a href="../../../../encoder.rs.html#227">error_manager</a>()
+            .<a href="../../../../errors/error_manager.rs.html#186">position_manager</a>()
+            .<a href="../../../../errors/position_manager.rs.html#86">get_span</a>(<a href="#120">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             .cloned()
     }
     <span class="kw">fn </span>change_error_context(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>,
-        error_ctxt: <a href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#52">ErrorCtxt</a>,
+        error_ctxt: <a href="../../../../errors/error_manager.rs.html#52">ErrorCtxt</a>,
     ) -&gt; <a href="../../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a> {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#128">self</a>.encoder.<a href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#22-26">change_error_context</a>(<a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#129">position</a>, <a href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#130">error_ctxt</a>)
+        <a class="self" href="#128">self</a>.encoder.<a href="../../../../mir/errors/interface.rs.html#22-26">change_error_context</a>(<a href="#129">position</a>, <a href="#130">error_ctxt</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

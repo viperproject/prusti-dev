@@ -576,8 +576,8 @@
 <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
 <span class="kw">use </span>std::process::{<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>};
 
-<span class="kw">use </span><a href="../../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use crate</span>::{<a href="../../../../src/mio/lib.rs.html#54">event</a>, <a href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a href="../../../../src/mio/poll.rs.html#254">Registry</a>, <a href="../../../../src/mio/token.rs.html#132">Token</a>};
+<span class="kw">use </span><a href="../../io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#54">event</a>, <a href="../../interest.rs.html#17">Interest</a>, <a href="../../poll.rs.html#254">Registry</a>, <a href="../../token.rs.html#132">Token</a>};
 
 <span class="doccomment">/// Create a new non-blocking Unix pipe.
 ///
@@ -713,7 +713,7 @@
 /// # unreachable!();
 /// # }
 /// ```
-</span><span class="kw">pub fn </span>new() -&gt; io::Result&lt;(<a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a>)&gt; {
+</span><span class="kw">pub fn </span>new() -&gt; io::Result&lt;(<a href="#211">Sender</a>, <a href="#376">Receiver</a>)&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>fds: [<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>; <span class="number">2</span>] = [-<span class="number">1</span>, -<span class="number">1</span>];
 
     <span class="attribute">#[cfg(any(
@@ -768,9 +768,9 @@
     </span><span class="macro">compile_error!</span>(<span class="string">&quot;unsupported target for `mio::unix::pipe`&quot;</span>);
 
     <span class="comment">// Safety: we just initialised the `fds` above.
-    </span><span class="kw">let </span>r = <span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#148">fds</a>[<span class="number">0</span>]) };
-    <span class="kw">let </span>w = <span class="kw">unsafe </span>{ Sender::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#148">fds</a>[<span class="number">1</span>]) };
-    <span class="prelude-val">Ok</span>((<a href="../../../../src/mio/sys/unix/pipe.rs.html#203">w</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#202">r</a>))
+    </span><span class="kw">let </span>r = <span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="#148">fds</a>[<span class="number">0</span>]) };
+    <span class="kw">let </span>w = <span class="kw">unsafe </span>{ Sender::from_raw_fd(<a href="#148">fds</a>[<span class="number">1</span>]) };
+    <span class="prelude-val">Ok</span>((<a href="#203">w</a>, <a href="#202">r</a>))
 }
 
 <span class="doccomment">/// Sending end of an Unix pipe.
@@ -781,10 +781,10 @@
     inner: IoSource&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+<span class="kw">impl </span><a href="#211">Sender</a> {
     <span class="doccomment">/// Set the `Sender` into or out of non-blocking mode.
     </span><span class="kw">pub fn </span>set_nonblocking(<span class="kw-2">&amp;</span><span class="self">self</span>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="../../../../src/mio/sys/unix/pipe.rs.html#540">set_nonblocking</a>(<a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#217">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../../../../src/mio/sys/unix/pipe.rs.html#217">nonblocking</a>)
+        <a href="#540">set_nonblocking</a>(<a class="self" href="#217">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="#217">nonblocking</a>)
     }
 
     <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events
@@ -852,89 +852,89 @@
     <span class="kw">where
         </span>F: FnOnce() -&gt; io::Result&lt;T&gt;,
     {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#282">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="../../../../src/mio/sys/unix/pipe.rs.html#282">f</a>())
+        <a class="self" href="#282">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="#282">f</a>())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+<span class="kw">impl </span><a href="../../event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="#211">Sender</a> {
     <span class="kw">fn </span>register(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#292">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#293">registry</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#294">token</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#295">interests</a>)
+        <a class="self" href="#292">self</a>.inner.<a href="../../event/source.rs.html#83-88">register</a>(<a href="#293">registry</a>, <a href="#294">token</a>, <a href="#295">interests</a>)
     }
 
     <span class="kw">fn </span>reregister(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#301">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#302">registry</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#303">token</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#304">interests</a>)
+        <a class="self" href="#301">self</a>.inner.<a href="../../event/source.rs.html#97-102">reregister</a>(<a href="#302">registry</a>, <a href="#303">token</a>, <a href="#304">interests</a>)
     }
 
-    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#309">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#309">registry</a>)
-    }
-}
-
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#315">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#316">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#315">buf</a>))
-    }
-
-    <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#319">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#320">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#319">bufs</a>))
-    }
-
-    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#323">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#324">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#309">self</a>.inner.<a href="../../event/source.rs.html#111">deregister</a>(<a href="#309">registry</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="#211">Sender</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#329">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#330">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#329">buf</a>))
+        <a class="self" href="#315">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#316">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#315">buf</a>))
     }
 
     <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#333">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#334">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#333">bufs</a>))
+        <a class="self" href="#319">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#320">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#319">bufs</a>))
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#337">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#338">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+        <a class="self" href="#323">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#324">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="#211">Sender</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="#329">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#330">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#329">buf</a>))
+    }
+
+    <span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="#333">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#334">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#333">bufs</a>))
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#337">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#338">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())
     }
 }
 
 <span class="doccomment">/// # Notes
 ///
 /// The underlying pipe is **not** set to non-blocking.
-</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>&gt; <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
-    <span class="kw">fn </span>from(stdin: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>) -&gt; <a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>&gt; <span class="kw">for </span><a href="#211">Sender</a> {
+    <span class="kw">fn </span>from(stdin: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>) -&gt; <a href="#211">Sender</a> {
         <span class="comment">// Safety: `ChildStdin` is guaranteed to be a valid file descriptor.
-        </span><span class="kw">unsafe </span>{ Sender::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#346">stdin</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
+        </span><span class="kw">unsafe </span>{ Sender::from_raw_fd(<a href="#346">stdin</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
-    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
-        <a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
-            inner: IoSource::new(File::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#353">fd</a>)),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="#211">Sender</a> {
+    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="#211">Sender</a> {
+        <a href="#211">Sender</a> {
+            inner: IoSource::new(File::from_raw_fd(<a href="#353">fd</a>)),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#211">Sender</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#361">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="#361">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#211">Sender</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="#211">Sender</a> {
     <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#367">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+        <a class="self" href="#367">self</a>.inner.<a href="../../io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
@@ -946,10 +946,10 @@
     inner: IoSource&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+<span class="kw">impl </span><a href="#376">Receiver</a> {
     <span class="doccomment">/// Set the `Receiver` into or out of non-blocking mode.
     </span><span class="kw">pub fn </span>set_nonblocking(<span class="kw-2">&amp;</span><span class="self">self</span>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a href="../../../../src/mio/sys/unix/pipe.rs.html#540">set_nonblocking</a>(<a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#382">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../../../../src/mio/sys/unix/pipe.rs.html#382">nonblocking</a>)
+        <a href="#540">set_nonblocking</a>(<a class="self" href="#382">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="#382">nonblocking</a>)
     }
 
     <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events
@@ -1017,97 +1017,97 @@
     <span class="kw">where
         </span>F: FnOnce() -&gt; io::Result&lt;T&gt;,
     {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#447">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="../../../../src/mio/sys/unix/pipe.rs.html#447">f</a>())
+        <a class="self" href="#447">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="#447">f</a>())
     }
 }
 
-<span class="kw">impl </span><a href="../../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+<span class="kw">impl </span><a href="../../event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="#376">Receiver</a> {
     <span class="kw">fn </span>register(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#457">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#458">registry</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#459">token</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#460">interests</a>)
+        <a class="self" href="#457">self</a>.inner.<a href="../../event/source.rs.html#83-88">register</a>(<a href="#458">registry</a>, <a href="#459">token</a>, <a href="#460">interests</a>)
     }
 
     <span class="kw">fn </span>reregister(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
-        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+        registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>,
+        token: <a href="../../token.rs.html#132">Token</a>,
+        interests: <a href="../../interest.rs.html#17">Interest</a>,
     ) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#466">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#467">registry</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#468">token</a>, <a href="../../../../src/mio/sys/unix/pipe.rs.html#469">interests</a>)
+        <a class="self" href="#466">self</a>.inner.<a href="../../event/source.rs.html#97-102">reregister</a>(<a href="#467">registry</a>, <a href="#468">token</a>, <a href="#469">interests</a>)
     }
 
-    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#474">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#474">registry</a>)
-    }
-}
-
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#480">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#481">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#480">buf</a>))
-    }
-
-    <span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#484">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#485">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#484">bufs</a>))
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="#474">self</a>.inner.<a href="../../event/source.rs.html#111">deregister</a>(<a href="#474">registry</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#376">Receiver</a> {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#490">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#491">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#490">buf</a>))
+        <a class="self" href="#480">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#481">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#480">buf</a>))
     }
 
     <span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#494">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="../../../../src/mio/sys/unix/pipe.rs.html#495">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="../../../../src/mio/sys/unix/pipe.rs.html#494">bufs</a>))
+        <a class="self" href="#484">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#485">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="#484">bufs</a>))
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="#376">Receiver</a> {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="#490">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#491">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#490">buf</a>))
+    }
+
+    <span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="#494">self</a>.inner.<a href="../../io_source.rs.html#90-92">do_io</a>(|sender| (<span class="kw-2">&amp;*</span><a href="#495">sender</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_vectored</a>(<a href="#494">bufs</a>))
     }
 }
 
 <span class="doccomment">/// # Notes
 ///
 /// The underlying pipe is **not** set to non-blocking.
-</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>&gt; <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-    <span class="kw">fn </span>from(stdout: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>) -&gt; <a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>&gt; <span class="kw">for </span><a href="#376">Receiver</a> {
+    <span class="kw">fn </span>from(stdout: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>) -&gt; <a href="#376">Receiver</a> {
         <span class="comment">// Safety: `ChildStdout` is guaranteed to be a valid file descriptor.
-        </span><span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#503">stdout</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
+        </span><span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="#503">stdout</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
     }
 }
 
 <span class="doccomment">/// # Notes
 ///
 /// The underlying pipe is **not** set to non-blocking.
-</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>&gt; <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-    <span class="kw">fn </span>from(stderr: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>) -&gt; <a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>&gt; <span class="kw">for </span><a href="#376">Receiver</a> {
+    <span class="kw">fn </span>from(stderr: <a href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>) -&gt; <a href="#376">Receiver</a> {
         <span class="comment">// Safety: `ChildStderr` is guaranteed to be a valid file descriptor.
-        </span><span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#513">stderr</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
+        </span><span class="kw">unsafe </span>{ Receiver::from_raw_fd(<a href="#513">stderr</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-        <a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
-            inner: IoSource::new(File::from_raw_fd(<a href="../../../../src/mio/sys/unix/pipe.rs.html#520">fd</a>)),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="#376">Receiver</a> {
+    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="#376">Receiver</a> {
+        <a href="#376">Receiver</a> {
+            inner: IoSource::new(File::from_raw_fd(<a href="#520">fd</a>)),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#376">Receiver</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#528">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="#528">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/sys/unix/pipe.rs.html#376">Receiver</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="#376">Receiver</a> {
     <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#534">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+        <a class="self" href="#534">self</a>.inner.<a href="../../io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;illumos&quot;</span>))]
 </span><span class="kw">fn </span>set_nonblocking(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">let </span>value = <a href="../../../../src/mio/sys/unix/pipe.rs.html#540">nonblocking</a> <span class="kw">as </span><a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>;
+    <span class="kw">let </span>value = <a href="#540">nonblocking</a> <span class="kw">as </span><a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>;
     <span class="kw">if unsafe </span>{ libc::ioctl(fd, libc::FIONBIO, <span class="kw-2">&amp;</span>value) } == -<span class="number">1 </span>{
         <span class="prelude-val">Err</span>(io::Error::last_os_error())
     } <span class="kw">else </span>{
@@ -1137,4 +1137,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

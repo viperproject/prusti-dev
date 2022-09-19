@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/throttle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>throttle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.10/src/stream_ext/throttle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>throttle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -112,11 +112,11 @@
 <span class="kw">where
     </span>T: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
 {
-    <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#25-42">Throttle</a> {
-        delay: tokio::time::sleep_until(Instant::now() + <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#13">duration</a>),
-        <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#13">duration</a>,
+    <a href="#25-42">Throttle</a> {
+        delay: tokio::time::sleep_until(Instant::now() + <a href="#13">duration</a>),
+        <a href="#13">duration</a>,
         has_delayed: <span class="bool-val">true</span>,
-        <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#13">stream</a>,
+        <a href="#13">stream</a>,
     }
 }
 
@@ -144,7 +144,7 @@
     <span class="doccomment">/// Acquires a reference to the underlying stream that this combinator is
     /// pulling from.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_stream/stream_ext/throttle.rs.html#48">self</a>.stream
+        <span class="kw-2">&amp;</span><a class="self" href="#48">self</a>.stream
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream that this combinator
@@ -153,7 +153,7 @@
     /// Note that care must be taken to avoid tampering with the state of the stream
     /// which may otherwise confuse this combinator.
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio_stream/stream_ext/throttle.rs.html#57">self</a>.stream
+        <span class="kw-2">&amp;mut </span><a class="self" href="#57">self</a>.stream
     }
 
     <span class="doccomment">/// Consumes this combinator, returning the underlying stream.
@@ -161,7 +161,7 @@
     /// Note that this may discard intermediate state of this combinator, so care
     /// should be taken to avoid losing resources when this is called.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../../src/tokio_stream/stream_ext/throttle.rs.html#65">self</a>.stream
+        <a class="self" href="#65">self</a>.stream
     }
 }
 
@@ -169,30 +169,30 @@
     <span class="kw">type </span>Item = T::Item;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/tokio_stream/stream_ext/throttle.rs.html#73">self</a>.<a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#25-42">project</a>();
-        <span class="kw">let </span>dur = <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#74">me</a>.duration;
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="#73">self</a>.<a href="#25-42">project</a>();
+        <span class="kw">let </span>dur = <span class="kw-2">*</span><a href="#74">me</a>.duration;
 
         <span class="kw">if </span>!<span class="kw-2">*</span>me.has_delayed &amp;&amp; !is_zero(dur) {
-            <a class="macro" href="../../../src/tokio_stream/macros.rs.html#61-68">ready!</a>(me.delay.as_mut().poll(cx));
-            <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#74">me</a>.has_delayed = <span class="bool-val">true</span>;
+            <a class="macro" href="../macros.rs.html#61-68">ready!</a>(me.delay.as_mut().poll(cx));
+            <span class="kw-2">*</span><a href="#74">me</a>.has_delayed = <span class="bool-val">true</span>;
         }
 
-        <span class="kw">let </span>value = <a class="macro" href="../../../src/tokio_stream/macros.rs.html#61-68">ready!</a>(me.stream.poll_next(cx));
+        <span class="kw">let </span>value = <a class="macro" href="../macros.rs.html#61-68">ready!</a>(me.stream.poll_next(cx));
 
         <span class="kw">if </span>value.is_some() {
             <span class="kw">if </span>!is_zero(dur) {
-                <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#74">me</a>.delay.reset(Instant::now() + <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#75">dur</a>);
+                <a href="#74">me</a>.delay.reset(Instant::now() + <a href="#75">dur</a>);
             }
 
-            <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#74">me</a>.has_delayed = <span class="bool-val">false</span>;
+            <span class="kw-2">*</span><a href="#74">me</a>.has_delayed = <span class="bool-val">false</span>;
         }
 
-        Poll::Ready(<a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#82">value</a>)
+        Poll::Ready(<a href="#82">value</a>)
     }
 }
 
 <span class="kw">fn </span>is_zero(dur: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/tokio_stream/stream_ext/throttle.rs.html#96">dur</a> == Duration::from_millis(<span class="number">0</span>)
+    <a href="#96">dur</a> == Duration::from_millis(<span class="number">0</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -414,9 +414,9 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>LiteralSearcher {
     complete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    lcp: <a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a>,
-    lcs: <a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a>,
-    matcher: <a href="../../../src/regex/literal/imp.rs.html#21">Matcher</a>,
+    lcp: <a href="#361">Memmem</a>,
+    lcs: <a href="#361">Memmem</a>,
+    matcher: <a href="#21">Matcher</a>,
 }
 
 <span class="attribute">#[derive(Clone, Debug)]
@@ -424,9 +424,9 @@
     <span class="doccomment">/// No literals. (Never advances through the input.)
     </span>Empty,
     <span class="doccomment">/// A set of four or more single byte literals.
-    </span>Bytes(<a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a>),
+    </span>Bytes(<a href="#277">SingleByteSet</a>),
     <span class="doccomment">/// A single substring, using vector accelerated routines when available.
-    </span>Memmem(<a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a>),
+    </span>Memmem(<a href="#361">Memmem</a>),
     <span class="doccomment">/// An Aho-Corasick automaton.
     </span>AC { ac: AhoCorasick&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;, lits: Vec&lt;<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>&gt; },
     <span class="doccomment">/// A packed multiple substring searcher, using SIMD.
@@ -438,31 +438,31 @@
     </span>Packed { s: <a href="../../../aho_corasick/packed/api/struct.Searcher.html">packed::Searcher</a>, lits: Vec&lt;<a href="../../../regex_syntax/hir/literal/struct.Literal.html">Literal</a>&gt; },
 }
 
-<span class="kw">impl </span><a href="../../../src/regex/literal/imp.rs.html#13">LiteralSearcher</a> {
+<span class="kw">impl </span><a href="#13">LiteralSearcher</a> {
     <span class="doccomment">/// Returns a matcher that never matches and never advances the input.
     </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(Literals::empty(), <a href="../../../src/regex/literal/imp.rs.html#23">Matcher::Empty</a>)
+        <span class="self">Self</span>::new(Literals::empty(), <a href="#23">Matcher::Empty</a>)
     }
 
     <span class="doccomment">/// Returns a matcher for literal prefixes from the given set.
     </span><span class="kw">pub fn </span>prefixes(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#46">lits</a>);
-        <span class="self">Self</span>::new(<a href="../../../src/regex/literal/imp.rs.html#46">lits</a>, <a href="../../../src/regex/literal/imp.rs.html#47">matcher</a>)
+        <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span><a href="#46">lits</a>);
+        <span class="self">Self</span>::new(<a href="#46">lits</a>, <a href="#47">matcher</a>)
     }
 
     <span class="doccomment">/// Returns a matcher for literal suffixes from the given set.
     </span><span class="kw">pub fn </span>suffixes(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#52">lits</a>);
-        <span class="self">Self</span>::new(<a href="../../../src/regex/literal/imp.rs.html#52">lits</a>, <a href="../../../src/regex/literal/imp.rs.html#53">matcher</a>)
+        <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span><a href="#52">lits</a>);
+        <span class="self">Self</span>::new(<a href="#52">lits</a>, <a href="#53">matcher</a>)
     }
 
-    <span class="kw">fn </span>new(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, matcher: <a href="../../../src/regex/literal/imp.rs.html#21">Matcher</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>complete = <a href="../../../src/regex/literal/imp.rs.html#57">lits</a>.all_complete();
-        <a href="../../../src/regex/literal/imp.rs.html#13">LiteralSearcher</a> {
-            <a href="../../../src/regex/literal/imp.rs.html#58">complete</a>,
-            lcp: Memmem::new(<a href="../../../src/regex/literal/imp.rs.html#57">lits</a>.longest_common_prefix()),
-            lcs: Memmem::new(<a href="../../../src/regex/literal/imp.rs.html#57">lits</a>.longest_common_suffix()),
-            <a href="../../../src/regex/literal/imp.rs.html#57">matcher</a>,
+    <span class="kw">fn </span>new(lits: <a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, matcher: <a href="#21">Matcher</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>complete = <a href="#57">lits</a>.all_complete();
+        <a href="#13">LiteralSearcher</a> {
+            <a href="#58">complete</a>,
+            lcp: Memmem::new(<a href="#57">lits</a>.longest_common_prefix()),
+            lcs: Memmem::new(<a href="#57">lits</a>.longest_common_suffix()),
+            <a href="#57">matcher</a>,
         }
     }
 
@@ -473,22 +473,22 @@
     /// is comprised of a single complete literal `a`, but the regular
     /// expression demands that it only match at the beginning of a string.
     </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#73">self</a>.complete &amp;&amp; !<a class="self" href="../../../src/regex/literal/imp.rs.html#73">self</a>.<a href="../../../src/regex/literal/imp.rs.html#142">is_empty</a>()
+        <a class="self" href="#73">self</a>.complete &amp;&amp; !<a class="self" href="#73">self</a>.<a href="#142">is_empty</a>()
     }
 
     <span class="doccomment">/// Find the position of a literal in `haystack` if it exists.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt; {
-        <span class="kw">use </span><a href="../../../src/regex/literal/imp.rs.html#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../../src/regex/literal/imp.rs.html#79">self</a>.matcher {
-            <a href="../../../src/regex/literal/imp.rs.html#23">Empty</a> =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
-            <a href="../../../src/regex/literal/imp.rs.html#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="../../../src/regex/literal/imp.rs.html#83">sset</a>.<a href="../../../src/regex/literal/imp.rs.html#330">find</a>(<a href="../../../src/regex/literal/imp.rs.html#79">haystack</a>).map(|i| (<a href="../../../src/regex/literal/imp.rs.html#83">i</a>, <a href="../../../src/regex/literal/imp.rs.html#83">i</a> + <span class="number">1</span>)),
-            <a href="../../../src/regex/literal/imp.rs.html#27">Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="../../../src/regex/literal/imp.rs.html#84">s</a>.<a href="../../../src/regex/literal/imp.rs.html#375">find</a>(<a href="../../../src/regex/literal/imp.rs.html#79">haystack</a>).map(|i| (<a href="../../../src/regex/literal/imp.rs.html#84">i</a>, <a href="../../../src/regex/literal/imp.rs.html#84">i</a> + <a href="../../../src/regex/literal/imp.rs.html#84">s</a>.<a href="../../../src/regex/literal/imp.rs.html#387">len</a>())),
-            <a href="../../../src/regex/literal/imp.rs.html#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; {
-                <a href="../../../src/regex/literal/imp.rs.html#85">ac</a>.find(<a href="../../../src/regex/literal/imp.rs.html#79">haystack</a>).map(|m| (<a href="../../../src/regex/literal/imp.rs.html#86">m</a>.start(), <a href="../../../src/regex/literal/imp.rs.html#86">m</a>.end()))
+        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#79">self</a>.matcher {
+            <a href="#23">Empty</a> =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
+            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#83">sset</a>.<a href="#330">find</a>(<a href="#79">haystack</a>).map(|i| (<a href="#83">i</a>, <a href="#83">i</a> + <span class="number">1</span>)),
+            <a href="#27">Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="#84">s</a>.<a href="#375">find</a>(<a href="#79">haystack</a>).map(|i| (<a href="#84">i</a>, <a href="#84">i</a> + <a href="#84">s</a>.<a href="#387">len</a>())),
+            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; {
+                <a href="#85">ac</a>.find(<a href="#79">haystack</a>).map(|m| (<a href="#86">m</a>.start(), <a href="#86">m</a>.end()))
             }
-            <a href="../../../src/regex/literal/imp.rs.html#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; {
-                <a href="../../../src/regex/literal/imp.rs.html#88">s</a>.find(<a href="../../../src/regex/literal/imp.rs.html#79">haystack</a>).map(|m| (<a href="../../../src/regex/literal/imp.rs.html#89">m</a>.start(), <a href="../../../src/regex/literal/imp.rs.html#89">m</a>.end()))
+            <a href="#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; {
+                <a href="#88">s</a>.find(<a href="#79">haystack</a>).map(|m| (<a href="#89">m</a>.start(), <a href="#89">m</a>.end()))
             }
         }
     }
@@ -521,69 +521,69 @@
 
     <span class="doccomment">/// Returns an iterator over all literals to be matched.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LiteralIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/regex/literal/imp.rs.html#121">self</a>.matcher {
-            <a href="../../../src/regex/literal/imp.rs.html#23">Matcher::Empty</a> =&gt; <a href="../../../src/regex/literal/imp.rs.html#223">LiteralIter::Empty</a>,
-            <a href="../../../src/regex/literal/imp.rs.html#25">Matcher::Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="../../../src/regex/literal/imp.rs.html#224">LiteralIter::Bytes</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#124">sset</a>.dense),
-            <a href="../../../src/regex/literal/imp.rs.html#27">Matcher::Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="../../../src/regex/literal/imp.rs.html#225">LiteralIter::Single</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#125">s</a>.finder.needle()),
-            <a href="../../../src/regex/literal/imp.rs.html#29">Matcher::AC</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#226">LiteralIter::AC</a>(<a href="../../../src/regex/literal/imp.rs.html#126">lits</a>),
-            <a href="../../../src/regex/literal/imp.rs.html#36">Matcher::Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#227">LiteralIter::Packed</a>(<a href="../../../src/regex/literal/imp.rs.html#127">lits</a>),
+        <span class="kw">match </span><a class="self" href="#121">self</a>.matcher {
+            <a href="#23">Matcher::Empty</a> =&gt; <a href="#223">LiteralIter::Empty</a>,
+            <a href="#25">Matcher::Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#224">LiteralIter::Bytes</a>(<span class="kw-2">&amp;</span><a href="#124">sset</a>.dense),
+            <a href="#27">Matcher::Memmem</a>(<span class="kw-2">ref </span>s) =&gt; <a href="#225">LiteralIter::Single</a>(<span class="kw-2">&amp;</span><a href="#125">s</a>.finder.needle()),
+            <a href="#29">Matcher::AC</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#226">LiteralIter::AC</a>(<a href="#126">lits</a>),
+            <a href="#36">Matcher::Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#227">LiteralIter::Packed</a>(<a href="#127">lits</a>),
         }
     }
 
     <span class="doccomment">/// Returns a matcher for the longest common prefix of this matcher.
-    </span><span class="kw">pub fn </span>lcp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex/literal/imp.rs.html#132">self</a>.lcp
+    </span><span class="kw">pub fn </span>lcp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#361">Memmem</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#132">self</a>.lcp
     }
 
     <span class="doccomment">/// Returns a matcher for the longest common suffix of this matcher.
-    </span><span class="kw">pub fn </span>lcs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex/literal/imp.rs.html#137">self</a>.lcs
+    </span><span class="kw">pub fn </span>lcs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#361">Memmem</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#137">self</a>.lcs
     }
 
     <span class="doccomment">/// Returns true iff this prefix is empty.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#142">self</a>.<a href="../../../src/regex/literal/imp.rs.html#147">len</a>() == <span class="number">0
+        <a class="self" href="#142">self</a>.<a href="#147">len</a>() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the number of prefixes in this machine.
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="../../../src/regex/literal/imp.rs.html#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../../src/regex/literal/imp.rs.html#147">self</a>.matcher {
-            <a href="../../../src/regex/literal/imp.rs.html#23">Empty</a> =&gt; <span class="number">0</span>,
-            <a href="../../../src/regex/literal/imp.rs.html#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="../../../src/regex/literal/imp.rs.html#151">sset</a>.dense.len(),
-            <a href="../../../src/regex/literal/imp.rs.html#27">Memmem</a>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-            <a href="../../../src/regex/literal/imp.rs.html#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#153">ac</a>.pattern_count(),
-            <a href="../../../src/regex/literal/imp.rs.html#36">Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#154">lits</a>.len(),
+        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#147">self</a>.matcher {
+            <a href="#23">Empty</a> =&gt; <span class="number">0</span>,
+            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#151">sset</a>.dense.len(),
+            <a href="#27">Memmem</a>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="#153">ac</a>.pattern_count(),
+            <a href="#36">Packed</a> { <span class="kw-2">ref </span>lits, .. } =&gt; <a href="#154">lits</a>.len(),
         }
     }
 
     <span class="doccomment">/// Return the approximate heap usage of literals in bytes.
     </span><span class="kw">pub fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="../../../src/regex/literal/imp.rs.html#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../../src/regex/literal/imp.rs.html#159">self</a>.matcher {
-            <a href="../../../src/regex/literal/imp.rs.html#23">Empty</a> =&gt; <span class="number">0</span>,
-            <a href="../../../src/regex/literal/imp.rs.html#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="../../../src/regex/literal/imp.rs.html#163">sset</a>.<a href="../../../src/regex/literal/imp.rs.html#350">approximate_size</a>(),
-            <a href="../../../src/regex/literal/imp.rs.html#27">Memmem</a>(<span class="kw-2">ref </span>single) =&gt; <a href="../../../src/regex/literal/imp.rs.html#164">single</a>.<a href="../../../src/regex/literal/imp.rs.html#395">approximate_size</a>(),
-            <a href="../../../src/regex/literal/imp.rs.html#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#165">ac</a>.heap_bytes(),
-            <a href="../../../src/regex/literal/imp.rs.html#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; <a href="../../../src/regex/literal/imp.rs.html#166">s</a>.heap_bytes(),
+        <span class="kw">use </span><a href="#21"><span class="self">self</span>::Matcher</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#159">self</a>.matcher {
+            <a href="#23">Empty</a> =&gt; <span class="number">0</span>,
+            <a href="#25">Bytes</a>(<span class="kw-2">ref </span>sset) =&gt; <a href="#163">sset</a>.<a href="#350">approximate_size</a>(),
+            <a href="#27">Memmem</a>(<span class="kw-2">ref </span>single) =&gt; <a href="#164">single</a>.<a href="#395">approximate_size</a>(),
+            <a href="#29">AC</a> { <span class="kw-2">ref </span>ac, .. } =&gt; <a href="#165">ac</a>.heap_bytes(),
+            <a href="#36">Packed</a> { <span class="kw-2">ref </span>s, .. } =&gt; <a href="#166">s</a>.heap_bytes(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/regex/literal/imp.rs.html#21">Matcher</a> {
+<span class="kw">impl </span><a href="#21">Matcher</a> {
     <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>sset = SingleByteSet::prefixes(<a href="../../../src/regex/literal/imp.rs.html#172">lits</a>);
-        Matcher::new(<a href="../../../src/regex/literal/imp.rs.html#172">lits</a>, <a href="../../../src/regex/literal/imp.rs.html#173">sset</a>)
+        <span class="kw">let </span>sset = SingleByteSet::prefixes(<a href="#172">lits</a>);
+        Matcher::new(<a href="#172">lits</a>, <a href="#173">sset</a>)
     }
 
     <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>sset = SingleByteSet::suffixes(<a href="../../../src/regex/literal/imp.rs.html#177">lits</a>);
-        Matcher::new(<a href="../../../src/regex/literal/imp.rs.html#177">lits</a>, <a href="../../../src/regex/literal/imp.rs.html#178">sset</a>)
+        <span class="kw">let </span>sset = SingleByteSet::suffixes(<a href="#177">lits</a>);
+        Matcher::new(<a href="#177">lits</a>, <a href="#178">sset</a>)
     }
 
-    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, sset: <a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a>) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>, sset: <a href="#277">SingleByteSet</a>) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>lits.literals().is_empty() {
-            <span class="kw">return </span><a href="../../../src/regex/literal/imp.rs.html#23">Matcher::Empty</a>;
+            <span class="kw">return </span><a href="#23">Matcher::Empty</a>;
         }
         <span class="kw">if </span>sset.dense.len() &gt;= <span class="number">26 </span>{
             <span class="comment">// Avoid trying to match a large number of single bytes.
@@ -592,31 +592,31 @@
             // No matter the size of sset, if its members all are rare in the
             // haystack, then it&#39;d be worth using it. How to tune this... IDK.
             // ---AG
-            </span><span class="kw">return </span><a href="../../../src/regex/literal/imp.rs.html#23">Matcher::Empty</a>;
+            </span><span class="kw">return </span><a href="#23">Matcher::Empty</a>;
         }
         <span class="kw">if </span>sset.complete {
-            <span class="kw">return </span><a href="../../../src/regex/literal/imp.rs.html#25">Matcher::Bytes</a>(<a href="../../../src/regex/literal/imp.rs.html#182">sset</a>);
+            <span class="kw">return </span><a href="#25">Matcher::Bytes</a>(<a href="#182">sset</a>);
         }
         <span class="kw">if </span>lits.literals().len() == <span class="number">1 </span>{
-            <span class="kw">return </span><a href="../../../src/regex/literal/imp.rs.html#27">Matcher::Memmem</a>(Memmem::new(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#182">lits</a>.literals()[<span class="number">0</span>]));
+            <span class="kw">return </span><a href="#27">Matcher::Memmem</a>(Memmem::new(<span class="kw-2">&amp;</span><a href="#182">lits</a>.literals()[<span class="number">0</span>]));
         }
 
-        <span class="kw">let </span>pats = <a href="../../../src/regex/literal/imp.rs.html#182">lits</a>.literals().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-        <span class="kw">let </span>is_aho_corasick_fast = <a href="../../../src/regex/literal/imp.rs.html#182">sset</a>.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; <a href="../../../src/regex/literal/imp.rs.html#182">sset</a>.all_ascii;
+        <span class="kw">let </span>pats = <a href="#182">lits</a>.literals().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+        <span class="kw">let </span>is_aho_corasick_fast = <a href="#182">sset</a>.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; <a href="#182">sset</a>.all_ascii;
         <span class="kw">if </span>lits.literals().len() &lt;= <span class="number">100 </span>&amp;&amp; !is_aho_corasick_fast {
             <span class="kw">let </span><span class="kw-2">mut </span>builder = packed::Config::new()
                 .match_kind(packed::MatchKind::LeftmostFirst)
                 .builder();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <a href="../../../src/regex/literal/imp.rs.html#205">builder</a>.extend(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#202">pats</a>).build() {
-                <span class="kw">return </span><a href="../../../src/regex/literal/imp.rs.html#36">Matcher::Packed</a> { <a href="../../../src/regex/literal/imp.rs.html#208">s</a>, lits: <a href="../../../src/regex/literal/imp.rs.html#202">pats</a> };
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <a href="#205">builder</a>.extend(<span class="kw-2">&amp;</span><a href="#202">pats</a>).build() {
+                <span class="kw">return </span><a href="#36">Matcher::Packed</a> { <a href="#208">s</a>, lits: <a href="#202">pats</a> };
             }
         }
         <span class="kw">let </span>ac = AhoCorasickBuilder::new()
             .match_kind(aho_corasick::MatchKind::LeftmostFirst)
             .dfa(<span class="bool-val">true</span>)
-            .build_with_size::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#202">pats</a>)
+            .build_with_size::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span><a href="#202">pats</a>)
             .unwrap();
-        <a href="../../../src/regex/literal/imp.rs.html#29">Matcher::AC</a> { <a href="../../../src/regex/literal/imp.rs.html#212">ac</a>, lits: <a href="../../../src/regex/literal/imp.rs.html#202">pats</a> }
+        <a href="#29">Matcher::AC</a> { <a href="#212">ac</a>, lits: <a href="#202">pats</a> }
     }
 }
 
@@ -633,42 +633,42 @@
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex/literal/imp.rs.html#233">self</a> </span>{
-            <a href="../../../src/regex/literal/imp.rs.html#223">LiteralIter::Empty</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="../../../src/regex/literal/imp.rs.html#224">LiteralIter::Bytes</a>(<span class="kw-2">ref mut </span>many) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#233">self</a> </span>{
+            <a href="#223">LiteralIter::Empty</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#224">LiteralIter::Bytes</a>(<span class="kw-2">ref mut </span>many) =&gt; {
                 <span class="kw">if </span>many.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#236">many</a>[<span class="number">0</span>..<span class="number">1</span>];
-                    <span class="kw-2">*</span><a href="../../../src/regex/literal/imp.rs.html#236">many</a> = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#236">many</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<a href="../../../src/regex/literal/imp.rs.html#240">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#236">many</a>[<span class="number">0</span>..<span class="number">1</span>];
+                    <span class="kw-2">*</span><a href="#236">many</a> = <span class="kw-2">&amp;</span><a href="#236">many</a>[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<a href="#240">next</a>)
                 }
             }
-            <a href="../../../src/regex/literal/imp.rs.html#225">LiteralIter::Single</a>(<span class="kw-2">ref mut </span>one) =&gt; {
+            <a href="#225">LiteralIter::Single</a>(<span class="kw-2">ref mut </span>one) =&gt; {
                 <span class="kw">if </span>one.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#245">one</a>[..];
-                    <span class="kw-2">*</span><a href="../../../src/regex/literal/imp.rs.html#245">one</a> = <span class="kw-2">&amp;</span>[];
-                    <span class="prelude-val">Some</span>(<a href="../../../src/regex/literal/imp.rs.html#249">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#245">one</a>[..];
+                    <span class="kw-2">*</span><a href="#245">one</a> = <span class="kw-2">&amp;</span>[];
+                    <span class="prelude-val">Some</span>(<a href="#249">next</a>)
                 }
             }
-            <a href="../../../src/regex/literal/imp.rs.html#226">LiteralIter::AC</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
+            <a href="#226">LiteralIter::AC</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
                 <span class="kw">if </span>lits.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#254">lits</a>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><a href="../../../src/regex/literal/imp.rs.html#254">lits</a> = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#254">lits</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="../../../src/regex/literal/imp.rs.html#258">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#254">lits</a>[<span class="number">0</span>];
+                    <span class="kw-2">*</span><a href="#254">lits</a> = <span class="kw-2">&amp;</span><a href="#254">lits</a>[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="#258">next</a>)
                 }
             }
-            <a href="../../../src/regex/literal/imp.rs.html#227">LiteralIter::Packed</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
+            <a href="#227">LiteralIter::Packed</a>(<span class="kw-2">ref mut </span>lits) =&gt; {
                 <span class="kw">if </span>lits.is_empty() {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#263">lits</a>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><a href="../../../src/regex/literal/imp.rs.html#263">lits</a> = <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#263">lits</a>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="../../../src/regex/literal/imp.rs.html#267">next</a>)
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span><a href="#263">lits</a>[<span class="number">0</span>];
+                    <span class="kw-2">*</span><a href="#263">lits</a> = <span class="kw-2">&amp;</span><a href="#263">lits</a>[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span><a href="#267">next</a>)
                 }
             }
         }
@@ -683,9 +683,9 @@
     all_ascii: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a> {
-    <span class="kw">fn </span>new() -&gt; <a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a> {
-        <a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a> {
+<span class="kw">impl </span><a href="#277">SingleByteSet</a> {
+    <span class="kw">fn </span>new() -&gt; <a href="#277">SingleByteSet</a> {
+        <a href="#277">SingleByteSet</a> {
             sparse: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="number">256</span>],
             dense: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             complete: <span class="bool-val">true</span>,
@@ -693,7 +693,7 @@
         }
     }
 
-    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a> {
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="#277">SingleByteSet</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
         <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
@@ -707,10 +707,10 @@
                 }
             }
         }
-        <a href="../../../src/regex/literal/imp.rs.html#295">sset</a>
+        <a href="#295">sset</a>
     }
 
-    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="../../../src/regex/literal/imp.rs.html#277">SingleByteSet</a> {
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span><a href="../../../regex_syntax/hir/literal/struct.Literals.html">Literals</a>) -&gt; <a href="#277">SingleByteSet</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
         <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
@@ -724,18 +724,18 @@
                 }
             }
         }
-        <a href="../../../src/regex/literal/imp.rs.html#312">sset</a>
+        <a href="#312">sset</a>
     }
 
     <span class="doccomment">/// Faster find that special cases certain sizes to use memchr.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense.len() {
+        <span class="kw">match </span><a class="self" href="#330">self</a>.dense.len() {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-            <span class="number">1 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">0</span>], <a href="../../../src/regex/literal/imp.rs.html#330">text</a>),
-            <span class="number">2 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">1</span>], <a href="../../../src/regex/literal/imp.rs.html#330">text</a>),
-            <span class="number">3 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">1</span>], <a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.dense[<span class="number">2</span>], <a href="../../../src/regex/literal/imp.rs.html#330">text</a>),
-            <span class="kw">_ </span>=&gt; <a class="self" href="../../../src/regex/literal/imp.rs.html#330">self</a>.<a href="../../../src/regex/literal/imp.rs.html#341">_find</a>(<a href="../../../src/regex/literal/imp.rs.html#330">text</a>),
+            <span class="number">1 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr.html">memchr</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a href="#330">text</a>),
+            <span class="number">2 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr2.html">memchr2</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="#330">self</a>.dense[<span class="number">1</span>], <a href="#330">text</a>),
+            <span class="number">3 </span>=&gt; <a href="../../../memchr/memchr/fn.memchr3.html">memchr3</a>(<a class="self" href="#330">self</a>.dense[<span class="number">0</span>], <a class="self" href="#330">self</a>.dense[<span class="number">1</span>], <a class="self" href="#330">self</a>.dense[<span class="number">2</span>], <a href="#330">text</a>),
+            <span class="kw">_ </span>=&gt; <a class="self" href="#330">self</a>.<a href="#341">_find</a>(<a href="#330">text</a>),
         }
     }
 
@@ -750,8 +750,8 @@
     </span>}
 
     <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        (<a class="self" href="../../../src/regex/literal/imp.rs.html#350">self</a>.dense.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;())
-            + (<a class="self" href="../../../src/regex/literal/imp.rs.html#350">self</a>.sparse.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;())
+        (<a class="self" href="#350">self</a>.dense.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;())
+            + (<a class="self" href="#350">self</a>.sparse.len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;())
     }
 }
 
@@ -765,17 +765,17 @@
     char_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a> {
-    <span class="kw">fn </span>new(pat: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a> {
-        <a href="../../../src/regex/literal/imp.rs.html#361">Memmem</a> {
-            finder: memmem::Finder::new(<a href="../../../src/regex/literal/imp.rs.html#367">pat</a>).into_owned(),
-            char_len: <a href="../../../src/regex/literal/imp.rs.html#400">char_len_lossy</a>(<a href="../../../src/regex/literal/imp.rs.html#367">pat</a>),
+<span class="kw">impl </span><a href="#361">Memmem</a> {
+    <span class="kw">fn </span>new(pat: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="#361">Memmem</a> {
+        <a href="#361">Memmem</a> {
+            finder: memmem::Finder::new(<a href="#367">pat</a>).into_owned(),
+            char_len: <a href="#400">char_len_lossy</a>(<a href="#367">pat</a>),
         }
     }
 
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#375">self</a>.finder.find(<a href="../../../src/regex/literal/imp.rs.html#375">haystack</a>)
+        <a class="self" href="#375">self</a>.finder.find(<a href="#375">haystack</a>)
     }
 
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
@@ -783,24 +783,24 @@
         <span class="kw">if </span>text.len() &lt; <span class="self">self</span>.len() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw-2">&amp;</span><a href="../../../src/regex/literal/imp.rs.html#380">text</a>[<a href="../../../src/regex/literal/imp.rs.html#380">text</a>.len() - <a class="self" href="../../../src/regex/literal/imp.rs.html#380">self</a>.<a href="../../../src/regex/literal/imp.rs.html#387">len</a>()..] == <a class="self" href="../../../src/regex/literal/imp.rs.html#380">self</a>.finder.needle()
+        <span class="kw-2">&amp;</span><a href="#380">text</a>[<a href="#380">text</a>.len() - <a class="self" href="#380">self</a>.<a href="#387">len</a>()..] == <a class="self" href="#380">self</a>.finder.needle()
     }
 
     <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#387">self</a>.finder.needle().len()
+        <a class="self" href="#387">self</a>.finder.needle().len()
     }
 
     <span class="kw">pub fn </span>char_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#391">self</a>.char_len
+        <a class="self" href="#391">self</a>.char_len
     }
 
     <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/regex/literal/imp.rs.html#395">self</a>.finder.needle().len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;()
+        <a class="self" href="#395">self</a>.finder.needle().len() * mem::size_of::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;()
     }
 }
 
 <span class="kw">fn </span>char_len_lossy(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    String::from_utf8_lossy(<a href="../../../src/regex/literal/imp.rs.html#400">bytes</a>).chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>()
+    String::from_utf8_lossy(<a href="#400">bytes</a>).chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

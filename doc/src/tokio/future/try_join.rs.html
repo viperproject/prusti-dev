@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/future/try_join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/future/try_join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -80,7 +80,7 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::maybe_done::{<a href="../../../src/tokio/future/maybe_done.rs.html#24">maybe_done</a>, <a href="../../../src/tokio/future/maybe_done.rs.html#10">MaybeDone</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::maybe_done::{<a href="maybe_done.rs.html#24">maybe_done</a>, <a href="maybe_done.rs.html#10">MaybeDone</a>};
 
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -97,10 +97,10 @@
     F2: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T2, E&gt;&gt;,
     F3: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T3, E&gt;&gt;,
 {
-    <a href="../../../src/tokio/future/try_join.rs.html#25-39">TryJoin3</a> {
-        future1: <a href="../../../src/tokio/future/maybe_done.rs.html#24">maybe_done</a>(<a href="../../../src/tokio/future/try_join.rs.html#9">future1</a>),
-        future2: <a href="../../../src/tokio/future/maybe_done.rs.html#24">maybe_done</a>(<a href="../../../src/tokio/future/try_join.rs.html#10">future2</a>),
-        future3: <a href="../../../src/tokio/future/maybe_done.rs.html#24">maybe_done</a>(<a href="../../../src/tokio/future/try_join.rs.html#11">future3</a>),
+    <a href="#25-39">TryJoin3</a> {
+        future1: <a href="maybe_done.rs.html#24">maybe_done</a>(<a href="#9">future1</a>),
+        future2: <a href="maybe_done.rs.html#24">maybe_done</a>(<a href="#10">future2</a>),
+        future3: <a href="maybe_done.rs.html#24">maybe_done</a>(<a href="#11">future3</a>),
     }
 }
 
@@ -131,31 +131,31 @@
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>all_done = <span class="bool-val">true</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/tokio/future/try_join.rs.html#49">self</a>.<a href="../../../src/tokio/future/try_join.rs.html#25-39">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="#49">self</a>.<a href="#25-39">project</a>();
 
         <span class="kw">if </span>me.future1.as_mut().poll(cx).is_pending() {
-            <a href="../../../src/tokio/future/try_join.rs.html#50">all_done</a> = <span class="bool-val">false</span>;
+            <a href="#50">all_done</a> = <span class="bool-val">false</span>;
         } <span class="kw">else if </span>me.future1.as_mut().output_mut().unwrap().is_err() {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future1.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#52">me</a>.future1.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
         }
 
         <span class="kw">if </span>me.future2.as_mut().poll(cx).is_pending() {
-            <a href="../../../src/tokio/future/try_join.rs.html#50">all_done</a> = <span class="bool-val">false</span>;
+            <a href="#50">all_done</a> = <span class="bool-val">false</span>;
         } <span class="kw">else if </span>me.future2.as_mut().output_mut().unwrap().is_err() {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future2.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#52">me</a>.future2.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
         }
 
         <span class="kw">if </span>me.future3.as_mut().poll(cx).is_pending() {
-            <a href="../../../src/tokio/future/try_join.rs.html#50">all_done</a> = <span class="bool-val">false</span>;
+            <a href="#50">all_done</a> = <span class="bool-val">false</span>;
         } <span class="kw">else if </span>me.future3.as_mut().output_mut().unwrap().is_err() {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future3.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#52">me</a>.future3.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().err().unwrap()));
         }
 
         <span class="kw">if </span>all_done {
             Poll::Ready(<span class="prelude-val">Ok</span>((
-                <a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future1.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
-                <a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future2.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
-                <a href="../../../src/tokio/future/try_join.rs.html#52">me</a>.future3.<a href="../../../src/tokio/future/maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
+                <a href="#52">me</a>.future1.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
+                <a href="#52">me</a>.future2.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
+                <a href="#52">me</a>.future3.<a href="maybe_done.rs.html#46">take_output</a>().unwrap().ok().unwrap(),
             )))
         } <span class="kw">else </span>{
             Poll::Pending
@@ -163,4 +163,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

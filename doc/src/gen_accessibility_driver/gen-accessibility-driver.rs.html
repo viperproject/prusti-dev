@@ -277,9 +277,9 @@
         body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) {
         <span class="comment">// SAFETY: See the module level comment.
-        </span><span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; = std::mem::transmute(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#46">body_with_facts</a>);
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#37-41">MIR_BODIES</a>.with(|state| {
-            <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#50">state</a>.borrow_mut();
+        </span><span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; = std::mem::transmute(<a href="#46">body_with_facts</a>);
+        <a href="#37-41">MIR_BODIES</a>.with(|state| {
+            <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="#50">state</a>.borrow_mut();
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(map.insert(def_id, body_with_facts).is_none());
         });
     }
@@ -289,41 +289,41 @@
         _tcx: ty::TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
     ) -&gt; BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#37-41">MIR_BODIES</a>.with(|state| {
-            <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#61">state</a>.borrow_mut();
-            <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#62">map</a>.remove(<span class="kw-2">&amp;</span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#59">def_id</a>).unwrap()
+        <span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; = <a href="#37-41">MIR_BODIES</a>.with(|state| {
+            <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="#61">state</a>.borrow_mut();
+            <a href="#62">map</a>.remove(<span class="kw-2">&amp;</span><a href="#59">def_id</a>).unwrap()
         });
         <span class="comment">// SAFETY: See the module level comment.
-        </span>std::mem::transmute(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#61">body_with_facts</a>)
+        </span>std::mem::transmute(<a href="#61">body_with_facts</a>)
     }
 }
 
 <span class="attribute">#[allow(clippy::needless_lifetimes)]
 </span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: ty::TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">let </span>body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">tcx</a>,
-        ty::WithOptConstParam::unknown(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">def_id</a>),
+        <a href="#71">tcx</a>,
+        ty::WithOptConstParam::unknown(<a href="#71">def_id</a>),
     );
     <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     </span><span class="kw">unsafe </span>{
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#43-47">mir_storage::store_mir_body</a>(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">tcx</a>, <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">def_id</a>, <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#72">body_with_facts</a>);
+        <a href="#43-47">mir_storage::store_mir_body</a>(<a href="#71">tcx</a>, <a href="#71">def_id</a>, <a href="#72">body_with_facts</a>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>providers = Providers::default();
-    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#81">providers</a>);
-    <span class="kw">let </span>original_mir_borrowck = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#81">providers</a>.mir_borrowck;
-    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#83">original_mir_borrowck</a>(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">tcx</a>, <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">def_id</a>)
+    prusti_rustc_interface::borrowck::provide(<span class="kw-2">&amp;mut </span><a href="#81">providers</a>);
+    <span class="kw">let </span>original_mir_borrowck = <a href="#81">providers</a>.mir_borrowck;
+    <a href="#83">original_mir_borrowck</a>(<a href="#71">tcx</a>, <a href="#71">def_id</a>)
 }
 
 <span class="kw">fn </span>override_queries(_session: <span class="kw-2">&amp;</span>Session, local: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>, _external: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>) {
-    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#87">local</a>.mir_borrowck = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#71">mir_borrowck</a>;
+    <a href="#87">local</a>.mir_borrowck = <a href="#71">mir_borrowck</a>;
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for </span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#24">OurCompilerCalls</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for </span><a href="#24">OurCompilerCalls</a> {
     <span class="comment">// In this callback we override the mir_borrowck query.
     </span><span class="kw">fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;mut </span>Config) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(config.override_queries.is_none());
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#93">config</a>.override_queries = <span class="prelude-val">Some</span>(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#87">override_queries</a>);
+        <a href="#93">config</a>.override_queries = <span class="prelude-val">Some</span>(<a href="#87">override_queries</a>);
     }
 
     <span class="kw">fn </span>after_analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;(
@@ -331,21 +331,21 @@
         compiler: <span class="kw-2">&amp;</span>interface::Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
-        <span class="kw">let </span>session = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#100">compiler</a>.session();
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#103">session</a>.abort_if_errors();
+        <span class="kw">let </span>session = <a href="#100">compiler</a>.session();
+        <a href="#103">session</a>.abort_if_errors();
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.args.iter().any(|a| a == <span class="string">&quot;--generate-test-program&quot;</span>));
 
-        <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#101">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        <a href="#101">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
             <span class="comment">// Retrieve the MIR body of all user-written functions and run Polonius.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>def_ids_with_body: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#108">tcx</a>
+            </span><span class="kw">let </span><span class="kw-2">mut </span>def_ids_with_body: Vec&lt;<span class="kw">_</span>&gt; = <a href="#108">tcx</a>
                 .mir_keys(())
                 .iter()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|<span class="kw-2">&amp;</span>local_def_id| {
                     <span class="comment">// Skip items that are not functions or methods.
-                    </span><span class="kw">let </span>hir_id = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#108">tcx</a>.hir().local_def_id_to_hir_id(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#113">local_def_id</a>);
-                    <span class="kw">let </span>hir_node = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#108">tcx</a>.hir().get(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#115">hir_id</a>);
-                    <span class="kw">match </span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#116">hir_node</a> {
+                    </span><span class="kw">let </span>hir_id = <a href="#108">tcx</a>.hir().local_def_id_to_hir_id(<a href="#113">local_def_id</a>);
+                    <span class="kw">let </span>hir_node = <a href="#108">tcx</a>.hir().get(<a href="#115">hir_id</a>);
+                    <span class="kw">match </span><a href="#116">hir_node</a> {
                         hir::Node::Item(hir::Item {
                             kind: hir::ItemKind::Fn(..),
                             ..
@@ -364,15 +364,15 @@
                     <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx`
                     // that was used to store the data.
                     </span><span class="kw">let </span><span class="kw-2">mut </span>body_with_facts =
-                        <span class="kw">unsafe </span>{ <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#57-60"><span class="self">self</span>::mir_storage::retrieve_mir_body</a>(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#108">tcx</a>, <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#113">local_def_id</a>) };
-                    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#135">body_with_facts</a>.output_facts = Rc::new(Output::compute(
-                        <span class="kw-2">&amp;</span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#135">body_with_facts</a>.input_facts,
+                        <span class="kw">unsafe </span>{ <a href="#57-60"><span class="self">self</span>::mir_storage::retrieve_mir_body</a>(<a href="#108">tcx</a>, <a href="#113">local_def_id</a>) };
+                    <a href="#135">body_with_facts</a>.output_facts = Rc::new(Output::compute(
+                        <span class="kw-2">&amp;</span><a href="#135">body_with_facts</a>.input_facts,
                         Algorithm::Naive,
                         <span class="bool-val">true</span>,
                     ));
 
                     <span class="comment">// Skip macro expansions
-                    </span><span class="kw">let </span>mir_span = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#135">body_with_facts</a>.body.span;
+                    </span><span class="kw">let </span>mir_span = <a href="#135">body_with_facts</a>.body.span;
                     <span class="kw">if </span>mir_span.parent_callsite().is_some() {
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     }
@@ -383,8 +383,8 @@
                     }
 
                     <span class="comment">// Skip functions that are in an external file.
-                    </span><span class="kw">let </span>source_file = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#103">session</a>.source_map().lookup_source_file(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#144">mir_span</a>.data().lo);
-                    <span class="kw">if let </span>FileName::Real(filename) = <span class="kw-2">&amp;</span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#155">source_file</a>.name {
+                    </span><span class="kw">let </span>source_file = <a href="#103">session</a>.source_map().lookup_source_file(<a href="#144">mir_span</a>.data().lo);
+                    <span class="kw">if let </span>FileName::Real(filename) = <span class="kw-2">&amp;</span><a href="#155">source_file</a>.name {
                         <span class="kw">if </span>session.local_crate_source_file
                             != filename.local_path().map(PathBuf::from)
                         {
@@ -394,14 +394,14 @@
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     }
 
-                    <span class="prelude-val">Some</span>((<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#113">local_def_id</a>, <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#135">body_with_facts</a>))
+                    <span class="prelude-val">Some</span>((<a href="#113">local_def_id</a>, <a href="#135">body_with_facts</a>))
                 })
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!def_ids_with_body.is_empty());
 
             <span class="comment">// Sort according to span to ensure deterministic output
-            </span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#110">def_ids_with_body</a>.sort_unstable_by_key(|(<span class="kw">_</span>, bwf)| <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#173">bwf</a>.body.span);
+            </span><a href="#110">def_ids_with_body</a>.sort_unstable_by_key(|(<span class="kw">_</span>, bwf)| <a href="#173">bwf</a>.body.span);
 
             <span class="comment">// Generate and print the programs with the additional statements to check accessibility.
             </span><span class="kw">for </span>(num, (local_def_id, body_with_facts)) <span class="kw">in </span>def_ids_with_body.iter().enumerate() {
@@ -447,18 +447,18 @@
         }
     }
 
-    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#209">compiler_args</a>.push(<span class="string">&quot;-Zpolonius&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#209">compiler_args</a>.push(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-    <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#209">compiler_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a href="#209">compiler_args</a>.push(<span class="string">&quot;-Zpolonius&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a href="#209">compiler_args</a>.push(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a href="#209">compiler_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
 
-    <span class="kw">let </span><span class="kw-2">mut </span>callbacks = <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#24">OurCompilerCalls</a> {
-        args: <a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#210">callback_args</a>,
+    <span class="kw">let </span><span class="kw-2">mut </span>callbacks = <a href="#24">OurCompilerCalls</a> {
+        args: <a href="#210">callback_args</a>,
     };
     <span class="comment">// Invoke compiler, and handle return code.
     </span><span class="kw">let </span>exit_code = prusti_rustc_interface::driver::catch_with_exit_code(<span class="kw">move </span>|| {
-        prusti_rustc_interface::driver::RunCompiler::new(<span class="kw-2">&amp;</span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#209">compiler_args</a>, <span class="kw-2">&amp;mut </span><a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#223">callbacks</a>).run()
+        prusti_rustc_interface::driver::RunCompiler::new(<span class="kw-2">&amp;</span><a href="#209">compiler_args</a>, <span class="kw-2">&amp;mut </span><a href="#223">callbacks</a>).run()
     });
-    <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="../../src/gen_accessibility_driver/gen-accessibility-driver.rs.html#227">exit_code</a>)
+    <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#227">exit_code</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gen_accessibility_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gen_accessibility_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

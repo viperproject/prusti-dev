@@ -110,8 +110,8 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; ReadToEnd&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>start_len = <a href="../../../src/futures_util/io/read_to_end.rs.html#21">buf</a>.len();
-        <span class="self">Self </span>{ <a href="../../../src/futures_util/io/read_to_end.rs.html#21">reader</a>, <a href="../../../src/futures_util/io/read_to_end.rs.html#21">buf</a>, <a href="../../../src/futures_util/io/read_to_end.rs.html#22">start_len</a> }
+        <span class="kw">let </span>start_len = <a href="#21">buf</a>.len();
+        <span class="self">Self </span>{ <a href="#21">reader</a>, <a href="#21">buf</a>, <a href="#22">start_len</a> }
     }
 }
 
@@ -123,7 +123,7 @@
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <a class="self" href="../../../src/futures_util/io/read_to_end.rs.html#33">self</a>.buf.set_len(<a class="self" href="../../../src/futures_util/io/read_to_end.rs.html#33">self</a>.len);
+            <a class="self" href="#33">self</a>.buf.set_len(<a class="self" href="#33">self</a>.len);
         }
     }
 }
@@ -143,28 +143,28 @@
     buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
     start_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>g = <a href="../../../src/futures_util/io/read_to_end.rs.html#27">Guard</a> { len: <a href="../../../src/futures_util/io/read_to_end.rs.html#52">buf</a>.len(), <a href="../../../src/futures_util/io/read_to_end.rs.html#52">buf</a> };
+    <span class="kw">let </span><span class="kw-2">mut </span>g = <a href="#27">Guard</a> { len: <a href="#52">buf</a>.len(), <a href="#52">buf</a> };
     <span class="kw">loop </span>{
         <span class="kw">if </span>g.len == g.buf.len() {
             <span class="kw">unsafe </span>{
-                <a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.buf.reserve(<span class="number">32</span>);
-                <span class="kw">let </span>capacity = <a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.buf.capacity();
-                <a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.buf.set_len(<a href="../../../src/futures_util/io/read_to_end.rs.html#60">capacity</a>);
-                <a href="../../../src/futures_util/io/mod.rs.html#41"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/read_to_end.rs.html#50">rd</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.buf[<a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.len..]);
+                <a href="#55">g</a>.buf.reserve(<span class="number">32</span>);
+                <span class="kw">let </span>capacity = <a href="#55">g</a>.buf.capacity();
+                <a href="#55">g</a>.buf.set_len(<a href="#60">capacity</a>);
+                <a href="mod.rs.html#41"><span class="kw">super</span>::initialize</a>(<span class="kw-2">&amp;</span><a href="#50">rd</a>, <span class="kw-2">&amp;mut </span><a href="#55">g</a>.buf[<a href="#55">g</a>.len..]);
             }
         }
 
-        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.buf[<a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.len..];
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><a href="#55">g</a>.buf[<a href="#55">g</a>.len..];
         <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(rd.as_mut().poll_read(cx, buf)) {
-            <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.len - <a href="../../../src/futures_util/io/read_to_end.rs.html#53">start_len</a>)),
+            <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#55">g</a>.len - <a href="#53">start_len</a>)),
             <span class="prelude-val">Ok</span>(n) =&gt; {
                 <span class="comment">// We can&#39;t allow bogus values from read. If it is too large, the returned vec could have its length
                 // set past its capacity, or if it overflows the vec could be shortened which could create an invalid
                 // string if this is called via read_to_string.
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(n &lt;= buf.len());
-                <a href="../../../src/futures_util/io/read_to_end.rs.html#55">g</a>.len += <a href="../../../src/futures_util/io/read_to_end.rs.html#69">n</a>;
+                <a href="#55">g</a>.len += <a href="#69">n</a>;
             }
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_util/io/read_to_end.rs.html#76">e</a>)),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#76">e</a>)),
         }
     }
 }
@@ -176,9 +176,9 @@
     <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/futures_util/io/read_to_end.rs.html#87">self</a>;
-        <a href="../../../src/futures_util/io/read_to_end.rs.html#49-54">read_to_end_internal</a>(Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/io/read_to_end.rs.html#88">this</a>.reader), <a href="../../../src/futures_util/io/read_to_end.rs.html#87">cx</a>, <a href="../../../src/futures_util/io/read_to_end.rs.html#88">this</a>.buf, <a href="../../../src/futures_util/io/read_to_end.rs.html#88">this</a>.start_len)
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="#87">self</a>;
+        <a href="#49-54">read_to_end_internal</a>(Pin::new(<span class="kw-2">&amp;mut </span><a href="#88">this</a>.reader), <a href="#87">cx</a>, <a href="#88">this</a>.buf, <a href="#88">this</a>.start_len)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

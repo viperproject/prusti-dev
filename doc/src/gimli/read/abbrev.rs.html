@@ -1003,10 +1003,10 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">core::ops::Deref</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#92">DebugAbbrevOffset</a>, <a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>};
-<span class="kw">use </span><a href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use </span><a href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>, <a href="../../../src/gimli/read/unit.rs.html#314">UnitHeader</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#92">DebugAbbrevOffset</a>, <a href="../common.rs.html#37">Encoding</a>, <a href="../common.rs.html#245">SectionId</a>};
+<span class="kw">use </span><a href="../lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+<span class="kw">use </span><a href="../endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="endian_slice.rs.html#17">EndianSlice</a>, <a href="mod.rs.html#271">Error</a>, <a href="reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>, <a href="mod.rs.html#612">Section</a>, <a href="unit.rs.html#314">UnitHeader</a>};
 
 <span class="doccomment">/// The `DebugAbbrev` struct represents the abbreviations describing
 /// `DebuggingInformationEntry`s&#39; attribute names and forms found in the
@@ -1018,7 +1018,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugAbbrev&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
 <span class="kw">where
-    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+    </span>Endian: <a href="../endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugAbbrev` instance from the data in the `.debug_abbrev`
     /// section.
@@ -1035,11 +1035,11 @@
     /// let debug_abbrev = DebugAbbrev::new(read_debug_abbrev_section_somehow(), LittleEndian);
     /// ```
     </span><span class="kw">pub fn </span>new(debug_abbrev_section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from(EndianSlice::new(<a href="../../../src/gimli/read/abbrev.rs.html#41">debug_abbrev_section</a>, <a href="../../../src/gimli/read/abbrev.rs.html#41">endian</a>))
+        <span class="self">Self</span>::from(EndianSlice::new(<a href="#41">debug_abbrev_section</a>, <a href="#41">endian</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugAbbrev&lt;R&gt; {
+<span class="kw">impl</span>&lt;R: <a href="reader.rs.html#215">Reader</a>&gt; DebugAbbrev&lt;R&gt; {
     <span class="doccomment">/// Parse the abbreviations at the given `offset` within this
     /// `.debug_abbrev` section.
     ///
@@ -1047,10 +1047,10 @@
     </span><span class="kw">pub fn </span>abbreviations(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         debug_abbrev_offset: DebugAbbrevOffset&lt;R::Offset&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>&gt; {
-        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#52">self</a>.debug_abbrev_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#109">Abbreviations</a>&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="#52">self</a>.debug_abbrev_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         input.skip(debug_abbrev_offset.<span class="number">0</span>)<span class="question-mark">?</span>;
-        Abbreviations::parse(<a href="../../../src/gimli/read/abbrev.rs.html#55">input</a>)
+        Abbreviations::parse(<a href="#55">input</a>)
     }
 }
 
@@ -1074,24 +1074,24 @@
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a href="../../../src/gimli/read/abbrev.rs.html#77">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#77">self</a>.debug_abbrev_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="#77">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="#77">self</a>.debug_abbrev_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugAbbrev&lt;R&gt; {
-    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a href="../../../src/gimli/common.rs.html#247">SectionId::DebugAbbrev</a>
+    <span class="kw">fn </span>id() -&gt; <a href="../common.rs.html#245">SectionId</a> {
+        <a href="../common.rs.html#247">SectionId::DebugAbbrev</a>
     }
 
     <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#90">self</a>.debug_abbrev_section
+        <span class="kw-2">&amp;</span><a class="self" href="#90">self</a>.debug_abbrev_section
     }
 }
 
 <span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugAbbrev&lt;R&gt; {
     <span class="kw">fn </span>from(debug_abbrev_section: R) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/gimli/read/abbrev.rs.html#19">DebugAbbrev</a> {
-            <a href="../../../src/gimli/read/abbrev.rs.html#96">debug_abbrev_section</a>,
+        <a href="#19">DebugAbbrev</a> {
+            <a href="#96">debug_abbrev_section</a>,
         }
     }
 }
@@ -1103,14 +1103,14 @@
 /// method.
 </span><span class="attribute">#[derive(Debug, Default, Clone)]
 </span><span class="kw">pub struct </span>Abbreviations {
-    vec: Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;,
-    map: btree_map::BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;,
+    vec: Vec&lt;<a href="#185">Abbreviation</a>&gt;,
+    map: btree_map::BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="#185">Abbreviation</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
+<span class="kw">impl </span><a href="#109">Abbreviations</a> {
     <span class="doccomment">/// Construct a new, empty set of abbreviations.
-    </span><span class="kw">fn </span>empty() -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
-        <a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
+    </span><span class="kw">fn </span>empty() -&gt; <a href="#109">Abbreviations</a> {
+        <a href="#109">Abbreviations</a> {
             vec: Vec::new(),
             map: btree_map::BTreeMap::new(),
         }
@@ -1121,8 +1121,8 @@
     /// Returns `Ok` if it is the first abbreviation in the set with its code,
     /// `Err` if the code is a duplicate and there already exists an
     /// abbreviation in the set with the given abbreviation&#39;s code.
-    </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, abbrev: <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>) -&gt; ::core::result::Result&lt;(), ()&gt; {
-        <span class="kw">let </span>code_usize = <a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.code <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+    </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, abbrev: <a href="#185">Abbreviation</a>) -&gt; ::core::result::Result&lt;(), ()&gt; {
+        <span class="kw">let </span>code_usize = <a href="#128">abbrev</a>.code <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
         <span class="kw">if </span>code_usize <span class="kw">as </span>u64 == abbrev.code {
             <span class="comment">// Optimize for sequential abbreviation codes by storing them
             // in a Vec, as long as the map doesn&#39;t already contain them.
@@ -1134,15 +1134,15 @@
                 <span class="kw">if </span>!<span class="self">self</span>.map.is_empty() &amp;&amp; <span class="self">self</span>.map.contains_key(<span class="kw-2">&amp;</span>abbrev.code) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(());
                 } <span class="kw">else </span>{
-                    <a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.vec.push(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
+                    <a class="self" href="#128">self</a>.vec.push(<a href="#128">abbrev</a>);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
             }
         }
-        <span class="kw">match </span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.map.entry(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.code) {
+        <span class="kw">match </span><a class="self" href="#128">self</a>.map.entry(<a href="#128">abbrev</a>.code) {
             btree_map::Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(()),
             btree_map::Entry::Vacant(entry) =&gt; {
-                <a href="../../../src/gimli/read/abbrev.rs.html#148">entry</a>.insert(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
+                <a href="#148">entry</a>.insert(<a href="#128">abbrev</a>);
                 <span class="prelude-val">Ok</span>(())
             }
         }
@@ -1150,19 +1150,19 @@
 
     <span class="doccomment">/// Get the abbreviation associated with the given code.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(code) = usize::try_from(<a href="../../../src/gimli/read/abbrev.rs.html#157">code</a>) {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#185">Abbreviation</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(code) = usize::try_from(<a href="#157">code</a>) {
             <span class="kw">let </span>index = code.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>;
             <span class="kw">if </span>index &lt; <span class="self">self</span>.vec.len() {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.vec[<a href="../../../src/gimli/read/abbrev.rs.html#159">index</a>]);
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#157">self</a>.vec[<a href="#159">index</a>]);
             }
         }
 
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.map.get(<span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#157">code</a>)
+        <a class="self" href="#157">self</a>.map.get(<span class="kw-2">&amp;</span><a href="#157">code</a>)
     }
 
     <span class="doccomment">/// Parse a series of abbreviations, terminated by a null abbreviation.
-    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>&gt; {
+    </span><span class="kw">fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#109">Abbreviations</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(abbrev) = Abbreviation::parse(input)<span class="question-mark">? </span>{
@@ -1171,7 +1171,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#170">abbrevs</a>)
+        <span class="prelude-val">Ok</span>(<a href="#170">abbrevs</a>)
     }
 }
 
@@ -1180,12 +1180,12 @@
 </span><span class="attribute">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Abbreviation {
     code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-    tag: <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
-    has_children: <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
-    attributes: <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
+    tag: <a href="../constants.rs.html#196-339">constants::DwTag</a>,
+    has_children: <a href="../constants.rs.html#187-194">constants::DwChildren</a>,
+    attributes: <a href="#288">Attributes</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
+<span class="kw">impl </span><a href="#185">Abbreviation</a> {
     <span class="doccomment">/// Construct a new `Abbreviation`.
     ///
     /// ### Panics
@@ -1193,79 +1193,79 @@
     /// Panics if `code` is `0`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
         code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-        tag: <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
-        has_children: <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
-        attributes: <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
-    ) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
+        tag: <a href="../constants.rs.html#196-339">constants::DwTag</a>,
+        has_children: <a href="../constants.rs.html#187-194">constants::DwChildren</a>,
+        attributes: <a href="#288">Attributes</a>,
+    ) -&gt; <a href="#185">Abbreviation</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(code, <span class="number">0</span>);
-        <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
-            <a href="../../../src/gimli/read/abbrev.rs.html#199">code</a>,
-            <a href="../../../src/gimli/read/abbrev.rs.html#200">tag</a>,
-            <a href="../../../src/gimli/read/abbrev.rs.html#201">has_children</a>,
-            <a href="../../../src/gimli/read/abbrev.rs.html#202">attributes</a>,
+        <a href="#185">Abbreviation</a> {
+            <a href="#199">code</a>,
+            <a href="#200">tag</a>,
+            <a href="#201">has_children</a>,
+            <a href="#202">attributes</a>,
         }
     }
 
     <span class="doccomment">/// Get this abbreviation&#39;s code.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#215">self</a>.code
+        <a class="self" href="#215">self</a>.code
     }
 
     <span class="doccomment">/// Get this abbreviation&#39;s tag.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#221">self</a>.tag
+    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../constants.rs.html#196-339">constants::DwTag</a> {
+        <a class="self" href="#221">self</a>.tag
     }
 
     <span class="doccomment">/// Return true if this abbreviation&#39;s type has children, false otherwise.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>has_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#227">self</a>.has_children == <a href="../../../src/gimli/constants.rs.html#187-194">constants::DW_CHILDREN_yes</a>
+        <a class="self" href="#227">self</a>.has_children == <a href="../constants.rs.html#187-194">constants::DW_CHILDREN_yes</a>
     }
 
     <span class="doccomment">/// Get this abbreviation&#39;s attributes.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#233">self</a>.attributes[..]
+    </span><span class="kw">pub fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#376">AttributeSpecification</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="#233">self</a>.attributes[..]
     }
 
     <span class="doccomment">/// Parse an abbreviation&#39;s tag.
-    </span><span class="kw">fn </span>parse_tag&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>&gt; {
+    </span><span class="kw">fn </span>parse_tag&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../constants.rs.html#196-339">constants::DwTag</a>&gt; {
         <span class="kw">let </span>val = input.read_uleb128_u16()<span class="question-mark">?</span>;
         <span class="kw">if </span>val == <span class="number">0 </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#291">Error::AbbreviationTagZero</a>)
+            <span class="prelude-val">Err</span>(<a href="mod.rs.html#291">Error::AbbreviationTagZero</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>(<a href="../../../src/gimli/read/abbrev.rs.html#239">val</a>))
+            <span class="prelude-val">Ok</span>(<a href="../constants.rs.html#196-339">constants::DwTag</a>(<a href="#239">val</a>))
         }
     }
 
     <span class="doccomment">/// Parse an abbreviation&#39;s &quot;does the type have children?&quot; byte.
-    </span><span class="kw">fn </span>parse_has_children&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>&gt; {
+    </span><span class="kw">fn </span>parse_has_children&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../constants.rs.html#187-194">constants::DwChildren</a>&gt; {
         <span class="kw">let </span>val = input.read_u8()<span class="question-mark">?</span>;
-        <span class="kw">let </span>val = <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>(<a href="../../../src/gimli/read/abbrev.rs.html#249">val</a>);
+        <span class="kw">let </span>val = <a href="../constants.rs.html#187-194">constants::DwChildren</a>(<a href="#249">val</a>);
         <span class="kw">if </span>val == constants::DW_CHILDREN_no || val == constants::DW_CHILDREN_yes {
-            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#250">val</a>)
+            <span class="prelude-val">Ok</span>(<a href="#250">val</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#297">Error::BadHasChildren</a>)
+            <span class="prelude-val">Err</span>(<a href="mod.rs.html#297">Error::BadHasChildren</a>)
         }
     }
 
     <span class="doccomment">/// Parse a series of attribute specifications, terminated by a null attribute
     /// specification.
-    </span><span class="kw">fn </span>parse_attributes&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>&gt; {
+    </span><span class="kw">fn </span>parse_attributes&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#288">Attributes</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = Attributes::new();
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = AttributeSpecification::parse(input)<span class="question-mark">? </span>{
             attrs.push(attr);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#261">attrs</a>)
+        <span class="prelude-val">Ok</span>(<a href="#261">attrs</a>)
     }
 
     <span class="doccomment">/// Parse an abbreviation. Return `None` for the null abbreviation, `Some`
     /// for an actual abbreviation.
-    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;&gt; {
+    </span><span class="kw">fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#185">Abbreviation</a>&gt;&gt; {
         <span class="kw">let </span>code = input.read_uleb128()<span class="question-mark">?</span>;
         <span class="kw">if </span>code == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -1274,8 +1274,8 @@
         <span class="kw">let </span>tag = <span class="self">Self</span>::parse_tag(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>has_children = <span class="self">Self</span>::parse_has_children(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>attributes = <span class="self">Self</span>::parse_attributes(input)<span class="question-mark">?</span>;
-        <span class="kw">let </span>abbrev = Abbreviation::new(<a href="../../../src/gimli/read/abbrev.rs.html#273">code</a>, <a href="../../../src/gimli/read/abbrev.rs.html#278">tag</a>, <a href="../../../src/gimli/read/abbrev.rs.html#279">has_children</a>, <a href="../../../src/gimli/read/abbrev.rs.html#280">attributes</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#281">abbrev</a>))
+        <span class="kw">let </span>abbrev = Abbreviation::new(<a href="#273">code</a>, <a href="#278">tag</a>, <a href="#279">has_children</a>, <a href="#280">attributes</a>);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#281">abbrev</a>))
     }
 }
 
@@ -1283,86 +1283,86 @@
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Attributes {
     Inline {
-        buf: [<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>; <a href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>],
+        buf: [<a href="#376">AttributeSpecification</a>; <a href="#297">MAX_ATTRIBUTES_INLINE</a>],
         len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
     },
-    Heap(Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;),
+    Heap(Vec&lt;<a href="#376">AttributeSpecification</a>&gt;),
 }
 
 <span class="comment">// Length of 5 based on benchmark results for both x86-64 and i686.
 </span><span class="kw">const </span>MAX_ATTRIBUTES_INLINE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">5</span>;
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+<span class="kw">impl </span><a href="#288">Attributes</a> {
     <span class="doccomment">/// Returns a new empty list of attributes
-    </span><span class="kw">fn </span>new() -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    </span><span class="kw">fn </span>new() -&gt; <a href="#288">Attributes</a> {
         <span class="kw">let </span>default =
-            AttributeSpecification::new(<a href="../../../src/gimli/constants.rs.html#341-648">constants::DW_AT_null</a>, <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_null</a>, <span class="prelude-val">None</span>);
-        <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
-            buf: [<a href="../../../src/gimli/read/abbrev.rs.html#302">default</a>; <span class="number">5</span>],
+            AttributeSpecification::new(<a href="../constants.rs.html#341-648">constants::DW_AT_null</a>, <a href="../constants.rs.html#650-712">constants::DW_FORM_null</a>, <span class="prelude-val">None</span>);
+        <a href="#289">Attributes::Inline</a> {
+            buf: [<a href="#302">default</a>; <span class="number">5</span>],
             len: <span class="number">0</span>,
         }
     }
 
     <span class="doccomment">/// Pushes a new value onto this list of attributes.
-    </span><span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, attr: <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>) {
-        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#311">self</a> </span>{
-            <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(list) =&gt; <span class="kw">return </span><a href="../../../src/gimli/read/abbrev.rs.html#313">list</a>.push(<a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>),
-            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
+    </span><span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, attr: <a href="#376">AttributeSpecification</a>) {
+        <span class="kw">match </span><span class="self"><a href="#311">self</a> </span>{
+            <a href="#293">Attributes::Heap</a>(list) =&gt; <span class="kw">return </span><a href="#313">list</a>.push(<a href="#311">attr</a>),
+            <a href="#289">Attributes::Inline</a> {
                 buf,
-                len: <a href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>,
+                len: <a href="#297">MAX_ATTRIBUTES_INLINE</a>,
             } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>list = <a href="../../../src/gimli/read/abbrev.rs.html#315">buf</a>.to_vec();
-                <a href="../../../src/gimli/read/abbrev.rs.html#318">list</a>.push(<a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>);
-                <span class="kw-2">*</span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#311">self</a> </span>= <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a href="../../../src/gimli/read/abbrev.rs.html#318">list</a>);
+                <span class="kw">let </span><span class="kw-2">mut </span>list = <a href="#315">buf</a>.to_vec();
+                <a href="#318">list</a>.push(<a href="#311">attr</a>);
+                <span class="kw-2">*</span><span class="self"><a href="#311">self</a> </span>= <a href="#293">Attributes::Heap</a>(<a href="#318">list</a>);
             }
-            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { buf, len } =&gt; {
-                <a href="../../../src/gimli/read/abbrev.rs.html#322">buf</a>[<span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#322">len</a>] = <a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>;
-                <span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#322">len</a> += <span class="number">1</span>;
+            <a href="#289">Attributes::Inline</a> { buf, len } =&gt; {
+                <a href="#322">buf</a>[<span class="kw-2">*</span><a href="#322">len</a>] = <a href="#311">attr</a>;
+                <span class="kw-2">*</span><a href="#322">len</a> += <span class="number">1</span>;
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#288">Attributes</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">&amp;**</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#331">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/gimli/read/abbrev.rs.html#331">f</a>)
+        (<span class="kw-2">&amp;**</span><a class="self" href="#331">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#331">f</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw-2">&amp;**</span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#337">self</a> </span>== <span class="kw-2">&amp;**</span><a href="../../../src/gimli/read/abbrev.rs.html#337">other</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#288">Attributes</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#288">Attributes</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <span class="kw-2">&amp;**</span><span class="self"><a href="#337">self</a> </span>== <span class="kw-2">&amp;**</span><a href="#337">other</a>
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#288">Attributes</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">type </span>Target = [<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>];
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
-        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#346">self</a> </span>{
-            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { buf, len } =&gt; <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#348">buf</a>[..<span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#348">len</a>],
-            <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(list) =&gt; <a href="../../../src/gimli/read/abbrev.rs.html#349">list</a>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#288">Attributes</a> {
+    <span class="kw">type </span>Target = [<a href="#376">AttributeSpecification</a>];
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="#376">AttributeSpecification</a>] {
+        <span class="kw">match </span><span class="self"><a href="#346">self</a> </span>{
+            <a href="#289">Attributes::Inline</a> { buf, len } =&gt; <span class="kw-2">&amp;</span><a href="#348">buf</a>[..<span class="kw-2">*</span><a href="#348">len</a>],
+            <a href="#293">Attributes::Heap</a>(list) =&gt; <a href="#349">list</a>,
         }
     }
 }
 
-<span class="kw">impl </span>FromIterator&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt; <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn </span>from_iter&lt;I&gt;(iter: I) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>
+<span class="kw">impl </span>FromIterator&lt;<a href="#376">AttributeSpecification</a>&gt; <span class="kw">for </span><a href="#288">Attributes</a> {
+    <span class="kw">fn </span>from_iter&lt;I&gt;(iter: I) -&gt; <a href="#288">Attributes</a>
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;,
+        </span>I: IntoIterator&lt;Item = <a href="#376">AttributeSpecification</a>&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>list = Attributes::new();
         <span class="kw">for </span>item <span class="kw">in </span>iter {
             list.push(item);
         }
-        <span class="kw">return </span><a href="../../../src/gimli/read/abbrev.rs.html#359">list</a>;
+        <span class="kw">return </span><a href="#359">list</a>;
     }
 }
 
-<span class="kw">impl </span>From&lt;Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn </span>from(list: Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-        <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a href="../../../src/gimli/read/abbrev.rs.html#368">list</a>)
+<span class="kw">impl </span>From&lt;Vec&lt;<a href="#376">AttributeSpecification</a>&gt;&gt; <span class="kw">for </span><a href="#288">Attributes</a> {
+    <span class="kw">fn </span>from(list: Vec&lt;<a href="#376">AttributeSpecification</a>&gt;) -&gt; <a href="#288">Attributes</a> {
+        <a href="#293">Attributes::Heap</a>(<a href="#368">list</a>)
     }
 }
 
@@ -1370,48 +1370,48 @@
 /// and form.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>AttributeSpecification {
-    name: <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
-    form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+    name: <a href="../constants.rs.html#341-648">constants::DwAt</a>,
+    form: <a href="../constants.rs.html#650-712">constants::DwForm</a>,
     implicit_const_value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
+<span class="kw">impl </span><a href="#376">AttributeSpecification</a> {
     <span class="doccomment">/// Construct a new `AttributeSpecification` from the given name and form
     /// and implicit const value.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(
-        name: <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
-        form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+        name: <a href="../constants.rs.html#341-648">constants::DwAt</a>,
+        form: <a href="../constants.rs.html#650-712">constants::DwForm</a>,
         implicit_const_value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt;,
-    ) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
+    ) -&gt; <a href="#376">AttributeSpecification</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
             (form == constants::DW_FORM_implicit_const &amp;&amp; implicit_const_value.is_some())
                 || (form != constants::DW_FORM_implicit_const &amp;&amp; implicit_const_value.is_none())
         );
-        <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
-            <a href="../../../src/gimli/read/abbrev.rs.html#387">name</a>,
-            <a href="../../../src/gimli/read/abbrev.rs.html#388">form</a>,
-            implicit_const_value: <a href="../../../src/gimli/read/abbrev.rs.html#389">implicit_const_value</a>.unwrap_or(<span class="number">0</span>),
+        <a href="#376">AttributeSpecification</a> {
+            <a href="#387">name</a>,
+            <a href="#388">form</a>,
+            implicit_const_value: <a href="#389">implicit_const_value</a>.unwrap_or(<span class="number">0</span>),
         }
     }
 
     <span class="doccomment">/// Get the attribute&#39;s name.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#404">self</a>.name
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../constants.rs.html#341-648">constants::DwAt</a> {
+        <a class="self" href="#404">self</a>.name
     }
 
     <span class="doccomment">/// Get the attribute&#39;s form.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#410">self</a>.form
+    </span><span class="kw">pub fn </span>form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../constants.rs.html#650-712">constants::DwForm</a> {
+        <a class="self" href="#410">self</a>.form
     }
 
     <span class="doccomment">/// Get the attribute&#39;s implicit const value.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>implicit_const_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.form == constants::DW_FORM_implicit_const {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#416">self</a>.implicit_const_value)
+            <span class="prelude-val">Some</span>(<a class="self" href="#416">self</a>.implicit_const_value)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1421,23 +1421,23 @@
     ///
     /// Note that because some attributes are variably sized, the size cannot
     /// always be known without parsing, in which case we return `None`.
-    </span><span class="kw">pub fn </span>size&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
-        <a href="../../../src/gimli/read/abbrev.rs.html#469">get_attribute_size</a>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#428">self</a>.form, <a href="../../../src/gimli/read/abbrev.rs.html#428">header</a>.<a href="../../../src/gimli/read/unit.rs.html#403">encoding</a>()).map(usize::from)
+    </span><span class="kw">pub fn </span>size&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <a href="#469">get_attribute_size</a>(<a class="self" href="#428">self</a>.form, <a href="#428">header</a>.<a href="unit.rs.html#403">encoding</a>()).map(usize::from)
     }
 
     <span class="doccomment">/// Parse an attribute&#39;s form.
-    </span><span class="kw">fn </span>parse_form&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>&gt; {
+    </span><span class="kw">fn </span>parse_form&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../constants.rs.html#650-712">constants::DwForm</a>&gt; {
         <span class="kw">let </span>val = input.read_uleb128_u16()<span class="question-mark">?</span>;
         <span class="kw">if </span>val == <span class="number">0 </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#294">Error::AttributeFormZero</a>)
+            <span class="prelude-val">Err</span>(<a href="mod.rs.html#294">Error::AttributeFormZero</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>(<a href="../../../src/gimli/read/abbrev.rs.html#434">val</a>))
+            <span class="prelude-val">Ok</span>(<a href="../constants.rs.html#650-712">constants::DwForm</a>(<a href="#434">val</a>))
         }
     }
 
     <span class="doccomment">/// Parse an attribute specification. Returns `None` for the null attribute
     /// specification, `Some` for an actual attribute specification.
-    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;&gt; {
+    </span><span class="kw">fn </span>parse&lt;R: <a href="reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#376">AttributeSpecification</a>&gt;&gt; {
         <span class="kw">let </span>name = input.read_uleb128_u16()<span class="question-mark">?</span>;
         <span class="kw">if </span>name == <span class="number">0 </span>{
             <span class="comment">// Parse the null attribute specification.
@@ -1445,85 +1445,85 @@
             <span class="kw">return if </span>form == <span class="number">0 </span>{
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#303">Error::ExpectedZero</a>)
+                <span class="prelude-val">Err</span>(<a href="mod.rs.html#303">Error::ExpectedZero</a>)
             };
         }
 
-        <span class="kw">let </span>name = <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>(<a href="../../../src/gimli/read/abbrev.rs.html#445">name</a>);
+        <span class="kw">let </span>name = <a href="../constants.rs.html#341-648">constants::DwAt</a>(<a href="#445">name</a>);
         <span class="kw">let </span>form = <span class="self">Self</span>::parse_form(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>implicit_const_value = <span class="kw">if </span>form == constants::DW_FORM_implicit_const {
             <span class="prelude-val">Some</span>(input.read_sleb128()<span class="question-mark">?</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
-        <span class="kw">let </span>spec = AttributeSpecification::new(<a href="../../../src/gimli/read/abbrev.rs.html#456">name</a>, <a href="../../../src/gimli/read/abbrev.rs.html#457">form</a>, <a href="../../../src/gimli/read/abbrev.rs.html#458">implicit_const_value</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#463">spec</a>))
+        <span class="kw">let </span>spec = AttributeSpecification::new(<a href="#456">name</a>, <a href="#457">form</a>, <a href="#458">implicit_const_value</a>);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#463">spec</a>))
     }
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_attribute_size(form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>, encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt; {
-    <span class="kw">match </span><a href="../../../src/gimli/read/abbrev.rs.html#469">form</a> {
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addr</a> =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.address_size),
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_attribute_size(form: <a href="../constants.rs.html#650-712">constants::DwForm</a>, encoding: <a href="../common.rs.html#37">Encoding</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt; {
+    <span class="kw">match </span><a href="#469">form</a> {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_addr</a> =&gt; <span class="prelude-val">Some</span>(<a href="#469">encoding</a>.address_size),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_implicit_const</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag_present</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_implicit_const</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_flag_present</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data1</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx1</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref1</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx1</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data1</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_flag</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_strx1</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref1</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_addrx1</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data2</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref2</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx2</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data2</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref2</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_addrx2</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx3</a> | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">3</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_addrx3</a> | <a href="../constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">3</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data4</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup4</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref4</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx4</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx4</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">4</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data4</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref_sup4</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref4</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_strx4</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_addrx4</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">4</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data8</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref8</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sig8</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup8</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data8</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref8</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref_sig8</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_ref_sup8</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data16</a>  =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_data16</a>  =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sec_offset</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_ref_alt</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp_sup</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a>
-        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#22">word_size</a>()),
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_sec_offset</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_GNU_ref_alt</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_strp</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_strp_sup</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a>
+        | <a href="../constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; <span class="prelude-val">Some</span>(<a href="#469">encoding</a>.format.<a href="../common.rs.html#22">word_size</a>()),
 
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_addr</a> =&gt; {
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_ref_addr</a> =&gt; {
             <span class="comment">// This is an offset, but DWARF version 2 specifies that DW_FORM_ref_addr
             // has the same size as an address on the target system.  This was changed
             // in DWARF version 3.
             </span><span class="prelude-val">Some</span>(<span class="kw">if </span>encoding.version == <span class="number">2 </span>{
-                <a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.address_size
+                <a href="#469">encoding</a>.address_size
             } <span class="kw">else </span>{
-                <a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#22">word_size</a>()
+                <a href="#469">encoding</a>.format.<a href="../common.rs.html#22">word_size</a>()
             })
         }
 
         <span class="comment">// Variably sized forms.
-        </span><a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block1</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block2</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block4</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_exprloc</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_udata</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_string</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sdata</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_udata</a> |
-        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_indirect</a> |
+        </span><a href="../constants.rs.html#650-712">constants::DW_FORM_block</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block1</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block2</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_block4</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_exprloc</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_ref_udata</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_string</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_sdata</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_udata</a> |
+        <a href="../constants.rs.html#650-712">constants::DW_FORM_indirect</a> |
 
         <span class="comment">// We don&#39;t know the size of unknown forms.
         </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1991,4 +1991,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

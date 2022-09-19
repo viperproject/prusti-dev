@@ -128,7 +128,7 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#10"><span class="kw">super</span>::path_offset</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#10"><span class="kw">super</span>::path_offset</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
@@ -155,26 +155,26 @@
     Abstract(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
 }
 
-<span class="kw">impl </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a> {
+<span class="kw">impl </span><a href="#15">SocketAddr</a> {
     <span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AddressKind&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>offset = <a href="../../../../../src/mio/sys/unix/uds/mod.rs.html#10">path_offset</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.sockaddr);
+        <span class="kw">let </span>offset = <a href="mod.rs.html#10">path_offset</a>(<span class="kw-2">&amp;</span><a class="self" href="#29">self</a>.sockaddr);
         <span class="comment">// Don&#39;t underflow in `len` below.
         </span><span class="kw">if </span>(<span class="self">self</span>.socklen <span class="kw">as </span>usize) &lt; offset {
-            <span class="kw">return </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#23">AddressKind::Unnamed</a>;
+            <span class="kw">return </span><a href="#23">AddressKind::Unnamed</a>;
         }
-        <span class="kw">let </span>len = <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.socklen <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#30">offset</a>;
-        <span class="kw">let </span>path = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.sockaddr.sun_path <span class="kw">as </span><span class="kw-2">*const </span>[libc::c_char] <span class="kw">as </span><span class="kw-2">*const </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
+        <span class="kw">let </span>len = <a class="self" href="#29">self</a>.socklen <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a href="#30">offset</a>;
+        <span class="kw">let </span>path = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="kw-2">&amp;</span><a class="self" href="#29">self</a>.sockaddr.sun_path <span class="kw">as </span><span class="kw-2">*const </span>[libc::c_char] <span class="kw">as </span><span class="kw-2">*const </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
 
         <span class="comment">// macOS seems to return a len of 16 and a zeroed sun_path for unnamed addresses
         </span><span class="kw">if </span>len == <span class="number">0
             </span>|| (<span class="macro">cfg!</span>(not(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))
                 &amp;&amp; <span class="self">self</span>.sockaddr.sun_path[<span class="number">0</span>] == <span class="number">0</span>)
         {
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#23">AddressKind::Unnamed</a>
+            <a href="#23">AddressKind::Unnamed</a>
         } <span class="kw">else if </span><span class="self">self</span>.sockaddr.sun_path[<span class="number">0</span>] == <span class="number">0 </span>{
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#25">AddressKind::Abstract</a>(<span class="kw-2">&amp;</span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#36">path</a>[<span class="number">1</span>..<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#35">len</a>])
+            <a href="#25">AddressKind::Abstract</a>(<span class="kw-2">&amp;</span><a href="#36">path</a>[<span class="number">1</span>..<a href="#35">len</a>])
         } <span class="kw">else </span>{
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#24">AddressKind::Pathname</a>(OsStr::from_bytes(<span class="kw-2">&amp;</span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#36">path</a>[..<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#35">len</a> - <span class="number">1</span>]).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+            <a href="#24">AddressKind::Pathname</a>(OsStr::from_bytes(<span class="kw-2">&amp;</span><a href="#36">path</a>[..<a href="#35">len</a> - <span class="number">1</span>]).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
         }
     }
 }
@@ -182,25 +182,25 @@
 <span class="macro">cfg_os_poll! </span>{
     <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-    <span class="kw">impl </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;F&gt;(f: F) -&gt; io::Result&lt;<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a>&gt;
+    <span class="kw">impl </span><a href="#15">SocketAddr</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;F&gt;(f: F) -&gt; io::Result&lt;<a href="#15">SocketAddr</a>&gt;
         <span class="kw">where
             </span>F: FnOnce(<span class="kw-2">*mut </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>, <span class="kw-2">&amp;mut </span><a href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>) -&gt; io::Result&lt;<a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a>&gt;,
         {
             <span class="kw">let </span><span class="kw-2">mut </span>sockaddr = {
                 <span class="kw">let </span>sockaddr = mem::MaybeUninit::&lt;<a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a>&gt;::zeroed();
-                <span class="kw">unsafe </span>{ <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#61">sockaddr</a>.assume_init() }
+                <span class="kw">unsafe </span>{ <a href="#61">sockaddr</a>.assume_init() }
             };
 
-            <span class="kw">let </span>raw_sockaddr = <span class="kw-2">&amp;mut </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#60">sockaddr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>;
-            <span class="kw">let </span><span class="kw-2">mut </span>socklen = mem::size_of_val(<span class="kw-2">&amp;</span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#60">sockaddr</a>) <span class="kw">as </span><a href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
+            <span class="kw">let </span>raw_sockaddr = <span class="kw-2">&amp;mut </span><a href="#60">sockaddr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>;
+            <span class="kw">let </span><span class="kw-2">mut </span>socklen = mem::size_of_val(<span class="kw-2">&amp;</span><a href="#60">sockaddr</a>) <span class="kw">as </span><a href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
 
             f(raw_sockaddr, <span class="kw-2">&amp;mut </span>socklen)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(SocketAddr::from_parts(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#60">sockaddr</a>, <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#66">socklen</a>))
+            <span class="prelude-val">Ok</span>(SocketAddr::from_parts(<a href="#60">sockaddr</a>, <a href="#66">socklen</a>))
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_parts(sockaddr: <a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a>, socklen: <a href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>) -&gt; <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a> {
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a> { <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#72">sockaddr</a>, <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#72">socklen</a> }
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_parts(sockaddr: <a href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a>, socklen: <a href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>) -&gt; <a href="#15">SocketAddr</a> {
+            <a href="#15">SocketAddr</a> { <a href="#72">sockaddr</a>, <a href="#72">socklen</a> }
         }
 
         <span class="doccomment">/// Returns `true` if the address is unnamed.
@@ -218,8 +218,8 @@
         ///
         /// [`SocketAddr`]: std::os::unix::net::SocketAddr
         </span><span class="kw">pub fn </span>as_pathname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt; {
-            <span class="kw">if let </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#24">AddressKind::Pathname</a>(path) = <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#90">self</a>.<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">address</a>() {
-                <span class="prelude-val">Some</span>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#91">path</a>)
+            <span class="kw">if let </span><a href="#24">AddressKind::Pathname</a>(path) = <a class="self" href="#90">self</a>.<a href="#29">address</a>() {
+                <span class="prelude-val">Some</span>(<a href="#91">path</a>)
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
@@ -230,8 +230,8 @@
         </span><span class="comment">// Link to std::os::unix::net::SocketAddr pending
         // https://github.com/rust-lang/rust/issues/85410.
         </span><span class="kw">pub fn </span>as_abstract_namespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-            <span class="kw">if let </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#25">AddressKind::Abstract</a>(path) = <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#102">self</a>.<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">address</a>() {
-                <span class="prelude-val">Some</span>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#103">path</a>)
+            <span class="kw">if let </span><a href="#25">AddressKind::Abstract</a>(path) = <a class="self" href="#102">self</a>.<a href="#29">address</a>() {
+                <span class="prelude-val">Some</span>(<a href="#103">path</a>)
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>}
@@ -239,12 +239,12 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">SocketAddr</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#15">SocketAddr</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#113">self</a>.<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">address</a>() {
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#23">AddressKind::Unnamed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#113">fmt</a>, <span class="string">&quot;(unnamed)&quot;</span>),
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#25">AddressKind::Abstract</a>(name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#113">fmt</a>, <span class="string">&quot;{} (abstract)&quot;</span>, AsciiEscaped(name)),
-            <a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#24">AddressKind::Pathname</a>(path) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#113">fmt</a>, <span class="string">&quot;{:?} (pathname)&quot;</span>, path),
+        <span class="kw">match </span><a class="self" href="#113">self</a>.<a href="#29">address</a>() {
+            <a href="#23">AddressKind::Unnamed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#113">fmt</a>, <span class="string">&quot;(unnamed)&quot;</span>),
+            <a href="#25">AddressKind::Abstract</a>(name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#113">fmt</a>, <span class="string">&quot;{} (abstract)&quot;</span>, AsciiEscaped(name)),
+            <a href="#24">AddressKind::Pathname</a>(path) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#113">fmt</a>, <span class="string">&quot;{:?} (pathname)&quot;</span>, path),
         }
     }
 }
@@ -255,8 +255,8 @@
         <span class="kw">for </span>byte <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter().cloned().flat_map(ascii::escape_default) {
             <span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, byte <span class="kw">as </span>char)<span class="question-mark">?</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#123">fmt</a>, <span class="string">&quot;\&quot;&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#123">fmt</a>, <span class="string">&quot;\&quot;&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha-1-0.10.0/src/compress/x86.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x86.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../sha1/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha1-0.10.5/src/compress/x86.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x86.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../sha1/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../sha1/index.html">
                         <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -115,7 +115,6 @@
 </pre><pre class="rust"><code><span class="doccomment">//! SHA-1 `x86`/`x86_64` backend
 
 </span><span class="attribute">#![cfg(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>))]
-#![allow(unsafe_code)]
 
 #[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
 </span><span class="kw">use </span>core::arch::x86::<span class="kw-2">*</span>;
@@ -151,12 +150,12 @@
     </span><span class="kw">let </span>MASK: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a> = _mm_set_epi64x(<span class="number">0x0001_0203_0405_0607</span>, <span class="number">0x0809_0A0B_0C0D_0E0F</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>state_abcd = _mm_set_epi32(
-        <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-        <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-        <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-        <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+        <a href="#34">state</a>[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+        <a href="#34">state</a>[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+        <a href="#34">state</a>[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+        <a href="#34">state</a>[<span class="number">3</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
     );
-    <span class="kw">let </span><span class="kw-2">mut </span>state_e = _mm_set_epi32(<a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>state_e = _mm_set_epi32(<a href="#34">state</a>[<span class="number">4</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
 
     <span class="kw">for </span>block <span class="kw">in </span>blocks {
         <span class="comment">// SAFETY: we use only unaligned loads with this pointer
@@ -167,7 +166,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = _mm_shuffle_epi8(_mm_loadu_si128(block_ptr.offset(<span class="number">1</span>)), MASK);
         <span class="kw">let </span><span class="kw-2">mut </span>w2 = _mm_shuffle_epi8(_mm_loadu_si128(block_ptr.offset(<span class="number">2</span>)), MASK);
         <span class="kw">let </span><span class="kw-2">mut </span>w3 = _mm_shuffle_epi8(_mm_loadu_si128(block_ptr.offset(<span class="number">3</span>)), MASK);
-        <span class="kw">let </span><span class="kw-2">mut </span>w4;
+        <span class="attribute">#[allow(clippy::needless_late_init)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>w4;
 
         <span class="kw">let </span><span class="kw-2">mut </span>h0 = state_abcd;
         <span class="kw">let </span><span class="kw-2">mut </span>h1 = _mm_add_epi32(state_e, w0);
@@ -204,11 +204,11 @@
         state_e = _mm_sha1nexte_epu32(h1, state_e);
     }
 
-    <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">0</span>] = _mm_extract_epi32(<a href="../../../src/sha1/compress/x86.rs.html#39">state_abcd</a>, <span class="number">3</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">1</span>] = _mm_extract_epi32(<a href="../../../src/sha1/compress/x86.rs.html#39">state_abcd</a>, <span class="number">2</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">2</span>] = _mm_extract_epi32(<a href="../../../src/sha1/compress/x86.rs.html#39">state_abcd</a>, <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">3</span>] = _mm_extract_epi32(<a href="../../../src/sha1/compress/x86.rs.html#39">state_abcd</a>, <span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <a href="../../../src/sha1/compress/x86.rs.html#35">state</a>[<span class="number">4</span>] = _mm_extract_epi32(<a href="../../../src/sha1/compress/x86.rs.html#45">state_e</a>, <span class="number">3</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <a href="#34">state</a>[<span class="number">0</span>] = _mm_extract_epi32(<a href="#38">state_abcd</a>, <span class="number">3</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <a href="#34">state</a>[<span class="number">1</span>] = _mm_extract_epi32(<a href="#38">state_abcd</a>, <span class="number">2</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <a href="#34">state</a>[<span class="number">2</span>] = _mm_extract_epi32(<a href="#38">state_abcd</a>, <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <a href="#34">state</a>[<span class="number">3</span>] = _mm_extract_epi32(<a href="#38">state_abcd</a>, <span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <a href="#34">state</a>[<span class="number">4</span>] = _mm_extract_epi32(<a href="#44">state_e</a>, <span class="number">3</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 }
 
 <a class="macro" href="../../../cpufeatures/cpufeatures/macro.new.html">cpufeatures::new!</a>(shani_cpuid, <span class="string">&quot;sha&quot;</span>, <span class="string">&quot;sse2&quot;</span>, <span class="string">&quot;ssse3&quot;</span>, <span class="string">&quot;sse4.1&quot;</span>);
@@ -218,11 +218,11 @@
     // after stabilization
     </span><span class="kw">if </span>shani_cpuid::get() {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/sha1/compress/x86.rs.html#35">digest_blocks</a>(<a href="../../../src/sha1/compress/x86.rs.html#102">state</a>, <a href="../../../src/sha1/compress/x86.rs.html#102">blocks</a>);
+            <a href="#34">digest_blocks</a>(<a href="#102">state</a>, <a href="#102">blocks</a>);
         }
     } <span class="kw">else </span>{
-        <a href="../../../src/sha1/compress/soft.rs.html#247"><span class="kw">super</span>::soft::compress</a>(<a href="../../../src/sha1/compress/x86.rs.html#102">state</a>, <a href="../../../src/sha1/compress/x86.rs.html#102">blocks</a>);
+        <a href="soft.rs.html#248"><span class="kw">super</span>::soft::compress</a>(<a href="#102">state</a>, <a href="#102">blocks</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

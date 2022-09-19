@@ -301,8 +301,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 
-<span class="kw">use </span><a href="../../../src/openssl/lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
-<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
+<span class="kw">use </span><a href="../error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 
 <span class="kw">pub struct </span>StreamState&lt;S&gt; {
     <span class="kw">pub </span>stream: S,
@@ -312,22 +312,22 @@
 }
 
 <span class="doccomment">/// Safe wrapper for `BIO_METHOD`
-</span><span class="kw">pub struct </span>BioMethod(<a href="../../../src/openssl/ssl/bio.rs.html#201">BIO_METHOD</a>);
+</span><span class="kw">pub struct </span>BioMethod(<a href="#201">BIO_METHOD</a>);
 
-<span class="kw">impl </span><a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a> {
-    <span class="kw">fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        BIO_METHOD::new::&lt;S&gt;().map(<a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a>)
+<span class="kw">impl </span><a href="#25">BioMethod</a> {
+    <span class="kw">fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#25">BioMethod</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+        BIO_METHOD::new::&lt;S&gt;().map(<a href="#25">BioMethod</a>)
     }
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#25">BioMethod</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#25">BioMethod</a> {}
 
-<span class="kw">pub fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, <a href="../../../src/openssl/ssl/bio.rs.html#25">BioMethod</a>), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+<span class="kw">pub fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, <a href="#25">BioMethod</a>), <a href="../error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">let </span>method = BioMethod::new::&lt;S&gt;()<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>state = Box::new(<a href="../../../src/openssl/ssl/bio.rs.html#17">StreamState</a> {
-        <a href="../../../src/openssl/ssl/bio.rs.html#36">stream</a>,
+    <span class="kw">let </span>state = Box::new(<a href="#17">StreamState</a> {
+        <a href="#36">stream</a>,
         error: <span class="prelude-val">None</span>,
         panic: <span class="prelude-val">None</span>,
         dtls_mtu_size: <span class="number">0</span>,
@@ -335,30 +335,30 @@
 
     <span class="kw">unsafe </span>{
         <span class="kw">let </span>bio = cvt_p(BIO_new(method.<span class="number">0</span>.get()))<span class="question-mark">?</span>;
-        <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#47">bio</a>, Box::into_raw(<a href="../../../src/openssl/ssl/bio.rs.html#39">state</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
-        <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="../../../src/openssl/ssl/bio.rs.html#47">bio</a>, <span class="number">1</span>);
+        <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="#47">bio</a>, Box::into_raw(<a href="#39">state</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="#47">bio</a>, <span class="number">1</span>);
 
-        <span class="prelude-val">Ok</span>((<a href="../../../src/openssl/ssl/bio.rs.html#47">bio</a>, <a href="../../../src/openssl/ssl/bio.rs.html#37">method</a>))
+        <span class="prelude-val">Ok</span>((<a href="#47">bio</a>, <a href="#37">method</a>))
     }
 }
 
 <span class="kw">pub unsafe fn </span>take_error&lt;S&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
-    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#55">bio</a>);
-    <a href="../../../src/openssl/ssl/bio.rs.html#56">state</a>.error.take()
+    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="#55">bio</a>);
+    <a href="#56">state</a>.error.take()
 }
 
 <span class="kw">pub unsafe fn </span>take_panic&lt;S&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt; {
-    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#60">bio</a>);
-    <a href="../../../src/openssl/ssl/bio.rs.html#61">state</a>.panic.take()
+    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="#60">bio</a>);
+    <a href="#61">state</a>.panic.take()
 }
 
 <span class="kw">pub unsafe fn </span>get_ref&lt;<span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;a</span>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>S {
-    <span class="kw">let </span>state = <span class="kw-2">&amp;*</span>(<a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#65">bio</a>) <span class="kw">as </span><span class="kw-2">*const </span>StreamState&lt;S&gt;);
-    <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/bio.rs.html#66">state</a>.stream
+    <span class="kw">let </span>state = <span class="kw-2">&amp;*</span>(<a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="#65">bio</a>) <span class="kw">as </span><span class="kw-2">*const </span>StreamState&lt;S&gt;);
+    <span class="kw-2">&amp;</span><a href="#66">state</a>.stream
 }
 
 <span class="kw">pub unsafe fn </span>get_mut&lt;<span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;a</span>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S {
-    <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/bio.rs.html#84">state</a>(<a href="../../../src/openssl/ssl/bio.rs.html#70">bio</a>).stream
+    <span class="kw-2">&amp;mut </span><a href="#84">state</a>(<a href="#70">bio</a>).stream
 }
 
 <span class="kw">pub unsafe fn </span>set_dtls_mtu_size&lt;S&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, mtu_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
@@ -368,52 +368,52 @@
             mtu_size
         )
     }
-    state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#74">bio</a>).dtls_mtu_size = <a href="../../../src/openssl/ssl/bio.rs.html#74">mtu_size</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
+    state::&lt;S&gt;(<a href="#74">bio</a>).dtls_mtu_size = <a href="#74">mtu_size</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
 }
 
 <span class="kw">unsafe fn </span>state&lt;<span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;a</span>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>StreamState&lt;S&gt; {
-    <span class="kw-2">&amp;mut *</span>(<a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#84">bio</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+    <span class="kw-2">&amp;mut *</span>(<a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="#84">bio</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
 }
 
 <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>bwrite&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, buf: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, len: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../../openssl_sys/bio/fn.BIO_clear_retry_flags.html">BIO_clear_retry_flags</a>(<a href="../../../src/openssl/ssl/bio.rs.html#88">bio</a>);
+    <a href="../../../openssl_sys/bio/fn.BIO_clear_retry_flags.html">BIO_clear_retry_flags</a>(<a href="#88">bio</a>);
 
-    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#88">bio</a>);
-    <span class="kw">let </span>buf = slice::from_raw_parts(<a href="../../../src/openssl/ssl/bio.rs.html#88">buf</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../../src/openssl/ssl/bio.rs.html#88">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="#88">bio</a>);
+    <span class="kw">let </span>buf = slice::from_raw_parts(<a href="#88">buf</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="#88">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-    <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="../../../src/openssl/ssl/bio.rs.html#91">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/openssl/ssl/bio.rs.html#92">buf</a>))) {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="../../../src/openssl/ssl/bio.rs.html#95">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="#91">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#92">buf</a>))) {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="#95">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
             <span class="kw">if </span>retriable_error(<span class="kw-2">&amp;</span>err) {
-                <a href="../../../openssl_sys/bio/fn.BIO_set_retry_write.html">BIO_set_retry_write</a>(<a href="../../../src/openssl/ssl/bio.rs.html#88">bio</a>);
+                <a href="../../../openssl_sys/bio/fn.BIO_set_retry_write.html">BIO_set_retry_write</a>(<a href="#88">bio</a>);
             }
-            <a href="../../../src/openssl/ssl/bio.rs.html#91">state</a>.error = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#96">err</a>);
+            <a href="#91">state</a>.error = <span class="prelude-val">Some</span>(<a href="#96">err</a>);
             -<span class="number">1
         </span>}
         <span class="prelude-val">Err</span>(err) =&gt; {
-            <a href="../../../src/openssl/ssl/bio.rs.html#91">state</a>.panic = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#103">err</a>);
+            <a href="#91">state</a>.panic = <span class="prelude-val">Some</span>(<a href="#103">err</a>);
             -<span class="number">1
         </span>}
     }
 }
 
 <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>bread&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, buf: <span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, len: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../../openssl_sys/bio/fn.BIO_clear_retry_flags.html">BIO_clear_retry_flags</a>(<a href="../../../src/openssl/ssl/bio.rs.html#110">bio</a>);
+    <a href="../../../openssl_sys/bio/fn.BIO_clear_retry_flags.html">BIO_clear_retry_flags</a>(<a href="#110">bio</a>);
 
-    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#110">bio</a>);
-    <span class="kw">let </span>buf = slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/bio.rs.html#110">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="../../../src/openssl/ssl/bio.rs.html#110">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="#110">bio</a>);
+    <span class="kw">let </span>buf = slice::from_raw_parts_mut(<a href="#110">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="#110">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-    <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="../../../src/openssl/ssl/bio.rs.html#113">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/openssl/ssl/bio.rs.html#114">buf</a>))) {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="../../../src/openssl/ssl/bio.rs.html#117">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="#113">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#114">buf</a>))) {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="#117">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
             <span class="kw">if </span>retriable_error(<span class="kw-2">&amp;</span>err) {
-                <a href="../../../openssl_sys/bio/fn.BIO_set_retry_read.html">BIO_set_retry_read</a>(<a href="../../../src/openssl/ssl/bio.rs.html#110">bio</a>);
+                <a href="../../../openssl_sys/bio/fn.BIO_set_retry_read.html">BIO_set_retry_read</a>(<a href="#110">bio</a>);
             }
-            <a href="../../../src/openssl/ssl/bio.rs.html#113">state</a>.error = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#118">err</a>);
+            <a href="#113">state</a>.error = <span class="prelude-val">Some</span>(<a href="#118">err</a>);
             -<span class="number">1
         </span>}
         <span class="prelude-val">Err</span>(err) =&gt; {
-            <a href="../../../src/openssl/ssl/bio.rs.html#113">state</a>.panic = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#125">err</a>);
+            <a href="#113">state</a>.panic = <span class="prelude-val">Some</span>(<a href="#125">err</a>);
             -<span class="number">1
         </span>}
     }
@@ -421,14 +421,14 @@
 
 <span class="attribute">#[allow(clippy::match_like_matches_macro)] </span><span class="comment">// matches macro requires rust 1.42.0
 </span><span class="kw">fn </span>retriable_error(err: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="../../../src/openssl/ssl/bio.rs.html#133">err</a>.kind() {
+    <span class="kw">match </span><a href="#133">err</a>.kind() {
         io::ErrorKind::WouldBlock | io::ErrorKind::NotConnected =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>bputs&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>, s: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-    bwrite::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#140">bio</a>, <a href="../../../src/openssl/ssl/bio.rs.html#140">s</a>, <a href="../../../libc/unix/fn.strlen.html">strlen</a>(<a href="../../../src/openssl/ssl/bio.rs.html#140">s</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>)
+    bwrite::&lt;S&gt;(<a href="#140">bio</a>, <a href="#140">s</a>, <a href="../../../libc/unix/fn.strlen.html">strlen</a>(<a href="#140">s</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>)
 }
 
 <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>ctrl&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(
@@ -437,32 +437,32 @@
     _num: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
     _ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="../../../src/openssl/ssl/bio.rs.html#145">bio</a>);
+    <span class="kw">let </span>state = state::&lt;S&gt;(<a href="#145">bio</a>);
 
     <span class="kw">if </span>cmd == BIO_CTRL_FLUSH {
-        <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="../../../src/openssl/ssl/bio.rs.html#150">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())) {
+        <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="#150">state</a>.stream.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>())) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(())) =&gt; <span class="number">1</span>,
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
-                <a href="../../../src/openssl/ssl/bio.rs.html#150">state</a>.error = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#155">err</a>);
+                <a href="#150">state</a>.error = <span class="prelude-val">Some</span>(<a href="#155">err</a>);
                 <span class="number">0
             </span>}
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <a href="../../../src/openssl/ssl/bio.rs.html#150">state</a>.panic = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/bio.rs.html#159">err</a>);
+                <a href="#150">state</a>.panic = <span class="prelude-val">Some</span>(<a href="#159">err</a>);
                 <span class="number">0
             </span>}
         }
     } <span class="kw">else if </span>cmd == BIO_CTRL_DGRAM_QUERY_MTU {
-        <a href="../../../src/openssl/ssl/bio.rs.html#150">state</a>.dtls_mtu_size
+        <a href="#150">state</a>.dtls_mtu_size
     } <span class="kw">else </span>{
         <span class="number">0
     </span>}
 }
 
 <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>create(bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">BIO</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="../../../src/openssl/ssl/bio.rs.html#171">bio</a>, <span class="number">0</span>);
-    <a href="../../../src/openssl/ssl/bio.rs.html#198">BIO_set_num</a>(<a href="../../../src/openssl/ssl/bio.rs.html#171">bio</a>, <span class="number">0</span>);
-    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#171">bio</a>, ptr::null_mut());
-    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_flags.html">BIO_set_flags</a>(<a href="../../../src/openssl/ssl/bio.rs.html#171">bio</a>, <span class="number">0</span>);
+    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="#171">bio</a>, <span class="number">0</span>);
+    <a href="#198">BIO_set_num</a>(<a href="#171">bio</a>, <span class="number">0</span>);
+    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="#171">bio</a>, ptr::null_mut());
+    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_flags.html">BIO_set_flags</a>(<a href="#171">bio</a>, <span class="number">0</span>);
     <span class="number">1
 </span>}
 
@@ -471,18 +471,18 @@
         <span class="kw">return </span><span class="number">0</span>;
     }
 
-    <span class="kw">let </span>data = <a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#179">bio</a>);
+    <span class="kw">let </span>data = <a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>(<a href="#179">bio</a>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!data.is_null());
-    Box::&lt;StreamState&lt;S&gt;&gt;::from_raw(<a href="../../../src/openssl/ssl/bio.rs.html#184">data</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
-    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="../../../src/openssl/ssl/bio.rs.html#179">bio</a>, ptr::null_mut());
-    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="../../../src/openssl/ssl/bio.rs.html#179">bio</a>, <span class="number">0</span>);
+    Box::&lt;StreamState&lt;S&gt;&gt;::from_raw(<a href="#184">data</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>(<a href="#179">bio</a>, ptr::null_mut());
+    <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>(<a href="#179">bio</a>, <span class="number">0</span>);
     <span class="number">1
 </span>}
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl273))] </span>{
         <span class="kw">use </span>ffi::{<a href="../../../openssl_sys/handwritten/bio/fn.BIO_get_data.html">BIO_get_data</a>, <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_data.html">BIO_set_data</a>, <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_flags.html">BIO_set_flags</a>, <a href="../../../openssl_sys/handwritten/bio/fn.BIO_set_init.html">BIO_set_init</a>};
-        <span class="kw">use </span><a href="../../../src/openssl/lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
+        <span class="kw">use </span><a href="../lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
 
         <span class="attribute">#[allow(bad_style)]
         </span><span class="kw">unsafe fn </span>BIO_set_num(_bio: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>, _num: <a href="../../../libc/unix/type.c_int.html">c_int</a>) {}
@@ -490,30 +490,30 @@
         <span class="attribute">#[allow(bad_style, clippy::upper_case_acronyms)]
         </span><span class="kw">struct </span>BIO_METHOD(<span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/bio/enum.BIO_METHOD.html">ffi::BIO_METHOD</a>);
 
-        <span class="kw">impl </span><a href="../../../src/openssl/ssl/bio.rs.html#201">BIO_METHOD</a> {
-            <span class="kw">fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/bio.rs.html#201">BIO_METHOD</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">impl </span><a href="#201">BIO_METHOD</a> {
+            <span class="kw">fn </span>new&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#201">BIO_METHOD</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
                 <span class="kw">unsafe </span>{
                     <span class="kw">let </span>ptr = cvt_p(ffi::BIO_meth_new(ffi::BIO_TYPE_NONE, <span class="string">b&quot;rust\0&quot;</span>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>method = <a href="../../../src/openssl/ssl/bio.rs.html#201">BIO_METHOD</a>(<a href="../../../src/openssl/ssl/bio.rs.html#206">ptr</a>);
+                    <span class="kw">let </span>method = <a href="#201">BIO_METHOD</a>(<a href="#206">ptr</a>);
                     cvt(ffi::BIO_meth_set_write__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(bwrite::&lt;S&gt;)))<span class="question-mark">?</span>;
                     cvt(ffi::BIO_meth_set_read__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(bread::&lt;S&gt;)))<span class="question-mark">?</span>;
                     cvt(ffi::BIO_meth_set_puts__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(bputs::&lt;S&gt;)))<span class="question-mark">?</span>;
                     cvt(ffi::BIO_meth_set_ctrl__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(ctrl::&lt;S&gt;)))<span class="question-mark">?</span>;
                     cvt(ffi::BIO_meth_set_create__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(create)))<span class="question-mark">?</span>;
                     cvt(ffi::BIO_meth_set_destroy__fixed_rust(method.<span class="number">0</span>, <span class="prelude-val">Some</span>(destroy::&lt;S&gt;)))<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/bio.rs.html#207">method</a>)
+                    <span class="prelude-val">Ok</span>(<a href="#207">method</a>)
                 }
             }
 
             <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/bio/enum.BIO_METHOD.html">ffi::BIO_METHOD</a> {
-                <a class="self" href="../../../src/openssl/ssl/bio.rs.html#218">self</a>.<span class="number">0
+                <a class="self" href="#218">self</a>.<span class="number">0
             </span>}
         }
 
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/bio.rs.html#201">BIO_METHOD</a> {
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#201">BIO_METHOD</a> {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">unsafe </span>{
-                    ffi::BIO_meth_free(<a class="self" href="../../../src/openssl/ssl/bio.rs.html#224">self</a>.<span class="number">0</span>);
+                    ffi::BIO_meth_free(<a class="self" href="#224">self</a>.<span class="number">0</span>);
                 }
             }
         }
@@ -579,4 +579,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -79,28 +79,28 @@
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>&gt; CatchUnwind&lt;St&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#20">stream</a>, caught_unwind: <span class="bool-val">false </span>}
+        <span class="self">Self </span>{ <a href="#20">stream</a>, caught_unwind: <span class="bool-val">false </span>}
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
+    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>CatchUnwind&lt;St&gt; {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;St::Item, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#30">self</a>.<a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#8-17">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#30">self</a>.<a href="#8-17">project</a>();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.caught_unwind {
             Poll::Ready(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#31">this</a>.stream.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#30">cx</a>)));
+            <span class="kw">let </span>res = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(AssertUnwindSafe(|| <a href="#31">this</a>.stream.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="#30">cx</a>)));
 
-            <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#36">res</a> {
-                <span class="prelude-val">Ok</span>(poll) =&gt; <a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#39">poll</a>.map(|opt| <a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#39">opt</a>.map(<span class="prelude-val">Ok</span>)),
+            <span class="kw">match </span><a href="#36">res</a> {
+                <span class="prelude-val">Ok</span>(poll) =&gt; <a href="#39">poll</a>.map(|opt| <a href="#39">opt</a>.map(<span class="prelude-val">Ok</span>)),
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#31">this</a>.caught_unwind = <span class="bool-val">true</span>;
-                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#40">e</a>)))
+                    <span class="kw-2">*</span><a href="#31">this</a>.caught_unwind = <span class="bool-val">true</span>;
+                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#40">e</a>)))
                 }
             }
         }
@@ -110,15 +110,15 @@
         <span class="kw">if </span><span class="self">self</span>.caught_unwind {
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
         } <span class="kw">else </span>{
-            <a class="self" href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#48">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
+            <a class="self" href="#48">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
         }
     }
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>CatchUnwind&lt;St&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#58">self</a>.caught_unwind || <a class="self" href="../../../../src/futures_util/stream/stream/catch_unwind.rs.html#58">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+        <a class="self" href="#58">self</a>.caught_unwind || <a class="self" href="#58">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -767,7 +767,7 @@
 
 <span class="kw">use </span><a href="../../event_listener/struct.Event.html">event_listener::Event</a>;
 
-<span class="kw">use crate</span>::{<a href="../../src/async_lock/mutex.rs.html#38">Mutex</a>, <a href="../../src/async_lock/mutex.rs.html#356">MutexGuard</a>};
+<span class="kw">use crate</span>::{<a href="mutex.rs.html#38">Mutex</a>, <a href="mutex.rs.html#356">MutexGuard</a>};
 
 <span class="kw">const </span>WRITER_BIT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
 <span class="kw">const </span>ONE_READER: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
@@ -837,12 +837,12 @@
     /// let lock = RwLock::new(0);
     /// ```
     </span><span class="kw">pub const fn </span>new(t: T) -&gt; RwLock&lt;T&gt; {
-        <a href="../../src/async_lock/rwlock.rs.html#43">RwLock</a> {
+        <a href="#43">RwLock</a> {
             mutex: Mutex::new(()),
             no_readers: Event::new(),
             no_writer: Event::new(),
             state: AtomicUsize::new(<span class="number">0</span>),
-            value: UnsafeCell::new(<a href="../../src/async_lock/rwlock.rs.html#79">t</a>),
+            value: UnsafeCell::new(<a href="#79">t</a>),
         }
     }
 
@@ -857,7 +857,7 @@
     /// assert_eq!(lock.into_inner(), 5);
     /// ```
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../src/async_lock/rwlock.rs.html#99">self</a>.value.into_inner()
+        <a class="self" href="#99">self</a>.value.into_inner()
     }
 }
 
@@ -882,7 +882,7 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/async_lock/rwlock.rs.html#124">self</a>.state.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#124">self</a>.state.load(Ordering::Acquire);
 
         <span class="kw">loop </span>{
             <span class="comment">// If there&#39;s a writer holding the lock or attempting to acquire it, we cannot acquire
@@ -897,14 +897,14 @@
             }
 
             <span class="comment">// Increment the number of readers.
-            </span><span class="kw">match </span><a class="self" href="../../src/async_lock/rwlock.rs.html#124">self</a>.state.compare_exchange(
-                <a href="../../src/async_lock/rwlock.rs.html#125">state</a>,
-                <a href="../../src/async_lock/rwlock.rs.html#125">state</a> + <a href="../../src/async_lock/rwlock.rs.html#13">ONE_READER</a>,
+            </span><span class="kw">match </span><a class="self" href="#124">self</a>.state.compare_exchange(
+                <a href="#125">state</a>,
+                <a href="#125">state</a> + <a href="#13">ONE_READER</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/async_lock/rwlock.rs.html#452">RwLockReadGuard</a>(<a class="self" href="../../src/async_lock/rwlock.rs.html#124">self</a>)),
-                <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_lock/rwlock.rs.html#125">state</a> = <a href="../../src/async_lock/rwlock.rs.html#147">s</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#452">RwLockReadGuard</a>(<a class="self" href="#124">self</a>)),
+                <span class="prelude-val">Err</span>(s) =&gt; <a href="#125">state</a> = <a href="#147">s</a>,
             }
         }
     }
@@ -997,7 +997,7 @@
         <span class="comment">// First try grabbing the mutex.
         </span><span class="kw">let </span>lock = <span class="self">self</span>.mutex.try_lock()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/async_lock/rwlock.rs.html#236">self</a>.state.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#236">self</a>.state.load(Ordering::Acquire);
 
         <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
         </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
@@ -1006,19 +1006,19 @@
 
         <span class="comment">// Increment the number of readers.
         </span><span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="../../src/async_lock/rwlock.rs.html#236">self</a>.state.compare_exchange(
-                <a href="../../src/async_lock/rwlock.rs.html#240">state</a>,
-                <a href="../../src/async_lock/rwlock.rs.html#240">state</a> + <a href="../../src/async_lock/rwlock.rs.html#13">ONE_READER</a>,
+            <span class="kw">match </span><a class="self" href="#236">self</a>.state.compare_exchange(
+                <a href="#240">state</a>,
+                <a href="#240">state</a> + <a href="#13">ONE_READER</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../src/async_lock/rwlock.rs.html#488">RwLockUpgradableReadGuard</a> {
-                        reader: <a href="../../src/async_lock/rwlock.rs.html#452">RwLockReadGuard</a>(<a class="self" href="../../src/async_lock/rwlock.rs.html#236">self</a>),
-                        reserved: <a href="../../src/async_lock/rwlock.rs.html#238">lock</a>,
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#488">RwLockUpgradableReadGuard</a> {
+                        reader: <a href="#452">RwLockReadGuard</a>(<a class="self" href="#236">self</a>),
+                        reserved: <a href="#238">lock</a>,
                     })
                 }
-                <span class="prelude-val">Err</span>(s) =&gt; <a href="../../src/async_lock/rwlock.rs.html#240">state</a> = <a href="../../src/async_lock/rwlock.rs.html#261">s</a>,
+                <span class="prelude-val">Err</span>(s) =&gt; <a href="#240">state</a> = <a href="#261">s</a>,
             }
         }
     }
@@ -1107,9 +1107,9 @@
             .compare_exchange(<span class="number">0</span>, WRITER_BIT, Ordering::AcqRel, Ordering::Acquire)
             .is_ok()
         {
-            <span class="prelude-val">Some</span>(<a href="../../src/async_lock/rwlock.rs.html#647">RwLockWriteGuard</a> {
-                writer: <a href="../../src/async_lock/rwlock.rs.html#635">RwLockWriteGuardInner</a>(<a class="self" href="../../src/async_lock/rwlock.rs.html#340">self</a>),
-                reserved: <a href="../../src/async_lock/rwlock.rs.html#342">lock</a>,
+            <span class="prelude-val">Some</span>(<a href="#647">RwLockWriteGuard</a> {
+                writer: <a href="#635">RwLockWriteGuardInner</a>(<a class="self" href="#340">self</a>),
+                reserved: <a href="#342">lock</a>,
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -1176,29 +1176,29 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/async_lock/rwlock.rs.html#418">self</a>.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#418">self</a>.value.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RwLock&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">struct </span>Locked;
-        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/async_lock/rwlock.rs.html#425">Locked</a> {
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#425">Locked</a> {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a href="../../src/async_lock/rwlock.rs.html#427">f</a>.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
+                <a href="#427">f</a>.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
             }
         }
 
-        <span class="kw">match </span><a class="self" href="../../src/async_lock/rwlock.rs.html#424">self</a>.<a href="../../src/async_lock/rwlock.rs.html#124">try_read</a>() {
-            <span class="prelude-val">None </span>=&gt; <a href="../../src/async_lock/rwlock.rs.html#424">f</a>.debug_struct(<span class="string">&quot;RwLock&quot;</span>).field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/async_lock/rwlock.rs.html#425">Locked</a>).finish(),
-            <span class="prelude-val">Some</span>(guard) =&gt; <a href="../../src/async_lock/rwlock.rs.html#424">f</a>.debug_struct(<span class="string">&quot;RwLock&quot;</span>).field(<span class="string">&quot;value&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="../../src/async_lock/rwlock.rs.html#434">guard</a>).finish(),
+        <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#124">try_read</a>() {
+            <span class="prelude-val">None </span>=&gt; <a href="#424">f</a>.debug_struct(<span class="string">&quot;RwLock&quot;</span>).field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a href="#425">Locked</a>).finish(),
+            <span class="prelude-val">Some</span>(guard) =&gt; <a href="#424">f</a>.debug_struct(<span class="string">&quot;RwLock&quot;</span>).field(<span class="string">&quot;value&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="#434">guard</a>).finish(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>RwLock&lt;T&gt; {
     <span class="kw">fn </span>from(val: T) -&gt; RwLock&lt;T&gt; {
-        RwLock::new(<a href="../../src/async_lock/rwlock.rs.html#440">val</a>)
+        RwLock::new(<a href="#440">val</a>)
     }
 }
 
@@ -1219,20 +1219,20 @@
         <span class="comment">// Decrement the number of readers.
         </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.state.fetch_sub(ONE_READER, Ordering::SeqCst) &amp; !WRITER_BIT == ONE_READER {
             <span class="comment">// If this was the last reader, trigger the &quot;no readers&quot; event.
-            </span><a class="self" href="../../src/async_lock/rwlock.rs.html#458">self</a>.<span class="number">0</span>.no_readers.notify(<span class="number">1</span>);
+            </span><a class="self" href="#458">self</a>.<span class="number">0</span>.no_readers.notify(<span class="number">1</span>);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#468">self</a>, <a href="../../src/async_lock/rwlock.rs.html#468">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#468">self</a>, <a href="#468">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#474">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/async_lock/rwlock.rs.html#474">f</a>)
+        (<span class="kw-2">**</span><a class="self" href="#474">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#474">f</a>)
     }
 }
 
@@ -1240,7 +1240,7 @@
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../src/async_lock/rwlock.rs.html#482">self</a>.<span class="number">0</span>.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#482">self</a>.<span class="number">0</span>.value.get() }
     }
 }
 
@@ -1256,12 +1256,12 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Converts this guard into a writer guard.
     </span><span class="kw">fn </span>into_writer(<span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="kw">let </span>writer = <a href="../../src/async_lock/rwlock.rs.html#647">RwLockWriteGuard</a> {
-            writer: <a href="../../src/async_lock/rwlock.rs.html#635">RwLockWriteGuardInner</a>(<a class="self" href="../../src/async_lock/rwlock.rs.html#498">self</a>.reader.<span class="number">0</span>),
-            reserved: <a class="self" href="../../src/async_lock/rwlock.rs.html#498">self</a>.reserved,
+        <span class="kw">let </span>writer = <a href="#647">RwLockWriteGuard</a> {
+            writer: <a href="#635">RwLockWriteGuardInner</a>(<a class="self" href="#498">self</a>.reader.<span class="number">0</span>),
+            reserved: <a class="self" href="#498">self</a>.reserved,
         };
-        mem::forget(<a class="self" href="../../src/async_lock/rwlock.rs.html#498">self</a>.reader);
-        <a href="../../src/async_lock/rwlock.rs.html#499">writer</a>
+        mem::forget(<a class="self" href="#498">self</a>.reader);
+        <a href="#499">writer</a>
     }
 
     <span class="doccomment">/// Downgrades into a regular reader guard.
@@ -1285,7 +1285,7 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <a href="../../src/async_lock/rwlock.rs.html#527">guard</a>.reader
+        <a href="#527">guard</a>.reader
     }
 
     <span class="doccomment">/// Attempts to upgrade into a write lock.
@@ -1322,9 +1322,9 @@
             .compare_exchange(ONE_READER, WRITER_BIT, Ordering::AcqRel, Ordering::Acquire)
             .is_ok()
         {
-            <span class="prelude-val">Ok</span>(<a href="../../src/async_lock/rwlock.rs.html#556">guard</a>.<a href="../../src/async_lock/rwlock.rs.html#498">into_writer</a>())
+            <span class="prelude-val">Ok</span>(<a href="#556">guard</a>.<a href="#498">into_writer</a>())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../src/async_lock/rwlock.rs.html#556">guard</a>)
+            <span class="prelude-val">Err</span>(<a href="#556">guard</a>)
         }
     }
 
@@ -1374,13 +1374,13 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#616">self</a>, <a href="../../src/async_lock/rwlock.rs.html#616">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#616">self</a>, <a href="#616">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#622">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/async_lock/rwlock.rs.html#622">f</a>)
+        (<span class="kw-2">**</span><a class="self" href="#622">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#622">f</a>)
     }
 }
 
@@ -1388,7 +1388,7 @@
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../src/async_lock/rwlock.rs.html#630">self</a>.reader.<span class="number">0</span>.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#630">self</a>.reader.<span class="number">0</span>.value.get() }
     }
 }
 
@@ -1397,9 +1397,9 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>RwLockWriteGuardInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Unset `WRITER_BIT`.
-        </span><a class="self" href="../../src/async_lock/rwlock.rs.html#638">self</a>.<span class="number">0</span>.state.fetch_and(!<a href="../../src/async_lock/rwlock.rs.html#12">WRITER_BIT</a>, Ordering::SeqCst);
+        </span><a class="self" href="#638">self</a>.<span class="number">0</span>.state.fetch_and(!<a href="#12">WRITER_BIT</a>, Ordering::SeqCst);
         <span class="comment">// Trigger the &quot;no writer&quot; event.
-        </span><a class="self" href="../../src/async_lock/rwlock.rs.html#638">self</a>.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
+        </span><a class="self" href="#638">self</a>.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
     }
 }
 
@@ -1436,19 +1436,19 @@
     /// ```
     </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
         <span class="comment">// Atomically downgrade state.
-        </span><a href="../../src/async_lock/rwlock.rs.html#677">guard</a>
+        </span><a href="#677">guard</a>
             .writer
             .<span class="number">0
             </span>.state
-            .fetch_add(<a href="../../src/async_lock/rwlock.rs.html#13">ONE_READER</a> - <a href="../../src/async_lock/rwlock.rs.html#12">WRITER_BIT</a>, Ordering::SeqCst);
+            .fetch_add(<a href="#13">ONE_READER</a> - <a href="#12">WRITER_BIT</a>, Ordering::SeqCst);
 
         <span class="comment">// Trigger the &quot;no writer&quot; event.
-        </span><a href="../../src/async_lock/rwlock.rs.html#677">guard</a>.writer.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
+        </span><a href="#677">guard</a>.writer.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
 
         <span class="comment">// Convert into a read guard and return.
-        </span><span class="kw">let </span>new_guard = <a href="../../src/async_lock/rwlock.rs.html#452">RwLockReadGuard</a>(<a href="../../src/async_lock/rwlock.rs.html#677">guard</a>.writer.<span class="number">0</span>);
-        mem::forget(<a href="../../src/async_lock/rwlock.rs.html#677">guard</a>.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
-        </span><a href="../../src/async_lock/rwlock.rs.html#689">new_guard</a>
+        </span><span class="kw">let </span>new_guard = <a href="#452">RwLockReadGuard</a>(<a href="#677">guard</a>.writer.<span class="number">0</span>);
+        mem::forget(<a href="#677">guard</a>.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
+        </span><a href="#689">new_guard</a>
     }
 
     <span class="doccomment">/// Downgrades into an upgradable reader guard.
@@ -1477,31 +1477,31 @@
     /// ```
     </span><span class="kw">pub fn </span>downgrade_to_upgradable(guard: <span class="self">Self</span>) -&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
         <span class="comment">// Atomically downgrade state.
-        </span><a href="../../src/async_lock/rwlock.rs.html#718">guard</a>
+        </span><a href="#718">guard</a>
             .writer
             .<span class="number">0
             </span>.state
-            .fetch_add(<a href="../../src/async_lock/rwlock.rs.html#13">ONE_READER</a> - <a href="../../src/async_lock/rwlock.rs.html#12">WRITER_BIT</a>, Ordering::SeqCst);
+            .fetch_add(<a href="#13">ONE_READER</a> - <a href="#12">WRITER_BIT</a>, Ordering::SeqCst);
 
         <span class="comment">// Convert into an upgradable read guard and return.
-        </span><span class="kw">let </span>new_guard = <a href="../../src/async_lock/rwlock.rs.html#488">RwLockUpgradableReadGuard</a> {
-            reader: <a href="../../src/async_lock/rwlock.rs.html#452">RwLockReadGuard</a>(<a href="../../src/async_lock/rwlock.rs.html#718">guard</a>.writer.<span class="number">0</span>),
-            reserved: <a href="../../src/async_lock/rwlock.rs.html#718">guard</a>.reserved,
+        </span><span class="kw">let </span>new_guard = <a href="#488">RwLockUpgradableReadGuard</a> {
+            reader: <a href="#452">RwLockReadGuard</a>(<a href="#718">guard</a>.writer.<span class="number">0</span>),
+            reserved: <a href="#718">guard</a>.reserved,
         };
-        mem::forget(<a href="../../src/async_lock/rwlock.rs.html#718">guard</a>.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
-        </span><a href="../../src/async_lock/rwlock.rs.html#727">new_guard</a>
+        mem::forget(<a href="#718">guard</a>.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
+        </span><a href="#727">new_guard</a>
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#737">self</a>, <a href="../../src/async_lock/rwlock.rs.html#737">f</a>)
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="#737">self</a>, <a href="#737">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../src/async_lock/rwlock.rs.html#743">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/async_lock/rwlock.rs.html#743">f</a>)
+        (<span class="kw-2">**</span><a class="self" href="#743">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#743">f</a>)
     }
 }
 
@@ -1509,14 +1509,14 @@
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../src/async_lock/rwlock.rs.html#751">self</a>.writer.<span class="number">0</span>.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="#751">self</a>.writer.<span class="number">0</span>.value.get() }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/async_lock/rwlock.rs.html#757">self</a>.writer.<span class="number">0</span>.value.get() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="#757">self</a>.writer.<span class="number">0</span>.value.get() }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

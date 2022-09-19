@@ -239,63 +239,63 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
 </span><span class="kw">use </span><a href="../../../attohttpc/struct.Method.html">http::Method</a>;
 
-<span class="kw">use </span><a href="../../../src/attohttpc/error.rs.html#243"><span class="kw">crate</span>::error::Result</a>;
-<span class="kw">use </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10"><span class="kw">crate</span>::parsing::body_reader::BodyReader</a>;
-<span class="kw">use </span><a href="../../../src/attohttpc/request/mod.rs.html#65"><span class="kw">crate</span>::request::PreparedRequest</a>;
+<span class="kw">use </span><a href="../error.rs.html#243"><span class="kw">crate</span>::error::Result</a>;
+<span class="kw">use </span><a href="body_reader.rs.html#10"><span class="kw">crate</span>::parsing::body_reader::BodyReader</a>;
+<span class="kw">use </span><a href="../request/mod.rs.html#65"><span class="kw">crate</span>::request::PreparedRequest</a>;
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>CompressedReader {
-    Plain(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>),
+    Plain(<a href="body_reader.rs.html#10">BodyReader</a>),
     <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
-    </span>Deflate(DeflateDecoder&lt;<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>&gt;),
+    </span>Deflate(DeflateDecoder&lt;<a href="body_reader.rs.html#10">BodyReader</a>&gt;),
     <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
-    </span>Gzip(GzDecoder&lt;<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>&gt;),
+    </span>Gzip(GzDecoder&lt;<a href="body_reader.rs.html#10">BodyReader</a>&gt;),
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
 </span><span class="kw">fn </span>have_encoding_item(value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, enc: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#25">value</a>.split(<span class="string">&#39;,&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#26">s</a>.trim()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#26">s</a>.eq_ignore_ascii_case(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#25">enc</a>))
+    <a href="#25">value</a>.split(<span class="string">&#39;,&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#26">s</a>.trim()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#26">s</a>.eq_ignore_ascii_case(<a href="#25">enc</a>))
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
 </span><span class="kw">fn </span>have_encoding_content_encoding(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, enc: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#30">headers</a>
+    <a href="#30">headers</a>
         .get_all(<a href="../../../attohttpc/header/constant.CONTENT_ENCODING.html">CONTENT_ENCODING</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#34">val</a>.to_str().ok())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#25">have_encoding_item</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#35">val</a>, <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#30">enc</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="#34">val</a>.to_str().ok())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| <a href="#25">have_encoding_item</a>(<a href="#35">val</a>, <a href="#30">enc</a>))
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
 </span><span class="kw">fn </span>have_encoding_transfer_encoding(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, enc: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#39">headers</a>
+    <a href="#39">headers</a>
         .get_all(<a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#43">val</a>.to_str().ok())
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#25">have_encoding_item</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#44">val</a>, <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#39">enc</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="#43">val</a>.to_str().ok())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| <a href="#25">have_encoding_item</a>(<a href="#44">val</a>, <a href="#39">enc</a>))
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
 </span><span class="kw">fn </span>have_encoding(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, enc: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#30">have_encoding_content_encoding</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#48">headers</a>, <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#48">enc</a>) || <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#39">have_encoding_transfer_encoding</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#48">headers</a>, <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#48">enc</a>)
+    <a href="#30">have_encoding_content_encoding</a>(<a href="#48">headers</a>, <a href="#48">enc</a>) || <a href="#39">have_encoding_transfer_encoding</a>(<a href="#48">headers</a>, <a href="#48">enc</a>)
 }
 
-<span class="kw">impl </span><a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#16">CompressedReader</a> {
+<span class="kw">impl </span><a href="#16">CompressedReader</a> {
     <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
-    </span><span class="kw">pub fn </span>new&lt;B&gt;(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, request: <span class="kw-2">&amp;</span>PreparedRequest&lt;B&gt;, reader: <a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#16">CompressedReader</a>&gt; {
+    </span><span class="kw">pub fn </span>new&lt;B&gt;(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, request: <span class="kw-2">&amp;</span>PreparedRequest&lt;B&gt;, reader: <a href="body_reader.rs.html#10">BodyReader</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#16">CompressedReader</a>&gt; {
         <span class="kw">if </span>request.method() != Method::HEAD {
             <span class="kw">if </span>have_encoding(headers, <span class="string">&quot;gzip&quot;</span>) {
-                <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating gzip decoder&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#21">CompressedReader::Gzip</a>(GzDecoder::new(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#54">reader</a>)));
+                <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating gzip decoder&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#21">CompressedReader::Gzip</a>(GzDecoder::new(<a href="#54">reader</a>)));
             }
 
             <span class="kw">if </span>have_encoding(headers, <span class="string">&quot;deflate&quot;</span>) {
-                <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating deflate decoder&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#19">CompressedReader::Deflate</a>(DeflateDecoder::new(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#54">reader</a>)));
+                <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating deflate decoder&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#19">CompressedReader::Deflate</a>(DeflateDecoder::new(<a href="#54">reader</a>)));
             }
         }
-        <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating plain reader&quot;</span>);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#17">CompressedReader::Plain</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#54">reader</a>))
+        <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating plain reader&quot;</span>);
+        <span class="prelude-val">Ok</span>(<a href="#17">CompressedReader::Plain</a>(<a href="#54">reader</a>))
     }
 
     <span class="attribute">#[cfg(not(feature = <span class="string">&quot;compress&quot;</span>))]
@@ -304,16 +304,16 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#16">CompressedReader</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#16">CompressedReader</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="comment">// TODO: gzip does not read until EOF, leaving some data in the buffer.
-        </span><span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#78">self</a> </span>{
-            <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#17">CompressedReader::Plain</a>(s) =&gt; <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#81">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#78">buf</a>),
+        </span><span class="kw">match </span><span class="self"><a href="#78">self</a> </span>{
+            <a href="#17">CompressedReader::Plain</a>(s) =&gt; <a href="#81">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#78">buf</a>),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
-            </span><a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#19">CompressedReader::Deflate</a>(s) =&gt; <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#83">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#78">buf</a>),
+            </span><a href="#19">CompressedReader::Deflate</a>(s) =&gt; <a href="#83">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#78">buf</a>),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
-            </span><a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#21">CompressedReader::Gzip</a>(s) =&gt; <a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#85">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/compressed_reader.rs.html#78">buf</a>),
+            </span><a href="#21">CompressedReader::Gzip</a>(s) =&gt; <a href="#85">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#78">buf</a>),
         }
     }
 }
@@ -461,4 +461,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

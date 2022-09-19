@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/async_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/io/async_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -568,11 +568,11 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
-        <span class="kw">let </span>buf = <a href="../../../src/tokio/io/async_write.rs.html#161">bufs</a>
+        <span class="kw">let </span>buf = <a href="#161">bufs</a>
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|b| !<a href="../../../src/tokio/io/async_write.rs.html#165">b</a>.is_empty())
-            .map_or(<span class="kw-2">&amp;</span>[][..], |b| <span class="kw-2">&amp;**</span><a href="../../../src/tokio/io/async_write.rs.html#166">b</a>);
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#159">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a href="../../../src/tokio/io/async_write.rs.html#160">cx</a>, <a href="../../../src/tokio/io/async_write.rs.html#163">buf</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|b| !<a href="#165">b</a>.is_empty())
+            .map_or(<span class="kw-2">&amp;</span>[][..], |b| <span class="kw-2">&amp;**</span><a href="#166">b</a>);
+        <a class="self" href="#159">self</a>.<a href="#58-62">poll_write</a>(<a href="#160">cx</a>, <a href="#163">buf</a>)
     }
 
     <span class="doccomment">/// Determines if this writer has an efficient [`poll_write_vectored`]
@@ -622,25 +622,25 @@
     };
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>Box&lt;T&gt; {
-    <a class="macro" href="../../../src/tokio/io/async_write.rs.html#185-215">deref_async_write!</a>();
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#45">AsyncWrite</a> <span class="kw">for </span>Box&lt;T&gt; {
+    <a class="macro" href="#185-215">deref_async_write!</a>();
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
-    <a class="macro" href="../../../src/tokio/io/async_write.rs.html#185-215">deref_async_write!</a>();
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="#45">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="#45">AsyncWrite</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
+    <a class="macro" href="#185-215">deref_async_write!</a>();
 }
 
-<span class="kw">impl</span>&lt;P&gt; <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>Pin&lt;P&gt;
+<span class="kw">impl</span>&lt;P&gt; <a href="#45">AsyncWrite</a> <span class="kw">for </span>Pin&lt;P&gt;
 <span class="kw">where
     </span>P: <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    P::Target: <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>,
+    P::Target: <a href="#45">AsyncWrite</a>,
 {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#231">self</a>.get_mut().as_mut().<a href="../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a href="../../../src/tokio/io/async_write.rs.html#232">cx</a>, <a href="../../../src/tokio/io/async_write.rs.html#233">buf</a>)
+        <a class="self" href="#231">self</a>.get_mut().as_mut().<a href="#58-62">poll_write</a>(<a href="#232">cx</a>, <a href="#233">buf</a>)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -648,30 +648,30 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#239">self</a>.get_mut().as_mut().<a href="../../../src/tokio/io/async_write.rs.html#158-162">poll_write_vectored</a>(<a href="../../../src/tokio/io/async_write.rs.html#240">cx</a>, <a href="../../../src/tokio/io/async_write.rs.html#241">bufs</a>)
+        <a class="self" href="#239">self</a>.get_mut().as_mut().<a href="#158-162">poll_write_vectored</a>(<a href="#240">cx</a>, <a href="#241">bufs</a>)
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<span class="kw-2">**</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#246">self</a>).<a href="../../../src/tokio/io/async_write.rs.html#180">is_write_vectored</a>()
+        (<span class="kw-2">**</span><a class="self" href="#246">self</a>).<a href="#180">is_write_vectored</a>()
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#250">self</a>.get_mut().as_mut().<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/async_write.rs.html#250">cx</a>)
+        <a class="self" href="#250">self</a>.get_mut().as_mut().<a href="#73">poll_flush</a>(<a href="#250">cx</a>)
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#254">self</a>.get_mut().as_mut().<a href="../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a href="../../../src/tokio/io/async_write.rs.html#254">cx</a>)
+        <a class="self" href="#254">self</a>.get_mut().as_mut().<a href="#133">poll_shutdown</a>(<a href="#254">cx</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+<span class="kw">impl </span><a href="#45">AsyncWrite</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#261">self</a>.get_mut().extend_from_slice(<a href="../../../src/tokio/io/async_write.rs.html#263">buf</a>);
-        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_write.rs.html#263">buf</a>.len()))
+        <a class="self" href="#261">self</a>.get_mut().extend_from_slice(<a href="#263">buf</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#263">buf</a>.len()))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -679,7 +679,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#270">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#272">bufs</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#270">self</a>, <a href="#272">bufs</a>))
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -695,13 +695,13 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+<span class="kw">impl </span><a href="#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#292">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#294">buf</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#292">self</a>, <a href="#294">buf</a>))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -709,7 +709,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#300">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#302">bufs</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#300">self</a>, <a href="#302">bufs</a>))
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -717,21 +717,21 @@
     </span>}
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#311">self</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#311">self</a>))
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#315">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/async_write.rs.html#315">cx</a>)
+        <a class="self" href="#315">self</a>.<a href="#73">poll_flush</a>(<a href="#315">cx</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+<span class="kw">impl </span><a href="#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#322">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#324">buf</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#322">self</a>, <a href="#324">buf</a>))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -739,7 +739,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#330">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#332">bufs</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#330">self</a>, <a href="#332">bufs</a>))
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -747,21 +747,21 @@
     </span>}
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#341">self</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#341">self</a>))
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#345">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/async_write.rs.html#345">cx</a>)
+        <a class="self" href="#345">self</a>.<a href="#73">poll_flush</a>(<a href="#345">cx</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+<span class="kw">impl </span><a href="#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#352">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#354">buf</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#352">self</a>, <a href="#354">buf</a>))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -769,7 +769,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#360">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#362">bufs</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#360">self</a>, <a href="#362">bufs</a>))
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -777,21 +777,21 @@
     </span>}
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#371">self</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#371">self</a>))
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#375">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/async_write.rs.html#375">cx</a>)
+        <a class="self" href="#375">self</a>.<a href="#73">poll_flush</a>(<a href="#375">cx</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+<span class="kw">impl </span><a href="#45">AsyncWrite</a> <span class="kw">for </span>io::Cursor&lt;Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#382">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#384">buf</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#382">self</a>, <a href="#384">buf</a>))
     }
 
     <span class="kw">fn </span>poll_write_vectored(
@@ -799,7 +799,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#390">self</a>, <a href="../../../src/tokio/io/async_write.rs.html#392">bufs</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::write_vectored</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#390">self</a>, <a href="#392">bufs</a>))
     }
 
     <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -807,12 +807,12 @@
     </span>}
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/async_write.rs.html#401">self</a>))
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write::flush</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#401">self</a>))
     }
 
     <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="../../../src/tokio/io/async_write.rs.html#405">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/async_write.rs.html#405">cx</a>)
+        <a class="self" href="#405">self</a>.<a href="#73">poll_flush</a>(<a href="#405">cx</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

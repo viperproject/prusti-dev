@@ -1769,10 +1769,10 @@
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">core::time::Duration</a>;
 <span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeInclusive.html">RangeInclusive</a>};
 
-<span class="kw">use </span><a href="../../../src/rand/distributions/float.rs.html#78"><span class="kw">crate</span>::distributions::float::IntoFloat</a>;
-<span class="kw">use </span><span class="kw">crate</span>::distributions::utils::{<a href="../../../src/rand/distributions/utils.rs.html#266">BoolAsSIMD</a>, <a href="../../../src/rand/distributions/utils.rs.html#245">FloatAsSIMD</a>, <a href="../../../src/rand/distributions/utils.rs.html#208">FloatSIMDUtils</a>, <a href="../../../src/rand/distributions/utils.rs.html#14">WideningMultiply</a>};
-<span class="kw">use </span><a href="../../../src/rand/distributions/distribution.rs.html#35"><span class="kw">crate</span>::distributions::Distribution</a>;
-<span class="kw">use crate</span>::{<a href="../../../src/rand/rng.rs.html#55">Rng</a>, <a href="../../../rand/trait.RngCore.html">RngCore</a>};
+<span class="kw">use </span><a href="float.rs.html#78"><span class="kw">crate</span>::distributions::float::IntoFloat</a>;
+<span class="kw">use </span><span class="kw">crate</span>::distributions::utils::{<a href="utils.rs.html#266">BoolAsSIMD</a>, <a href="utils.rs.html#245">FloatAsSIMD</a>, <a href="utils.rs.html#208">FloatSIMDUtils</a>, <a href="utils.rs.html#14">WideningMultiply</a>};
+<span class="kw">use </span><a href="distribution.rs.html#35"><span class="kw">crate</span>::distributions::Distribution</a>;
+<span class="kw">use crate</span>::{<a href="../rng.rs.html#55">Rng</a>, <a href="../../../rand/trait.RngCore.html">RngCore</a>};
 
 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 #[allow(unused_imports)] </span><span class="comment">// rustc doesn&#39;t detect that this is actually used
@@ -1836,9 +1836,9 @@
 #[cfg_attr(feature = <span class="string">&quot;serde1&quot;</span>, derive(Serialize, Deserialize))]
 #[cfg_attr(feature = <span class="string">&quot;serde1&quot;</span>, serde(bound(serialize = <span class="string">&quot;X::Sampler: Serialize&quot;</span>)))]
 #[cfg_attr(feature = <span class="string">&quot;serde1&quot;</span>, serde(bound(deserialize = <span class="string">&quot;X::Sampler: Deserialize&lt;&#39;de&gt;&quot;</span>)))]
-</span><span class="kw">pub struct </span>Uniform&lt;X: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>&gt;(X::Sampler);
+</span><span class="kw">pub struct </span>Uniform&lt;X: <a href="#216">SampleUniform</a>&gt;(X::Sampler);
 
-<span class="kw">impl</span>&lt;X: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>&gt; Uniform&lt;X&gt; {
+<span class="kw">impl</span>&lt;X: <a href="#216">SampleUniform</a>&gt; Uniform&lt;X&gt; {
     <span class="doccomment">/// Create a new `Uniform` instance which samples uniformly from the half
     /// open range `[low, high)` (excluding `high`). Panics if `low &gt;= high`.
     </span><span class="kw">pub fn </span>new&lt;B1, B2&gt;(low: B1, high: B2) -&gt; Uniform&lt;X&gt;
@@ -1846,7 +1846,7 @@
         </span>B1: SampleBorrow&lt;X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a href="../../../src/rand/distributions/uniform.rs.html#179">Uniform</a>(X::Sampler::new(<a href="../../../src/rand/distributions/uniform.rs.html#184">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#184">high</a>))
+        <a href="#179">Uniform</a>(X::Sampler::new(<a href="#184">low</a>, <a href="#184">high</a>))
     }
 
     <span class="doccomment">/// Create a new `Uniform` instance which samples uniformly from the closed
@@ -1856,13 +1856,13 @@
         </span>B1: SampleBorrow&lt;X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a href="../../../src/rand/distributions/uniform.rs.html#179">Uniform</a>(X::Sampler::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#194">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#194">high</a>))
+        <a href="#179">Uniform</a>(X::Sampler::new_inclusive(<a href="#194">low</a>, <a href="#194">high</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;X: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>&gt; Distribution&lt;X&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
-    <span class="kw">fn </span>sample&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; X {
-        <a class="self" href="../../../src/rand/distributions/uniform.rs.html#204">self</a>.<span class="number">0</span>.<a href="../../../src/rand/distributions/uniform.rs.html#256">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#204">rng</a>)
+<span class="kw">impl</span>&lt;X: <a href="#216">SampleUniform</a>&gt; Distribution&lt;X&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
+    <span class="kw">fn </span>sample&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; X {
+        <a class="self" href="#204">self</a>.<span class="number">0</span>.<a href="#256">sample</a>(<a href="#204">rng</a>)
     }
 }
 
@@ -1913,7 +1913,7 @@
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
 
     <span class="doccomment">/// Sample a value.
-    </span><span class="kw">fn </span>sample&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X;
+    </span><span class="kw">fn </span>sample&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X;
 
     <span class="doccomment">/// Sample a single value uniformly from a range with inclusive lower bound
     /// and exclusive upper bound `[low, high)`.
@@ -1934,13 +1934,13 @@
     ///     &lt;T as SampleUniform&gt;::Sampler::sample_single(lb, ub, &amp;mut rng)
     /// }
     /// ```
-    </span><span class="kw">fn </span>sample_single&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, B1, B2&gt;(low: B1, high: B2, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X
+    </span><span class="kw">fn </span>sample_single&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, B1, B2&gt;(low: B1, high: B2, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X
     <span class="kw">where
         </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let </span>uniform: <span class="self">Self </span>= <a href="../../../src/rand/distributions/uniform.rs.html#240-243">UniformSampler::new</a>(<a href="../../../src/rand/distributions/uniform.rs.html#277">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#277">high</a>);
-        <a href="../../../src/rand/distributions/uniform.rs.html#282">uniform</a>.<a href="../../../src/rand/distributions/uniform.rs.html#256">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#277">rng</a>)
+        <span class="kw">let </span>uniform: <span class="self">Self </span>= <a href="#240-243">UniformSampler::new</a>(<a href="#277">low</a>, <a href="#277">high</a>);
+        <a href="#282">uniform</a>.<a href="#256">sample</a>(<a href="#277">rng</a>)
     }
 
     <span class="doccomment">/// Sample a single value uniformly from a range with inclusive lower bound
@@ -1951,25 +1951,25 @@
     /// some types more optimal implementations for single usage may be provided
     /// via this method.
     /// Results may not be identical.
-    </span><span class="kw">fn </span>sample_single_inclusive&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, B1, B2&gt;(low: B1, high: B2, rng: <span class="kw-2">&amp;mut </span>R)
+    </span><span class="kw">fn </span>sample_single_inclusive&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, B1, B2&gt;(low: B1, high: B2, rng: <span class="kw-2">&amp;mut </span>R)
         -&gt; <span class="self">Self</span>::X
         <span class="kw">where </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
               B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
-        <span class="kw">let </span>uniform: <span class="self">Self </span>= <a href="../../../src/rand/distributions/uniform.rs.html#250-253">UniformSampler::new_inclusive</a>(<a href="../../../src/rand/distributions/uniform.rs.html#294">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#294">high</a>);
-        <a href="../../../src/rand/distributions/uniform.rs.html#299">uniform</a>.<a href="../../../src/rand/distributions/uniform.rs.html#256">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#294">rng</a>)
+        <span class="kw">let </span>uniform: <span class="self">Self </span>= <a href="#250-253">UniformSampler::new_inclusive</a>(<a href="#294">low</a>, <a href="#294">high</a>);
+        <a href="#299">uniform</a>.<a href="#256">sample</a>(<a href="#294">rng</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;X: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>&gt; From&lt;Range&lt;X&gt;&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
+<span class="kw">impl</span>&lt;X: <a href="#216">SampleUniform</a>&gt; From&lt;Range&lt;X&gt;&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
     <span class="kw">fn </span>from(r: ::core::ops::Range&lt;X&gt;) -&gt; Uniform&lt;X&gt; {
-        Uniform::new(<a href="../../../src/rand/distributions/uniform.rs.html#305">r</a>.start, <a href="../../../src/rand/distributions/uniform.rs.html#305">r</a>.end)
+        Uniform::new(<a href="#305">r</a>.start, <a href="#305">r</a>.end)
     }
 }
 
-<span class="kw">impl</span>&lt;X: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>&gt; From&lt;RangeInclusive&lt;X&gt;&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
+<span class="kw">impl</span>&lt;X: <a href="#216">SampleUniform</a>&gt; From&lt;RangeInclusive&lt;X&gt;&gt; <span class="kw">for </span>Uniform&lt;X&gt; {
     <span class="kw">fn </span>from(r: ::core::ops::RangeInclusive&lt;X&gt;) -&gt; Uniform&lt;X&gt; {
-        Uniform::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#311">r</a>.start(), <a href="../../../src/rand/distributions/uniform.rs.html#311">r</a>.end())
+        Uniform::new_inclusive(<a href="#311">r</a>.start(), <a href="#311">r</a>.end())
     }
 }
 
@@ -1986,19 +1986,19 @@
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Borrowed;
 }
 <span class="kw">impl</span>&lt;Borrowed&gt; SampleBorrow&lt;Borrowed&gt; <span class="kw">for </span>Borrowed
-<span class="kw">where </span>Borrowed: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>
+<span class="kw">where </span>Borrowed: <a href="#216">SampleUniform</a>
 {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Borrowed {
-        <span class="self"><a href="../../../src/rand/distributions/uniform.rs.html#332">self</a>
+        <span class="self"><a href="#332">self</a>
     </span>}
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Borrowed&gt; SampleBorrow&lt;Borrowed&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Borrowed
-<span class="kw">where </span>Borrowed: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a>
+<span class="kw">where </span>Borrowed: <a href="#216">SampleUniform</a>
 {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Borrowed {
-        <span class="kw-2">*</span><span class="self"><a href="../../../src/rand/distributions/uniform.rs.html#340">self</a>
+        <span class="kw-2">*</span><span class="self"><a href="#340">self</a>
     </span>}
 }
 
@@ -2014,27 +2014,27 @@
     </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; SampleRange&lt;T&gt; <span class="kw">for </span>Range&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <a href="#216">SampleUniform</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; SampleRange&lt;T&gt; <span class="kw">for </span>Range&lt;T&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>sample_single&lt;R: <a href="../../../rand/trait.RngCore.html">RngCore</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; T {
-        T::Sampler::sample_single(<a class="self" href="../../../src/rand/distributions/uniform.rs.html#359">self</a>.start, <a class="self" href="../../../src/rand/distributions/uniform.rs.html#359">self</a>.end, <a href="../../../src/rand/distributions/uniform.rs.html#359">rng</a>)
+        T::Sampler::sample_single(<a class="self" href="#359">self</a>.start, <a class="self" href="#359">self</a>.end, <a href="#359">rng</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !(<a class="self" href="../../../src/rand/distributions/uniform.rs.html#364">self</a>.start &lt; <a class="self" href="../../../src/rand/distributions/uniform.rs.html#364">self</a>.end)
+        !(<a class="self" href="#364">self</a>.start &lt; <a class="self" href="#364">self</a>.end)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; SampleRange&lt;T&gt; <span class="kw">for </span>RangeInclusive&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <a href="#216">SampleUniform</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a>&gt; SampleRange&lt;T&gt; <span class="kw">for </span>RangeInclusive&lt;T&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>sample_single&lt;R: <a href="../../../rand/trait.RngCore.html">RngCore</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; T {
-        T::Sampler::sample_single_inclusive(<a class="self" href="../../../src/rand/distributions/uniform.rs.html#371">self</a>.start(), <a class="self" href="../../../src/rand/distributions/uniform.rs.html#371">self</a>.end(), <a href="../../../src/rand/distributions/uniform.rs.html#371">rng</a>)
+        T::Sampler::sample_single_inclusive(<a class="self" href="#371">self</a>.start(), <a class="self" href="#371">self</a>.end(), <a href="#371">rng</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !(<a class="self" href="../../../src/rand/distributions/uniform.rs.html#376">self</a>.start() &lt;= <a class="self" href="../../../src/rand/distributions/uniform.rs.html#376">self</a>.end())
+        !(<a class="self" href="#376">self</a>.start() &lt;= <a class="self" href="#376">self</a>.end())
     }
 }
 
@@ -2216,18 +2216,18 @@
     };
 }
 
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, u8, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, u16, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, u32, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, u64, u64 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, u128, u128 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, usize, usize }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, u8, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, u16, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, u32, u32 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, u64, u64 }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, usize, usize }
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, u128, u128 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, u8, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, u16, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, u32, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, u64, u64 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, u128, u128 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, usize, usize }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, u8, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, u16, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, u32, u32 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, u64, u64 }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, usize, usize }
+<a class="macro" href="#429-557">uniform_int_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, u128, u128 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;simd_support&quot;</span>)]
 </span><span class="macro">macro_rules! </span>uniform_simd_int_impl {
@@ -2374,8 +2374,8 @@
     u8
 }
 
-<span class="kw">impl </span><a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-    <span class="kw">type </span>Sampler = <a href="../../../src/rand/distributions/uniform.rs.html#732">UniformChar</a>;
+<span class="kw">impl </span><a href="#216">SampleUniform</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
+    <span class="kw">type </span>Sampler = <a href="#732">UniformChar</a>;
 }
 
 <span class="doccomment">/// The back-end implementing [`UniformSampler`] for `char`.
@@ -2396,17 +2396,17 @@
 <span class="doccomment">/// UTF-16 surrogate range start
 </span><span class="kw">const </span>CHAR_SURROGATE_START: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0xD800</span>;
 <span class="doccomment">/// UTF-16 surrogate range size
-</span><span class="kw">const </span>CHAR_SURROGATE_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0xE000 </span>- <a href="../../../src/rand/distributions/uniform.rs.html#737">CHAR_SURROGATE_START</a>;
+</span><span class="kw">const </span>CHAR_SURROGATE_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0xE000 </span>- <a href="#737">CHAR_SURROGATE_START</a>;
 
 <span class="doccomment">/// Convert `char` to compressed `u32`
 </span><span class="kw">fn </span>char_to_comp_u32(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">match </span><a href="../../../src/rand/distributions/uniform.rs.html#742">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        c <span class="kw">if </span><a href="../../../src/rand/distributions/uniform.rs.html#744">c</a> &gt;= <a href="../../../src/rand/distributions/uniform.rs.html#737">CHAR_SURROGATE_START</a> =&gt; <a href="../../../src/rand/distributions/uniform.rs.html#744">c</a> - <a href="../../../src/rand/distributions/uniform.rs.html#739">CHAR_SURROGATE_LEN</a>,
-        c =&gt; <a href="../../../src/rand/distributions/uniform.rs.html#745">c</a>,
+    <span class="kw">match </span><a href="#742">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        c <span class="kw">if </span><a href="#744">c</a> &gt;= <a href="#737">CHAR_SURROGATE_START</a> =&gt; <a href="#744">c</a> - <a href="#739">CHAR_SURROGATE_LEN</a>,
+        c =&gt; <a href="#745">c</a>,
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/rand/distributions/uniform.rs.html#231">UniformSampler</a> <span class="kw">for </span><a href="../../../src/rand/distributions/uniform.rs.html#732">UniformChar</a> {
+<span class="kw">impl </span><a href="#231">UniformSampler</a> <span class="kw">for </span><a href="#732">UniformChar</a> {
     <span class="kw">type </span>X = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
 
     <span class="attribute">#[inline] </span><span class="comment">// if the range is constant, this helps LLVM to do the
@@ -2416,10 +2416,10 @@
         </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let </span>low = <a href="../../../src/rand/distributions/uniform.rs.html#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#754">low_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>());
-        <span class="kw">let </span>high = <a href="../../../src/rand/distributions/uniform.rs.html#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#754">high_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>());
-        <span class="kw">let </span>sampler = UniformInt::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;::new(<a href="../../../src/rand/distributions/uniform.rs.html#759">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#760">high</a>);
-        <a href="../../../src/rand/distributions/uniform.rs.html#732">UniformChar</a> { <a href="../../../src/rand/distributions/uniform.rs.html#761">sampler</a> }
+        <span class="kw">let </span>low = <a href="#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="#754">low_b</a>.<a href="#326">borrow</a>());
+        <span class="kw">let </span>high = <a href="#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="#754">high_b</a>.<a href="#326">borrow</a>());
+        <span class="kw">let </span>sampler = UniformInt::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;::new(<a href="#759">low</a>, <a href="#760">high</a>);
+        <a href="#732">UniformChar</a> { <a href="#761">sampler</a> }
     }
 
     <span class="attribute">#[inline] </span><span class="comment">// if the range is constant, this helps LLVM to do the
@@ -2429,21 +2429,21 @@
         </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let </span>low = <a href="../../../src/rand/distributions/uniform.rs.html#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#767">low_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>());
-        <span class="kw">let </span>high = <a href="../../../src/rand/distributions/uniform.rs.html#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#767">high_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>());
-        <span class="kw">let </span>sampler = UniformInt::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#772">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#773">high</a>);
-        <a href="../../../src/rand/distributions/uniform.rs.html#732">UniformChar</a> { <a href="../../../src/rand/distributions/uniform.rs.html#774">sampler</a> }
+        <span class="kw">let </span>low = <a href="#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="#767">low_b</a>.<a href="#326">borrow</a>());
+        <span class="kw">let </span>high = <a href="#742">char_to_comp_u32</a>(<span class="kw-2">*</span><a href="#767">high_b</a>.<a href="#326">borrow</a>());
+        <span class="kw">let </span>sampler = UniformInt::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;::new_inclusive(<a href="#772">low</a>, <a href="#773">high</a>);
+        <a href="#732">UniformChar</a> { <a href="#774">sampler</a> }
     }
 
-    <span class="kw">fn </span>sample&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X {
-        <span class="kw">let </span><span class="kw-2">mut </span>x = <a class="self" href="../../../src/rand/distributions/uniform.rs.html#778">self</a>.sampler.<a href="../../../src/rand/distributions/uniform.rs.html#256">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#778">rng</a>);
+    <span class="kw">fn </span>sample&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="self">Self</span>::X {
+        <span class="kw">let </span><span class="kw-2">mut </span>x = <a class="self" href="#778">self</a>.sampler.<a href="#256">sample</a>(<a href="#778">rng</a>);
         <span class="kw">if </span>x &gt;= CHAR_SURROGATE_START {
-            <a href="../../../src/rand/distributions/uniform.rs.html#779">x</a> += <a href="../../../src/rand/distributions/uniform.rs.html#739">CHAR_SURROGATE_LEN</a>;
+            <a href="#779">x</a> += <a href="#739">CHAR_SURROGATE_LEN</a>;
         }
         <span class="comment">// SAFETY: x must not be in surrogate range or greater than char::MAX.
         // This relies on range constructors which accept char arguments.
         // Validity of input char values is assumed.
-        </span><span class="kw">unsafe </span>{ core::char::from_u32_unchecked(<a href="../../../src/rand/distributions/uniform.rs.html#779">x</a>) }
+        </span><span class="kw">unsafe </span>{ core::char::from_u32_unchecked(<a href="#779">x</a>) }
     }
 }
 
@@ -2655,8 +2655,8 @@
     };
 }
 
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#816-996">uniform_float_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, u32, f32, u32, <span class="number">32 </span>- <span class="number">23 </span>}
-<a class="macro" href="../../../src/rand/distributions/uniform.rs.html#816-996">uniform_float_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, u64, f64, u64, <span class="number">64 </span>- <span class="number">52 </span>}
+<a class="macro" href="#816-996">uniform_float_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, u32, f32, u32, <span class="number">32 </span>- <span class="number">23 </span>}
+<a class="macro" href="#816-996">uniform_float_impl! </a>{ <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, u64, f64, u64, <span class="number">64 </span>- <span class="number">52 </span>}
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;simd_support&quot;</span>)]
 </span><span class="macro">uniform_float_impl! </span>{ f32x2, u32x2, f32, u32, <span class="number">32 </span>- <span class="number">23 </span>}
@@ -2682,7 +2682,7 @@
 </span><span class="attribute">#[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = <span class="string">&quot;serde1&quot;</span>, derive(Serialize, Deserialize))]
 </span><span class="kw">pub struct </span>UniformDuration {
-    mode: <a href="../../../src/rand/distributions/uniform.rs.html#1031">UniformDurationMode</a>,
+    mode: <a href="#1031">UniformDurationMode</a>,
     offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
@@ -2703,11 +2703,11 @@
     },
 }
 
-<span class="kw">impl </span><a href="../../../src/rand/distributions/uniform.rs.html#216">SampleUniform</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-    <span class="kw">type </span>Sampler = <a href="../../../src/rand/distributions/uniform.rs.html#1024">UniformDuration</a>;
+<span class="kw">impl </span><a href="#216">SampleUniform</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+    <span class="kw">type </span>Sampler = <a href="#1024">UniformDuration</a>;
 }
 
-<span class="kw">impl </span><a href="../../../src/rand/distributions/uniform.rs.html#231">UniformSampler</a> <span class="kw">for </span><a href="../../../src/rand/distributions/uniform.rs.html#1024">UniformDuration</a> {
+<span class="kw">impl </span><a href="#231">UniformSampler</a> <span class="kw">for </span><a href="#1024">UniformDuration</a> {
     <span class="kw">type </span>X = <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>;
 
     <span class="attribute">#[inline]
@@ -2716,10 +2716,10 @@
         </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let </span>low = <span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#1054">low_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>();
-        <span class="kw">let </span>high = <span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#1054">high_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>();
+        <span class="kw">let </span>low = <span class="kw-2">*</span><a href="#1054">low_b</a>.<a href="#326">borrow</a>();
+        <span class="kw">let </span>high = <span class="kw-2">*</span><a href="#1054">high_b</a>.<a href="#326">borrow</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(low &lt; high, <span class="string">&quot;Uniform::new called with `low &gt;= high`&quot;</span>);
-        UniformDuration::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#1059">low</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1060">high</a> - Duration::new(<span class="number">0</span>, <span class="number">1</span>))
+        UniformDuration::new_inclusive(<a href="#1059">low</a>, <a href="#1060">high</a> - Duration::new(<span class="number">0</span>, <span class="number">1</span>))
     }
 
     <span class="attribute">#[inline]
@@ -2728,66 +2728,66 @@
         </span>B1: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         B2: SampleBorrow&lt;<span class="self">Self</span>::X&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let </span>low = <span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#1066">low_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>();
-        <span class="kw">let </span>high = <span class="kw-2">*</span><a href="../../../src/rand/distributions/uniform.rs.html#1066">high_b</a>.<a href="../../../src/rand/distributions/uniform.rs.html#326">borrow</a>();
+        <span class="kw">let </span>low = <span class="kw-2">*</span><a href="#1066">low_b</a>.<a href="#326">borrow</a>();
+        <span class="kw">let </span>high = <span class="kw-2">*</span><a href="#1066">high_b</a>.<a href="#326">borrow</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             low &lt;= high,
             <span class="string">&quot;Uniform::new_inclusive called with `low &gt; high`&quot;
         </span>);
 
-        <span class="kw">let </span>low_s = <a href="../../../src/rand/distributions/uniform.rs.html#1071">low</a>.as_secs();
-        <span class="kw">let </span>low_n = <a href="../../../src/rand/distributions/uniform.rs.html#1071">low</a>.subsec_nanos();
-        <span class="kw">let </span><span class="kw-2">mut </span>high_s = <a href="../../../src/rand/distributions/uniform.rs.html#1072">high</a>.as_secs();
-        <span class="kw">let </span><span class="kw-2">mut </span>high_n = <a href="../../../src/rand/distributions/uniform.rs.html#1072">high</a>.subsec_nanos();
+        <span class="kw">let </span>low_s = <a href="#1071">low</a>.as_secs();
+        <span class="kw">let </span>low_n = <a href="#1071">low</a>.subsec_nanos();
+        <span class="kw">let </span><span class="kw-2">mut </span>high_s = <a href="#1072">high</a>.as_secs();
+        <span class="kw">let </span><span class="kw-2">mut </span>high_n = <a href="#1072">high</a>.subsec_nanos();
 
         <span class="kw">if </span>high_n &lt; low_n {
-            <a href="../../../src/rand/distributions/uniform.rs.html#1080">high_s</a> -= <span class="number">1</span>;
-            <a href="../../../src/rand/distributions/uniform.rs.html#1081">high_n</a> += <span class="number">1_000_000_000</span>;
+            <a href="#1080">high_s</a> -= <span class="number">1</span>;
+            <a href="#1081">high_n</a> += <span class="number">1_000_000_000</span>;
         }
 
         <span class="kw">let </span>mode = <span class="kw">if </span>low_s == high_s {
-            <a href="../../../src/rand/distributions/uniform.rs.html#1032">UniformDurationMode::Small</a> {
-                secs: <a href="../../../src/rand/distributions/uniform.rs.html#1078">low_s</a>,
-                nanos: Uniform::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#1079">low_n</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1081">high_n</a>),
+            <a href="#1032">UniformDurationMode::Small</a> {
+                secs: <a href="#1078">low_s</a>,
+                nanos: Uniform::new_inclusive(<a href="#1079">low_n</a>, <a href="#1081">high_n</a>),
             }
         } <span class="kw">else </span>{
-            <span class="kw">let </span>max = <a href="../../../src/rand/distributions/uniform.rs.html#1080">high_s</a>
+            <span class="kw">let </span>max = <a href="#1080">high_s</a>
                 .checked_mul(<span class="number">1_000_000_000</span>)
-                .and_then(|n| <a href="../../../src/rand/distributions/uniform.rs.html#1096">n</a>.checked_add(u64::from(<a href="../../../src/rand/distributions/uniform.rs.html#1081">high_n</a>)));
+                .and_then(|n| <a href="#1096">n</a>.checked_add(u64::from(<a href="#1081">high_n</a>)));
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(higher_bound) = <a href="../../../src/rand/distributions/uniform.rs.html#1094">max</a> {
-                <span class="kw">let </span>lower_bound = <a href="../../../src/rand/distributions/uniform.rs.html#1078">low_s</a> * <span class="number">1_000_000_000 </span>+ u64::from(<a href="../../../src/rand/distributions/uniform.rs.html#1079">low_n</a>);
-                <a href="../../../src/rand/distributions/uniform.rs.html#1036">UniformDurationMode::Medium</a> {
-                    nanos: Uniform::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#1099">lower_bound</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1098">higher_bound</a>),
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(higher_bound) = <a href="#1094">max</a> {
+                <span class="kw">let </span>lower_bound = <a href="#1078">low_s</a> * <span class="number">1_000_000_000 </span>+ u64::from(<a href="#1079">low_n</a>);
+                <a href="#1036">UniformDurationMode::Medium</a> {
+                    nanos: Uniform::new_inclusive(<a href="#1099">lower_bound</a>, <a href="#1098">higher_bound</a>),
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// An offset is applied to simplify generation of nanoseconds
-                </span><span class="kw">let </span>max_nanos = <a href="../../../src/rand/distributions/uniform.rs.html#1081">high_n</a> - <a href="../../../src/rand/distributions/uniform.rs.html#1079">low_n</a>;
-                <a href="../../../src/rand/distributions/uniform.rs.html#1039">UniformDurationMode::Large</a> {
-                    max_secs: <a href="../../../src/rand/distributions/uniform.rs.html#1080">high_s</a>,
-                    <a href="../../../src/rand/distributions/uniform.rs.html#1105">max_nanos</a>,
-                    secs: Uniform::new_inclusive(<a href="../../../src/rand/distributions/uniform.rs.html#1078">low_s</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1080">high_s</a>),
+                </span><span class="kw">let </span>max_nanos = <a href="#1081">high_n</a> - <a href="#1079">low_n</a>;
+                <a href="#1039">UniformDurationMode::Large</a> {
+                    max_secs: <a href="#1080">high_s</a>,
+                    <a href="#1105">max_nanos</a>,
+                    secs: Uniform::new_inclusive(<a href="#1078">low_s</a>, <a href="#1080">high_s</a>),
                 }
             }
         };
-        <a href="../../../src/rand/distributions/uniform.rs.html#1024">UniformDuration</a> {
-            <a href="../../../src/rand/distributions/uniform.rs.html#1088">mode</a>,
-            offset: <a href="../../../src/rand/distributions/uniform.rs.html#1079">low_n</a>,
+        <a href="#1024">UniformDuration</a> {
+            <a href="#1088">mode</a>,
+            offset: <a href="#1079">low_n</a>,
         }
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>sample&lt;R: <a href="../../../src/rand/rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/rand/distributions/uniform.rs.html#1120">self</a>.mode {
-            <a href="../../../src/rand/distributions/uniform.rs.html#1032">UniformDurationMode::Small</a> { secs, nanos } =&gt; {
-                <span class="kw">let </span>n = <a href="../../../src/rand/distributions/uniform.rs.html#1122">nanos</a>.<a href="../../../src/rand/distributions/distribution.rs.html#37">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#1120">rng</a>);
-                Duration::new(<a href="../../../src/rand/distributions/uniform.rs.html#1122">secs</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1123">n</a>)
+    </span><span class="kw">fn </span>sample&lt;R: <a href="../rng.rs.html#55">Rng</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <span class="kw">match </span><a class="self" href="#1120">self</a>.mode {
+            <a href="#1032">UniformDurationMode::Small</a> { secs, nanos } =&gt; {
+                <span class="kw">let </span>n = <a href="#1122">nanos</a>.<a href="distribution.rs.html#37">sample</a>(<a href="#1120">rng</a>);
+                Duration::new(<a href="#1122">secs</a>, <a href="#1123">n</a>)
             }
-            <a href="../../../src/rand/distributions/uniform.rs.html#1036">UniformDurationMode::Medium</a> { nanos } =&gt; {
-                <span class="kw">let </span>nanos = <a href="../../../src/rand/distributions/uniform.rs.html#1126">nanos</a>.<a href="../../../src/rand/distributions/distribution.rs.html#37">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#1120">rng</a>);
-                Duration::new(<a href="../../../src/rand/distributions/uniform.rs.html#1127">nanos</a> / <span class="number">1_000_000_000</span>, (<a href="../../../src/rand/distributions/uniform.rs.html#1127">nanos</a> % <span class="number">1_000_000_000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            <a href="#1036">UniformDurationMode::Medium</a> { nanos } =&gt; {
+                <span class="kw">let </span>nanos = <a href="#1126">nanos</a>.<a href="distribution.rs.html#37">sample</a>(<a href="#1120">rng</a>);
+                Duration::new(<a href="#1127">nanos</a> / <span class="number">1_000_000_000</span>, (<a href="#1127">nanos</a> % <span class="number">1_000_000_000</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
             }
-            <a href="../../../src/rand/distributions/uniform.rs.html#1039">UniformDurationMode::Large</a> {
+            <a href="#1039">UniformDurationMode::Large</a> {
                 max_secs,
                 max_nanos,
                 secs,
@@ -2795,11 +2795,11 @@
                 <span class="comment">// constant folding means this is at least as fast as `Rng::sample(Range)`
                 </span><span class="kw">let </span>nano_range = Uniform::new(<span class="number">0</span>, <span class="number">1_000_000_000</span>);
                 <span class="kw">loop </span>{
-                    <span class="kw">let </span>s = <a href="../../../src/rand/distributions/uniform.rs.html#1133">secs</a>.<a href="../../../src/rand/distributions/distribution.rs.html#37">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#1120">rng</a>);
-                    <span class="kw">let </span>n = <a href="../../../src/rand/distributions/uniform.rs.html#1136">nano_range</a>.<a href="../../../src/rand/distributions/distribution.rs.html#37">sample</a>(<a href="../../../src/rand/distributions/uniform.rs.html#1120">rng</a>);
+                    <span class="kw">let </span>s = <a href="#1133">secs</a>.<a href="distribution.rs.html#37">sample</a>(<a href="#1120">rng</a>);
+                    <span class="kw">let </span>n = <a href="#1136">nano_range</a>.<a href="distribution.rs.html#37">sample</a>(<a href="#1120">rng</a>);
                     <span class="kw">if </span>!(s == max_secs &amp;&amp; n &gt; max_nanos) {
-                        <span class="kw">let </span>sum = <a href="../../../src/rand/distributions/uniform.rs.html#1139">n</a> + <a class="self" href="../../../src/rand/distributions/uniform.rs.html#1120">self</a>.offset;
-                        <span class="kw">break </span>Duration::new(<a href="../../../src/rand/distributions/uniform.rs.html#1138">s</a>, <a href="../../../src/rand/distributions/uniform.rs.html#1141">sum</a>);
+                        <span class="kw">let </span>sum = <a href="#1139">n</a> + <a class="self" href="#1120">self</a>.offset;
+                        <span class="kw">break </span>Duration::new(<a href="#1138">s</a>, <a href="#1141">sum</a>);
                     }
                 }
             }
@@ -3317,4 +3317,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

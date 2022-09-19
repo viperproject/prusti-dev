@@ -253,7 +253,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/struct.BuildHasherDefault.html">BuildHasherDefault</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
 
-<span class="kw">type </span>AnyMap = HashMap&lt;<a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;, BuildHasherDefault&lt;<a href="../../src/http/extensions.rs.html#12">IdHasher</a>&gt;&gt;;
+<span class="kw">type </span>AnyMap = HashMap&lt;<a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;, BuildHasherDefault&lt;<a href="#12">IdHasher</a>&gt;&gt;;
 
 <span class="comment">// With TypeIds as keys, there&#39;s no need to hash them. They are already hashes
 // themselves, coming from the compiler. The IdHasher just holds the u64 of
@@ -261,19 +261,19 @@
 </span><span class="attribute">#[derive(Default)]
 </span><span class="kw">struct </span>IdHasher(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a> <span class="kw">for </span><a href="../../src/http/extensions.rs.html#12">IdHasher</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a> <span class="kw">for </span><a href="#12">IdHasher</a> {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;TypeId calls write_u64&quot;</span>);
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>write_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../src/http/extensions.rs.html#20">self</a>.<span class="number">0 </span>= <a href="../../src/http/extensions.rs.html#20">id</a>;
+        <a class="self" href="#20">self</a>.<span class="number">0 </span>= <a href="#20">id</a>;
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>finish(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../src/http/extensions.rs.html#25">self</a>.<span class="number">0
+        <a class="self" href="#25">self</a>.<span class="number">0
     </span>}
 }
 
@@ -285,14 +285,14 @@
 </span><span class="kw">pub struct </span>Extensions {
     <span class="comment">// If extensions are never used, no need to carry around an empty HashMap.
     // That&#39;s 3 words. Instead, this is only 1 word.
-    </span>map: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="../../src/http/extensions.rs.html#6">AnyMap</a>&gt;&gt;,
+    </span>map: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="#6">AnyMap</a>&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+<span class="kw">impl </span><a href="#35">Extensions</a> {
     <span class="doccomment">/// Create an empty `Extensions`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/http/extensions.rs.html#35">Extensions</a> {
-        <a href="../../src/http/extensions.rs.html#35">Extensions</a> { map: <span class="prelude-val">None </span>}
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#35">Extensions</a> {
+        <a href="#35">Extensions</a> { map: <span class="prelude-val">None </span>}
     }
 
     <span class="doccomment">/// Insert a type into this `Extensions`.
@@ -310,14 +310,14 @@
     /// assert_eq!(ext.insert(9i32), Some(5i32));
     /// ```
     </span><span class="kw">pub fn </span>insert&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="../../src/http/extensions.rs.html#62">self</a>.map
+        <a class="self" href="#62">self</a>.map
             .get_or_insert_with(|| Box::new(HashMap::default()))
-            .insert(TypeId::of::&lt;T&gt;(), Box::new(<a href="../../src/http/extensions.rs.html#62">val</a>))
+            .insert(TypeId::of::&lt;T&gt;(), Box::new(<a href="#62">val</a>))
             .and_then(|boxed| {
-                (<a href="../../src/http/extensions.rs.html#66">boxed</a> <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>&gt;)
+                (<a href="#66">boxed</a> <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>&gt;)
                     .downcast()
                     .ok()
-                    .map(|boxed| <span class="kw-2">*</span><a href="../../src/http/extensions.rs.html#70">boxed</a>)
+                    .map(|boxed| <span class="kw-2">*</span><a href="#70">boxed</a>)
             })
     }
 
@@ -334,10 +334,10 @@
     /// assert_eq!(ext.get::&lt;i32&gt;(), Some(&amp;5i32));
     /// ```
     </span><span class="kw">pub fn </span>get&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="../../src/http/extensions.rs.html#86">self</a>.map
+        <a class="self" href="#86">self</a>.map
             .as_ref()
-            .and_then(|map| <a href="../../src/http/extensions.rs.html#89">map</a>.get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
-            .and_then(|boxed| (<span class="kw-2">&amp;**</span><a href="../../src/http/extensions.rs.html#90">boxed</a> <span class="kw">as </span><span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>)).downcast_ref())
+            .and_then(|map| <a href="#89">map</a>.get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
+            .and_then(|boxed| (<span class="kw-2">&amp;**</span><a href="#90">boxed</a> <span class="kw">as </span><span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>)).downcast_ref())
     }
 
     <span class="doccomment">/// Get a mutable reference to a type previously inserted on this `Extensions`.
@@ -353,10 +353,10 @@
     /// assert_eq!(ext.get::&lt;String&gt;().unwrap(), &quot;Hello World&quot;);
     /// ```
     </span><span class="kw">pub fn </span>get_mut&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <a class="self" href="../../src/http/extensions.rs.html#105">self</a>.map
+        <a class="self" href="#105">self</a>.map
             .as_mut()
-            .and_then(|map| <a href="../../src/http/extensions.rs.html#108">map</a>.get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
-            .and_then(|boxed| (<span class="kw-2">&amp;mut **</span><a href="../../src/http/extensions.rs.html#109">boxed</a> <span class="kw">as </span><span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>)).downcast_mut())
+            .and_then(|map| <a href="#108">map</a>.get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
+            .and_then(|boxed| (<span class="kw-2">&amp;mut **</span><a href="#109">boxed</a> <span class="kw">as </span><span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>)).downcast_mut())
     }
 
     <span class="doccomment">/// Remove a type from this `Extensions`.
@@ -373,14 +373,14 @@
     /// assert!(ext.get::&lt;i32&gt;().is_none());
     /// ```
     </span><span class="kw">pub fn </span>remove&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <a class="self" href="../../src/http/extensions.rs.html#125">self</a>.map
+        <a class="self" href="#125">self</a>.map
             .as_mut()
-            .and_then(|map| <a href="../../src/http/extensions.rs.html#128">map</a>.remove(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
+            .and_then(|map| <a href="#128">map</a>.remove(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;()))
             .and_then(|boxed| {
-                (<a href="../../src/http/extensions.rs.html#129">boxed</a> <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>&gt;)
+                (<a href="#129">boxed</a> <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <span class="lifetime">&#39;static</span>&gt;)
                     .downcast()
                     .ok()
-                    .map(|boxed| <span class="kw-2">*</span><a href="../../src/http/extensions.rs.html#133">boxed</a>)
+                    .map(|boxed| <span class="kw-2">*</span><a href="#133">boxed</a>)
             })
     }
 
@@ -398,8 +398,8 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>map) = <a class="self" href="../../src/http/extensions.rs.html#150">self</a>.map {
-            <a href="../../src/http/extensions.rs.html#151">map</a>.clear();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>map) = <a class="self" href="#150">self</a>.map {
+            <a href="#151">map</a>.clear();
         }
     }
 
@@ -416,9 +416,9 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/http/extensions.rs.html#168">self</a>.map
+        <a class="self" href="#168">self</a>.map
             .as_ref()
-            .map_or(<span class="bool-val">true</span>, |map| <a href="../../src/http/extensions.rs.html#171">map</a>.is_empty())
+            .map_or(<span class="bool-val">true</span>, |map| <a href="#171">map</a>.is_empty())
     }
 
     <span class="doccomment">/// Get the numer of extensions available.
@@ -434,9 +434,9 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/http/extensions.rs.html#186">self</a>.map
+        <a class="self" href="#186">self</a>.map
             .as_ref()
-            .map_or(<span class="number">0</span>, |map| <a href="../../src/http/extensions.rs.html#189">map</a>.len())
+            .map_or(<span class="number">0</span>, |map| <a href="#189">map</a>.len())
     }
 
     <span class="doccomment">/// Extends `self` with another `Extensions`.
@@ -463,19 +463,19 @@
     /// assert_eq!(ext_a.get::&lt;&amp;&#39;static str&gt;().copied(), Some(&quot;hello&quot;));
     /// ```
     </span><span class="kw">pub fn </span>extend(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(other) = <a href="../../src/http/extensions.rs.html#215">other</a>.map {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/extensions.rs.html#215">self</a>.map {
-                <a href="../../src/http/extensions.rs.html#217">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">*</span><a href="../../src/http/extensions.rs.html#216">other</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(other) = <a href="#215">other</a>.map {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = <span class="kw-2">&amp;mut </span><a class="self" href="#215">self</a>.map {
+                <a href="#217">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">*</span><a href="#216">other</a>);
             } <span class="kw">else </span>{
-                <a class="self" href="../../src/http/extensions.rs.html#215">self</a>.map = <span class="prelude-val">Some</span>(<a href="../../src/http/extensions.rs.html#216">other</a>);
+                <a class="self" href="#215">self</a>.map = <span class="prelude-val">Some</span>(<a href="#216">other</a>);
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#35">Extensions</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/http/extensions.rs.html#227">f</a>.debug_struct(<span class="string">&quot;Extensions&quot;</span>).finish()
+        <a href="#227">f</a>.debug_struct(<span class="string">&quot;Extensions&quot;</span>).finish()
     }
 }
 
@@ -499,4 +499,4 @@
     <span class="macro">assert_eq!</span>(extensions.get(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>MyType(<span class="number">10</span>)));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

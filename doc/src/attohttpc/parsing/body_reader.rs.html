@@ -159,64 +159,64 @@
 
 <span class="kw">use </span>http::header::{<a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../attohttpc/header/constant.CONTENT_LENGTH.html">CONTENT_LENGTH</a>, <a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/attohttpc/error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span><a href="../../../src/attohttpc/parsing/chunked_reader.rs.html#18"><span class="kw">crate</span>::parsing::chunked_reader::ChunkedReader</a>;
-<span class="kw">use </span><a href="../../../src/attohttpc/streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="chunked_reader.rs.html#18"><span class="kw">crate</span>::parsing::chunked_reader::ChunkedReader</a>;
+<span class="kw">use </span><a href="../streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>BodyReader {
-    Chunked(ChunkedReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;),
-    Length(Take&lt;BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;&gt;),
-    Close(BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;),
+    Chunked(ChunkedReader&lt;<a href="../streams.rs.html#26">BaseStream</a>&gt;),
+    Length(Take&lt;BufReader&lt;<a href="../streams.rs.html#26">BaseStream</a>&gt;&gt;),
+    Close(BufReader&lt;<a href="../streams.rs.html#26">BaseStream</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="#10">BodyReader</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">self</a> </span>{
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#20">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#21">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#22">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
+        <span class="kw">match </span><span class="self"><a href="#18">self</a> </span>{
+            <a href="#11">BodyReader::Chunked</a>(r) =&gt; <a href="#20">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#18">buf</a>),
+            <a href="#12">BodyReader::Length</a>(r) =&gt; <a href="#21">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#18">buf</a>),
+            <a href="#13">BodyReader::Close</a>(r) =&gt; <a href="#22">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#18">buf</a>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span><a href="#10">BodyReader</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#29">self</a> </span>{
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#31">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#32">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#33">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+        <span class="kw">match </span><span class="self"><a href="#29">self</a> </span>{
+            <a href="#11">BodyReader::Chunked</a>(r) =&gt; <a href="#31">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+            <a href="#12">BodyReader::Length</a>(r) =&gt; <a href="#32">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+            <a href="#13">BodyReader::Close</a>(r) =&gt; <a href="#33">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">self</a> </span>{
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#40">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#41">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#42">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
+        <span class="kw">match </span><span class="self"><a href="#38">self</a> </span>{
+            <a href="#11">BodyReader::Chunked</a>(r) =&gt; <a href="#40">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#38">amt</a>),
+            <a href="#12">BodyReader::Length</a>(r) =&gt; <a href="#41">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#38">amt</a>),
+            <a href="#13">BodyReader::Close</a>(r) =&gt; <a href="#42">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="#38">amt</a>),
         }
     }
 }
 
 <span class="kw">fn </span>is_chunked(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/attohttpc/parsing/body_reader.rs.html#47">headers</a>
+    <a href="#47">headers</a>
         .get_all(<a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#51">val</a>.to_str().ok())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="#51">val</a>.to_str().ok())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| {
-            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#52">val</a>.split(<span class="string">&#39;,&#39;</span>)
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#54">s</a>.trim())
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#55">s</a>.eq_ignore_ascii_case(<span class="string">&quot;chunked&quot;</span>))
+            <a href="#52">val</a>.split(<span class="string">&#39;,&#39;</span>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#54">s</a>.trim())
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#55">s</a>.eq_ignore_ascii_case(<span class="string">&quot;chunked&quot;</span>))
         })
 }
 
 <span class="kw">fn </span>parse_content_length(val: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
     <span class="kw">let </span>val = val.to_str().map_err(|<span class="kw">_</span>| InvalidResponseKind::ContentLength)<span class="question-mark">?</span>;
     <span class="kw">let </span>val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = u64::from_str_radix(val, <span class="number">10</span>).map_err(|<span class="kw">_</span>| InvalidResponseKind::ContentLength)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#61">val</a>)
+    <span class="prelude-val">Ok</span>(<a href="#61">val</a>)
 }
 
 <span class="kw">fn </span>is_content_length(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
@@ -231,20 +231,20 @@
             }
         });
     }
-    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#66">last</a>)
+    <span class="prelude-val">Ok</span>(<a href="#66">last</a>)
 }
 
-<span class="kw">impl </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
-    <span class="kw">pub fn </span>new(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, reader: BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>&gt; {
+<span class="kw">impl </span><a href="#10">BodyReader</a> {
+    <span class="kw">pub fn </span>new(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, reader: BufReader&lt;<a href="../streams.rs.html#26">BaseStream</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">BodyReader</a>&gt; {
         <span class="kw">if </span>is_chunked(headers) {
-            <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a chunked body reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(ChunkedReader::new(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>)))
+            <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a chunked body reader&quot;</span>);
+            <span class="prelude-val">Ok</span>(<a href="#11">BodyReader::Chunked</a>(ChunkedReader::new(<a href="#81">reader</a>)))
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(val) = is_content_length(headers)<span class="question-mark">? </span>{
-            <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a length body reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#85">val</a>)))
+            <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a length body reader&quot;</span>);
+            <span class="prelude-val">Ok</span>(<a href="#12">BodyReader::Length</a>(<a href="#81">reader</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a href="#85">val</a>)))
         } <span class="kw">else </span>{
-            <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating close reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>))
+            <a class="macro" href="../lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating close reader&quot;</span>);
+            <span class="prelude-val">Ok</span>(<a href="#13">BodyReader::Close</a>(<a href="#81">reader</a>))
         }
     }
 }
@@ -313,4 +313,4 @@
     <span class="macro">assert!</span>(is_content_length(<span class="kw-2">&amp;</span>headers).is_err());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

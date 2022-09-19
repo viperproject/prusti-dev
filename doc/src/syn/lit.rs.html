@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1599,10 +1599,10 @@
 <span id="1599">1599</span>
 <span id="1600">1600</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">use </span><a href="../../src/syn/lib.rs.html#798"><span class="kw">crate</span>::lookahead</a>;
+</span><span class="kw">use </span><a href="lib.rs.html#799"><span class="kw">crate</span>::lookahead</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="../../src/syn/parse.rs.html#220">Parse</a>, <a href="../../src/syn/parse.rs.html#1143">Parser</a>};
-<span class="kw">use crate</span>::{<a href="../../src/syn/error.rs.html#85">Error</a>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#1143">Parser</a>};
+<span class="kw">use crate</span>::{<a href="error.rs.html#85">Error</a>, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>proc_macro2::{<a href="../../syn/struct.Ident.html">Ident</a>, <a href="../../proc_macro2/struct.Literal.html">Literal</a>, <a href="../../proc_macro2/struct.Span.html">Span</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
@@ -1611,7 +1611,7 @@
 </span><span class="kw">use </span>std::hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>};
 <span class="kw">use </span>std::str::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>};
 
-<a class="macro" href="../../src/syn/macros.rs.html#59-68">ast_enum_of_structs! </a>{
+<a class="macro" href="macros.rs.html#59-68">ast_enum_of_structs! </a>{
     <span class="doccomment">/// A Rust literal such as a string or integer or boolean.
     ///
     /// # Syntax tree enum
@@ -1621,27 +1621,27 @@
     /// [syntax tree enum]: crate::Expr#syntax-tree-enums
     </span><span class="kw">pub enum </span>Lit {
         <span class="doccomment">/// A UTF-8 string literal: `&quot;foo&quot;`.
-        </span>Str(<a href="../../src/syn/lit.rs.html#51-56">LitStr</a>),
+        </span>Str(<a href="#51-56">LitStr</a>),
 
         <span class="doccomment">/// A byte string literal: `b&quot;foo&quot;`.
-        </span>ByteStr(<a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a>),
+        </span>ByteStr(<a href="#58-63">LitByteStr</a>),
 
         <span class="doccomment">/// A byte literal: `b&#39;f&#39;`.
-        </span>Byte(<a href="../../src/syn/lit.rs.html#65-70">LitByte</a>),
+        </span>Byte(<a href="#65-70">LitByte</a>),
 
         <span class="doccomment">/// A character literal: `&#39;a&#39;`.
-        </span>Char(<a href="../../src/syn/lit.rs.html#72-77">LitChar</a>),
+        </span>Char(<a href="#72-77">LitChar</a>),
 
         <span class="doccomment">/// An integer literal: `1` or `1u16`.
-        </span>Int(<a href="../../src/syn/lit.rs.html#84-89">LitInt</a>),
+        </span>Int(<a href="#84-89">LitInt</a>),
 
         <span class="doccomment">/// A floating point literal: `1f64` or `1.0e10f64`.
         ///
         /// Must be finite. May not be infinite or NaN.
-        </span>Float(<a href="../../src/syn/lit.rs.html#97-104">LitFloat</a>),
+        </span>Float(<a href="#97-104">LitFloat</a>),
 
         <span class="doccomment">/// A boolean literal: `true` or `false`.
-        </span>Bool(<a href="../../src/syn/lit.rs.html#112-118">LitBool</a>),
+        </span>Bool(<a href="#112-118">LitBool</a>),
 
         <span class="doccomment">/// A raw token literal not interpreted by Syn.
         </span>Verbatim(<a href="../../proc_macro2/struct.Literal.html">Literal</a>),
@@ -1651,28 +1651,28 @@
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// A UTF-8 string literal: `&quot;foo&quot;`.
     </span><span class="kw">pub struct </span>LitStr {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#79">LitRepr</a>&gt;,
+        repr: Box&lt;<a href="#79">LitRepr</a>&gt;,
     }
 }
 
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// A byte string literal: `b&quot;foo&quot;`.
     </span><span class="kw">pub struct </span>LitByteStr {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#79">LitRepr</a>&gt;,
+        repr: Box&lt;<a href="#79">LitRepr</a>&gt;,
     }
 }
 
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// A byte literal: `b&#39;f&#39;`.
     </span><span class="kw">pub struct </span>LitByte {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#79">LitRepr</a>&gt;,
+        repr: Box&lt;<a href="#79">LitRepr</a>&gt;,
     }
 }
 
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// A character literal: `&#39;a&#39;`.
     </span><span class="kw">pub struct </span>LitChar {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#79">LitRepr</a>&gt;,
+        repr: Box&lt;<a href="#79">LitRepr</a>&gt;,
     }
 }
 
@@ -1684,7 +1684,7 @@
 <span class="macro">ast_struct! </span>{
     <span class="doccomment">/// An integer literal: `1` or `1u16`.
     </span><span class="kw">pub struct </span>LitInt {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#91">LitIntRepr</a>&gt;,
+        repr: Box&lt;<a href="#91">LitIntRepr</a>&gt;,
     }
 }
 
@@ -1699,7 +1699,7 @@
     ///
     /// Must be finite. May not be infinite or NaN.
     </span><span class="kw">pub struct </span>LitFloat {
-        repr: Box&lt;<a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a>&gt;,
+        repr: Box&lt;<a href="#106">LitFloatRepr</a>&gt;,
     }
 }
 
@@ -1717,22 +1717,22 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
+<span class="kw">impl </span><a href="#51-56">LitStr</a> {
     <span class="kw">pub fn </span>new(value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::string(<a href="../../src/syn/lit.rs.html#121">value</a>);
-        <a href="../../src/syn/lit.rs.html#122">token</a>.set_span(<a href="../../src/syn/lit.rs.html#121">span</a>);
-        <a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
-                <a href="../../src/syn/lit.rs.html#122">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::string(<a href="#121">value</a>);
+        <a href="#122">token</a>.set_span(<a href="#121">span</a>);
+        <a href="#51-56">LitStr</a> {
+            repr: Box::new(<a href="#79">LitRepr</a> {
+                <a href="#122">token</a>,
                 suffix: Box::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;::default(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>repr = <a class="self" href="../../src/syn/lit.rs.html#132">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>(value, _suffix) = <a href="../../src/syn/lit.rs.html#1078">value::parse_lit_str</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#133">repr</a>);
-        String::from(<a href="../../src/syn/lit.rs.html#134">value</a>)
+        <span class="kw">let </span>repr = <a class="self" href="#132">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>(value, _suffix) = <a href="#1078">value::parse_lit_str</a>(<span class="kw-2">&amp;</span><a href="#133">repr</a>);
+        String::from(<a href="#134">value</a>)
     }
 
     <span class="doccomment">/// Parse a syntax tree node from the content of this string literal.
@@ -1768,8 +1768,8 @@
     /// ```
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse&lt;T: <a href="../../src/syn/parse.rs.html#220">Parse</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-        <a class="self" href="../../src/syn/lit.rs.html#171">self</a>.<a href="../../src/syn/lit.rs.html#201">parse_with</a>(T::parse)
+    </span><span class="kw">pub fn </span>parse&lt;T: <a href="parse.rs.html#220">Parse</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        <a class="self" href="#171">self</a>.<a href="#201">parse_with</a>(T::parse)
     }
 
     <span class="doccomment">/// Invoke parser on the content of this string literal.
@@ -1798,184 +1798,184 @@
     /// ```
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">pub fn </span>parse_with&lt;F: <a href="../../src/syn/parse.rs.html#1143">Parser</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, parser: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
+    </span><span class="kw">pub fn </span>parse_with&lt;F: <a href="parse.rs.html#1143">Parser</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, parser: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
         <span class="kw">use </span><a href="../../proc_macro2/struct.Group.html">proc_macro2::Group</a>;
 
         <span class="comment">// Token stream with every span replaced by the given one.
         </span><span class="kw">fn </span>respan_token_stream(stream: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-            <a href="../../src/syn/lit.rs.html#205">stream</a>
+            <a href="#205">stream</a>
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|token| <a href="../../src/syn/lit.rs.html#213">respan_token_tree</a>(<a href="../../src/syn/lit.rs.html#208">token</a>, <a href="../../src/syn/lit.rs.html#205">span</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|token| <a href="#213">respan_token_tree</a>(<a href="#208">token</a>, <a href="#205">span</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         }
 
         <span class="comment">// Token tree with every span replaced by the given one.
         </span><span class="kw">fn </span>respan_token_tree(<span class="kw-2">mut </span>token: <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a> {
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="../../src/syn/lit.rs.html#213">token</a> {
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#213">token</a> {
                 TokenTree::Group(g) =&gt; {
-                    <span class="kw">let </span>stream = <a href="../../src/syn/lit.rs.html#205">respan_token_stream</a>(<a href="../../src/syn/lit.rs.html#215">g</a>.stream(), <a href="../../src/syn/lit.rs.html#213">span</a>);
-                    <span class="kw-2">*</span><a href="../../src/syn/lit.rs.html#215">g</a> = Group::new(<a href="../../src/syn/lit.rs.html#215">g</a>.delimiter(), <a href="../../src/syn/lit.rs.html#216">stream</a>);
-                    <a href="../../src/syn/lit.rs.html#215">g</a>.set_span(<a href="../../src/syn/lit.rs.html#213">span</a>);
+                    <span class="kw">let </span>stream = <a href="#205">respan_token_stream</a>(<a href="#215">g</a>.stream(), <a href="#213">span</a>);
+                    <span class="kw-2">*</span><a href="#215">g</a> = Group::new(<a href="#215">g</a>.delimiter(), <a href="#216">stream</a>);
+                    <a href="#215">g</a>.set_span(<a href="#213">span</a>);
                 }
-                other =&gt; <a href="../../src/syn/lit.rs.html#220">other</a>.set_span(<a href="../../src/syn/lit.rs.html#213">span</a>),
+                other =&gt; <a href="#220">other</a>.set_span(<a href="#213">span</a>),
             }
-            <a href="../../src/syn/lit.rs.html#213">token</a>
+            <a href="#213">token</a>
         }
 
         <span class="comment">// Parse string literal into a token stream with every span equal to the
         // original literal&#39;s span.
         </span><span class="kw">let </span><span class="kw-2">mut </span>tokens = <span class="kw">crate</span>::parse_str(<span class="kw-2">&amp;</span><span class="self">self</span>.value())<span class="question-mark">?</span>;
-        <a href="../../src/syn/lit.rs.html#227">tokens</a> = <a href="../../src/syn/lit.rs.html#205">respan_token_stream</a>(<a href="../../src/syn/lit.rs.html#227">tokens</a>, <a class="self" href="../../src/syn/lit.rs.html#201">self</a>.<a href="../../src/syn/lit.rs.html#233">span</a>());
+        <a href="#227">tokens</a> = <a href="#205">respan_token_stream</a>(<a href="#227">tokens</a>, <a class="self" href="#201">self</a>.<a href="#233">span</a>());
 
-        <a href="../../src/syn/lit.rs.html#201">parser</a>.<a href="../../src/syn/parse.rs.html#1150">parse2</a>(<a href="../../src/syn/lit.rs.html#227">tokens</a>)
+        <a href="#201">parser</a>.<a href="parse.rs.html#1150">parse2</a>(<a href="#227">tokens</a>)
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#233">self</a>.repr.token.span()
+        <a class="self" href="#233">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#237">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#237">span</a>);
+        <a class="self" href="#237">self</a>.repr.token.set_span(<a href="#237">span</a>);
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#241">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#241">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#245">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#245">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
+<span class="kw">impl </span><a href="#58-63">LitByteStr</a> {
     <span class="kw">pub fn </span>new(value: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::byte_string(<a href="../../src/syn/lit.rs.html#251">value</a>);
-        <a href="../../src/syn/lit.rs.html#252">token</a>.set_span(<a href="../../src/syn/lit.rs.html#251">span</a>);
-        <a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
-                <a href="../../src/syn/lit.rs.html#252">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::byte_string(<a href="#251">value</a>);
+        <a href="#252">token</a>.set_span(<a href="#251">span</a>);
+        <a href="#58-63">LitByteStr</a> {
+            repr: Box::new(<a href="#79">LitRepr</a> {
+                <a href="#252">token</a>,
                 suffix: Box::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;::default(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>repr = <a class="self" href="../../src/syn/lit.rs.html#262">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>(value, _suffix) = <a href="../../src/syn/lit.rs.html#1170">value::parse_lit_byte_str</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#263">repr</a>);
-        <a href="../../src/syn/lit.rs.html#264">value</a>
+        <span class="kw">let </span>repr = <a class="self" href="#262">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>(value, _suffix) = <a href="#1170">value::parse_lit_byte_str</a>(<span class="kw-2">&amp;</span><a href="#263">repr</a>);
+        <a href="#264">value</a>
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#268">self</a>.repr.token.span()
+        <a class="self" href="#268">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#272">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#272">span</a>);
+        <a class="self" href="#272">self</a>.repr.token.set_span(<a href="#272">span</a>);
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#276">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#276">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#280">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#280">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
+<span class="kw">impl </span><a href="#65-70">LitByte</a> {
     <span class="kw">pub fn </span>new(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::u8_suffixed(<a href="../../src/syn/lit.rs.html#286">value</a>);
-        <a href="../../src/syn/lit.rs.html#287">token</a>.set_span(<a href="../../src/syn/lit.rs.html#286">span</a>);
-        <a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
-                <a href="../../src/syn/lit.rs.html#287">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::u8_suffixed(<a href="#286">value</a>);
+        <a href="#287">token</a>.set_span(<a href="#286">span</a>);
+        <a href="#65-70">LitByte</a> {
+            repr: Box::new(<a href="#79">LitRepr</a> {
+                <a href="#287">token</a>,
                 suffix: Box::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;::default(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw">let </span>repr = <a class="self" href="../../src/syn/lit.rs.html#297">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>(value, _suffix) = <a href="../../src/syn/lit.rs.html#1247">value::parse_lit_byte</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#298">repr</a>);
-        <a href="../../src/syn/lit.rs.html#299">value</a>
+        <span class="kw">let </span>repr = <a class="self" href="#297">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>(value, _suffix) = <a href="#1247">value::parse_lit_byte</a>(<span class="kw-2">&amp;</span><a href="#298">repr</a>);
+        <a href="#299">value</a>
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#303">self</a>.repr.token.span()
+        <a class="self" href="#303">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#307">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#307">span</a>);
+        <a class="self" href="#307">self</a>.repr.token.set_span(<a href="#307">span</a>);
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#311">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#311">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#315">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#315">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
+<span class="kw">impl </span><a href="#72-77">LitChar</a> {
     <span class="kw">pub fn </span>new(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::character(<a href="../../src/syn/lit.rs.html#321">value</a>);
-        <a href="../../src/syn/lit.rs.html#322">token</a>.set_span(<a href="../../src/syn/lit.rs.html#321">span</a>);
-        <a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
-                <a href="../../src/syn/lit.rs.html#322">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = Literal::character(<a href="#321">value</a>);
+        <a href="#322">token</a>.set_span(<a href="#321">span</a>);
+        <a href="#72-77">LitChar</a> {
+            repr: Box::new(<a href="#79">LitRepr</a> {
+                <a href="#322">token</a>,
                 suffix: Box::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;::default(),
             }),
         }
     }
 
     <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-        <span class="kw">let </span>repr = <a class="self" href="../../src/syn/lit.rs.html#332">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>(value, _suffix) = <a href="../../src/syn/lit.rs.html#1286">value::parse_lit_char</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#333">repr</a>);
-        <a href="../../src/syn/lit.rs.html#334">value</a>
+        <span class="kw">let </span>repr = <a class="self" href="#332">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>(value, _suffix) = <a href="#1286">value::parse_lit_char</a>(<span class="kw-2">&amp;</span><a href="#333">repr</a>);
+        <a href="#334">value</a>
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#338">self</a>.repr.token.span()
+        <a class="self" href="#338">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#342">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#342">span</a>);
+        <a class="self" href="#342">self</a>.repr.token.set_span(<a href="#342">span</a>);
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#346">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#346">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#350">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#350">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
+<span class="kw">impl </span><a href="#84-89">LitInt</a> {
     <span class="kw">pub fn </span>new(repr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>(digits, suffix) = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1391">value::parse_lit_int</a>(<a href="../../src/syn/lit.rs.html#356">repr</a>) {
-            <span class="prelude-val">Some</span>(parse) =&gt; <a href="../../src/syn/lit.rs.html#358">parse</a>,
+        <span class="kw">let </span>(digits, suffix) = <span class="kw">match </span><a href="#1391">value::parse_lit_int</a>(<a href="#356">repr</a>) {
+            <span class="prelude-val">Some</span>(parse) =&gt; <a href="#358">parse</a>,
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Not an integer literal: `{}`&quot;</span>, repr),
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>token = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1568">value::to_literal</a>(<a href="../../src/syn/lit.rs.html#356">repr</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#357">digits</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#357">suffix</a>) {
-            <span class="prelude-val">Some</span>(token) =&gt; <a href="../../src/syn/lit.rs.html#363">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = <span class="kw">match </span><a href="#1568">value::to_literal</a>(<a href="#356">repr</a>, <span class="kw-2">&amp;</span><a href="#357">digits</a>, <span class="kw-2">&amp;</span><a href="#357">suffix</a>) {
+            <span class="prelude-val">Some</span>(token) =&gt; <a href="#363">token</a>,
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unsupported integer literal: `{}`&quot;</span>, repr),
         };
 
-        <a href="../../src/syn/lit.rs.html#362">token</a>.set_span(<a href="../../src/syn/lit.rs.html#356">span</a>);
-        <a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
-                <a href="../../src/syn/lit.rs.html#362">token</a>,
-                <a href="../../src/syn/lit.rs.html#357">digits</a>,
-                <a href="../../src/syn/lit.rs.html#357">suffix</a>,
+        <a href="#362">token</a>.set_span(<a href="#356">span</a>);
+        <a href="#84-89">LitInt</a> {
+            repr: Box::new(<a href="#91">LitIntRepr</a> {
+                <a href="#362">token</a>,
+                <a href="#357">digits</a>,
+                <a href="#357">suffix</a>,
             }),
         }
     }
 
     <span class="kw">pub fn </span>base10_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#377">self</a>.repr.digits
+        <span class="kw-2">&amp;</span><a class="self" href="#377">self</a>.repr.digits
     }
 
     <span class="doccomment">/// Parses the literal into a selected number type.
@@ -2005,37 +2005,37 @@
         </span>N: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
         N::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
     {
-        <a class="self" href="../../src/syn/lit.rs.html#403">self</a>.<a href="../../src/syn/lit.rs.html#377">base10_digits</a>()
+        <a class="self" href="#403">self</a>.<a href="#377">base10_digits</a>()
             .parse()
-            .map_err(|err| Error::new(<a class="self" href="../../src/syn/lit.rs.html#403">self</a>.<a href="../../src/syn/lit.rs.html#417">span</a>(), <a href="../../src/syn/lit.rs.html#410">err</a>))
+            .map_err(|err| Error::new(<a class="self" href="#403">self</a>.<a href="#417">span</a>(), <a href="#410">err</a>))
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#413">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#413">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#417">self</a>.repr.token.span()
+        <a class="self" href="#417">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#421">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#421">span</a>);
+        <a class="self" href="#421">self</a>.repr.token.set_span(<a href="#421">span</a>);
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#425">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#425">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt; <span class="kw">for </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
+<span class="kw">impl </span>From&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt; <span class="kw">for </span><a href="#84-89">LitInt</a> {
     <span class="kw">fn </span>from(token: <a href="../../proc_macro2/struct.Literal.html">Literal</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>repr = <a href="../../src/syn/lit.rs.html#431">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="../../src/syn/lit.rs.html#1391">value::parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#432">repr</a>) {
-            <a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
-                repr: Box::new(<a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
-                    <a href="../../src/syn/lit.rs.html#431">token</a>,
-                    <a href="../../src/syn/lit.rs.html#433">digits</a>,
-                    <a href="../../src/syn/lit.rs.html#433">suffix</a>,
+        <span class="kw">let </span>repr = <a href="#431">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="#1391">value::parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="#432">repr</a>) {
+            <a href="#84-89">LitInt</a> {
+                repr: Box::new(<a href="#91">LitIntRepr</a> {
+                    <a href="#431">token</a>,
+                    <a href="#433">digits</a>,
+                    <a href="#433">suffix</a>,
                 }),
             }
         } <span class="kw">else </span>{
@@ -2044,36 +2044,36 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#84-89">LitInt</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#448">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/syn/lit.rs.html#448">formatter</a>)
+        <a class="self" href="#448">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#448">formatter</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
+<span class="kw">impl </span><a href="#97-104">LitFloat</a> {
     <span class="kw">pub fn </span>new(repr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>(digits, suffix) = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1476">value::parse_lit_float</a>(<a href="../../src/syn/lit.rs.html#454">repr</a>) {
-            <span class="prelude-val">Some</span>(parse) =&gt; <a href="../../src/syn/lit.rs.html#456">parse</a>,
+        <span class="kw">let </span>(digits, suffix) = <span class="kw">match </span><a href="#1476">value::parse_lit_float</a>(<a href="#454">repr</a>) {
+            <span class="prelude-val">Some</span>(parse) =&gt; <a href="#456">parse</a>,
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Not a float literal: `{}`&quot;</span>, repr),
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>token = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1568">value::to_literal</a>(<a href="../../src/syn/lit.rs.html#454">repr</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#455">digits</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#455">suffix</a>) {
-            <span class="prelude-val">Some</span>(token) =&gt; <a href="../../src/syn/lit.rs.html#461">token</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>token = <span class="kw">match </span><a href="#1568">value::to_literal</a>(<a href="#454">repr</a>, <span class="kw-2">&amp;</span><a href="#455">digits</a>, <span class="kw-2">&amp;</span><a href="#455">suffix</a>) {
+            <span class="prelude-val">Some</span>(token) =&gt; <a href="#461">token</a>,
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unsupported float literal: `{}`&quot;</span>, repr),
         };
 
-        <a href="../../src/syn/lit.rs.html#460">token</a>.set_span(<a href="../../src/syn/lit.rs.html#454">span</a>);
-        <a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
-            repr: Box::new(<a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
-                <a href="../../src/syn/lit.rs.html#460">token</a>,
-                <a href="../../src/syn/lit.rs.html#455">digits</a>,
-                <a href="../../src/syn/lit.rs.html#455">suffix</a>,
+        <a href="#460">token</a>.set_span(<a href="#454">span</a>);
+        <a href="#97-104">LitFloat</a> {
+            repr: Box::new(<a href="#106">LitFloatRepr</a> {
+                <a href="#460">token</a>,
+                <a href="#455">digits</a>,
+                <a href="#455">suffix</a>,
             }),
         }
     }
 
     <span class="kw">pub fn </span>base10_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#475">self</a>.repr.digits
+        <span class="kw-2">&amp;</span><a class="self" href="#475">self</a>.repr.digits
     }
 
     <span class="kw">pub fn </span>base10_parse&lt;N&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;N&gt;
@@ -2081,37 +2081,37 @@
         </span>N: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
         N::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
     {
-        <a class="self" href="../../src/syn/lit.rs.html#479">self</a>.<a href="../../src/syn/lit.rs.html#475">base10_digits</a>()
+        <a class="self" href="#479">self</a>.<a href="#475">base10_digits</a>()
             .parse()
-            .map_err(|err| Error::new(<a class="self" href="../../src/syn/lit.rs.html#479">self</a>.<a href="../../src/syn/lit.rs.html#493">span</a>(), <a href="../../src/syn/lit.rs.html#486">err</a>))
+            .map_err(|err| Error::new(<a class="self" href="#479">self</a>.<a href="#493">span</a>(), <a href="#486">err</a>))
     }
 
     <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#489">self</a>.repr.suffix
+        <span class="kw-2">&amp;</span><a class="self" href="#489">self</a>.repr.suffix
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#493">self</a>.repr.token.span()
+        <a class="self" href="#493">self</a>.repr.token.span()
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#497">self</a>.repr.token.set_span(<a href="../../src/syn/lit.rs.html#497">span</a>);
+        <a class="self" href="#497">self</a>.repr.token.set_span(<a href="#497">span</a>);
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Literal.html">Literal</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#501">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#501">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt; <span class="kw">for </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
+<span class="kw">impl </span>From&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt; <span class="kw">for </span><a href="#97-104">LitFloat</a> {
     <span class="kw">fn </span>from(token: <a href="../../proc_macro2/struct.Literal.html">Literal</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>repr = <a href="../../src/syn/lit.rs.html#507">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="../../src/syn/lit.rs.html#1476">value::parse_lit_float</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#508">repr</a>) {
-            <a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
-                repr: Box::new(<a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
-                    <a href="../../src/syn/lit.rs.html#507">token</a>,
-                    <a href="../../src/syn/lit.rs.html#509">digits</a>,
-                    <a href="../../src/syn/lit.rs.html#509">suffix</a>,
+        <span class="kw">let </span>repr = <a href="#507">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="#1476">value::parse_lit_float</a>(<span class="kw-2">&amp;</span><a href="#508">repr</a>) {
+            <a href="#97-104">LitFloat</a> {
+                repr: Box::new(<a href="#106">LitFloatRepr</a> {
+                    <a href="#507">token</a>,
+                    <a href="#509">digits</a>,
+                    <a href="#509">suffix</a>,
                 }),
             }
         } <span class="kw">else </span>{
@@ -2120,32 +2120,32 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#97-104">LitFloat</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#524">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/syn/lit.rs.html#524">formatter</a>)
+        <a class="self" href="#524">self</a>.repr.token.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#524">formatter</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
+<span class="kw">impl </span><a href="#112-118">LitBool</a> {
     <span class="kw">pub fn </span>new(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/lit.rs.html#112-118">LitBool</a> { <a href="../../src/syn/lit.rs.html#530">value</a>, <a href="../../src/syn/lit.rs.html#530">span</a> }
+        <a href="#112-118">LitBool</a> { <a href="#530">value</a>, <a href="#530">span</a> }
     }
 
     <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#534">self</a>.value
+        <a class="self" href="#534">self</a>.value
     }
 
     <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-        <a class="self" href="../../src/syn/lit.rs.html#538">self</a>.span
+        <a class="self" href="#538">self</a>.span
     }
 
     <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-        <a class="self" href="../../src/syn/lit.rs.html#542">self</a>.span = <a href="../../src/syn/lit.rs.html#542">span</a>;
+        <a class="self" href="#542">self</a>.span = <a href="#542">span</a>;
     }
 
     <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../syn/struct.Ident.html">Ident</a> {
         <span class="kw">let </span>s = <span class="kw">if </span><span class="self">self</span>.value { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>};
-        Ident::new(<a href="../../src/syn/lit.rs.html#547">s</a>, <a class="self" href="../../src/syn/lit.rs.html#546">self</a>.span)
+        Ident::new(<a href="#547">s</a>, <a class="self" href="#546">self</a>.span)
     }
 }
 
@@ -2155,9 +2155,9 @@
     <span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#51-56">LitStr</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#559">formatter</a>
+            <a href="#559">formatter</a>
                 .debug_struct(<span class="string">&quot;LitStr&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2165,9 +2165,9 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#58-63">LitByteStr</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#569">formatter</a>
+            <a href="#569">formatter</a>
                 .debug_struct(<span class="string">&quot;LitByteStr&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2175,9 +2175,9 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#65-70">LitByte</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#579">formatter</a>
+            <a href="#579">formatter</a>
                 .debug_struct(<span class="string">&quot;LitByte&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2185,9 +2185,9 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#72-77">LitChar</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#589">formatter</a>
+            <a href="#589">formatter</a>
                 .debug_struct(<span class="string">&quot;LitChar&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2195,9 +2195,9 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#84-89">LitInt</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#599">formatter</a>
+            <a href="#599">formatter</a>
                 .debug_struct(<span class="string">&quot;LitInt&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2205,9 +2205,9 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#97-104">LitFloat</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#609">formatter</a>
+            <a href="#609">formatter</a>
                 .debug_struct(<span class="string">&quot;LitFloat&quot;</span>)
                 .field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.repr.token))
                 .finish()
@@ -2215,11 +2215,11 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="#112-118">LitBool</a> {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a href="../../src/syn/lit.rs.html#619">formatter</a>
+            <a href="#619">formatter</a>
                 .debug_struct(<span class="string">&quot;LitBool&quot;</span>)
-                .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/lit.rs.html#619">self</a>.value)
+                .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#619">self</a>.value)
                 .finish()
         }
     }
@@ -2227,35 +2227,35 @@
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#79">LitRepr</a> {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/lit.rs.html#79">LitRepr</a> {
-            token: <a class="self" href="../../src/syn/lit.rs.html#631">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            suffix: <a class="self" href="../../src/syn/lit.rs.html#631">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#79">LitRepr</a> {
+            token: <a class="self" href="#631">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            suffix: <a class="self" href="#631">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#91">LitIntRepr</a> {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
-            token: <a class="self" href="../../src/syn/lit.rs.html#642">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            digits: <a class="self" href="../../src/syn/lit.rs.html#642">self</a>.digits.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            suffix: <a class="self" href="../../src/syn/lit.rs.html#642">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#91">LitIntRepr</a> {
+            token: <a class="self" href="#642">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            digits: <a class="self" href="#642">self</a>.digits.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            suffix: <a class="self" href="#642">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#106">LitFloatRepr</a> {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
-            token: <a class="self" href="../../src/syn/lit.rs.html#654">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            digits: <a class="self" href="../../src/syn/lit.rs.html#654">self</a>.digits.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            suffix: <a class="self" href="../../src/syn/lit.rs.html#654">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#106">LitFloatRepr</a> {
+            token: <a class="self" href="#654">self</a>.token.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            digits: <a class="self" href="#654">self</a>.digits.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            suffix: <a class="self" href="#654">self</a>.suffix.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -2300,18 +2300,18 @@
     };
 }
 
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitStr);
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitByteStr);
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitByte);
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitChar);
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitInt);
-<a class="macro" href="../../src/syn/lit.rs.html#663-701">lit_extra_traits!</a>(LitFloat);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitStr);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitByteStr);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitByte);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitChar);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitInt);
+<a class="macro" href="#663-701">lit_extra_traits!</a>(LitFloat);
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 #[doc(hidden)]
 #[allow(non_snake_case)]
-</span><span class="kw">pub fn </span>LitBool(marker: <a href="../../src/syn/lookahead.rs.html#157">lookahead::TokenMarker</a>) -&gt; <a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
-    <span class="kw">match </span><a href="../../src/syn/lit.rs.html#713">marker</a> {}
+</span><span class="kw">pub fn </span>LitBool(marker: <a href="lookahead.rs.html#157">lookahead::TokenMarker</a>) -&gt; <a href="#112-118">LitBool</a> {
+    <span class="kw">match </span><a href="#713">marker</a> {}
 }
 
 <span class="macro">ast_enum! </span>{
@@ -2330,162 +2330,162 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 #[doc(hidden)]
 #[allow(non_snake_case)]
-</span><span class="kw">pub fn </span>Lit(marker: <a href="../../src/syn/lookahead.rs.html#157">lookahead::TokenMarker</a>) -&gt; <a href="../../src/syn/lit.rs.html#14-49">Lit</a> {
-    <span class="kw">match </span><a href="../../src/syn/lit.rs.html#733">marker</a> {}
+</span><span class="kw">pub fn </span>Lit(marker: <a href="lookahead.rs.html#157">lookahead::TokenMarker</a>) -&gt; <a href="#14-49">Lit</a> {
+    <span class="kw">match </span><a href="#733">marker</a> {}
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">pub mod </span>parsing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/buffer.rs.html#179"><span class="kw">crate</span>::buffer::Cursor</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="../../src/syn/parse.rs.html#220">Parse</a>, <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span><a href="buffer.rs.html#179"><span class="kw">crate</span>::buffer::Cursor</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span><a href="../../proc_macro2/struct.Punct.html">proc_macro2::Punct</a>;
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#14-49">Lit</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <a href="../../src/syn/lit.rs.html#746">input</a>.<a href="../../src/syn/parse.rs.html#1006-1008">step</a>(|cursor| {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((lit, rest)) = <a href="../../src/syn/lit.rs.html#747">cursor</a>.<a href="../../src/syn/buffer.rs.html#315">literal</a>() {
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>((Lit::new(<a href="../../src/syn/lit.rs.html#748">lit</a>), <a href="../../src/syn/lit.rs.html#748">rest</a>));
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#14-49">Lit</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <a href="#746">input</a>.<a href="parse.rs.html#1006-1008">step</a>(|cursor| {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((lit, rest)) = <a href="#747">cursor</a>.<a href="buffer.rs.html#315">literal</a>() {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>((Lit::new(<a href="#748">lit</a>), <a href="#748">rest</a>));
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((ident, rest)) = <a href="../../src/syn/lit.rs.html#747">cursor</a>.<a href="../../src/syn/buffer.rs.html#293">ident</a>() {
-                    <span class="kw">let </span>value = <a href="../../src/syn/lit.rs.html#752">ident</a> == <span class="string">&quot;true&quot;</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((ident, rest)) = <a href="#747">cursor</a>.<a href="buffer.rs.html#293">ident</a>() {
+                    <span class="kw">let </span>value = <a href="#752">ident</a> == <span class="string">&quot;true&quot;</span>;
                     <span class="kw">if </span>value || ident == <span class="string">&quot;false&quot; </span>{
-                        <span class="kw">let </span>lit_bool = <a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
-                            <a href="../../src/syn/lit.rs.html#753">value</a>,
-                            span: <a href="../../src/syn/lit.rs.html#752">ident</a>.span(),
+                        <span class="kw">let </span>lit_bool = <a href="#112-118">LitBool</a> {
+                            <a href="#753">value</a>,
+                            span: <a href="#752">ident</a>.span(),
                         };
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>((<a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(<a href="../../src/syn/lit.rs.html#755">lit_bool</a>), <a href="../../src/syn/lit.rs.html#752">rest</a>));
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>((<a href="#44">Lit::Bool</a>(<a href="#755">lit_bool</a>), <a href="#752">rest</a>));
                     }
                 }
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((punct, rest)) = <a href="../../src/syn/lit.rs.html#747">cursor</a>.<a href="../../src/syn/buffer.rs.html#303">punct</a>() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((punct, rest)) = <a href="#747">cursor</a>.<a href="buffer.rs.html#303">punct</a>() {
                     <span class="kw">if </span>punct.as_char() == <span class="string">&#39;-&#39; </span>{
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((lit, rest)) = <a href="../../src/syn/lit.rs.html#776">parse_negative_lit</a>(<a href="../../src/syn/lit.rs.html#763">punct</a>, <a href="../../src/syn/lit.rs.html#763">rest</a>) {
-                            <span class="kw">return </span><span class="prelude-val">Ok</span>((<a href="../../src/syn/lit.rs.html#765">lit</a>, <a href="../../src/syn/lit.rs.html#765">rest</a>));
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((lit, rest)) = <a href="#776">parse_negative_lit</a>(<a href="#763">punct</a>, <a href="#763">rest</a>) {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>((<a href="#765">lit</a>, <a href="#765">rest</a>));
                         }
                     }
                 }
 
-                <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#747">cursor</a>.<a href="../../src/syn/parse.rs.html#373">error</a>(<span class="string">&quot;expected literal&quot;</span>))
+                <span class="prelude-val">Err</span>(<a href="#747">cursor</a>.<a href="parse.rs.html#373">error</a>(<span class="string">&quot;expected literal&quot;</span>))
             })
         }
     }
 
-    <span class="kw">fn </span>parse_negative_lit(neg: <a href="../../proc_macro2/struct.Punct.html">Punct</a>, cursor: <a href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../src/syn/lit.rs.html#14-49">Lit</a>, <a href="../../src/syn/buffer.rs.html#179">Cursor</a>)&gt; {
+    <span class="kw">fn </span>parse_negative_lit(neg: <a href="../../proc_macro2/struct.Punct.html">Punct</a>, cursor: <a href="buffer.rs.html#179">Cursor</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="#14-49">Lit</a>, <a href="buffer.rs.html#179">Cursor</a>)&gt; {
         <span class="kw">let </span>(lit, rest) = cursor.literal()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>span = <a href="../../src/syn/lit.rs.html#776">neg</a>.span();
-        <a href="../../src/syn/lit.rs.html#779">span</a> = <a href="../../src/syn/lit.rs.html#779">span</a>.join(<a href="../../src/syn/lit.rs.html#777">lit</a>.span()).unwrap_or(<a href="../../src/syn/lit.rs.html#779">span</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>span = <a href="#776">neg</a>.span();
+        <a href="#779">span</a> = <a href="#779">span</a>.join(<a href="#777">lit</a>.span()).unwrap_or(<a href="#779">span</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="../../src/syn/lit.rs.html#777">lit</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <a href="../../src/syn/lit.rs.html#782">repr</a>.insert(<span class="number">0</span>, <span class="string">&#39;-&#39;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="#777">lit</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <a href="#782">repr</a>.insert(<span class="number">0</span>, <span class="string">&#39;-&#39;</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="../../src/syn/lit.rs.html#1391">value::parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#782">repr</a>) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>token) = <a href="../../src/syn/lit.rs.html#1568">value::to_literal</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#782">repr</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#785">digits</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#785">suffix</a>) {
-                <a href="../../src/syn/lit.rs.html#786">token</a>.set_span(<a href="../../src/syn/lit.rs.html#779">span</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="#1391">value::parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="#782">repr</a>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>token) = <a href="#1568">value::to_literal</a>(<span class="kw-2">&amp;</span><a href="#782">repr</a>, <span class="kw-2">&amp;</span><a href="#785">digits</a>, <span class="kw-2">&amp;</span><a href="#785">suffix</a>) {
+                <a href="#786">token</a>.set_span(<a href="#779">span</a>);
                 <span class="kw">return </span><span class="prelude-val">Some</span>((
-                    <a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(<a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
-                        repr: Box::new(<a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
-                            <a href="../../src/syn/lit.rs.html#786">token</a>,
-                            <a href="../../src/syn/lit.rs.html#785">digits</a>,
-                            <a href="../../src/syn/lit.rs.html#785">suffix</a>,
+                    <a href="#36">Lit::Int</a>(<a href="#84-89">LitInt</a> {
+                        repr: Box::new(<a href="#91">LitIntRepr</a> {
+                            <a href="#786">token</a>,
+                            <a href="#785">digits</a>,
+                            <a href="#785">suffix</a>,
                         }),
                     }),
-                    <a href="../../src/syn/lit.rs.html#777">rest</a>,
+                    <a href="#777">rest</a>,
                 ));
             }
         }
 
         <span class="kw">let </span>(digits, suffix) = value::parse_lit_float(<span class="kw-2">&amp;</span>repr)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>token = value::to_literal(<span class="kw-2">&amp;</span>repr, <span class="kw-2">&amp;</span>digits, <span class="kw-2">&amp;</span>suffix)<span class="question-mark">?</span>;
-        <a href="../../src/syn/lit.rs.html#802">token</a>.set_span(<a href="../../src/syn/lit.rs.html#779">span</a>);
+        <a href="#802">token</a>.set_span(<a href="#779">span</a>);
         <span class="prelude-val">Some</span>((
-            <a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(<a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
-                repr: Box::new(<a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
-                    <a href="../../src/syn/lit.rs.html#802">token</a>,
-                    <a href="../../src/syn/lit.rs.html#801">digits</a>,
-                    <a href="../../src/syn/lit.rs.html#801">suffix</a>,
+            <a href="#41">Lit::Float</a>(<a href="#97-104">LitFloat</a> {
+                repr: Box::new(<a href="#106">LitFloatRepr</a> {
+                    <a href="#802">token</a>,
+                    <a href="#801">digits</a>,
+                    <a href="#801">suffix</a>,
                 }),
             }),
-            <a href="../../src/syn/lit.rs.html#777">rest</a>,
+            <a href="#777">rest</a>,
         ))
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#818">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#818">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#24">Lit::Str</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#821">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#819">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected string literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#51-56">LitStr</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#818">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#818">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#24">Lit::Str</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#821">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#819">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected string literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#829">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#829">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#27">Lit::ByteStr</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#832">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#830">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected byte string literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#58-63">LitByteStr</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#829">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#829">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#27">Lit::ByteStr</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#832">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#830">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected byte string literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#840">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#840">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#30">Lit::Byte</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#843">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#841">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected byte literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#65-70">LitByte</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#840">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#840">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#30">Lit::Byte</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#843">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#841">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected byte literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#851">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#851">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#33">Lit::Char</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#854">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#852">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected character literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#72-77">LitChar</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#851">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#851">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#33">Lit::Char</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#854">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#852">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected character literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#862">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#862">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#865">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#863">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected integer literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#84-89">LitInt</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#862">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#862">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#36">Lit::Int</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#865">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#863">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected integer literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#873">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#873">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#876">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#874">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected floating point literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#97-104">LitFloat</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#873">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#873">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#41">Lit::Float</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#876">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#874">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected floating point literal&quot;</span>)),
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>head = <a href="../../src/syn/lit.rs.html#884">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#884">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>() {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/syn/lit.rs.html#887">lit</a>),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/syn/lit.rs.html#885">head</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected boolean literal&quot;</span>)),
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#112-118">LitBool</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>head = <a href="#884">input</a>.<a href="parse.rs.html#918">fork</a>();
+            <span class="kw">match </span><a href="#884">input</a>.<a href="parse.rs.html#467">parse</a>() {
+                <span class="prelude-val">Ok</span>(<a href="#44">Lit::Bool</a>(lit)) =&gt; <span class="prelude-val">Ok</span>(<a href="#887">lit</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#885">head</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected boolean literal&quot;</span>)),
             }
         }
     }
@@ -2498,119 +2498,119 @@
     <span class="kw">use </span>quote::{<a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>, <a href="../../quote/ext/trait.TokenStreamExt.html">TokenStreamExt</a>};
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#51-56">LitStr</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#902">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#902">tokens</a>);
+            <a class="self" href="#902">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#902">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#58-63">LitByteStr</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#909">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#909">tokens</a>);
+            <a class="self" href="#909">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#909">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#65-70">LitByte</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#916">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#916">tokens</a>);
+            <a class="self" href="#916">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#916">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#72-77">LitChar</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#923">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#923">tokens</a>);
+            <a class="self" href="#923">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#923">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#84-89">LitInt</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#930">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#930">tokens</a>);
+            <a class="self" href="#930">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#930">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#97-104">LitFloat</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/lit.rs.html#937">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/lit.rs.html#937">tokens</a>);
+            <a class="self" href="#937">self</a>.repr.token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#937">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#112-118">LitBool</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/lit.rs.html#944">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append</a>(<a class="self" href="../../src/syn/lit.rs.html#944">self</a>.<a href="../../src/syn/lit.rs.html#546">token</a>());
+            <a href="#944">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append</a>(<a class="self" href="#944">self</a>.<a href="#546">token</a>());
         }
     }
 }
 
 <span class="kw">mod </span>value {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/bigint.rs.html#4"><span class="kw">crate</span>::bigint::BigInt</a>;
+    <span class="kw">use </span><a href="bigint.rs.html#4"><span class="kw">crate</span>::bigint::BigInt</a>;
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
     <span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>};
 
-    <span class="kw">impl </span><a href="../../src/syn/lit.rs.html#14-49">Lit</a> {
+    <span class="kw">impl </span><a href="#14-49">Lit</a> {
         <span class="doccomment">/// Interpret a Syn literal from a proc-macro2 literal.
         </span><span class="kw">pub fn </span>new(token: <a href="../../proc_macro2/struct.Literal.html">Literal</a>) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>repr = <a href="../../src/syn/lit.rs.html#958">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+            <span class="kw">let </span>repr = <a href="#958">token</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
-            <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>, <span class="number">0</span>) {
+            <span class="kw">match </span><a href="#1064">byte</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>, <span class="number">0</span>) {
                 <span class="string">b&#39;&quot;&#39; </span>| <span class="string">b&#39;r&#39; </span>=&gt; {
-                    <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="../../src/syn/lit.rs.html#1078">parse_lit_str</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>);
-                    <span class="kw">return </span><a href="../../src/syn/lit.rs.html#24">Lit::Str</a>(<a href="../../src/syn/lit.rs.html#51-56">LitStr</a> {
-                        repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> { <a href="../../src/syn/lit.rs.html#958">token</a>, <a href="../../src/syn/lit.rs.html#963">suffix</a> }),
+                    <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="#1078">parse_lit_str</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>);
+                    <span class="kw">return </span><a href="#24">Lit::Str</a>(<a href="#51-56">LitStr</a> {
+                        repr: Box::new(<a href="#79">LitRepr</a> { <a href="#958">token</a>, <a href="#963">suffix</a> }),
                     });
                 }
-                <span class="string">b&#39;b&#39; </span>=&gt; <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>, <span class="number">1</span>) {
+                <span class="string">b&#39;b&#39; </span>=&gt; <span class="kw">match </span><a href="#1064">byte</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>, <span class="number">1</span>) {
                     <span class="string">b&#39;&quot;&#39; </span>| <span class="string">b&#39;r&#39; </span>=&gt; {
-                        <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="../../src/syn/lit.rs.html#1170">parse_lit_byte_str</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>);
-                        <span class="kw">return </span><a href="../../src/syn/lit.rs.html#27">Lit::ByteStr</a>(<a href="../../src/syn/lit.rs.html#58-63">LitByteStr</a> {
-                            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> { <a href="../../src/syn/lit.rs.html#958">token</a>, <a href="../../src/syn/lit.rs.html#970">suffix</a> }),
+                        <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="#1170">parse_lit_byte_str</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>);
+                        <span class="kw">return </span><a href="#27">Lit::ByteStr</a>(<a href="#58-63">LitByteStr</a> {
+                            repr: Box::new(<a href="#79">LitRepr</a> { <a href="#958">token</a>, <a href="#970">suffix</a> }),
                         });
                     }
                     <span class="string">b&#39;\&#39;&#39; </span>=&gt; {
-                        <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="../../src/syn/lit.rs.html#1247">parse_lit_byte</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>);
-                        <span class="kw">return </span><a href="../../src/syn/lit.rs.html#30">Lit::Byte</a>(<a href="../../src/syn/lit.rs.html#65-70">LitByte</a> {
-                            repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> { <a href="../../src/syn/lit.rs.html#958">token</a>, <a href="../../src/syn/lit.rs.html#976">suffix</a> }),
+                        <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="#1247">parse_lit_byte</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>);
+                        <span class="kw">return </span><a href="#30">Lit::Byte</a>(<a href="#65-70">LitByte</a> {
+                            repr: Box::new(<a href="#79">LitRepr</a> { <a href="#958">token</a>, <a href="#976">suffix</a> }),
                         });
                     }
                     <span class="kw">_ </span>=&gt; {}
                 },
                 <span class="string">b&#39;\&#39;&#39; </span>=&gt; {
-                    <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="../../src/syn/lit.rs.html#1286">parse_lit_char</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>);
-                    <span class="kw">return </span><a href="../../src/syn/lit.rs.html#33">Lit::Char</a>(<a href="../../src/syn/lit.rs.html#72-77">LitChar</a> {
-                        repr: Box::new(<a href="../../src/syn/lit.rs.html#79">LitRepr</a> { <a href="../../src/syn/lit.rs.html#958">token</a>, <a href="../../src/syn/lit.rs.html#984">suffix</a> }),
+                    <span class="kw">let </span>(<span class="kw">_</span>, suffix) = <a href="#1286">parse_lit_char</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>);
+                    <span class="kw">return </span><a href="#33">Lit::Char</a>(<a href="#72-77">LitChar</a> {
+                        repr: Box::new(<a href="#79">LitRepr</a> { <a href="#958">token</a>, <a href="#984">suffix</a> }),
                     });
                 }
                 <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;-&#39; </span>=&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="../../src/syn/lit.rs.html#1391">parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>) {
-                        <span class="kw">return </span><a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(<a href="../../src/syn/lit.rs.html#84-89">LitInt</a> {
-                            repr: Box::new(<a href="../../src/syn/lit.rs.html#91">LitIntRepr</a> {
-                                <a href="../../src/syn/lit.rs.html#958">token</a>,
-                                <a href="../../src/syn/lit.rs.html#990">digits</a>,
-                                <a href="../../src/syn/lit.rs.html#990">suffix</a>,
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="#1391">parse_lit_int</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>) {
+                        <span class="kw">return </span><a href="#36">Lit::Int</a>(<a href="#84-89">LitInt</a> {
+                            repr: Box::new(<a href="#91">LitIntRepr</a> {
+                                <a href="#958">token</a>,
+                                <a href="#990">digits</a>,
+                                <a href="#990">suffix</a>,
                             }),
                         });
                     }
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="../../src/syn/lit.rs.html#1476">parse_lit_float</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#959">repr</a>) {
-                        <span class="kw">return </span><a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(<a href="../../src/syn/lit.rs.html#97-104">LitFloat</a> {
-                            repr: Box::new(<a href="../../src/syn/lit.rs.html#106">LitFloatRepr</a> {
-                                <a href="../../src/syn/lit.rs.html#958">token</a>,
-                                <a href="../../src/syn/lit.rs.html#999">digits</a>,
-                                <a href="../../src/syn/lit.rs.html#999">suffix</a>,
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((digits, suffix)) = <a href="#1476">parse_lit_float</a>(<span class="kw-2">&amp;</span><a href="#959">repr</a>) {
+                        <span class="kw">return </span><a href="#41">Lit::Float</a>(<a href="#97-104">LitFloat</a> {
+                            repr: Box::new(<a href="#106">LitFloatRepr</a> {
+                                <a href="#958">token</a>,
+                                <a href="#999">digits</a>,
+                                <a href="#999">suffix</a>,
                             }),
                         });
                     }
                 }
                 <span class="string">b&#39;t&#39; </span>| <span class="string">b&#39;f&#39; </span>=&gt; {
                     <span class="kw">if </span>repr == <span class="string">&quot;true&quot; </span>|| repr == <span class="string">&quot;false&quot; </span>{
-                        <span class="kw">return </span><a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(<a href="../../src/syn/lit.rs.html#112-118">LitBool</a> {
-                            value: <a href="../../src/syn/lit.rs.html#959">repr</a> == <span class="string">&quot;true&quot;</span>,
-                            span: <a href="../../src/syn/lit.rs.html#958">token</a>.span(),
+                        <span class="kw">return </span><a href="#44">Lit::Bool</a>(<a href="#112-118">LitBool</a> {
+                            value: <a href="#959">repr</a> == <span class="string">&quot;true&quot;</span>,
+                            span: <a href="#958">token</a>.span(),
                         });
                     }
                 }
@@ -2621,40 +2621,40 @@
         }
 
         <span class="kw">pub fn </span>suffix(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <span class="kw">match </span><span class="self"><a href="../../src/syn/lit.rs.html#1023">self</a> </span>{
-                <a href="../../src/syn/lit.rs.html#24">Lit::Str</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1025">lit</a>.<a href="../../src/syn/lit.rs.html#241">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#27">Lit::ByteStr</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1026">lit</a>.<a href="../../src/syn/lit.rs.html#276">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#30">Lit::Byte</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1027">lit</a>.<a href="../../src/syn/lit.rs.html#311">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#33">Lit::Char</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1028">lit</a>.<a href="../../src/syn/lit.rs.html#346">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1029">lit</a>.<a href="../../src/syn/lit.rs.html#413">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1030">lit</a>.<a href="../../src/syn/lit.rs.html#489">suffix</a>(),
-                <a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(<span class="kw">_</span>) | <a href="../../src/syn/lit.rs.html#47">Lit::Verbatim</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;&quot;</span>,
+            <span class="kw">match </span><span class="self"><a href="#1023">self</a> </span>{
+                <a href="#24">Lit::Str</a>(lit) =&gt; <a href="#1025">lit</a>.<a href="#241">suffix</a>(),
+                <a href="#27">Lit::ByteStr</a>(lit) =&gt; <a href="#1026">lit</a>.<a href="#276">suffix</a>(),
+                <a href="#30">Lit::Byte</a>(lit) =&gt; <a href="#1027">lit</a>.<a href="#311">suffix</a>(),
+                <a href="#33">Lit::Char</a>(lit) =&gt; <a href="#1028">lit</a>.<a href="#346">suffix</a>(),
+                <a href="#36">Lit::Int</a>(lit) =&gt; <a href="#1029">lit</a>.<a href="#413">suffix</a>(),
+                <a href="#41">Lit::Float</a>(lit) =&gt; <a href="#1030">lit</a>.<a href="#489">suffix</a>(),
+                <a href="#44">Lit::Bool</a>(<span class="kw">_</span>) | <a href="#47">Lit::Verbatim</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;&quot;</span>,
             }
         }
 
         <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../proc_macro2/struct.Span.html">Span</a> {
-            <span class="kw">match </span><span class="self"><a href="../../src/syn/lit.rs.html#1035">self</a> </span>{
-                <a href="../../src/syn/lit.rs.html#24">Lit::Str</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1037">lit</a>.<a href="../../src/syn/lit.rs.html#233">span</a>(),
-                <a href="../../src/syn/lit.rs.html#27">Lit::ByteStr</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1038">lit</a>.<a href="../../src/syn/lit.rs.html#268">span</a>(),
-                <a href="../../src/syn/lit.rs.html#30">Lit::Byte</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1039">lit</a>.<a href="../../src/syn/lit.rs.html#303">span</a>(),
-                <a href="../../src/syn/lit.rs.html#33">Lit::Char</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1040">lit</a>.<a href="../../src/syn/lit.rs.html#338">span</a>(),
-                <a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1041">lit</a>.<a href="../../src/syn/lit.rs.html#417">span</a>(),
-                <a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1042">lit</a>.<a href="../../src/syn/lit.rs.html#493">span</a>(),
-                <a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1043">lit</a>.span,
-                <a href="../../src/syn/lit.rs.html#47">Lit::Verbatim</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1044">lit</a>.span(),
+            <span class="kw">match </span><span class="self"><a href="#1035">self</a> </span>{
+                <a href="#24">Lit::Str</a>(lit) =&gt; <a href="#1037">lit</a>.<a href="#233">span</a>(),
+                <a href="#27">Lit::ByteStr</a>(lit) =&gt; <a href="#1038">lit</a>.<a href="#268">span</a>(),
+                <a href="#30">Lit::Byte</a>(lit) =&gt; <a href="#1039">lit</a>.<a href="#303">span</a>(),
+                <a href="#33">Lit::Char</a>(lit) =&gt; <a href="#1040">lit</a>.<a href="#338">span</a>(),
+                <a href="#36">Lit::Int</a>(lit) =&gt; <a href="#1041">lit</a>.<a href="#417">span</a>(),
+                <a href="#41">Lit::Float</a>(lit) =&gt; <a href="#1042">lit</a>.<a href="#493">span</a>(),
+                <a href="#44">Lit::Bool</a>(lit) =&gt; <a href="#1043">lit</a>.span,
+                <a href="#47">Lit::Verbatim</a>(lit) =&gt; <a href="#1044">lit</a>.span(),
             }
         }
 
         <span class="kw">pub fn </span>set_span(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
-            <span class="kw">match </span><span class="self"><a href="../../src/syn/lit.rs.html#1048">self</a> </span>{
-                <a href="../../src/syn/lit.rs.html#24">Lit::Str</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1050">lit</a>.<a href="../../src/syn/lit.rs.html#237">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#27">Lit::ByteStr</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1051">lit</a>.<a href="../../src/syn/lit.rs.html#272">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#30">Lit::Byte</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1052">lit</a>.<a href="../../src/syn/lit.rs.html#307">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#33">Lit::Char</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1053">lit</a>.<a href="../../src/syn/lit.rs.html#342">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#36">Lit::Int</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1054">lit</a>.<a href="../../src/syn/lit.rs.html#421">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#41">Lit::Float</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1055">lit</a>.<a href="../../src/syn/lit.rs.html#497">set_span</a>(<a href="../../src/syn/lit.rs.html#1048">span</a>),
-                <a href="../../src/syn/lit.rs.html#44">Lit::Bool</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1056">lit</a>.span = <a href="../../src/syn/lit.rs.html#1048">span</a>,
-                <a href="../../src/syn/lit.rs.html#47">Lit::Verbatim</a>(lit) =&gt; <a href="../../src/syn/lit.rs.html#1057">lit</a>.set_span(<a href="../../src/syn/lit.rs.html#1048">span</a>),
+            <span class="kw">match </span><span class="self"><a href="#1048">self</a> </span>{
+                <a href="#24">Lit::Str</a>(lit) =&gt; <a href="#1050">lit</a>.<a href="#237">set_span</a>(<a href="#1048">span</a>),
+                <a href="#27">Lit::ByteStr</a>(lit) =&gt; <a href="#1051">lit</a>.<a href="#272">set_span</a>(<a href="#1048">span</a>),
+                <a href="#30">Lit::Byte</a>(lit) =&gt; <a href="#1052">lit</a>.<a href="#307">set_span</a>(<a href="#1048">span</a>),
+                <a href="#33">Lit::Char</a>(lit) =&gt; <a href="#1053">lit</a>.<a href="#342">set_span</a>(<a href="#1048">span</a>),
+                <a href="#36">Lit::Int</a>(lit) =&gt; <a href="#1054">lit</a>.<a href="#421">set_span</a>(<a href="#1048">span</a>),
+                <a href="#41">Lit::Float</a>(lit) =&gt; <a href="#1055">lit</a>.<a href="#497">set_span</a>(<a href="#1048">span</a>),
+                <a href="#44">Lit::Bool</a>(lit) =&gt; <a href="#1056">lit</a>.span = <a href="#1048">span</a>,
+                <a href="#47">Lit::Verbatim</a>(lit) =&gt; <a href="#1057">lit</a>.set_span(<a href="#1048">span</a>),
             }
         }
     }
@@ -2662,23 +2662,23 @@
     <span class="doccomment">/// Get the byte at offset idx, or a default of `b&#39;\0&#39;` if we&#39;re looking
     /// past the end of the input buffer.
     </span><span class="kw">pub fn </span>byte&lt;S: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(s: <span class="kw-2">&amp;</span>S, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw">let </span>s = <a href="../../src/syn/lit.rs.html#1064">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">let </span>s = <a href="#1064">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
         <span class="kw">if </span>idx &lt; s.len() {
-            <a href="../../src/syn/lit.rs.html#1065">s</a>[<a href="../../src/syn/lit.rs.html#1064">idx</a>]
+            <a href="#1065">s</a>[<a href="#1064">idx</a>]
         } <span class="kw">else </span>{
             <span class="number">0
         </span>}
     }
 
     <span class="kw">fn </span>next_chr(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-        <a href="../../src/syn/lit.rs.html#1073">s</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap_or(<span class="string">&#39;\0&#39;</span>)
+        <a href="#1073">s</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap_or(<span class="string">&#39;\0&#39;</span>)
     }
 
     <span class="comment">// Returns (content, suffix).
     </span><span class="kw">pub fn </span>parse_lit_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
-        <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1078">s</a>, <span class="number">0</span>) {
-            <span class="string">b&#39;&quot;&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1089">parse_lit_str_cooked</a>(<a href="../../src/syn/lit.rs.html#1078">s</a>),
-            <span class="string">b&#39;r&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1150">parse_lit_str_raw</a>(<a href="../../src/syn/lit.rs.html#1078">s</a>),
+        <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1078">s</a>, <span class="number">0</span>) {
+            <span class="string">b&#39;&quot;&#39; </span>=&gt; <a href="#1089">parse_lit_str_cooked</a>(<a href="#1078">s</a>),
+            <span class="string">b&#39;r&#39; </span>=&gt; <a href="#1150">parse_lit_str_raw</a>(<a href="#1078">s</a>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
@@ -2688,26 +2688,26 @@
     </span><span class="attribute">#[allow(clippy::needless_continue)]
     </span><span class="kw">fn </span>parse_lit_str_cooked(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;&quot;&#39;</span>);
-        <a href="../../src/syn/lit.rs.html#1089">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1089">s</a>[<span class="number">1</span>..];
+        <a href="#1089">s</a> = <span class="kw-2">&amp;</span><a href="#1089">s</a>[<span class="number">1</span>..];
 
         <span class="kw">let </span><span class="kw-2">mut </span>content = String::new();
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <span class="kw">let </span>ch = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>, <span class="number">0</span>) {
+            <span class="kw">let </span>ch = <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1089">s</a>, <span class="number">0</span>) {
                 <span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="kw">break</span>,
                 <span class="string">b&#39;\\&#39; </span>=&gt; {
-                    <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>, <span class="number">1</span>);
-                    <a href="../../src/syn/lit.rs.html#1089">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1089">s</a>[<span class="number">2</span>..];
-                    <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1098">b</a> {
+                    <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1089">s</a>, <span class="number">1</span>);
+                    <a href="#1089">s</a> = <span class="kw-2">&amp;</span><a href="#1089">s</a>[<span class="number">2</span>..];
+                    <span class="kw">match </span><a href="#1098">b</a> {
                         <span class="string">b&#39;x&#39; </span>=&gt; {
-                            <span class="kw">let </span>(byte, rest) = <a href="../../src/syn/lit.rs.html#1327-1329">backslash_x</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>);
-                            <a href="../../src/syn/lit.rs.html#1089">s</a> = <a href="../../src/syn/lit.rs.html#1102">rest</a>;
+                            <span class="kw">let </span>(byte, rest) = <a href="#1327-1329">backslash_x</a>(<a href="#1089">s</a>);
+                            <a href="#1089">s</a> = <a href="#1102">rest</a>;
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(byte &lt;= <span class="number">0x80</span>, <span class="string">&quot;Invalid \\x byte in string literal&quot;</span>);
-                            char::from_u32(u32::from(<a href="../../src/syn/lit.rs.html#1102">byte</a>)).unwrap()
+                            char::from_u32(u32::from(<a href="#1102">byte</a>)).unwrap()
                         }
                         <span class="string">b&#39;u&#39; </span>=&gt; {
-                            <span class="kw">let </span>(chr, rest) = <a href="../../src/syn/lit.rs.html#1350">backslash_u</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>);
-                            <a href="../../src/syn/lit.rs.html#1089">s</a> = <a href="../../src/syn/lit.rs.html#1108">rest</a>;
-                            <a href="../../src/syn/lit.rs.html#1108">chr</a>
+                            <span class="kw">let </span>(chr, rest) = <a href="#1350">backslash_u</a>(<a href="#1089">s</a>);
+                            <a href="#1089">s</a> = <a href="#1108">rest</a>;
+                            <a href="#1108">chr</a>
                         }
                         <span class="string">b&#39;n&#39; </span>=&gt; <span class="string">&#39;\n&#39;</span>,
                         <span class="string">b&#39;r&#39; </span>=&gt; <span class="string">&#39;\r&#39;</span>,
@@ -2717,9 +2717,9 @@
                         <span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="string">&#39;\&#39;&#39;</span>,
                         <span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="string">&#39;&quot;&#39;</span>,
                         <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>=&gt; <span class="kw">loop </span>{
-                            <span class="kw">let </span>ch = <a href="../../src/syn/lit.rs.html#1073">next_chr</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>);
+                            <span class="kw">let </span>ch = <a href="#1073">next_chr</a>(<a href="#1089">s</a>);
                             <span class="kw">if </span>ch.is_whitespace() {
-                                <a href="../../src/syn/lit.rs.html#1089">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1089">s</a>[<a href="../../src/syn/lit.rs.html#1120">ch</a>.len_utf8()..];
+                                <a href="#1089">s</a> = <span class="kw-2">&amp;</span><a href="#1089">s</a>[<a href="#1120">ch</a>.len_utf8()..];
                             } <span class="kw">else </span>{
                                 <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                             }
@@ -2729,49 +2729,49 @@
                 }
                 <span class="string">b&#39;\r&#39; </span>=&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">1</span>), <span class="string">b&#39;\n&#39;</span>, <span class="string">&quot;Bare CR not allowed in string&quot;</span>);
-                    <a href="../../src/syn/lit.rs.html#1089">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1089">s</a>[<span class="number">2</span>..];
+                    <a href="#1089">s</a> = <span class="kw-2">&amp;</span><a href="#1089">s</a>[<span class="number">2</span>..];
                     <span class="string">&#39;\n&#39;
                 </span>}
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>ch = <a href="../../src/syn/lit.rs.html#1073">next_chr</a>(<a href="../../src/syn/lit.rs.html#1089">s</a>);
-                    <a href="../../src/syn/lit.rs.html#1089">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1089">s</a>[<a href="../../src/syn/lit.rs.html#1136">ch</a>.len_utf8()..];
-                    <a href="../../src/syn/lit.rs.html#1136">ch</a>
+                    <span class="kw">let </span>ch = <a href="#1073">next_chr</a>(<a href="#1089">s</a>);
+                    <a href="#1089">s</a> = <span class="kw-2">&amp;</span><a href="#1089">s</a>[<a href="#1136">ch</a>.len_utf8()..];
+                    <a href="#1136">ch</a>
                 }
             };
-            <a href="../../src/syn/lit.rs.html#1093">content</a>.push(<a href="../../src/syn/lit.rs.html#1095">ch</a>);
+            <a href="#1093">content</a>.push(<a href="#1095">ch</a>);
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(s.starts_with(<span class="string">&#39;&quot;&#39;</span>));
-        <span class="kw">let </span>content = <a href="../../src/syn/lit.rs.html#1093">content</a>.into_boxed_str();
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1089">s</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        (<a href="../../src/syn/lit.rs.html#1145">content</a>, <a href="../../src/syn/lit.rs.html#1146">suffix</a>)
+        <span class="kw">let </span>content = <a href="#1093">content</a>.into_boxed_str();
+        <span class="kw">let </span>suffix = <a href="#1089">s</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        (<a href="#1145">content</a>, <a href="#1146">suffix</a>)
     }
 
     <span class="kw">fn </span>parse_lit_str_raw(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;r&#39;</span>);
-        <a href="../../src/syn/lit.rs.html#1150">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1150">s</a>[<span class="number">1</span>..];
+        <a href="#1150">s</a> = <span class="kw-2">&amp;</span><a href="#1150">s</a>[<span class="number">1</span>..];
 
         <span class="kw">let </span><span class="kw-2">mut </span>pounds = <span class="number">0</span>;
         <span class="kw">while </span>byte(s, pounds) == <span class="string">b&#39;#&#39; </span>{
             pounds += <span class="number">1</span>;
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, pounds), <span class="string">b&#39;&quot;&#39;</span>);
-        <span class="kw">let </span>close = <a href="../../src/syn/lit.rs.html#1150">s</a>.rfind(<span class="string">&#39;&quot;&#39;</span>).unwrap();
+        <span class="kw">let </span>close = <a href="#1150">s</a>.rfind(<span class="string">&#39;&quot;&#39;</span>).unwrap();
         <span class="kw">for </span>end <span class="kw">in </span>s[close + <span class="number">1</span>..close + <span class="number">1 </span>+ pounds].bytes() {
             <span class="macro">assert_eq!</span>(end, <span class="string">b&#39;#&#39;</span>);
         }
 
-        <span class="kw">let </span>content = <a href="../../src/syn/lit.rs.html#1150">s</a>[<a href="../../src/syn/lit.rs.html#1154">pounds</a> + <span class="number">1</span>..<a href="../../src/syn/lit.rs.html#1159">close</a>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1150">s</a>[<a href="../../src/syn/lit.rs.html#1159">close</a> + <span class="number">1 </span>+ <a href="../../src/syn/lit.rs.html#1154">pounds</a>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        (<a href="../../src/syn/lit.rs.html#1164">content</a>, <a href="../../src/syn/lit.rs.html#1165">suffix</a>)
+        <span class="kw">let </span>content = <a href="#1150">s</a>[<a href="#1154">pounds</a> + <span class="number">1</span>..<a href="#1159">close</a>].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        <span class="kw">let </span>suffix = <a href="#1150">s</a>[<a href="#1159">close</a> + <span class="number">1 </span>+ <a href="#1154">pounds</a>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        (<a href="#1164">content</a>, <a href="#1165">suffix</a>)
     }
 
     <span class="comment">// Returns (content, suffix).
     </span><span class="kw">pub fn </span>parse_lit_byte_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;b&#39;</span>);
-        <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1170">s</a>, <span class="number">1</span>) {
-            <span class="string">b&#39;&quot;&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1182">parse_lit_byte_str_cooked</a>(<a href="../../src/syn/lit.rs.html#1170">s</a>),
-            <span class="string">b&#39;r&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1240">parse_lit_byte_str_raw</a>(<a href="../../src/syn/lit.rs.html#1170">s</a>),
+        <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1170">s</a>, <span class="number">1</span>) {
+            <span class="string">b&#39;&quot;&#39; </span>=&gt; <a href="#1182">parse_lit_byte_str_cooked</a>(<a href="#1170">s</a>),
+            <span class="string">b&#39;r&#39; </span>=&gt; <a href="#1240">parse_lit_byte_str_raw</a>(<a href="#1170">s</a>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
@@ -2782,23 +2782,23 @@
     </span><span class="kw">fn </span>parse_lit_byte_str_cooked(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;b&#39;</span>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">1</span>), <span class="string">b&#39;&quot;&#39;</span>);
-        <a href="../../src/syn/lit.rs.html#1182">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1182">s</a>[<span class="number">2</span>..];
+        <a href="#1182">s</a> = <span class="kw-2">&amp;</span><a href="#1182">s</a>[<span class="number">2</span>..];
 
         <span class="comment">// We&#39;re going to want to have slices which don&#39;t respect codepoint boundaries.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>v = <a href="../../src/syn/lit.rs.html#1182">s</a>.as_bytes();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>v = <a href="#1182">s</a>.as_bytes();
 
         <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <span class="kw">let </span>byte = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1188">v</a>, <span class="number">0</span>) {
+            <span class="kw">let </span>byte = <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1188">v</a>, <span class="number">0</span>) {
                 <span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="kw">break</span>,
                 <span class="string">b&#39;\\&#39; </span>=&gt; {
-                    <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1188">v</a>, <span class="number">1</span>);
-                    <a href="../../src/syn/lit.rs.html#1188">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1188">v</a>[<span class="number">2</span>..];
-                    <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1195">b</a> {
+                    <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1188">v</a>, <span class="number">1</span>);
+                    <a href="#1188">v</a> = <span class="kw-2">&amp;</span><a href="#1188">v</a>[<span class="number">2</span>..];
+                    <span class="kw">match </span><a href="#1195">b</a> {
                         <span class="string">b&#39;x&#39; </span>=&gt; {
-                            <span class="kw">let </span>(b, rest) = <a href="../../src/syn/lit.rs.html#1327-1329">backslash_x</a>(<a href="../../src/syn/lit.rs.html#1188">v</a>);
-                            <a href="../../src/syn/lit.rs.html#1188">v</a> = <a href="../../src/syn/lit.rs.html#1199">rest</a>;
-                            <a href="../../src/syn/lit.rs.html#1199">b</a>
+                            <span class="kw">let </span>(b, rest) = <a href="#1327-1329">backslash_x</a>(<a href="#1188">v</a>);
+                            <a href="#1188">v</a> = <a href="#1199">rest</a>;
+                            <a href="#1199">b</a>
                         }
                         <span class="string">b&#39;n&#39; </span>=&gt; <span class="string">b&#39;\n&#39;</span>,
                         <span class="string">b&#39;r&#39; </span>=&gt; <span class="string">b&#39;\r&#39;</span>,
@@ -2808,10 +2808,10 @@
                         <span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="string">b&#39;\&#39;&#39;</span>,
                         <span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="string">b&#39;&quot;&#39;</span>,
                         <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>=&gt; <span class="kw">loop </span>{
-                            <span class="kw">let </span>byte = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1188">v</a>, <span class="number">0</span>);
-                            <span class="kw">let </span>ch = char::from_u32(u32::from(<a href="../../src/syn/lit.rs.html#1211">byte</a>)).unwrap();
+                            <span class="kw">let </span>byte = <a href="#1064">byte</a>(<a href="#1188">v</a>, <span class="number">0</span>);
+                            <span class="kw">let </span>ch = char::from_u32(u32::from(<a href="#1211">byte</a>)).unwrap();
                             <span class="kw">if </span>ch.is_whitespace() {
-                                <a href="../../src/syn/lit.rs.html#1188">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1188">v</a>[<span class="number">1</span>..];
+                                <a href="#1188">v</a> = <span class="kw-2">&amp;</span><a href="#1188">v</a>[<span class="number">1</span>..];
                             } <span class="kw">else </span>{
                                 <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
                             }
@@ -2821,26 +2821,26 @@
                 }
                 <span class="string">b&#39;\r&#39; </span>=&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(v, <span class="number">1</span>), <span class="string">b&#39;\n&#39;</span>, <span class="string">&quot;Bare CR not allowed in string&quot;</span>);
-                    <a href="../../src/syn/lit.rs.html#1188">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1188">v</a>[<span class="number">2</span>..];
+                    <a href="#1188">v</a> = <span class="kw-2">&amp;</span><a href="#1188">v</a>[<span class="number">2</span>..];
                     <span class="string">b&#39;\n&#39;
                 </span>}
                 b =&gt; {
-                    <a href="../../src/syn/lit.rs.html#1188">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1188">v</a>[<span class="number">1</span>..];
-                    <a href="../../src/syn/lit.rs.html#1227">b</a>
+                    <a href="#1188">v</a> = <span class="kw-2">&amp;</span><a href="#1188">v</a>[<span class="number">1</span>..];
+                    <a href="#1227">b</a>
                 }
             };
-            <a href="../../src/syn/lit.rs.html#1190">out</a>.push(<a href="../../src/syn/lit.rs.html#1192">byte</a>);
+            <a href="#1190">out</a>.push(<a href="#1192">byte</a>);
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(v, <span class="number">0</span>), <span class="string">b&#39;&quot;&#39;</span>);
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1182">s</a>[<a href="../../src/syn/lit.rs.html#1182">s</a>.len() - <a href="../../src/syn/lit.rs.html#1188">v</a>.len() + <span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        (<a href="../../src/syn/lit.rs.html#1190">out</a>, <a href="../../src/syn/lit.rs.html#1236">suffix</a>)
+        <span class="kw">let </span>suffix = <a href="#1182">s</a>[<a href="#1182">s</a>.len() - <a href="#1188">v</a>.len() + <span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        (<a href="#1190">out</a>, <a href="#1236">suffix</a>)
     }
 
     <span class="kw">fn </span>parse_lit_byte_str_raw(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;b&#39;</span>);
-        <span class="kw">let </span>(value, suffix) = <a href="../../src/syn/lit.rs.html#1150">parse_lit_str_raw</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1240">s</a>[<span class="number">1</span>..]);
-        (String::from(<a href="../../src/syn/lit.rs.html#1242">value</a>).into_bytes(), <a href="../../src/syn/lit.rs.html#1242">suffix</a>)
+        <span class="kw">let </span>(value, suffix) = <a href="#1150">parse_lit_str_raw</a>(<span class="kw-2">&amp;</span><a href="#1240">s</a>[<span class="number">1</span>..]);
+        (String::from(<a href="#1242">value</a>).into_bytes(), <a href="#1242">suffix</a>)
     }
 
     <span class="comment">// Returns (value, suffix).
@@ -2849,17 +2849,17 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">1</span>), <span class="string">b&#39;\&#39;&#39;</span>);
 
         <span class="comment">// We&#39;re going to want to have slices which don&#39;t respect codepoint boundaries.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>v = <a href="../../src/syn/lit.rs.html#1247">s</a>[<span class="number">2</span>..].as_bytes();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>v = <a href="#1247">s</a>[<span class="number">2</span>..].as_bytes();
 
-        <span class="kw">let </span>b = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1252">v</a>, <span class="number">0</span>) {
+        <span class="kw">let </span>b = <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1252">v</a>, <span class="number">0</span>) {
             <span class="string">b&#39;\\&#39; </span>=&gt; {
-                <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1252">v</a>, <span class="number">1</span>);
-                <a href="../../src/syn/lit.rs.html#1252">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1252">v</a>[<span class="number">2</span>..];
-                <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1256">b</a> {
+                <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1252">v</a>, <span class="number">1</span>);
+                <a href="#1252">v</a> = <span class="kw-2">&amp;</span><a href="#1252">v</a>[<span class="number">2</span>..];
+                <span class="kw">match </span><a href="#1256">b</a> {
                     <span class="string">b&#39;x&#39; </span>=&gt; {
-                        <span class="kw">let </span>(b, rest) = <a href="../../src/syn/lit.rs.html#1327-1329">backslash_x</a>(<a href="../../src/syn/lit.rs.html#1252">v</a>);
-                        <a href="../../src/syn/lit.rs.html#1252">v</a> = <a href="../../src/syn/lit.rs.html#1260">rest</a>;
-                        <a href="../../src/syn/lit.rs.html#1260">b</a>
+                        <span class="kw">let </span>(b, rest) = <a href="#1327-1329">backslash_x</a>(<a href="#1252">v</a>);
+                        <a href="#1252">v</a> = <a href="#1260">rest</a>;
+                        <a href="#1260">b</a>
                     }
                     <span class="string">b&#39;n&#39; </span>=&gt; <span class="string">b&#39;\n&#39;</span>,
                     <span class="string">b&#39;r&#39; </span>=&gt; <span class="string">b&#39;\r&#39;</span>,
@@ -2872,36 +2872,36 @@
                 }
             }
             b =&gt; {
-                <a href="../../src/syn/lit.rs.html#1252">v</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1252">v</a>[<span class="number">1</span>..];
-                <a href="../../src/syn/lit.rs.html#1274">b</a>
+                <a href="#1252">v</a> = <span class="kw-2">&amp;</span><a href="#1252">v</a>[<span class="number">1</span>..];
+                <a href="#1274">b</a>
             }
         };
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(v, <span class="number">0</span>), <span class="string">b&#39;\&#39;&#39;</span>);
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1247">s</a>[<a href="../../src/syn/lit.rs.html#1247">s</a>.len() - <a href="../../src/syn/lit.rs.html#1252">v</a>.len() + <span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        (<a href="../../src/syn/lit.rs.html#1254">b</a>, <a href="../../src/syn/lit.rs.html#1281">suffix</a>)
+        <span class="kw">let </span>suffix = <a href="#1247">s</a>[<a href="#1247">s</a>.len() - <a href="#1252">v</a>.len() + <span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        (<a href="#1254">b</a>, <a href="#1281">suffix</a>)
     }
 
     <span class="comment">// Returns (value, suffix).
     </span><span class="kw">pub fn </span>parse_lit_char(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;\&#39;&#39;</span>);
-        <a href="../../src/syn/lit.rs.html#1286">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1286">s</a>[<span class="number">1</span>..];
+        <a href="#1286">s</a> = <span class="kw-2">&amp;</span><a href="#1286">s</a>[<span class="number">1</span>..];
 
-        <span class="kw">let </span>ch = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1286">s</a>, <span class="number">0</span>) {
+        <span class="kw">let </span>ch = <span class="kw">match </span><a href="#1064">byte</a>(<a href="#1286">s</a>, <span class="number">0</span>) {
             <span class="string">b&#39;\\&#39; </span>=&gt; {
-                <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1286">s</a>, <span class="number">1</span>);
-                <a href="../../src/syn/lit.rs.html#1286">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1286">s</a>[<span class="number">2</span>..];
-                <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1292">b</a> {
+                <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1286">s</a>, <span class="number">1</span>);
+                <a href="#1286">s</a> = <span class="kw-2">&amp;</span><a href="#1286">s</a>[<span class="number">2</span>..];
+                <span class="kw">match </span><a href="#1292">b</a> {
                     <span class="string">b&#39;x&#39; </span>=&gt; {
-                        <span class="kw">let </span>(byte, rest) = <a href="../../src/syn/lit.rs.html#1327-1329">backslash_x</a>(<a href="../../src/syn/lit.rs.html#1286">s</a>);
-                        <a href="../../src/syn/lit.rs.html#1286">s</a> = <a href="../../src/syn/lit.rs.html#1296">rest</a>;
+                        <span class="kw">let </span>(byte, rest) = <a href="#1327-1329">backslash_x</a>(<a href="#1286">s</a>);
+                        <a href="#1286">s</a> = <a href="#1296">rest</a>;
                         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(byte &lt;= <span class="number">0x80</span>, <span class="string">&quot;Invalid \\x byte in string literal&quot;</span>);
-                        char::from_u32(u32::from(<a href="../../src/syn/lit.rs.html#1296">byte</a>)).unwrap()
+                        char::from_u32(u32::from(<a href="#1296">byte</a>)).unwrap()
                     }
                     <span class="string">b&#39;u&#39; </span>=&gt; {
-                        <span class="kw">let </span>(chr, rest) = <a href="../../src/syn/lit.rs.html#1350">backslash_u</a>(<a href="../../src/syn/lit.rs.html#1286">s</a>);
-                        <a href="../../src/syn/lit.rs.html#1286">s</a> = <a href="../../src/syn/lit.rs.html#1302">rest</a>;
-                        <a href="../../src/syn/lit.rs.html#1302">chr</a>
+                        <span class="kw">let </span>(chr, rest) = <a href="#1350">backslash_u</a>(<a href="#1286">s</a>);
+                        <a href="#1286">s</a> = <a href="#1302">rest</a>;
+                        <a href="#1302">chr</a>
                     }
                     <span class="string">b&#39;n&#39; </span>=&gt; <span class="string">&#39;\n&#39;</span>,
                     <span class="string">b&#39;r&#39; </span>=&gt; <span class="string">&#39;\r&#39;</span>,
@@ -2914,14 +2914,14 @@
                 }
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">let </span>ch = <a href="../../src/syn/lit.rs.html#1073">next_chr</a>(<a href="../../src/syn/lit.rs.html#1286">s</a>);
-                <a href="../../src/syn/lit.rs.html#1286">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1286">s</a>[<a href="../../src/syn/lit.rs.html#1317">ch</a>.len_utf8()..];
-                <a href="../../src/syn/lit.rs.html#1317">ch</a>
+                <span class="kw">let </span>ch = <a href="#1073">next_chr</a>(<a href="#1286">s</a>);
+                <a href="#1286">s</a> = <span class="kw-2">&amp;</span><a href="#1286">s</a>[<a href="#1317">ch</a>.len_utf8()..];
+                <a href="#1317">ch</a>
             }
         };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(byte(s, <span class="number">0</span>), <span class="string">b&#39;\&#39;&#39;</span>);
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1286">s</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
-        (<a href="../../src/syn/lit.rs.html#1290">ch</a>, <a href="../../src/syn/lit.rs.html#1323">suffix</a>)
+        <span class="kw">let </span>suffix = <a href="#1286">s</a>[<span class="number">1</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str();
+        (<a href="#1290">ch</a>, <a href="#1323">suffix</a>)
     }
 
     <span class="kw">fn </span>backslash_x&lt;S&gt;(s: <span class="kw-2">&amp;</span>S) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="kw-2">&amp;</span>S)
@@ -2929,59 +2929,59 @@
         </span>S: Index&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;, Output = S&gt; + AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>ch = <span class="number">0</span>;
-        <span class="kw">let </span>b0 = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1327">s</a>, <span class="number">0</span>);
-        <span class="kw">let </span>b1 = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1327">s</a>, <span class="number">1</span>);
-        <a href="../../src/syn/lit.rs.html#1331">ch</a> += <span class="number">0x10
-            </span>* <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1332">b0</a> {
-                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1332">b0</a> - <span class="string">b&#39;0&#39;</span>,
-                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="../../src/syn/lit.rs.html#1332">b0</a> - <span class="string">b&#39;a&#39;</span>),
-                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="../../src/syn/lit.rs.html#1332">b0</a> - <span class="string">b&#39;A&#39;</span>),
+        <span class="kw">let </span>b0 = <a href="#1064">byte</a>(<a href="#1327">s</a>, <span class="number">0</span>);
+        <span class="kw">let </span>b1 = <a href="#1064">byte</a>(<a href="#1327">s</a>, <span class="number">1</span>);
+        <a href="#1331">ch</a> += <span class="number">0x10
+            </span>* <span class="kw">match </span><a href="#1332">b0</a> {
+                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="#1332">b0</a> - <span class="string">b&#39;0&#39;</span>,
+                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="#1332">b0</a> - <span class="string">b&#39;a&#39;</span>),
+                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="#1332">b0</a> - <span class="string">b&#39;A&#39;</span>),
                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unexpected non-hex character after \\x&quot;</span>),
             };
-        <a href="../../src/syn/lit.rs.html#1331">ch</a> += <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1333">b1</a> {
-            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1333">b1</a> - <span class="string">b&#39;0&#39;</span>,
-            <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="../../src/syn/lit.rs.html#1333">b1</a> - <span class="string">b&#39;a&#39;</span>),
-            <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="../../src/syn/lit.rs.html#1333">b1</a> - <span class="string">b&#39;A&#39;</span>),
+        <a href="#1331">ch</a> += <span class="kw">match </span><a href="#1333">b1</a> {
+            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="#1333">b1</a> - <span class="string">b&#39;0&#39;</span>,
+            <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="#1333">b1</a> - <span class="string">b&#39;a&#39;</span>),
+            <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ (<a href="#1333">b1</a> - <span class="string">b&#39;A&#39;</span>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unexpected non-hex character after \\x&quot;</span>),
         };
-        (<a href="../../src/syn/lit.rs.html#1331">ch</a>, <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1327">s</a>[<span class="number">2</span>..])
+        (<a href="#1331">ch</a>, <span class="kw-2">&amp;</span><a href="#1327">s</a>[<span class="number">2</span>..])
     }
 
     <span class="kw">fn </span>backslash_u(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
         <span class="kw">if </span>byte(s, <span class="number">0</span>) != <span class="string">b&#39;{&#39; </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;expected { after \\u&quot;</span>);
         }
-        <a href="../../src/syn/lit.rs.html#1350">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1350">s</a>[<span class="number">1</span>..];
+        <a href="#1350">s</a> = <span class="kw-2">&amp;</span><a href="#1350">s</a>[<span class="number">1</span>..];
 
         <span class="kw">let </span><span class="kw-2">mut </span>ch = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>digits = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1350">s</a>, <span class="number">0</span>);
-            <span class="kw">let </span>digit = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1359">b</a> {
-                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1359">b</a> - <span class="string">b&#39;0&#39;</span>,
-                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ <a href="../../src/syn/lit.rs.html#1359">b</a> - <span class="string">b&#39;a&#39;</span>,
-                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ <a href="../../src/syn/lit.rs.html#1359">b</a> - <span class="string">b&#39;A&#39;</span>,
-                <span class="string">b&#39;_&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1357">digits</a> &gt; <span class="number">0 </span>=&gt; {
-                    <a href="../../src/syn/lit.rs.html#1350">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1350">s</a>[<span class="number">1</span>..];
+            <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1350">s</a>, <span class="number">0</span>);
+            <span class="kw">let </span>digit = <span class="kw">match </span><a href="#1359">b</a> {
+                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="#1359">b</a> - <span class="string">b&#39;0&#39;</span>,
+                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ <a href="#1359">b</a> - <span class="string">b&#39;a&#39;</span>,
+                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ <a href="#1359">b</a> - <span class="string">b&#39;A&#39;</span>,
+                <span class="string">b&#39;_&#39; </span><span class="kw">if </span><a href="#1357">digits</a> &gt; <span class="number">0 </span>=&gt; {
+                    <a href="#1350">s</a> = <span class="kw-2">&amp;</span><a href="#1350">s</a>[<span class="number">1</span>..];
                     <span class="kw">continue</span>;
                 }
-                <span class="string">b&#39;}&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1357">digits</a> == <span class="number">0 </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid empty unicode escape&quot;</span>),
+                <span class="string">b&#39;}&#39; </span><span class="kw">if </span><a href="#1357">digits</a> == <span class="number">0 </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid empty unicode escape&quot;</span>),
                 <span class="string">b&#39;}&#39; </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unexpected non-hex character after \\u&quot;</span>),
             };
             <span class="kw">if </span>digits == <span class="number">6 </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;overlong unicode escape (must have at most 6 hex digits)&quot;</span>);
             }
-            <a href="../../src/syn/lit.rs.html#1356">ch</a> <span class="kw-2">*</span>= <span class="number">0x10</span>;
-            <a href="../../src/syn/lit.rs.html#1356">ch</a> += u32::from(<a href="../../src/syn/lit.rs.html#1360">digit</a>);
-            <a href="../../src/syn/lit.rs.html#1357">digits</a> += <span class="number">1</span>;
-            <a href="../../src/syn/lit.rs.html#1350">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1350">s</a>[<span class="number">1</span>..];
+            <a href="#1356">ch</a> <span class="kw-2">*</span>= <span class="number">0x10</span>;
+            <a href="#1356">ch</a> += u32::from(<a href="#1360">digit</a>);
+            <a href="#1357">digits</a> += <span class="number">1</span>;
+            <a href="#1350">s</a> = <span class="kw-2">&amp;</span><a href="#1350">s</a>[<span class="number">1</span>..];
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(byte(s, <span class="number">0</span>) == <span class="string">b&#39;}&#39;</span>);
-        <a href="../../src/syn/lit.rs.html#1350">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1350">s</a>[<span class="number">1</span>..];
+        <a href="#1350">s</a> = <span class="kw-2">&amp;</span><a href="#1350">s</a>[<span class="number">1</span>..];
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = char::from_u32(<a href="../../src/syn/lit.rs.html#1356">ch</a>) {
-            (<a href="../../src/syn/lit.rs.html#1383">ch</a>, <a href="../../src/syn/lit.rs.html#1350">s</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = char::from_u32(<a href="#1356">ch</a>) {
+            (<a href="#1383">ch</a>, <a href="#1350">s</a>)
         } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;character code {:x} is not a valid unicode character&quot;</span>, ch);
         }
@@ -2989,22 +2989,22 @@
 
     <span class="comment">// Returns base 10 digits and suffix.
     </span><span class="kw">pub fn </span>parse_lit_int(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, Box&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;)&gt; {
-        <span class="kw">let </span>negative = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1391">s</a>, <span class="number">0</span>) == <span class="string">b&#39;-&#39;</span>;
+        <span class="kw">let </span>negative = <a href="#1064">byte</a>(<a href="#1391">s</a>, <span class="number">0</span>) == <span class="string">b&#39;-&#39;</span>;
         <span class="kw">if </span>negative {
-            <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">1</span>..];
+            <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">1</span>..];
         }
 
-        <span class="kw">let </span>base = <span class="kw">match </span>(<a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1391">s</a>, <span class="number">0</span>), <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1391">s</a>, <span class="number">1</span>)) {
+        <span class="kw">let </span>base = <span class="kw">match </span>(<a href="#1064">byte</a>(<a href="#1391">s</a>, <span class="number">0</span>), <a href="#1064">byte</a>(<a href="#1391">s</a>, <span class="number">1</span>)) {
             (<span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;x&#39;</span>) =&gt; {
-                <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">2</span>..];
+                <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">2</span>..];
                 <span class="number">16
             </span>}
             (<span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;o&#39;</span>) =&gt; {
-                <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">2</span>..];
+                <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">2</span>..];
                 <span class="number">8
             </span>}
             (<span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;b&#39;</span>) =&gt; {
-                <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">2</span>..];
+                <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">2</span>..];
                 <span class="number">2
             </span>}
             (<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>, <span class="kw">_</span>) =&gt; <span class="number">10</span>,
@@ -3013,19 +3013,19 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>value = BigInt::new();
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
-            <span class="kw">let </span>b = <a href="../../src/syn/lit.rs.html#1064">byte</a>(<a href="../../src/syn/lit.rs.html#1391">s</a>, <span class="number">0</span>);
-            <span class="kw">let </span>digit = <span class="kw">match </span><a href="../../src/syn/lit.rs.html#1416">b</a> {
-                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="../../src/syn/lit.rs.html#1416">b</a> - <span class="string">b&#39;0&#39;</span>,
-                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1397">base</a> &gt; <span class="number">10 </span>=&gt; <a href="../../src/syn/lit.rs.html#1416">b</a> - <span class="string">b&#39;a&#39; </span>+ <span class="number">10</span>,
-                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1397">base</a> &gt; <span class="number">10 </span>=&gt; <a href="../../src/syn/lit.rs.html#1416">b</a> - <span class="string">b&#39;A&#39; </span>+ <span class="number">10</span>,
+            <span class="kw">let </span>b = <a href="#1064">byte</a>(<a href="#1391">s</a>, <span class="number">0</span>);
+            <span class="kw">let </span>digit = <span class="kw">match </span><a href="#1416">b</a> {
+                <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a href="#1416">b</a> - <span class="string">b&#39;0&#39;</span>,
+                <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span><span class="kw">if </span><a href="#1397">base</a> &gt; <span class="number">10 </span>=&gt; <a href="#1416">b</a> - <span class="string">b&#39;a&#39; </span>+ <span class="number">10</span>,
+                <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span><span class="kw">if </span><a href="#1397">base</a> &gt; <span class="number">10 </span>=&gt; <a href="#1416">b</a> - <span class="string">b&#39;A&#39; </span>+ <span class="number">10</span>,
                 <span class="string">b&#39;_&#39; </span>=&gt; {
-                    <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">1</span>..];
+                    <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">1</span>..];
                     <span class="kw">continue</span>;
                 }
                 <span class="comment">// If looking at a floating point literal, we don&#39;t want to
                 // consider it an integer.
-                </span><span class="string">b&#39;.&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1397">base</a> == <span class="number">10 </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-                <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span><span class="kw">if </span><a href="../../src/syn/lit.rs.html#1397">base</a> == <span class="number">10 </span>=&gt; {
+                </span><span class="string">b&#39;.&#39; </span><span class="kw">if </span><a href="#1397">base</a> == <span class="number">10 </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span><span class="kw">if </span><a href="#1397">base</a> == <span class="number">10 </span>=&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>has_exp = <span class="bool-val">false</span>;
                     <span class="kw">for </span>(i, b) <span class="kw">in </span>s[<span class="number">1</span>..].bytes().enumerate() {
                         <span class="kw">match </span>b {
@@ -3055,18 +3055,18 @@
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <a href="../../src/syn/lit.rs.html#1414">value</a> <span class="kw-2">*</span>= <a href="../../src/syn/lit.rs.html#1397">base</a>;
-            <a href="../../src/syn/lit.rs.html#1414">value</a> += <a href="../../src/syn/lit.rs.html#1417">digit</a>;
-            <a href="../../src/syn/lit.rs.html#1391">s</a> = <span class="kw-2">&amp;</span><a href="../../src/syn/lit.rs.html#1391">s</a>[<span class="number">1</span>..];
+            <a href="#1414">value</a> <span class="kw-2">*</span>= <a href="#1397">base</a>;
+            <a href="#1414">value</a> += <a href="#1417">digit</a>;
+            <a href="#1391">s</a> = <span class="kw-2">&amp;</span><a href="#1391">s</a>[<span class="number">1</span>..];
         }
 
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1391">s</a>;
+        <span class="kw">let </span>suffix = <a href="#1391">s</a>;
         <span class="kw">if </span>suffix.is_empty() || <span class="kw">crate</span>::ident::xid_ok(suffix) {
-            <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="../../src/syn/lit.rs.html#1414">value</a>.<a href="../../src/syn/bigint.rs.html#13">to_string</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="#1414">value</a>.<a href="bigint.rs.html#13">to_string</a>();
             <span class="kw">if </span>negative {
-                <a href="../../src/syn/lit.rs.html#1465">repr</a>.insert(<span class="number">0</span>, <span class="string">&#39;-&#39;</span>);
+                <a href="#1465">repr</a>.insert(<span class="number">0</span>, <span class="string">&#39;-&#39;</span>);
             }
-            <span class="prelude-val">Some</span>((<a href="../../src/syn/lit.rs.html#1465">repr</a>.into_boxed_str(), <a href="../../src/syn/lit.rs.html#1463">suffix</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str()))
+            <span class="prelude-val">Some</span>((<a href="#1465">repr</a>.into_boxed_str(), <a href="#1463">suffix</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_boxed_str()))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -3078,7 +3078,7 @@
         // the standard library, except that rust&#39;s literals can contain
         // ignorable underscores. Let&#39;s remove those underscores.
 
-        </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <a href="../../src/syn/lit.rs.html#1476">input</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_bytes();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <a href="#1476">input</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>().into_bytes();
 
         <span class="kw">let </span>start = (<span class="kw-2">*</span>bytes.first()<span class="question-mark">? </span>== <span class="string">b&#39;-&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">match </span>bytes.get(start)<span class="question-mark">? </span>{
@@ -3086,8 +3086,8 @@
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>read = <a href="../../src/syn/lit.rs.html#1483">start</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>write = <a href="../../src/syn/lit.rs.html#1483">start</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>read = <a href="#1483">start</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>write = <a href="#1483">start</a>;
         <span class="kw">let </span><span class="kw-2">mut </span>has_dot = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>has_e = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>has_sign = <span class="bool-val">false</span>;
@@ -3154,11 +3154,11 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>digits = String::from_utf8(<a href="../../src/syn/lit.rs.html#1481">bytes</a>).unwrap();
-        <span class="kw">let </span>suffix = <a href="../../src/syn/lit.rs.html#1557">digits</a>.split_off(<a href="../../src/syn/lit.rs.html#1489">read</a>);
-        <a href="../../src/syn/lit.rs.html#1557">digits</a>.truncate(<a href="../../src/syn/lit.rs.html#1490">write</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>digits = String::from_utf8(<a href="#1481">bytes</a>).unwrap();
+        <span class="kw">let </span>suffix = <a href="#1557">digits</a>.split_off(<a href="#1489">read</a>);
+        <a href="#1557">digits</a>.truncate(<a href="#1490">write</a>);
         <span class="kw">if </span>suffix.is_empty() || <span class="kw">crate</span>::ident::xid_ok(<span class="kw-2">&amp;</span>suffix) {
-            <span class="prelude-val">Some</span>((<a href="../../src/syn/lit.rs.html#1557">digits</a>.into_boxed_str(), <a href="../../src/syn/lit.rs.html#1558">suffix</a>.into_boxed_str()))
+            <span class="prelude-val">Some</span>((<a href="#1557">digits</a>.into_boxed_str(), <a href="#1558">suffix</a>.into_boxed_str()))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -3193,10 +3193,10 @@
                 };
             }
         }
-        <span class="kw">let _ </span>= <a href="../../src/syn/lit.rs.html#1568">digits</a>;
-        <span class="kw">let _ </span>= <a href="../../src/syn/lit.rs.html#1568">suffix</a>;
-        <span class="prelude-val">Some</span>(<a href="../../src/syn/lit.rs.html#1568">repr</a>.parse::&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt;().unwrap())
+        <span class="kw">let _ </span>= <a href="#1568">digits</a>;
+        <span class="kw">let _ </span>= <a href="#1568">suffix</a>;
+        <span class="prelude-val">Some</span>(<a href="#1568">repr</a>.parse::&lt;<a href="../../proc_macro2/struct.Literal.html">Literal</a>&gt;().unwrap())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

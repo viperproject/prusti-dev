@@ -1,0 +1,170 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.10/src/stream_ext/chunks_timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chunks_timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="fuse.rs.html#7-14"><span class="kw">crate</span>::stream_ext::Fuse</a>;
+<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
+<span class="kw">use </span>tokio::time::{<a href="../../../tokio/time/driver/sleep/fn.sleep.html">sleep</a>, <a href="../../../tokio/time/instant/struct.Instant.html">Instant</a>, <a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>};
+
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream returned by the [`chunks_timeout`](super::StreamExt::chunks_timeout) method.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[derive(Debug)]
+    </span><span class="kw">pub struct </span>ChunksTimeout&lt;S: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>&gt; {
+        <span class="attribute">#[pin]
+        </span>stream: Fuse&lt;S&gt;,
+        <span class="attribute">#[pin]
+        </span>deadline: <a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>,
+        duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
+        items: Vec&lt;S::Item&gt;,
+        cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="comment">// https://github.com/rust-lang/futures-rs/issues/1475
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;S: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>&gt; ChunksTimeout&lt;S&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: S, max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self </span>{
+        <a href="#11-24">ChunksTimeout</a> {
+            stream: Fuse::new(<a href="#27">stream</a>),
+            deadline: <a href="../../../tokio/time/driver/sleep/fn.sleep.html">sleep</a>(<a href="#27">duration</a>),
+            <a href="#27">duration</a>,
+            items: Vec::with_capacity(<a href="#27">max_size</a>),
+            cap: <a href="#27">max_size</a>,
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;S: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>ChunksTimeout&lt;S&gt; {
+    <span class="kw">type </span>Item = Vec&lt;S::Item&gt;;
+
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="#41">self</a>.as_mut().<a href="#11-24">project</a>();
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="#42">me</a>.stream.as_mut().<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="#41">cx</a>) {
+                Poll::Pending =&gt; <span class="kw">break</span>,
+                Poll::Ready(<span class="prelude-val">Some</span>(item)) =&gt; {
+                    <span class="kw">if </span>me.items.is_empty() {
+                        <a href="#42">me</a>.deadline.as_mut().reset(Instant::now() + <span class="kw-2">*</span><a href="#42">me</a>.duration);
+                        <a href="#42">me</a>.items.reserve_exact(<span class="kw-2">*</span><a href="#42">me</a>.cap);
+                    }
+                    <a href="#42">me</a>.items.push(<a href="#46">item</a>);
+                    <span class="kw">if </span>me.items.len() &gt;= <span class="kw-2">*</span>me.cap {
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(std::mem::take(<a href="#42">me</a>.items)));
+                    }
+                }
+                Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
+                    <span class="comment">// Returning Some here is only correct because we fuse the inner stream.
+                    </span><span class="kw">let </span>last = <span class="kw">if </span>me.items.is_empty() {
+                        <span class="prelude-val">None
+                    </span>} <span class="kw">else </span>{
+                        <span class="prelude-val">Some</span>(std::mem::take(<a href="#42">me</a>.items))
+                    };
+
+                    <span class="kw">return </span>Poll::Ready(<a href="#58">last</a>);
+                }
+            }
+        }
+
+        <span class="kw">if </span>!me.items.is_empty() {
+            <a class="macro" href="../macros.rs.html#61-68">ready!</a>(me.deadline.poll(cx));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(std::mem::take(<a href="#42">me</a>.items)));
+        }
+
+        Poll::Pending
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">let </span>chunk_len = <span class="kw">if </span><span class="self">self</span>.items.is_empty() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="#77">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>lower = (<a href="#79">lower</a> / <a class="self" href="#77">self</a>.cap).saturating_add(<a href="#78">chunk_len</a>);
+        <span class="kw">let </span>upper = <a href="#79">upper</a>.and_then(|x| <a href="#81">x</a>.checked_add(<a href="#78">chunk_len</a>));
+        (<a href="#80">lower</a>, <a href="#81">upper</a>)
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

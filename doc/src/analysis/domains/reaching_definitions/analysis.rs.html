@@ -91,8 +91,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    abstract_interpretation::{<a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
-    domains::{<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38">DefLocation</a>, <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30">ReachingDefsState</a>},
+    abstract_interpretation::{<a href="../../abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
+    domains::{<a href="state.rs.html#38">DefLocation</a>, <a href="state.rs.html#30">ReachingDefsState</a>},
 };
 <span class="kw">use </span>prusti_rustc_interface::{
     data_structures::fx::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>},
@@ -108,7 +108,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; ReachingDefsAnalysis&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#17">ReachingDefsAnalysis</a> { <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">tcx</a>, <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">def_id</a>, <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">mir</a> }
+        <a href="#17">ReachingDefsAnalysis</a> { <a href="#24">tcx</a>, <a href="#24">def_id</a>, <a href="#24">mir</a> }
     }
 }
 
@@ -116,11 +116,11 @@
     <span class="kw">type </span>State = ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt;;
 
     <span class="kw">fn </span>def_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#32">self</a>.def_id
+        <a class="self" href="#32">self</a>.def_id
     }
 
     <span class="kw">fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#36">self</a>.mir
+        <a class="self" href="#36">self</a>.mir
     }
 
     <span class="doccomment">/// The bottom element of the lattice contains no definitions,
@@ -128,24 +128,24 @@
     ///
     /// For a completely new bottom element we do not even insert any locals with sets into the map.
     </span><span class="kw">fn </span>new_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State {
-        <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30">ReachingDefsState</a> {
+        <a href="state.rs.html#30">ReachingDefsState</a> {
             reaching_defs: FxHashMap::default(),
-            mir: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#44">self</a>.mir,
-            tcx: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#44">self</a>.tcx,
+            mir: <a class="self" href="#44">self</a>.mir,
+            tcx: <a class="self" href="#44">self</a>.tcx,
         }
     }
 
     <span class="kw">fn </span>new_initial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State {
-        <span class="kw">let </span><span class="kw-2">mut </span>reaching_defs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, FxHashSet&lt;<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38">DefLocation</a>&gt;&gt; = FxHashMap::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>reaching_defs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, FxHashSet&lt;<a href="state.rs.html#38">DefLocation</a>&gt;&gt; = FxHashMap::default();
         <span class="comment">// insert parameters
         </span><span class="kw">for </span>(idx, local) <span class="kw">in </span><span class="self">self</span>.mir.args_iter().enumerate() {
             <span class="kw">let </span>location_set = reaching_defs.entry(local).or_default();
             location_set.insert(DefLocation::Parameter(idx));
         }
-        <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30">ReachingDefsState</a> {
-            <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#53">reaching_defs</a>,
-            mir: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#52">self</a>.mir,
-            tcx: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#52">self</a>.tcx,
+        <a href="state.rs.html#30">ReachingDefsState</a> {
+            <a href="#53">reaching_defs</a>,
+            mir: <a class="self" href="#52">self</a>.mir,
+            tcx: <a class="self" href="#52">self</a>.tcx,
         }
     }
 
@@ -159,7 +159,7 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; AnalysisResult&lt;()&gt; {
-        <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#73">state</a>.<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#102-105">apply_statement_effect</a>(<a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#74">location</a>)
+        <a href="#73">state</a>.<a href="state.rs.html#102-105">apply_statement_effect</a>(<a href="#74">location</a>)
     }
 
     <span class="kw">fn </span>apply_terminator_effect(
@@ -167,8 +167,8 @@
         state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State,
         location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; AnalysisResult&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>::State)&gt;&gt; {
-        <a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#81">state</a>.<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#121-124">apply_terminator_effect</a>(<a href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#82">location</a>)
+        <a href="#81">state</a>.<a href="state.rs.html#121-124">apply_terminator_effect</a>(<a href="#82">location</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

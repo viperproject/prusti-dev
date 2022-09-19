@@ -113,7 +113,7 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 <span class="kw">use </span>core::sync::atomic::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 
-<span class="kw">use </span><a href="../../../src/crossbeam_utils/backoff.rs.html#80"><span class="kw">crate</span>::Backoff</a>;
+<span class="kw">use </span><a href="../backoff.rs.html#80"><span class="kw">crate</span>::Backoff</a>;
 
 <span class="doccomment">/// A simple stamped lock.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SeqLock {
@@ -124,7 +124,7 @@
     </span>state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#7">SeqLock</a> {
+<span class="kw">impl </span><a href="#7">SeqLock</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             state: AtomicUsize::new(<span class="number">0</span>),
@@ -136,11 +136,11 @@
     /// This method should be called before optimistic reads.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>optimistic_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>state = <a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#26">self</a>.state.load(Ordering::Acquire);
+        <span class="kw">let </span>state = <a class="self" href="#26">self</a>.state.load(Ordering::Acquire);
         <span class="kw">if </span>state == <span class="number">1 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#27">state</a>)
+            <span class="prelude-val">Some</span>(<a href="#27">state</a>)
         }
     }
 
@@ -151,26 +151,26 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_read(<span class="kw-2">&amp;</span><span class="self">self</span>, stamp: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         atomic::fence(Ordering::Acquire);
-        <a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#40">self</a>.state.load(Ordering::Relaxed) == <a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#40">stamp</a>
+        <a class="self" href="#40">self</a>.state.load(Ordering::Relaxed) == <a href="#40">stamp</a>
     }
 
     <span class="doccomment">/// Grabs the lock for writing.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>) -&gt; <a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#67">SeqLockWriteGuard</a> {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>) -&gt; <a href="#67">SeqLockWriteGuard</a> {
         <span class="kw">let </span>backoff = Backoff::new();
         <span class="kw">loop </span>{
-            <span class="kw">let </span>previous = <a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#47">self</a>.state.swap(<span class="number">1</span>, Ordering::Acquire);
+            <span class="kw">let </span>previous = <a class="self" href="#47">self</a>.state.swap(<span class="number">1</span>, Ordering::Acquire);
 
             <span class="kw">if </span>previous != <span class="number">1 </span>{
                 atomic::fence(Ordering::Release);
 
-                <span class="kw">return </span><a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#67">SeqLockWriteGuard</a> {
-                    lock: <a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#47">self</a>,
-                    state: <a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#50">previous</a>,
+                <span class="kw">return </span><a href="#67">SeqLockWriteGuard</a> {
+                    lock: <a class="self" href="#47">self</a>,
+                    state: <a href="#50">previous</a>,
                 };
             }
 
-            <a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#48">backoff</a>.<a href="../../../src/crossbeam_utils/backoff.rs.html#209">snooze</a>();
+            <a href="#48">backoff</a>.<a href="../backoff.rs.html#209">snooze</a>();
         }
     }
 }
@@ -178,31 +178,31 @@
 <span class="doccomment">/// An RAII guard that releases the lock and increments the stamp when dropped.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SeqLockWriteGuard {
     <span class="doccomment">/// The parent lock.
-    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#7">SeqLock</a>,
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#7">SeqLock</a>,
 
     <span class="doccomment">/// The stamp before locking.
     </span>state: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#67">SeqLockWriteGuard</a> {
+<span class="kw">impl </span><a href="#67">SeqLockWriteGuard</a> {
     <span class="doccomment">/// Releases the lock without incrementing the stamp.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>abort(<span class="self">self</span>) {
-        <a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#78">self</a>.lock.state.store(<a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#78">self</a>.state, Ordering::Release);
+        <a class="self" href="#78">self</a>.lock.state.store(<a class="self" href="#78">self</a>.state, Ordering::Release);
 
         <span class="comment">// We specifically don&#39;t want to call drop(), since that&#39;s
         // what increments the stamp.
-        </span>mem::forget(<a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#78">self</a>);
+        </span>mem::forget(<a class="self" href="#78">self</a>);
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#67">SeqLockWriteGuard</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#67">SeqLockWriteGuard</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Release the lock and increment the stamp.
-        </span><a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#89">self</a>.lock
+        </span><a class="self" href="#89">self</a>.lock
             .state
-            .store(<a class="self" href="../../../src/crossbeam_utils/atomic/seq_lock.rs.html#89">self</a>.state.wrapping_add(<span class="number">2</span>), Ordering::Release);
+            .store(<a class="self" href="#89">self</a>.state.wrapping_add(<span class="number">2</span>), Ordering::Release);
     }
 }
 
@@ -223,4 +223,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

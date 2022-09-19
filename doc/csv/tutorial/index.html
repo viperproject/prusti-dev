@@ -193,7 +193,7 @@ config knob.)</p>
 <p>So what actually causes the panic to happen in our program? That would be the
 first line in our loop:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">for </span>result <span class="kw">in </span>rdr.records() {
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">for </span>result <span class="kw">in </span>rdr.records() {
     <span class="kw">let </span>record = result.expect(<span class="string">&quot;a CSV record&quot;</span>); <span class="comment">// this panics
     </span><span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, record);
 }</code></pre></div>
@@ -205,7 +205,7 @@ Since the <code>Result</code> might contain an error instead, <code>expect</code
 it does contain an error.</p>
 <p>It might help to look at the implementation of <code>expect</code>:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">use </span>std::fmt;
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fmt;
 
 <span class="comment">// This says, &quot;for all types T and E, where E can be turned into a human
 // readable debug message, define the `expect` method.&quot;
@@ -399,12 +399,12 @@ no need for the caller to do it.</li>
 makes it slightly more convenient to open CSV data from a file. That is,
 instead of:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">let </span>file_path = get_first_arg()<span class="question-mark">?</span>;
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">let </span>file_path = get_first_arg()<span class="question-mark">?</span>;
 <span class="kw">let </span>file = File::open(file_path)<span class="question-mark">?</span>;
 <span class="kw">let </span><span class="kw-2">mut </span>rdr = csv::Reader::from_reader(file);</code></pre></div>
 <p>you can use:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">let </span>file_path = get_first_arg()<span class="question-mark">?</span>;
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">let </span>file_path = get_first_arg()<span class="question-mark">?</span>;
 <span class="kw">let </span><span class="kw-2">mut </span>rdr = csv::Reader::from_path(file_path)<span class="question-mark">?</span>;</code></pre></div>
 <p><code>csv::Reader::from_path</code> will open the file for you and return an error if
 the file could not be opened.</p>
@@ -478,7 +478,7 @@ wouldn’t compile because we cannot borrow the reader’s headers at the same t
 that we try to borrow the reader to iterate over its records.</p>
 <p>Another way of solving this problem is to <em>clone</em> the header record:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">let </span>headers = rdr.headers()<span class="question-mark">?</span>.clone();</code></pre></div>
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">let </span>headers = rdr.headers()<span class="question-mark">?</span>.clone();</code></pre></div>
 <p>This converts it from a borrow of the CSV reader to a new owned value. This
 makes the code a bit easier to read, but at the cost of copying the header
 record into a new allocation.</p>
@@ -742,7 +742,7 @@ CSV deserialize error: record 1 (line: 2, byte: 41): missing field `latitude`</c
 <p>We could have fixed this through other means. For example, we could have used
 capital letters in our field names:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="attribute">#[derive(Debug, Deserialize)]
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attribute">#[derive(Debug, Deserialize)]
 </span><span class="kw">struct </span>Record {
     Latitude: f64,
     Longitude: f64,
@@ -755,7 +755,7 @@ will even warn you that the names do not follow convention!)</p>
 <p>Another way to fix this is to ask Serde to rename each field individually. This
 is useful when there is no consistent name mapping from fields to header names:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="attribute">#[derive(Debug, Deserialize)]
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attribute">#[derive(Debug, Deserialize)]
 </span><span class="kw">struct </span>Record {
     <span class="attribute">#[serde(rename = <span class="string">&quot;Latitude&quot;</span>)]
     </span>latitude: f64,
@@ -852,7 +852,7 @@ Record { latitude: 33.7133333, longitude: -87.3886111, population: None, city: &
 <p>The only change in this example was adding this attribute to the <code>population</code>
 field in our <code>Record</code> type:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="attribute">#[serde(deserialize_with = <span class="string">&quot;csv::invalid_option&quot;</span>)]</span></code></pre></div>
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attribute">#[serde(deserialize_with = <span class="string">&quot;csv::invalid_option&quot;</span>)]</span></code></pre></div>
 <p>The
 <a href="../fn.invalid_option.html"><code>invalid_option</code></a>
 function is a generic helper function that does one very simple thing: when
@@ -902,7 +902,7 @@ Oakman,AL,,33.7133333,-87.3886111</code></pre></div>
 method. In this example, it looks rather simple, but if you’re new to Rust then
 its type signature might look a little daunting:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">pub fn </span>write_record&lt;I, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: I) -&gt; csv::Result&lt;()&gt;
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">pub fn </span>write_record&lt;I, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: I) -&gt; csv::Result&lt;()&gt;
     <span class="kw">where </span>I: IntoIterator&lt;Item=T&gt;, T: AsRef&lt;[u8]&gt;
 {
     <span class="comment">// implementation elided
@@ -934,7 +934,7 @@ on success or returns a <code>csv::Error</code> on failure.</li>
 <p>Now, let’s apply our new found understanding of the type signature of
 <code>write_record</code>. If you recall, in our previous example, we used it like so:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code>wtr.write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;field 1&quot;</span>, <span class="string">&quot;field 2&quot;</span>, <span class="string">&quot;etc&quot;</span>])<span class="question-mark">?</span>;</code></pre></div>
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code>wtr.write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;field 1&quot;</span>, <span class="string">&quot;field 2&quot;</span>, <span class="string">&quot;etc&quot;</span>])<span class="question-mark">?</span>;</code></pre></div>
 <p>So how do the types match up? Well, the type of each of our fields in this
 code is <code>&amp;'static str</code> (which is the type of a string literal in Rust). Since
 we put them in a slice literal, the type of our parameter is
@@ -1158,7 +1158,7 @@ method.</p>
 <p>It’s also worth pointing out the use of a <em>lifetime parameter</em> in our <code>Record</code>
 struct:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">struct </span>Record&lt;<span class="lifetime">&#39;a</span>&gt; {
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Record&lt;<span class="lifetime">&#39;a</span>&gt; {
     city: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
     state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
     population: <span class="prelude-ty">Option</span>&lt;u64&gt;,
@@ -1170,7 +1170,7 @@ struct:</p>
 data. We could have written our struct without borrowing any data, and
 therefore, without any lifetime parameters:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">struct </span>Record {
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Record {
     city: String,
     state: String,
     population: <span class="prelude-ty">Option</span>&lt;u64&gt;,
@@ -1531,7 +1531,7 @@ lost? In this case, it is perfectly acceptable to drop UTF-8 validation and use
 <code>ByteRecord</code> instead because all we’re doing with the data in the record is
 comparing two of its fields to raw bytes:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">if </span><span class="kw-2">&amp;</span>record[<span class="number">0</span>] == <span class="string">b&quot;us&quot; </span>&amp;&amp; <span class="kw-2">&amp;</span>record[<span class="number">3</span>] == <span class="string">b&quot;MA&quot; </span>{
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">if </span><span class="kw-2">&amp;</span>record[<span class="number">0</span>] == <span class="string">b&quot;us&quot; </span>&amp;&amp; <span class="kw-2">&amp;</span>record[<span class="number">3</span>] == <span class="string">b&quot;MA&quot; </span>{
     count += <span class="number">1</span>;
 }</code></pre></div>
 <p>In particular, it doesn’t matter whether <code>record</code> is valid UTF-8 or not, since
@@ -1584,7 +1584,7 @@ a 50% boost over the first example.</p>
 <p>Let’s dissect this code by taking a look at the type signature of the
 <code>read_byte_record</code> method:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">fn </span>read_byte_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;mut </span>ByteRecord) -&gt; csv::Result&lt;bool&gt;;</code></pre></div>
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>read_byte_record(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;mut </span>ByteRecord) -&gt; csv::Result&lt;bool&gt;;</code></pre></div>
 <p>This method takes as input a CSV reader (the <code>self</code> parameter) and a <em>mutable
 borrow</em> of a <code>ByteRecord</code>, and returns a <code>csv::Result&lt;bool&gt;</code>. (The
 <code>csv::Result&lt;bool&gt;</code> is equivalent to <code>Result&lt;bool, csv::Error&gt;</code>.) The return
@@ -1913,4 +1913,4 @@ performance CSV swiss army knife. It can slice, select, search, sort, join,
 concatenate, index, format and compute statistics on arbitrary CSV data. Give
 it a try!</li>
 </ul>
-</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="csv" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="csv" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

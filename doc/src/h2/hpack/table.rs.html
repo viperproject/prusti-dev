@@ -764,7 +764,7 @@
 <span id="764">764</span>
 <span id="765">765</span>
 <span id="766">766</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/h2/hpack/header.rs.html#11"><span class="kw">super</span>::Header</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="header.rs.html#11"><span class="kw">super</span>::Header</a>;
 
 <span class="kw">use </span><a href="../../../fnv/struct.FnvHasher.html">fnv::FnvHasher</a>;
 <span class="kw">use </span><a href="../../../http/header/index.html">http::header</a>;
@@ -778,8 +778,8 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Table {
     mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    indices: Vec&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/hpack/table.rs.html#49">Pos</a>&gt;&gt;,
-    slots: VecDeque&lt;<a href="../../../src/h2/hpack/table.rs.html#42">Slot</a>&gt;,
+    indices: Vec&lt;<span class="prelude-ty">Option</span>&lt;<a href="#49">Pos</a>&gt;&gt;,
+    slots: VecDeque&lt;<a href="#42">Slot</a>&gt;,
     inserted: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="comment">// Size is in bytes
     </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
@@ -789,10 +789,10 @@
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Index {
     <span class="comment">// The header is already fully indexed
-    </span>Indexed(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>),
+    </span>Indexed(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="header.rs.html#11">Header</a>),
 
     <span class="comment">// The name is indexed, but not the value
-    </span>Name(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>),
+    </span>Name(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="header.rs.html#11">Header</a>),
 
     <span class="comment">// The full header has been inserted into the table.
     </span>Inserted(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
@@ -801,20 +801,20 @@
     </span>InsertedValue(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 
     <span class="comment">// The header is not indexed by this table
-    </span>NotIndexed(<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>),
+    </span>NotIndexed(<a href="header.rs.html#11">Header</a>),
 }
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">struct </span>Slot {
-    hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>,
-    header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>,
+    hash: <a href="#55">HashValue</a>,
+    header: <a href="header.rs.html#11">Header</a>,
     next: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
 <span class="attribute">#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 </span><span class="kw">struct </span>Pos {
     index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>,
+    hash: <a href="#55">HashValue</a>,
 }
 
 <span class="attribute">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -837,69 +837,69 @@
     };
 }
 
-<span class="kw">impl </span><a href="../../../src/h2/hpack/table.rs.html#13">Table</a> {
-    <span class="kw">pub fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/h2/hpack/table.rs.html#13">Table</a> {
+<span class="kw">impl </span><a href="#13">Table</a> {
+    <span class="kw">pub fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#13">Table</a> {
         <span class="kw">if </span>capacity == <span class="number">0 </span>{
-            <a href="../../../src/h2/hpack/table.rs.html#13">Table</a> {
+            <a href="#13">Table</a> {
                 mask: <span class="number">0</span>,
                 indices: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 slots: VecDeque::new(),
                 inserted: <span class="number">0</span>,
                 size: <span class="number">0</span>,
-                <a href="../../../src/h2/hpack/table.rs.html#75">max_size</a>,
+                <a href="#75">max_size</a>,
             }
         } <span class="kw">else </span>{
-            <span class="kw">let </span>capacity = cmp::max(<a href="../../../src/h2/hpack/table.rs.html#653">to_raw_capacity</a>(<a href="../../../src/h2/hpack/table.rs.html#75">capacity</a>).next_power_of_two(), <span class="number">8</span>);
+            <span class="kw">let </span>capacity = cmp::max(<a href="#653">to_raw_capacity</a>(<a href="#75">capacity</a>).next_power_of_two(), <span class="number">8</span>);
 
-            <a href="../../../src/h2/hpack/table.rs.html#13">Table</a> {
-                mask: <a href="../../../src/h2/hpack/table.rs.html#86">capacity</a>.wrapping_sub(<span class="number">1</span>),
+            <a href="#13">Table</a> {
+                mask: <a href="#86">capacity</a>.wrapping_sub(<span class="number">1</span>),
                 indices: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; capacity],
-                slots: VecDeque::with_capacity(<a href="../../../src/h2/hpack/table.rs.html#648">usable_capacity</a>(<a href="../../../src/h2/hpack/table.rs.html#86">capacity</a>)),
+                slots: VecDeque::with_capacity(<a href="#648">usable_capacity</a>(<a href="#86">capacity</a>)),
                 inserted: <span class="number">0</span>,
                 size: <span class="number">0</span>,
-                <a href="../../../src/h2/hpack/table.rs.html#75">max_size</a>,
+                <a href="#75">max_size</a>,
             }
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="../../../src/h2/hpack/table.rs.html#648">usable_capacity</a>(<a class="self" href="../../../src/h2/hpack/table.rs.html#100">self</a>.indices.len())
+        <a href="#648">usable_capacity</a>(<a class="self" href="#100">self</a>.indices.len())
     }
 
     <span class="kw">pub fn </span>max_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#104">self</a>.max_size
+        <a class="self" href="#104">self</a>.max_size
     }
 
     <span class="doccomment">/// Gets the header stored in the table
-    </span><span class="kw">pub fn </span>resolve&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/h2/hpack/table.rs.html#24">Index</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/h2/hpack/header.rs.html#11">Header</a> {
-        <span class="kw">use </span><a href="../../../src/h2/hpack/table.rs.html#24"><span class="self">self</span>::Index</a>::<span class="kw-2">*</span>;
+    </span><span class="kw">pub fn </span>resolve&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#24">Index</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="header.rs.html#11">Header</a> {
+        <span class="kw">use </span><a href="#24"><span class="self">self</span>::Index</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#109">index</a> {
-            <a href="../../../src/h2/hpack/table.rs.html#26">Indexed</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>h) =&gt; <a href="../../../src/h2/hpack/table.rs.html#113">h</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#29">Name</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>h) =&gt; <a href="../../../src/h2/hpack/table.rs.html#114">h</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#32">Inserted</a>(idx) =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../src/h2/hpack/table.rs.html#109">self</a>.slots[<a href="../../../src/h2/hpack/table.rs.html#115">idx</a>].header,
-            <a href="../../../src/h2/hpack/table.rs.html#35">InsertedValue</a>(<span class="kw">_</span>, idx) =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../src/h2/hpack/table.rs.html#109">self</a>.slots[<a href="../../../src/h2/hpack/table.rs.html#116">idx</a>].header,
-            <a href="../../../src/h2/hpack/table.rs.html#38">NotIndexed</a>(<span class="kw-2">ref </span>h) =&gt; <a href="../../../src/h2/hpack/table.rs.html#117">h</a>,
+        <span class="kw">match </span><span class="kw-2">*</span><a href="#109">index</a> {
+            <a href="#26">Indexed</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>h) =&gt; <a href="#113">h</a>,
+            <a href="#29">Name</a>(<span class="kw">_</span>, <span class="kw-2">ref </span>h) =&gt; <a href="#114">h</a>,
+            <a href="#32">Inserted</a>(idx) =&gt; <span class="kw-2">&amp;</span><a class="self" href="#109">self</a>.slots[<a href="#115">idx</a>].header,
+            <a href="#35">InsertedValue</a>(<span class="kw">_</span>, idx) =&gt; <span class="kw-2">&amp;</span><a class="self" href="#109">self</a>.slots[<a href="#116">idx</a>].header,
+            <a href="#38">NotIndexed</a>(<span class="kw-2">ref </span>h) =&gt; <a href="#117">h</a>,
         }
     }
 
-    <span class="kw">pub fn </span>resolve_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/table.rs.html#24">Index</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">use </span><a href="../../../src/h2/hpack/table.rs.html#24"><span class="self">self</span>::Index</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub fn </span>resolve_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="#24">Index</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">use </span><a href="#24"><span class="self">self</span>::Index</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#121">index</a> {
-            <a href="../../../src/h2/hpack/table.rs.html#26">Indexed</a>(idx, ..) =&gt; <a href="../../../src/h2/hpack/table.rs.html#125">idx</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#29">Name</a>(idx, ..) =&gt; <a href="../../../src/h2/hpack/table.rs.html#126">idx</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#32">Inserted</a>(idx) =&gt; <a href="../../../src/h2/hpack/table.rs.html#127">idx</a> + <a href="../../../src/h2/hpack/table.rs.html#58">DYN_OFFSET</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#35">InsertedValue</a>(_name_idx, slot_idx) =&gt; <a href="../../../src/h2/hpack/table.rs.html#128">slot_idx</a> + <a href="../../../src/h2/hpack/table.rs.html#58">DYN_OFFSET</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#38">NotIndexed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;cannot resolve index&quot;</span>),
+        <span class="kw">match </span><span class="kw-2">*</span><a href="#121">index</a> {
+            <a href="#26">Indexed</a>(idx, ..) =&gt; <a href="#125">idx</a>,
+            <a href="#29">Name</a>(idx, ..) =&gt; <a href="#126">idx</a>,
+            <a href="#32">Inserted</a>(idx) =&gt; <a href="#127">idx</a> + <a href="#58">DYN_OFFSET</a>,
+            <a href="#35">InsertedValue</a>(_name_idx, slot_idx) =&gt; <a href="#128">slot_idx</a> + <a href="#58">DYN_OFFSET</a>,
+            <a href="#38">NotIndexed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;cannot resolve index&quot;</span>),
         }
     }
 
     <span class="doccomment">/// Index the header in the HPACK table.
-    </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>) -&gt; <a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
+    </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="header.rs.html#11">Header</a>) -&gt; <a href="#24">Index</a> {
         <span class="comment">// Check the static table
-        </span><span class="kw">let </span>statik = <a href="../../../src/h2/hpack/table.rs.html#677">index_static</a>(<span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/table.rs.html#134">header</a>);
+        </span><span class="kw">let </span>statik = <a href="#677">index_static</a>(<span class="kw-2">&amp;</span><a href="#134">header</a>);
 
         <span class="comment">// Don&#39;t index certain headers. This logic is borrowed from nghttp2.
         </span><span class="kw">if </span>header.skip_value_index() {
@@ -907,45 +907,45 @@
             // static table. At some point in the future, this might not be true
             // and this logic will need to be updated.
             </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(statik.is_some(), <span class="string">&quot;skip_value_index requires a static name&quot;</span>,);
-            <span class="kw">return </span>Index::new(<a href="../../../src/h2/hpack/table.rs.html#136">statik</a>, <a href="../../../src/h2/hpack/table.rs.html#134">header</a>);
+            <span class="kw">return </span>Index::new(<a href="#136">statik</a>, <a href="#134">header</a>);
         }
 
         <span class="comment">// If the header is already indexed by the static table, return that
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((n, <span class="bool-val">true</span>)) = <a href="../../../src/h2/hpack/table.rs.html#136">statik</a> {
-            <span class="kw">return </span><a href="../../../src/h2/hpack/table.rs.html#26">Index::Indexed</a>(<a href="../../../src/h2/hpack/table.rs.html#148">n</a>, <a href="../../../src/h2/hpack/table.rs.html#134">header</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((n, <span class="bool-val">true</span>)) = <a href="#136">statik</a> {
+            <span class="kw">return </span><a href="#26">Index::Indexed</a>(<a href="#148">n</a>, <a href="#134">header</a>);
         }
 
         <span class="comment">// Don&#39;t index large headers
         </span><span class="kw">if </span>header.len() * <span class="number">4 </span>&gt; <span class="self">self</span>.max_size * <span class="number">3 </span>{
-            <span class="kw">return </span>Index::new(<a href="../../../src/h2/hpack/table.rs.html#136">statik</a>, <a href="../../../src/h2/hpack/table.rs.html#134">header</a>);
+            <span class="kw">return </span>Index::new(<a href="#136">statik</a>, <a href="#134">header</a>);
         }
 
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#134">self</a>.<a href="../../../src/h2/hpack/table.rs.html#160">index_dynamic</a>(<a href="../../../src/h2/hpack/table.rs.html#134">header</a>, <a href="../../../src/h2/hpack/table.rs.html#136">statik</a>)
+        <a class="self" href="#134">self</a>.<a href="#160">index_dynamic</a>(<a href="#134">header</a>, <a href="#136">statik</a>)
     }
 
-    <span class="kw">fn </span>index_dynamic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>, statik: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;) -&gt; <a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
+    <span class="kw">fn </span>index_dynamic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="header.rs.html#11">Header</a>, statik: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;) -&gt; <a href="#24">Index</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;one&quot;</span>));
 
         <span class="kw">if </span>header.len() + <span class="self">self</span>.size &lt; <span class="self">self</span>.max_size || !header.is_sensitive() {
             <span class="comment">// Only grow internal storage if needed
-            </span><a class="self" href="../../../src/h2/hpack/table.rs.html#160">self</a>.<a href="../../../src/h2/hpack/table.rs.html#453">reserve_one</a>();
+            </span><a class="self" href="#160">self</a>.<a href="#453">reserve_one</a>();
         }
 
         <span class="kw">if </span><span class="self">self</span>.indices.is_empty() {
             <span class="comment">// If `indices` is not empty, then it is impossible for all
             // `indices` entries to be `Some`. So, we only need to check for the
             // empty case.
-            </span><span class="kw">return </span>Index::new(<a href="../../../src/h2/hpack/table.rs.html#160">statik</a>, <a href="../../../src/h2/hpack/table.rs.html#160">header</a>);
+            </span><span class="kw">return </span>Index::new(<a href="#160">statik</a>, <a href="#160">header</a>);
         }
 
-        <span class="kw">let </span>hash = <a href="../../../src/h2/hpack/table.rs.html#667">hash_header</a>(<span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/table.rs.html#160">header</a>);
+        <span class="kw">let </span>hash = <a href="#667">hash_header</a>(<span class="kw-2">&amp;</span><a href="#160">header</a>);
 
-        <span class="kw">let </span>desired_pos = <a href="../../../src/h2/hpack/table.rs.html#658">desired_pos</a>(<a class="self" href="../../../src/h2/hpack/table.rs.html#160">self</a>.mask, <a href="../../../src/h2/hpack/table.rs.html#175">hash</a>);
-        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="../../../src/h2/hpack/table.rs.html#177">desired_pos</a>;
+        <span class="kw">let </span>desired_pos = <a href="#658">desired_pos</a>(<a class="self" href="#160">self</a>.mask, <a href="#175">hash</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="#177">desired_pos</a>;
         <span class="kw">let </span><span class="kw-2">mut </span>dist = <span class="number">0</span>;
 
         <span class="comment">// Start at the ideal position, checking all slots
-        </span><a class="macro" href="../../../src/h2/hpack/table.rs.html#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
+        </span><a class="macro" href="#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = <span class="self">self</span>.indices[probe] {
                 <span class="comment">// The slot is already occupied, but check if it has a lower
                 // displacement.
@@ -970,11 +970,11 @@
 
     <span class="kw">fn </span>index_occupied(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>,
-        hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>,
+        header: <a href="header.rs.html#11">Header</a>,
+        hash: <a href="#55">HashValue</a>,
         <span class="kw-2">mut </span>index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         statik: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
-    ) -&gt; <a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
+    ) -&gt; <a href="#24">Index</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;top&quot;</span>));
 
         <span class="comment">// There already is a match for the given header name. Check if a value
@@ -982,63 +982,63 @@
         // capacity.
         </span><span class="kw">loop </span>{
             <span class="comment">// Compute the real index into the VecDeque
-            </span><span class="kw">let </span>real_idx = <a href="../../../src/h2/hpack/table.rs.html#209">index</a>.wrapping_add(<a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.inserted);
+            </span><span class="kw">let </span>real_idx = <a href="#209">index</a>.wrapping_add(<a class="self" href="#206">self</a>.inserted);
 
             <span class="kw">if </span><span class="self">self</span>.slots[real_idx].header.value_eq(<span class="kw-2">&amp;</span>header) {
                 <span class="comment">// We have a full match!
-                </span><span class="kw">return </span><a href="../../../src/h2/hpack/table.rs.html#26">Index::Indexed</a>(<a href="../../../src/h2/hpack/table.rs.html#219">real_idx</a> + <a href="../../../src/h2/hpack/table.rs.html#58">DYN_OFFSET</a>, <a href="../../../src/h2/hpack/table.rs.html#207">header</a>);
+                </span><span class="kw">return </span><a href="#26">Index::Indexed</a>(<a href="#219">real_idx</a> + <a href="#58">DYN_OFFSET</a>, <a href="#207">header</a>);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.slots[<a href="../../../src/h2/hpack/table.rs.html#219">real_idx</a>].next {
-                <a href="../../../src/h2/hpack/table.rs.html#209">index</a> = <a href="../../../src/h2/hpack/table.rs.html#226">next</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <a class="self" href="#206">self</a>.slots[<a href="#219">real_idx</a>].next {
+                <a href="#209">index</a> = <a href="#226">next</a>;
                 <span class="kw">continue</span>;
             }
 
             <span class="kw">if </span>header.is_sensitive() {
                 <span class="comment">// Should we assert this?
                 // debug_assert!(statik.is_none());
-                </span><span class="kw">return </span><a href="../../../src/h2/hpack/table.rs.html#29">Index::Name</a>(<a href="../../../src/h2/hpack/table.rs.html#219">real_idx</a> + <a href="../../../src/h2/hpack/table.rs.html#58">DYN_OFFSET</a>, <a href="../../../src/h2/hpack/table.rs.html#207">header</a>);
+                </span><span class="kw">return </span><a href="#29">Index::Name</a>(<a href="#219">real_idx</a> + <a href="#58">DYN_OFFSET</a>, <a href="#207">header</a>);
             }
 
-            <a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.<a href="../../../src/h2/hpack/table.rs.html#367">update_size</a>(<a href="../../../src/h2/hpack/table.rs.html#207">header</a>.<a href="../../../src/h2/hpack/header.rs.html#105">len</a>(), <span class="prelude-val">Some</span>(<a href="../../../src/h2/hpack/table.rs.html#209">index</a>));
+            <a class="self" href="#206">self</a>.<a href="#367">update_size</a>(<a href="#207">header</a>.<a href="header.rs.html#105">len</a>(), <span class="prelude-val">Some</span>(<a href="#209">index</a>));
 
             <span class="comment">// Insert the new header
-            </span><a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.<a href="../../../src/h2/hpack/table.rs.html#340">insert</a>(<a href="../../../src/h2/hpack/table.rs.html#207">header</a>, <a href="../../../src/h2/hpack/table.rs.html#208">hash</a>);
+            </span><a class="self" href="#206">self</a>.<a href="#340">insert</a>(<a href="#207">header</a>, <a href="#208">hash</a>);
 
             <span class="comment">// Recompute real_idx as it just changed.
-            </span><span class="kw">let </span>new_real_idx = <a href="../../../src/h2/hpack/table.rs.html#209">index</a>.wrapping_add(<a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.inserted);
+            </span><span class="kw">let </span>new_real_idx = <a href="#209">index</a>.wrapping_add(<a class="self" href="#206">self</a>.inserted);
 
             <span class="comment">// The previous node in the linked list may have gotten evicted
             // while making room for this header.
             </span><span class="kw">if </span>new_real_idx &lt; <span class="self">self</span>.slots.len() {
-                <span class="kw">let </span>idx = <span class="number">0usize</span>.wrapping_sub(<a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.inserted);
+                <span class="kw">let </span>idx = <span class="number">0usize</span>.wrapping_sub(<a class="self" href="#206">self</a>.inserted);
 
-                <a class="self" href="../../../src/h2/hpack/table.rs.html#206">self</a>.slots[<a href="../../../src/h2/hpack/table.rs.html#243">new_real_idx</a>].next = <span class="prelude-val">Some</span>(<a href="../../../src/h2/hpack/table.rs.html#248">idx</a>);
+                <a class="self" href="#206">self</a>.slots[<a href="#243">new_real_idx</a>].next = <span class="prelude-val">Some</span>(<a href="#248">idx</a>);
             }
 
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;bottom&quot;</span>));
 
             <span class="comment">// Even if the previous header was evicted, we can still reference
             // it when inserting the new one...
-            </span><span class="kw">return if let </span><span class="prelude-val">Some</span>(n) = <a href="../../../src/h2/hpack/table.rs.html#210">statik</a> {
+            </span><span class="kw">return if let </span><span class="prelude-val">Some</span>(n) = <a href="#210">statik</a> {
                 <span class="comment">// If name is in static table, use it instead
-                </span><a href="../../../src/h2/hpack/table.rs.html#35">Index::InsertedValue</a>(<a href="../../../src/h2/hpack/table.rs.html#257">n</a>, <span class="number">0</span>)
+                </span><a href="#35">Index::InsertedValue</a>(<a href="#257">n</a>, <span class="number">0</span>)
             } <span class="kw">else </span>{
-                <a href="../../../src/h2/hpack/table.rs.html#35">Index::InsertedValue</a>(<a href="../../../src/h2/hpack/table.rs.html#219">real_idx</a> + <a href="../../../src/h2/hpack/table.rs.html#58">DYN_OFFSET</a>, <span class="number">0</span>)
+                <a href="#35">Index::InsertedValue</a>(<a href="#219">real_idx</a> + <a href="#58">DYN_OFFSET</a>, <span class="number">0</span>)
             };
         }
     }
 
     <span class="kw">fn </span>index_vacant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>,
-        hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>,
+        header: <a href="header.rs.html#11">Header</a>,
+        hash: <a href="#55">HashValue</a>,
         <span class="kw-2">mut </span>dist: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         <span class="kw-2">mut </span>probe: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         statik: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;,
-    ) -&gt; <a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
+    ) -&gt; <a href="#24">Index</a> {
         <span class="kw">if </span>header.is_sensitive() {
-            <span class="kw">return </span>Index::new(<a href="../../../src/h2/hpack/table.rs.html#272">statik</a>, <a href="../../../src/h2/hpack/table.rs.html#268">header</a>);
+            <span class="kw">return </span>Index::new(<a href="#272">statik</a>, <a href="#268">header</a>);
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;top&quot;</span>));
@@ -1068,23 +1068,23 @@
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;after update&quot;</span>));
 
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#267">self</a>.<a href="../../../src/h2/hpack/table.rs.html#340">insert</a>(<a href="../../../src/h2/hpack/table.rs.html#268">header</a>, <a href="../../../src/h2/hpack/table.rs.html#269">hash</a>);
+        <a class="self" href="#267">self</a>.<a href="#340">insert</a>(<a href="#268">header</a>, <a href="#269">hash</a>);
 
-        <span class="kw">let </span>pos_idx = <span class="number">0usize</span>.wrapping_sub(<a class="self" href="../../../src/h2/hpack/table.rs.html#267">self</a>.inserted);
+        <span class="kw">let </span>pos_idx = <span class="number">0usize</span>.wrapping_sub(<a class="self" href="#267">self</a>.inserted);
 
         <span class="kw">let </span>prev = mem::replace(
-            <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/h2/hpack/table.rs.html#267">self</a>.indices[<a href="../../../src/h2/hpack/table.rs.html#271">probe</a>],
-            <span class="prelude-val">Some</span>(<a href="../../../src/h2/hpack/table.rs.html#49">Pos</a> {
-                index: <a href="../../../src/h2/hpack/table.rs.html#307">pos_idx</a>,
-                <a href="../../../src/h2/hpack/table.rs.html#269">hash</a>,
+            <span class="kw-2">&amp;mut </span><a class="self" href="#267">self</a>.indices[<a href="#271">probe</a>],
+            <span class="prelude-val">Some</span>(<a href="#49">Pos</a> {
+                index: <a href="#307">pos_idx</a>,
+                <a href="#269">hash</a>,
             }),
         );
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>prev) = <a href="../../../src/h2/hpack/table.rs.html#309">prev</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>prev) = <a href="#309">prev</a> {
             <span class="comment">// Shift forward
-            </span><span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="../../../src/h2/hpack/table.rs.html#271">probe</a> + <span class="number">1</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="#271">probe</a> + <span class="number">1</span>;
 
-            <a class="macro" href="../../../src/h2/hpack/table.rs.html#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
+            <a class="macro" href="#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
                 <span class="kw">let </span>pos = <span class="kw-2">&amp;mut </span><span class="self">self</span>.indices[probe <span class="kw">as </span>usize];
 
                 prev = <span class="kw">match </span>mem::replace(pos, <span class="prelude-val">Some</span>(prev)) {
@@ -1096,43 +1096,43 @@
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;bottom&quot;</span>));
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((n, <span class="kw">_</span>)) = <a href="../../../src/h2/hpack/table.rs.html#272">statik</a> {
-            <a href="../../../src/h2/hpack/table.rs.html#35">Index::InsertedValue</a>(<a href="../../../src/h2/hpack/table.rs.html#333">n</a>, <span class="number">0</span>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((n, <span class="kw">_</span>)) = <a href="#272">statik</a> {
+            <a href="#35">Index::InsertedValue</a>(<a href="#333">n</a>, <span class="number">0</span>)
         } <span class="kw">else </span>{
-            <a href="../../../src/h2/hpack/table.rs.html#32">Index::Inserted</a>(<span class="number">0</span>)
+            <a href="#32">Index::Inserted</a>(<span class="number">0</span>)
         }
     }
 
-    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>, hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>) {
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#340">self</a>.inserted = <a class="self" href="../../../src/h2/hpack/table.rs.html#340">self</a>.inserted.wrapping_add(<span class="number">1</span>);
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <a href="header.rs.html#11">Header</a>, hash: <a href="#55">HashValue</a>) {
+        <a class="self" href="#340">self</a>.inserted = <a class="self" href="#340">self</a>.inserted.wrapping_add(<span class="number">1</span>);
 
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#340">self</a>.slots.push_front(<a href="../../../src/h2/hpack/table.rs.html#42">Slot</a> {
-            <a href="../../../src/h2/hpack/table.rs.html#340">hash</a>,
-            <a href="../../../src/h2/hpack/table.rs.html#340">header</a>,
+        <a class="self" href="#340">self</a>.slots.push_front(<a href="#42">Slot</a> {
+            <a href="#340">hash</a>,
+            <a href="#340">header</a>,
             next: <span class="prelude-val">None</span>,
         });
     }
 
     <span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#350">self</a>.max_size = <a href="../../../src/h2/hpack/table.rs.html#350">size</a>;
+        <a class="self" href="#350">self</a>.max_size = <a href="#350">size</a>;
 
         <span class="kw">if </span>size == <span class="number">0 </span>{
-            <a class="self" href="../../../src/h2/hpack/table.rs.html#350">self</a>.size = <span class="number">0</span>;
+            <a class="self" href="#350">self</a>.size = <span class="number">0</span>;
 
             <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.indices {
                 <span class="kw-2">*</span>i = <span class="prelude-val">None</span>;
             }
 
-            <a class="self" href="../../../src/h2/hpack/table.rs.html#350">self</a>.slots.clear();
-            <a class="self" href="../../../src/h2/hpack/table.rs.html#350">self</a>.inserted = <span class="number">0</span>;
+            <a class="self" href="#350">self</a>.slots.clear();
+            <a class="self" href="#350">self</a>.inserted = <span class="number">0</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/h2/hpack/table.rs.html#350">self</a>.<a href="../../../src/h2/hpack/table.rs.html#372">converge</a>(<span class="prelude-val">None</span>);
+            <a class="self" href="#350">self</a>.<a href="#372">converge</a>(<span class="prelude-val">None</span>);
         }
     }
 
     <span class="kw">fn </span>update_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, prev_idx: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#367">self</a>.size += <a href="../../../src/h2/hpack/table.rs.html#367">len</a>;
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#367">self</a>.<a href="../../../src/h2/hpack/table.rs.html#372">converge</a>(<a href="../../../src/h2/hpack/table.rs.html#367">prev_idx</a>)
+        <a class="self" href="#367">self</a>.size += <a href="#367">len</a>;
+        <a class="self" href="#367">self</a>.<a href="#372">converge</a>(<a href="#367">prev_idx</a>)
     }
 
     <span class="kw">fn </span>converge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prev_idx: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -1143,21 +1143,21 @@
             <span class="self">self</span>.evict(prev_idx);
         }
 
-        <a href="../../../src/h2/hpack/table.rs.html#373">ret</a>
+        <a href="#373">ret</a>
     }
 
     <span class="kw">fn </span>evict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prev_idx: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>pos_idx = (<a class="self" href="../../../src/h2/hpack/table.rs.html#383">self</a>.slots.len() - <span class="number">1</span>).wrapping_sub(<a class="self" href="../../../src/h2/hpack/table.rs.html#383">self</a>.inserted);
+        <span class="kw">let </span>pos_idx = (<a class="self" href="#383">self</a>.slots.len() - <span class="number">1</span>).wrapping_sub(<a class="self" href="#383">self</a>.inserted);
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.slots.is_empty());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;one&quot;</span>));
 
         <span class="comment">// Remove the header
-        </span><span class="kw">let </span>slot = <a class="self" href="../../../src/h2/hpack/table.rs.html#383">self</a>.slots.pop_back().unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="../../../src/h2/hpack/table.rs.html#658">desired_pos</a>(<a class="self" href="../../../src/h2/hpack/table.rs.html#383">self</a>.mask, <a href="../../../src/h2/hpack/table.rs.html#390">slot</a>.hash);
+        </span><span class="kw">let </span>slot = <a class="self" href="#383">self</a>.slots.pop_back().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="#658">desired_pos</a>(<a class="self" href="#383">self</a>.mask, <a href="#390">slot</a>.hash);
 
         <span class="comment">// Update the size
-        </span><a class="self" href="../../../src/h2/hpack/table.rs.html#383">self</a>.size -= <a href="../../../src/h2/hpack/table.rs.html#390">slot</a>.header.<a href="../../../src/h2/hpack/header.rs.html#105">len</a>();
+        </span><a class="self" href="#383">self</a>.size -= <a href="#390">slot</a>.header.<a href="header.rs.html#105">len</a>();
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
             <span class="self">self</span>.indices
@@ -1169,7 +1169,7 @@
         </span>);
 
         <span class="comment">// Find the associated position
-        </span><a class="macro" href="../../../src/h2/hpack/table.rs.html#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
+        </span><a class="macro" href="#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
             <span class="macro">debug_assert!</span>(!<span class="self">self</span>.indices[probe].is_none());
 
             <span class="kw">let </span><span class="kw-2">mut </span>pos = <span class="self">self</span>.indices[probe].unwrap();
@@ -1196,10 +1196,10 @@
     <span class="comment">// Shifts all indices that were displaced by the header that has just been
     // removed.
     </span><span class="kw">fn </span>remove_phase_two(<span class="kw-2">&amp;mut </span><span class="self">self</span>, probe: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>last_probe = <a href="../../../src/h2/hpack/table.rs.html#432">probe</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="../../../src/h2/hpack/table.rs.html#432">probe</a> + <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_probe = <a href="#432">probe</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="#432">probe</a> + <span class="number">1</span>;
 
-        <a class="macro" href="../../../src/h2/hpack/table.rs.html#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
+        <a class="macro" href="#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = <span class="self">self</span>.indices[probe] {
                 <span class="kw">if </span>probe_distance(<span class="self">self</span>.mask, pos.hash, probe) &gt; <span class="number">0 </span>{
                     <span class="self">self</span>.indices[last_probe] = <span class="self">self</span>.indices[probe].take();
@@ -1217,16 +1217,16 @@
     }
 
     <span class="kw">fn </span>reserve_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>len = <a class="self" href="../../../src/h2/hpack/table.rs.html#453">self</a>.slots.len();
+        <span class="kw">let </span>len = <a class="self" href="#453">self</a>.slots.len();
 
         <span class="kw">if </span>len == <span class="self">self</span>.capacity() {
             <span class="kw">if </span>len == <span class="number">0 </span>{
                 <span class="kw">let </span>new_raw_cap = <span class="number">8</span>;
-                <a class="self" href="../../../src/h2/hpack/table.rs.html#453">self</a>.mask = <span class="number">8 </span>- <span class="number">1</span>;
-                <a class="self" href="../../../src/h2/hpack/table.rs.html#453">self</a>.indices = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; new_raw_cap];
+                <a class="self" href="#453">self</a>.mask = <span class="number">8 </span>- <span class="number">1</span>;
+                <a class="self" href="#453">self</a>.indices = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; new_raw_cap];
             } <span class="kw">else </span>{
-                <span class="kw">let </span>raw_cap = <a class="self" href="../../../src/h2/hpack/table.rs.html#453">self</a>.indices.len();
-                <a class="self" href="../../../src/h2/hpack/table.rs.html#453">self</a>.<a href="../../../src/h2/hpack/table.rs.html#469">grow</a>(<a href="../../../src/h2/hpack/table.rs.html#462">raw_cap</a> &lt;&lt; <span class="number">1</span>);
+                <span class="kw">let </span>raw_cap = <a class="self" href="#453">self</a>.indices.len();
+                <a class="self" href="#453">self</a>.<a href="#469">grow</a>(<a href="#462">raw_cap</a> &lt;&lt; <span class="number">1</span>);
             }
         }
     }
@@ -1252,8 +1252,8 @@
 
         <span class="comment">// visit the entries in an order where we can simply reinsert them
         // into self.indices without any bucket stealing.
-        </span><span class="kw">let </span>old_indices = mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/h2/hpack/table.rs.html#469">self</a>.indices, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; new_raw_cap]);
-        <a class="self" href="../../../src/h2/hpack/table.rs.html#469">self</a>.mask = <a href="../../../src/h2/hpack/table.rs.html#469">new_raw_cap</a>.wrapping_sub(<span class="number">1</span>);
+        </span><span class="kw">let </span>old_indices = mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#469">self</a>.indices, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; new_raw_cap]);
+        <a class="self" href="#469">self</a>.mask = <a href="#469">new_raw_cap</a>.wrapping_sub(<span class="number">1</span>);
 
         <span class="kw">for </span><span class="kw-2">&amp;</span>pos <span class="kw">in </span><span class="kw-2">&amp;</span>old_indices[first_ideal..] {
             <span class="self">self</span>.reinsert_entry_in_order(pos);
@@ -1266,12 +1266,12 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.assert_valid_state(<span class="string">&quot;bottom&quot;</span>));
     }
 
-    <span class="kw">fn </span>reinsert_entry_in_order(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/hpack/table.rs.html#49">Pos</a>&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = <a href="../../../src/h2/hpack/table.rs.html#503">pos</a> {
+    <span class="kw">fn </span>reinsert_entry_in_order(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <span class="prelude-ty">Option</span>&lt;<a href="#49">Pos</a>&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = <a href="#503">pos</a> {
             <span class="comment">// Find first empty bucket and insert there
-            </span><span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="../../../src/h2/hpack/table.rs.html#658">desired_pos</a>(<a class="self" href="../../../src/h2/hpack/table.rs.html#503">self</a>.mask, <a href="../../../src/h2/hpack/table.rs.html#504">pos</a>.hash);
+            </span><span class="kw">let </span><span class="kw-2">mut </span>probe = <a href="#658">desired_pos</a>(<a class="self" href="#503">self</a>.mask, <a href="#504">pos</a>.hash);
 
-            <a class="macro" href="../../../src/h2/hpack/table.rs.html#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
+            <a class="macro" href="#60-72">probe_loop!</a>(probe &lt; <span class="self">self</span>.indices.len(), {
                 <span class="kw">if </span><span class="self">self</span>.indices[probe].is_none() {
                     <span class="comment">// empty bucket, insert here
                     </span><span class="self">self</span>.indices[probe] = <span class="prelude-val">Some</span>(pos);
@@ -1400,52 +1400,52 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
-    <span class="kw">fn </span>new(v: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;, e: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>) -&gt; <a href="../../../src/h2/hpack/table.rs.html#24">Index</a> {
-        <span class="kw">match </span><a href="../../../src/h2/hpack/table.rs.html#638">v</a> {
-            <span class="prelude-val">None </span>=&gt; <a href="../../../src/h2/hpack/table.rs.html#38">Index::NotIndexed</a>(<a href="../../../src/h2/hpack/table.rs.html#638">e</a>),
-            <span class="prelude-val">Some</span>((n, <span class="bool-val">true</span>)) =&gt; <a href="../../../src/h2/hpack/table.rs.html#26">Index::Indexed</a>(<a href="../../../src/h2/hpack/table.rs.html#641">n</a>, <a href="../../../src/h2/hpack/table.rs.html#638">e</a>),
-            <span class="prelude-val">Some</span>((n, <span class="bool-val">false</span>)) =&gt; <a href="../../../src/h2/hpack/table.rs.html#29">Index::Name</a>(<a href="../../../src/h2/hpack/table.rs.html#642">n</a>, <a href="../../../src/h2/hpack/table.rs.html#638">e</a>),
+<span class="kw">impl </span><a href="#24">Index</a> {
+    <span class="kw">fn </span>new(v: <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt;, e: <a href="header.rs.html#11">Header</a>) -&gt; <a href="#24">Index</a> {
+        <span class="kw">match </span><a href="#638">v</a> {
+            <span class="prelude-val">None </span>=&gt; <a href="#38">Index::NotIndexed</a>(<a href="#638">e</a>),
+            <span class="prelude-val">Some</span>((n, <span class="bool-val">true</span>)) =&gt; <a href="#26">Index::Indexed</a>(<a href="#641">n</a>, <a href="#638">e</a>),
+            <span class="prelude-val">Some</span>((n, <span class="bool-val">false</span>)) =&gt; <a href="#29">Index::Name</a>(<a href="#642">n</a>, <a href="#638">e</a>),
         }
     }
 }
 
 <span class="attribute">#[inline]
 </span><span class="kw">fn </span>usable_capacity(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/h2/hpack/table.rs.html#648">cap</a> - <a href="../../../src/h2/hpack/table.rs.html#648">cap</a> / <span class="number">4
+    <a href="#648">cap</a> - <a href="#648">cap</a> / <span class="number">4
 </span>}
 
 <span class="attribute">#[inline]
 </span><span class="kw">fn </span>to_raw_capacity(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/h2/hpack/table.rs.html#653">n</a> + <a href="../../../src/h2/hpack/table.rs.html#653">n</a> / <span class="number">3
+    <a href="#653">n</a> + <a href="#653">n</a> / <span class="number">3
 </span>}
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>desired_pos(mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/h2/hpack/table.rs.html#658">hash</a>.<span class="number">0 </span>&amp; <a href="../../../src/h2/hpack/table.rs.html#658">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+</span><span class="kw">fn </span>desired_pos(mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hash: <a href="#55">HashValue</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    (<a href="#658">hash</a>.<span class="number">0 </span>&amp; <a href="#658">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>probe_distance(mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hash: <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>, current: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/h2/hpack/table.rs.html#663">current</a>.wrapping_sub(<a href="../../../src/h2/hpack/table.rs.html#658">desired_pos</a>(<a href="../../../src/h2/hpack/table.rs.html#663">mask</a>, <a href="../../../src/h2/hpack/table.rs.html#663">hash</a>)) &amp; <a href="../../../src/h2/hpack/table.rs.html#663">mask</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+</span><span class="kw">fn </span>probe_distance(mask: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, hash: <a href="#55">HashValue</a>, current: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a href="#663">current</a>.wrapping_sub(<a href="#658">desired_pos</a>(<a href="#663">mask</a>, <a href="#663">hash</a>)) &amp; <a href="#663">mask</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
-<span class="kw">fn </span>hash_header(header: <span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/header.rs.html#11">Header</a>) -&gt; <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a> {
-    <span class="kw">const </span>MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = (<a href="../../../src/h2/hpack/table.rs.html#57">MAX_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) - <span class="number">1</span>;
+<span class="kw">fn </span>hash_header(header: <span class="kw-2">&amp;</span><a href="header.rs.html#11">Header</a>) -&gt; <a href="#55">HashValue</a> {
+    <span class="kw">const </span>MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = (<a href="#57">MAX_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) - <span class="number">1</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>h = FnvHasher::default();
-    <a href="../../../src/h2/hpack/table.rs.html#667">header</a>.<a href="../../../src/h2/hpack/header.rs.html#121">name</a>().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/h2/hpack/table.rs.html#670">h</a>);
-    <a href="../../../src/h2/hpack/table.rs.html#55">HashValue</a>((<a href="../../../src/h2/hpack/table.rs.html#670">h</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>() &amp; <a href="../../../src/h2/hpack/table.rs.html#668">MASK</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <a href="#667">header</a>.<a href="header.rs.html#121">name</a>().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<span class="kw-2">&amp;mut </span><a href="#670">h</a>);
+    <a href="#55">HashValue</a>((<a href="#670">h</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">finish</a>() &amp; <a href="#668">MASK</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="doccomment">/// Checks the static table for the header. If found, returns the index and a
 /// boolean representing if the value matched as well.
-</span><span class="kw">fn </span>index_static(header: <span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/header.rs.html#11">Header</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt; {
-    <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#677">header</a> {
-        <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+</span><span class="kw">fn </span>index_static(header: <span class="kw-2">&amp;</span><a href="header.rs.html#11">Header</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)&gt; {
+    <span class="kw">match </span><span class="kw-2">*</span><a href="#677">header</a> {
+        <a href="header.rs.html#12">Header::Field</a> {
             <span class="kw-2">ref </span>name,
             <span class="kw-2">ref </span>value,
-        } =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#680">name</a> {
+        } =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#680">name</a> {
             header::ACCEPT_CHARSET =&gt; <span class="prelude-val">Some</span>((<span class="number">15</span>, <span class="bool-val">false</span>)),
             header::ACCEPT_ENCODING =&gt; {
                 <span class="kw">if </span>value == <span class="string">&quot;gzip, deflate&quot; </span>{
@@ -1501,24 +1501,24 @@
             header::WWW_AUTHENTICATE =&gt; <span class="prelude-val">Some</span>((<span class="number">61</span>, <span class="bool-val">false</span>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         },
-        <a href="../../../src/h2/hpack/header.rs.html#14">Header::Authority</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>((<span class="number">1</span>, <span class="bool-val">false</span>)),
-        <a href="../../../src/h2/hpack/header.rs.html#15">Header::Method</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#739">v</a> {
+        <a href="header.rs.html#14">Header::Authority</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>((<span class="number">1</span>, <span class="bool-val">false</span>)),
+        <a href="header.rs.html#15">Header::Method</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#739">v</a> {
             Method::GET =&gt; <span class="prelude-val">Some</span>((<span class="number">2</span>, <span class="bool-val">true</span>)),
             Method::POST =&gt; <span class="prelude-val">Some</span>((<span class="number">3</span>, <span class="bool-val">true</span>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">2</span>, <span class="bool-val">false</span>)),
         },
-        <a href="../../../src/h2/hpack/header.rs.html#16">Header::Scheme</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="../../../src/h2/hpack/table.rs.html#744">v</a> {
+        <a href="header.rs.html#16">Header::Scheme</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="#744">v</a> {
             <span class="string">&quot;http&quot; </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">6</span>, <span class="bool-val">true</span>)),
             <span class="string">&quot;https&quot; </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">7</span>, <span class="bool-val">true</span>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">6</span>, <span class="bool-val">false</span>)),
         },
-        <a href="../../../src/h2/hpack/header.rs.html#17">Header::Path</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="../../../src/h2/hpack/table.rs.html#749">v</a> {
+        <a href="header.rs.html#17">Header::Path</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span><span class="kw-2">&amp;**</span><a href="#749">v</a> {
             <span class="string">&quot;/&quot; </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">4</span>, <span class="bool-val">true</span>)),
             <span class="string">&quot;/index.html&quot; </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">5</span>, <span class="bool-val">true</span>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">4</span>, <span class="bool-val">false</span>)),
         },
-        <a href="../../../src/h2/hpack/header.rs.html#18">Header::Protocol</a>(..) =&gt; <span class="prelude-val">None</span>,
-        <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span>u16::from(<span class="kw-2">*</span><a href="../../../src/h2/hpack/table.rs.html#755">v</a>) {
+        <a href="header.rs.html#18">Header::Protocol</a>(..) =&gt; <span class="prelude-val">None</span>,
+        <a href="header.rs.html#19">Header::Status</a>(<span class="kw-2">ref </span>v) =&gt; <span class="kw">match </span>u16::from(<span class="kw-2">*</span><a href="#755">v</a>) {
             <span class="number">200 </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">8</span>, <span class="bool-val">true</span>)),
             <span class="number">204 </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">9</span>, <span class="bool-val">true</span>)),
             <span class="number">206 </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">10</span>, <span class="bool-val">true</span>)),
@@ -1531,4 +1531,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

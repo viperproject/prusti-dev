@@ -84,8 +84,8 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/sink/mod.rs.html#339-341"><span class="kw">super</span>::assert_sink</a>;
-<span class="kw">use </span><a href="../../../src/futures_util/unfold_state.rs.html#5-20"><span class="kw">crate</span>::unfold_state::UnfoldState</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#339-341"><span class="kw">super</span>::assert_sink</a>;
+<span class="kw">use </span><a href="../unfold_state.rs.html#5-20"><span class="kw">crate</span>::unfold_state::UnfoldState</a>;
 <span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>};
 <span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -127,7 +127,7 @@
     </span>F: FnMut(T, Item) -&gt; R,
     R: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;,
 {
-    assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/sink/unfold.rs.html#9-18">Unfold</a> { <a href="../../../src/futures_util/sink/unfold.rs.html#39">function</a>, state: <a href="../../../src/futures_util/unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="../../../src/futures_util/sink/unfold.rs.html#39">init</a> } })
+    assert_sink::&lt;Item, E, <span class="kw">_</span>&gt;(<a href="#9-18">Unfold</a> { <a href="#39">function</a>, state: <a href="../unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="#39">init</a> } })
 }
 
 <span class="kw">impl</span>&lt;T, F, R, Item, E&gt; Sink&lt;Item&gt; <span class="kw">for </span>Unfold&lt;T, F, R&gt;
@@ -138,28 +138,28 @@
     <span class="kw">type </span>Error = E;
 
     <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="../../../src/futures_util/sink/unfold.rs.html#54">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/futures_util/sink/unfold.rs.html#54">cx</a>)
+        <a class="self" href="#54">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="#54">cx</a>)
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/sink/unfold.rs.html#58">self</a>.<a href="../../../src/futures_util/sink/unfold.rs.html#9-18">project</a>();
-        <span class="kw">let </span>future = <span class="kw">match </span><a href="../../../src/futures_util/sink/unfold.rs.html#59">this</a>.state.as_mut().<a href="../../../src/futures_util/unfold_state.rs.html#30">take_value</a>() {
-            <span class="prelude-val">Some</span>(value) =&gt; (<a href="../../../src/futures_util/sink/unfold.rs.html#59">this</a>.function)(<a href="../../../src/futures_util/sink/unfold.rs.html#61">value</a>, <a href="../../../src/futures_util/sink/unfold.rs.html#58">item</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#58">self</a>.<a href="#9-18">project</a>();
+        <span class="kw">let </span>future = <span class="kw">match </span><a href="#59">this</a>.state.as_mut().<a href="../unfold_state.rs.html#30">take_value</a>() {
+            <span class="prelude-val">Some</span>(value) =&gt; (<a href="#59">this</a>.function)(<a href="#61">value</a>, <a href="#58">item</a>),
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;start_send called without poll_ready being called first&quot;</span>),
         };
-        <a href="../../../src/futures_util/sink/unfold.rs.html#59">this</a>.state.set(<a href="../../../src/futures_util/unfold_state.rs.html#5-20">UnfoldState::Future</a> { <a href="../../../src/futures_util/sink/unfold.rs.html#60">future</a> });
+        <a href="#59">this</a>.state.set(<a href="../unfold_state.rs.html#5-20">UnfoldState::Future</a> { <a href="#60">future</a> });
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/sink/unfold.rs.html#68">self</a>.<a href="../../../src/futures_util/sink/unfold.rs.html#9-18">project</a>();
-        Poll::Ready(<span class="kw">if let </span><span class="prelude-val">Some</span>(future) = <a href="../../../src/futures_util/sink/unfold.rs.html#69">this</a>.state.as_mut().<a href="../../../src/futures_util/unfold_state.rs.html#23">project_future</a>() {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#68">self</a>.<a href="#9-18">project</a>();
+        Poll::Ready(<span class="kw">if let </span><span class="prelude-val">Some</span>(future) = <a href="#69">this</a>.state.as_mut().<a href="../unfold_state.rs.html#23">project_future</a>() {
             <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(future.poll(cx)) {
                 <span class="prelude-val">Ok</span>(state) =&gt; {
-                    <a href="../../../src/futures_util/sink/unfold.rs.html#69">this</a>.state.set(<a href="../../../src/futures_util/unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="../../../src/futures_util/sink/unfold.rs.html#72">state</a> });
+                    <a href="#69">this</a>.state.set(<a href="../unfold_state.rs.html#5-20">UnfoldState::Value</a> { value: <a href="#72">state</a> });
                     <span class="prelude-val">Ok</span>(())
                 }
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/futures_util/sink/unfold.rs.html#76">err</a>),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#76">err</a>),
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
@@ -167,8 +167,8 @@
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <a class="self" href="../../../src/futures_util/sink/unfold.rs.html#83">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/futures_util/sink/unfold.rs.html#83">cx</a>)
+        <a class="self" href="#83">self</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="#83">cx</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

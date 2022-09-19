@@ -123,8 +123,8 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
-<span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../../src/futures_util/future/either.rs.html#28">Either</a>, <a href="../../../src/futures_util/future/future/mod.rs.html#123">FutureExt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+<span class="kw">use </span><span class="kw">crate</span>::future::{<a href="either.rs.html#28">Either</a>, <a href="future/mod.rs.html#123">FutureExt</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 <span class="kw">use </span>futures_core::future::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -211,8 +211,8 @@
     </span>A: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     B: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    assert_future::&lt;Either&lt;(A::Output, B), (B::Output, A)&gt;, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/select.rs.html#10">Select</a> {
-        inner: <span class="prelude-val">Some</span>((<a href="../../../src/futures_util/future/select.rs.html#84">future1</a>, <a href="../../../src/futures_util/future/select.rs.html#84">future2</a>)),
+    assert_future::&lt;Either&lt;(A::Output, B), (B::Output, A)&gt;, <span class="kw">_</span>&gt;(<a href="#10">Select</a> {
+        inner: <span class="prelude-val">Some</span>((<a href="#84">future1</a>, <a href="#84">future2</a>)),
     })
 }
 
@@ -224,17 +224,17 @@
     <span class="kw">type </span>Output = Either&lt;(A::Output, B), (B::Output, A)&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = <a class="self" href="../../../src/futures_util/future/select.rs.html#101">self</a>.inner.take().expect(<span class="string">&quot;cannot poll Select twice&quot;</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = <a class="self" href="#101">self</a>.inner.take().expect(<span class="string">&quot;cannot poll Select twice&quot;</span>);
 
-        <span class="kw">if let </span>Poll::Ready(val) = <a href="../../../src/futures_util/future/select.rs.html#102">a</a>.<a href="../../../src/futures_util/future/future/mod.rs.html#558-560">poll_unpin</a>(<a href="../../../src/futures_util/future/select.rs.html#101">cx</a>) {
-            <span class="kw">return </span>Poll::Ready(<a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<a href="../../../src/futures_util/future/select.rs.html#104">val</a>, <a href="../../../src/futures_util/future/select.rs.html#102">b</a>)));
+        <span class="kw">if let </span>Poll::Ready(val) = <a href="#102">a</a>.<a href="future/mod.rs.html#558-560">poll_unpin</a>(<a href="#101">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<a href="either.rs.html#30">Either::Left</a>((<a href="#104">val</a>, <a href="#102">b</a>)));
         }
 
-        <span class="kw">if let </span>Poll::Ready(val) = <a href="../../../src/futures_util/future/select.rs.html#102">b</a>.<a href="../../../src/futures_util/future/future/mod.rs.html#558-560">poll_unpin</a>(<a href="../../../src/futures_util/future/select.rs.html#101">cx</a>) {
-            <span class="kw">return </span>Poll::Ready(<a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<a href="../../../src/futures_util/future/select.rs.html#108">val</a>, <a href="../../../src/futures_util/future/select.rs.html#102">a</a>)));
+        <span class="kw">if let </span>Poll::Ready(val) = <a href="#102">b</a>.<a href="future/mod.rs.html#558-560">poll_unpin</a>(<a href="#101">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<a href="either.rs.html#32">Either::Right</a>((<a href="#108">val</a>, <a href="#102">a</a>)));
         }
 
-        <a class="self" href="../../../src/futures_util/future/select.rs.html#101">self</a>.inner = <span class="prelude-val">Some</span>((<a href="../../../src/futures_util/future/select.rs.html#102">a</a>, <a href="../../../src/futures_util/future/select.rs.html#102">b</a>));
+        <a class="self" href="#101">self</a>.inner = <span class="prelude-val">Some</span>((<a href="#102">a</a>, <a href="#102">b</a>));
         Poll::Pending
     }
 }
@@ -245,8 +245,8 @@
     B: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/future/select.rs.html#122">self</a>.inner.is_none()
+        <a class="self" href="#122">self</a>.inner.is_none()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

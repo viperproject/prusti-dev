@@ -676,27 +676,27 @@
 
 <span class="kw">use </span><a href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
 
-<span class="kw">use super</span>::{<a href="../../../src/http/uri/mod.rs.html#129">ErrorKind</a>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>, <a href="../../../src/http/uri/port.rs.html#6">Port</a>, <a href="../../../src/http/uri/mod.rs.html#152">URI_CHARS</a>};
-<span class="kw">use </span><a href="../../../src/http/byte_str.rs.html#6"><span class="kw">crate</span>::byte_str::ByteStr</a>;
+<span class="kw">use super</span>::{<a href="mod.rs.html#129">ErrorKind</a>, <a href="mod.rs.html#122">InvalidUri</a>, <a href="port.rs.html#6">Port</a>, <a href="mod.rs.html#152">URI_CHARS</a>};
+<span class="kw">use </span><a href="../byte_str.rs.html#6"><span class="kw">crate</span>::byte_str::ByteStr</a>;
 
 <span class="doccomment">/// Represents the authority component of a URI.
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Authority {
-    <span class="kw">pub</span>(<span class="kw">super</span>) data: <a href="../../../src/http/byte_str.rs.html#6">ByteStr</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) data: <a href="../byte_str.rs.html#6">ByteStr</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span><a href="#13">Authority</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>empty() -&gt; <span class="self">Self </span>{
-        <a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+        <a href="#13">Authority</a> {
             data: ByteStr::new(),
         }
     }
 
     <span class="comment">// Not public while `bytes` is unstable.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>from_shared(s: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>from_shared(s: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
         <span class="comment">// Precondition on create_authority: trivially satisfied by the
         // identity clousre
-        </span><a href="../../../src/http/uri/authority.rs.html#505-508">create_authority</a>(<a href="../../../src/http/uri/authority.rs.html#25">s</a>, |s| <a href="../../../src/http/uri/authority.rs.html#28">s</a>)
+        </span><a href="#505-508">create_authority</a>(<a href="#25">s</a>, |s| <a href="#28">s</a>)
     }
 
     <span class="doccomment">/// Attempt to convert an `Authority` from a static string.
@@ -717,7 +717,7 @@
     /// assert_eq!(authority.host(), &quot;example.com&quot;);
     /// ```
     </span><span class="kw">pub fn </span>from_static(src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        Authority::from_shared(Bytes::from_static(<a href="../../../src/http/uri/authority.rs.html#48">src</a>.as_bytes()))
+        Authority::from_shared(Bytes::from_static(<a href="#48">src</a>.as_bytes()))
             .expect(<span class="string">&quot;static str is not valid authority&quot;</span>)
     }
 
@@ -725,26 +725,26 @@
     ///
     /// This will try to prevent a copy if the type passed is the type used
     /// internally, and will copy the data if it is not.
-    </span><span class="kw">pub fn </span>from_maybe_shared&lt;T&gt;(src: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt;
+    </span><span class="kw">pub fn </span>from_maybe_shared&lt;T&gt;(src: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="mod.rs.html#122">InvalidUri</a>&gt;
     <span class="kw">where
         </span>T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <span class="lifetime">&#39;static</span>,
     {
-        <a class="macro" href="../../../src/http/convert.rs.html#1-17">if_downcast_into!</a>(T, Bytes, src, {
+        <a class="macro" href="../convert.rs.html#1-17">if_downcast_into!</a>(T, Bytes, src, {
             <span class="kw">return </span>Authority::from_shared(src);
         });
 
-        Authority::try_from(<a href="../../../src/http/uri/authority.rs.html#57">src</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+        Authority::try_from(<a href="#57">src</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
     }
 
     <span class="comment">// Note: this may return an *empty* Authority. You might want `parse_non_empty`.
     // Postcondition: for all Ok() returns, s[..ret.unwrap()] is valid UTF-8 where
     // ret is the return value.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>colon_cnt = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>start_bracket = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>end_bracket = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>has_percent = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="../../../src/http/uri/authority.rs.html#71">s</a>.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="#71">s</a>.len();
         <span class="kw">let </span><span class="kw-2">mut </span>at_sign_pos = <span class="prelude-val">None</span>;
 
         <span class="comment">// Among other things, this loop checks that every byte in s up to the
@@ -806,25 +806,25 @@
         }
 
         <span class="kw">if </span>start_bracket ^ end_bracket {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
         <span class="kw">if </span>colon_cnt &gt; <span class="number">1 </span>{
             <span class="comment">// Things like &#39;localhost:8080:3030&#39; are rejected.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
         <span class="kw">if </span>end &gt; <span class="number">0 </span>&amp;&amp; at_sign_pos == <span class="prelude-val">Some</span>(end - <span class="number">1</span>) {
             <span class="comment">// If there&#39;s nothing after an `@`, this is bonkers.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
         <span class="kw">if </span>has_percent {
             <span class="comment">// Something after the userinfo has a `%`, so reject it.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#132">ErrorKind::InvalidAuthority</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../src/http/uri/authority.rs.html#76">end</a>)
+        <span class="prelude-val">Ok</span>(<a href="#76">end</a>)
     }
 
     <span class="comment">// Parse bytes as an Authority, not allowing an empty string.
@@ -834,11 +834,11 @@
     //
     // Postcondition: for all Ok() returns, s[..ret.unwrap()] is valid UTF-8 where
     // ret is the return value.
-    </span><span class="kw">fn </span>parse_non_empty(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt; {
+    </span><span class="kw">fn </span>parse_non_empty(s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
         <span class="kw">if </span>s.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#139">ErrorKind::Empty</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#139">ErrorKind::Empty</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
-        Authority::parse(<a href="../../../src/http/uri/authority.rs.html#166">s</a>)
+        Authority::parse(<a href="#166">s</a>)
     }
 
     <span class="doccomment">/// Get the host of this `Authority`.
@@ -864,7 +864,7 @@
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a href="../../../src/http/uri/authority.rs.html#483">host</a>(<a class="self" href="../../../src/http/uri/authority.rs.html#195">self</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+        <a href="#483">host</a>(<a class="self" href="#195">self</a>.<a href="#257">as_str</a>())
     }
 
     <span class="doccomment">/// Get the port part of this `Authority`.
@@ -903,10 +903,10 @@
     /// assert!(authority.port().is_none());
     /// ```
     </span><span class="kw">pub fn </span>port(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Port&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <span class="kw">let </span>bytes = <a class="self" href="../../../src/http/uri/authority.rs.html#234">self</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>();
-        <a href="../../../src/http/uri/authority.rs.html#235">bytes</a>
+        <span class="kw">let </span>bytes = <a class="self" href="#234">self</a>.<a href="#257">as_str</a>();
+        <a href="#235">bytes</a>
             .rfind(<span class="string">&quot;:&quot;</span>)
-            .and_then(|i| Port::from_str(<span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#235">bytes</a>[<a href="../../../src/http/uri/authority.rs.html#238">i</a> + <span class="number">1</span>..]).ok())
+            .and_then(|i| Port::from_str(<span class="kw-2">&amp;</span><a href="#235">bytes</a>[<a href="#238">i</a> + <span class="number">1</span>..]).ok())
     }
 
     <span class="doccomment">/// Get the port of this `Authority` as a `u16`.
@@ -920,32 +920,32 @@
     /// assert_eq!(authority.port_u16(), Some(80));
     /// ```
     </span><span class="kw">pub fn </span>port_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#251">self</a>.<a href="../../../src/http/uri/authority.rs.html#234">port</a>().and_then(|p| <span class="prelude-val">Some</span>(<a href="../../../src/http/uri/authority.rs.html#252">p</a>.<a href="../../../src/http/uri/port.rs.html#25">as_u16</a>()))
+        <a class="self" href="#251">self</a>.<a href="#234">port</a>().and_then(|p| <span class="prelude-val">Some</span>(<a href="#252">p</a>.<a href="port.rs.html#25">as_u16</a>()))
     }
 
     <span class="doccomment">/// Return a str representation of the authority
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/authority.rs.html#257">self</a>.data[..]
+        <span class="kw-2">&amp;</span><a class="self" href="#257">self</a>.data[..]
     }
 }
 
 <span class="comment">// Purposefully not public while `bytes` is unstable.
 // impl TryFrom&lt;Bytes&gt; for Authority
 
-</span><span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+</span><span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#266">self</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>()
+        <a class="self" href="#266">self</a>.<a href="#257">as_str</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#272">self</a>.data.eq_ignore_ascii_case(<span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#272">other</a>.data)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#272">self</a>.data.eq_ignore_ascii_case(<span class="kw-2">&amp;</span><a href="#272">other</a>.data)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#13">Authority</a> {}
 
 <span class="doccomment">/// Case-insensitive equality
 ///
@@ -957,39 +957,39 @@
 /// assert_eq!(authority, &quot;hello.coM&quot;);
 /// assert_eq!(&quot;hello.com&quot;, authority);
 /// ```
-</span><span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+</span><span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#290">self</a>.data.eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#290">other</a>)
+        <a class="self" href="#290">self</a>.data.eq_ignore_ascii_case(<a href="#290">other</a>)
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#296">self</a>.eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#296">other</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+<span class="kw">impl </span>PartialEq&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#296">self</a>.eq_ignore_ascii_case(<a href="#296">other</a>.<a href="#257">as_str</a>())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#302">self</a>.eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#302">other</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#302">self</a>.eq_ignore_ascii_case(<a href="#302">other</a>.<a href="#257">as_str</a>())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;<span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#308">self</a>.data.eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#308">other</a>)
+        <a class="self" href="#308">self</a>.data.eq_ignore_ascii_case(<a href="#308">other</a>)
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#314">self</a>.data.eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#314">other</a>.as_str())
+        <a class="self" href="#314">self</a>.data.eq_ignore_ascii_case(<a href="#314">other</a>.as_str())
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#320">self</a>.as_str().eq_ignore_ascii_case(<a href="../../../src/http/uri/authority.rs.html#320">other</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+<span class="kw">impl </span>PartialEq&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#320">self</a>.as_str().eq_ignore_ascii_case(<a href="#320">other</a>.<a href="#257">as_str</a>())
     }
 }
 
@@ -1003,59 +1003,59 @@
 /// assert!(authority &lt; &quot;ghi.com&quot;);
 /// assert!(authority &gt; &quot;abc.com&quot;);
 /// ```
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#336">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#337">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#336">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#338">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#337">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#338">right</a>)
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
+        <span class="kw">let </span>left = <a class="self" href="#336">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#337">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#336">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#338">b</a>.to_ascii_lowercase());
+        <a href="#337">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#338">right</a>)
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span>PartialOrd&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#344">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#345">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#344">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#346">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#345">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#346">right</a>)
+        <span class="kw">let </span>left = <a class="self" href="#344">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#345">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#344">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#346">b</a>.to_ascii_lowercase());
+        <a href="#345">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#346">right</a>)
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#352">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#353">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#352">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#354">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#353">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#354">right</a>)
+<span class="kw">impl </span>PartialOrd&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
+        <span class="kw">let </span>left = <a class="self" href="#352">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#353">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#352">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#354">b</a>.to_ascii_lowercase());
+        <a href="#353">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#354">right</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialOrd&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#360">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#361">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#360">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#362">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#361">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#362">right</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialOrd&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
+        <span class="kw">let </span>left = <a class="self" href="#360">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#361">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#360">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#362">b</a>.to_ascii_lowercase());
+        <a href="#361">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#362">right</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialOrd&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialOrd&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;<span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#368">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#369">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#368">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#370">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#369">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#370">right</a>)
+        <span class="kw">let </span>left = <a class="self" href="#368">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#369">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#368">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#370">b</a>.to_ascii_lowercase());
+        <a href="#369">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#370">right</a>)
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span>PartialOrd&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#376">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#377">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#376">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#378">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#377">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#378">right</a>)
+        <span class="kw">let </span>left = <a class="self" href="#376">self</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#377">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#376">other</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#378">b</a>.to_ascii_lowercase());
+        <a href="#377">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#378">right</a>)
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
-        <span class="kw">let </span>left = <a class="self" href="../../../src/http/uri/authority.rs.html#384">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#385">b</a>.to_ascii_lowercase());
-        <span class="kw">let </span>right = <a href="../../../src/http/uri/authority.rs.html#384">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/http/uri/authority.rs.html#386">b</a>.to_ascii_lowercase());
-        <a href="../../../src/http/uri/authority.rs.html#385">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../../src/http/uri/authority.rs.html#386">right</a>)
+<span class="kw">impl </span>PartialOrd&lt;<a href="#13">Authority</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#13">Authority</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
+        <span class="kw">let </span>left = <a class="self" href="#384">self</a>.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#385">b</a>.to_ascii_lowercase());
+        <span class="kw">let </span>right = <a href="#384">other</a>.data.as_bytes().iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#386">b</a>.to_ascii_lowercase());
+        <a href="#385">left</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="#386">right</a>)
     }
 }
 
@@ -1081,90 +1081,90 @@
 ///
 /// assert_eq!(a, b);
 /// ```
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>hash&lt;H&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H)
     <span class="kw">where
         </span>H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>,
     {
-        <a class="self" href="../../../src/http/uri/authority.rs.html#414">self</a>.data.len().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/http/uri/authority.rs.html#414">state</a>);
+        <a class="self" href="#414">self</a>.data.len().<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#414">state</a>);
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span><span class="self">self</span>.data.as_bytes() {
             state.write_u8(b.to_ascii_lowercase());
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">type </span>Error = <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="comment">// parse first, and only turn into Bytes if valid
 
         // Preconditon on create_authority: copy_from_slice() copies all of
         // bytes from the [u8] parameter into a new Bytes
-        </span><a href="../../../src/http/uri/authority.rs.html#505-508">create_authority</a>(<a href="../../../src/http/uri/authority.rs.html#428">s</a>, |s| Bytes::copy_from_slice(<a href="../../../src/http/uri/authority.rs.html#433">s</a>))
+        </span><a href="#505-508">create_authority</a>(<a href="#428">s</a>, |s| Bytes::copy_from_slice(<a href="#433">s</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">type </span>Error = <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/http/uri/authority.rs.html#440">s</a>.as_bytes())
+        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="#440">s</a>.as_bytes())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">type </span>Error = <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl </span>TryFrom&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_from(vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        Authority::from_shared(<a href="../../../src/http/uri/authority.rs.html#449">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        Authority::from_shared(<a href="#449">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">type </span>Error = <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">type </span>Error = <a href="mod.rs.html#122">InvalidUri</a>;
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_from(t: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        Authority::from_shared(<a href="../../../src/http/uri/authority.rs.html#458">t</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        Authority::from_shared(<a href="#458">t</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="#13">Authority</a> {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="mod.rs.html#122">InvalidUri</a>;
 
-    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/http/uri/authority.rs.html#466">s</a>)
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="mod.rs.html#122">InvalidUri</a>&gt; {
+        <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="#466">s</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/http/uri/authority.rs.html#472">f</a>.write_str(<a class="self" href="../../../src/http/uri/authority.rs.html#472">self</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+        <a href="#472">f</a>.write_str(<a class="self" href="#472">self</a>.<a href="#257">as_str</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#13">Authority</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/http/uri/authority.rs.html#478">f</a>.write_str(<a class="self" href="../../../src/http/uri/authority.rs.html#478">self</a>.<a href="../../../src/http/uri/authority.rs.html#257">as_str</a>())
+        <a href="#478">f</a>.write_str(<a class="self" href="#478">self</a>.<a href="#257">as_str</a>())
     }
 }
 
 <span class="kw">fn </span>host(auth: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">let </span>host_port = <a href="../../../src/http/uri/authority.rs.html#483">auth</a>
+    <span class="kw">let </span>host_port = <a href="#483">auth</a>
         .rsplitn(<span class="number">2</span>, <span class="string">&#39;@&#39;</span>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         .expect(<span class="string">&quot;split always has at least 1 item&quot;</span>);
 
     <span class="kw">if </span>host_port.as_bytes()[<span class="number">0</span>] == <span class="string">b&#39;[&#39; </span>{
-        <span class="kw">let </span>i = <a href="../../../src/http/uri/authority.rs.html#484">host_port</a>
+        <span class="kw">let </span>i = <a href="#484">host_port</a>
             .find(<span class="string">&#39;]&#39;</span>)
             .expect(<span class="string">&quot;parsing should validate brackets&quot;</span>);
         <span class="comment">// ..= ranges aren&#39;t available in 1.20, our minimum Rust version...
-        </span><span class="kw-2">&amp;</span><a href="../../../src/http/uri/authority.rs.html#484">host_port</a>[<span class="number">0</span>..<a href="../../../src/http/uri/authority.rs.html#490">i</a> + <span class="number">1</span>]
+        </span><span class="kw-2">&amp;</span><a href="#484">host_port</a>[<span class="number">0</span>..<a href="#490">i</a> + <span class="number">1</span>]
     } <span class="kw">else </span>{
-        <a href="../../../src/http/uri/authority.rs.html#484">host_port</a>
+        <a href="#484">host_port</a>
             .split(<span class="string">&#39;:&#39;</span>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
             .expect(<span class="string">&quot;split always has at least 1 item&quot;</span>)
@@ -1173,25 +1173,25 @@
 
 <span class="comment">// Precondition: f converts all of the bytes in the passed in B into the
 // returned Bytes.
-</span><span class="kw">fn </span>create_authority&lt;B, F&gt;(b: B, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/http/uri/authority.rs.html#13">Authority</a>, <a href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>&gt;
+</span><span class="kw">fn </span>create_authority&lt;B, F&gt;(b: B, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#13">Authority</a>, <a href="mod.rs.html#122">InvalidUri</a>&gt;
 <span class="kw">where
     </span>B: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     F: FnOnce(B) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>,
 {
-    <span class="kw">let </span>s = <a href="../../../src/http/uri/authority.rs.html#505">b</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+    <span class="kw">let </span>s = <a href="#505">b</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
     <span class="kw">let </span>authority_end = Authority::parse_non_empty(s)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>authority_end != s.len() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/http/uri/mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
     }
 
-    <span class="kw">let </span>bytes = <a href="../../../src/http/uri/authority.rs.html#505">f</a>(<a href="../../../src/http/uri/authority.rs.html#505">b</a>);
+    <span class="kw">let </span>bytes = <a href="#505">f</a>(<a href="#505">b</a>);
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/http/uri/authority.rs.html#13">Authority</a> {
+    <span class="prelude-val">Ok</span>(<a href="#13">Authority</a> {
         <span class="comment">// Safety: the postcondition on parse_non_empty() and the check against
         // s.len() ensure that b is valid UTF-8. The precondition on f ensures
         // that this is carried through to bytes.
-        </span>data: <span class="kw">unsafe </span>{ ByteStr::from_utf8_unchecked(<a href="../../../src/http/uri/authority.rs.html#517">bytes</a>) },
+        </span>data: <span class="kw">unsafe </span>{ ByteStr::from_utf8_unchecked(<a href="#517">bytes</a>) },
     })
 }
 
@@ -1341,4 +1341,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

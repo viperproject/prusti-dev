@@ -126,15 +126,15 @@
 <span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 <span class="kw">use </span>std::marker::PhantomData;
 
-<span class="kw">use </span>config::{<a href="../../src/bincode/config/limit.rs.html#20">Infinite</a>, <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>, <a href="../../src/bincode/config/mod.rs.html#128">Options</a>, <a href="../../src/bincode/config/limit.rs.html#4">SizeLimit</a>, <a href="../../src/bincode/config/trailing.rs.html#5">TrailingBytes</a>};
-<span class="kw">use </span><a href="../../src/bincode/de/read.rs.html#13">de::read::BincodeRead</a>;
+<span class="kw">use </span>config::{<a href="config/limit.rs.html#20">Infinite</a>, <a href="config/mod.rs.html#388">InternalOptions</a>, <a href="config/mod.rs.html#128">Options</a>, <a href="config/limit.rs.html#4">SizeLimit</a>, <a href="config/trailing.rs.html#5">TrailingBytes</a>};
+<span class="kw">use </span><a href="de/read.rs.html#13">de::read::BincodeRead</a>;
 <span class="kw">use </span><span class="prelude-ty">Result</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize_into&lt;W, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O&gt;(writer: W, value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 <span class="kw">where
     </span>W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
     <span class="kw">if </span>options.limit().limit().is_some() {
         <span class="comment">// &quot;compute&quot; the size for the side-effect
@@ -142,60 +142,60 @@
         </span>serialized_size(value, <span class="kw-2">&amp;mut </span>options)<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>serializer = ::ser::Serializer::&lt;<span class="kw">_</span>, O&gt;::new(<a href="../../src/bincode/internal.rs.html#9">writer</a>, <a href="../../src/bincode/internal.rs.html#9">options</a>);
-    <a href="../../serde/ser/trait.Serialize.html">serde::Serialize::serialize</a>(<a href="../../src/bincode/internal.rs.html#9">value</a>, <span class="kw-2">&amp;mut </span><a href="../../src/bincode/internal.rs.html#21">serializer</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>serializer = ::ser::Serializer::&lt;<span class="kw">_</span>, O&gt;::new(<a href="#9">writer</a>, <a href="#9">options</a>);
+    <a href="../../serde/ser/trait.Serialize.html">serde::Serialize::serialize</a>(<a href="#9">value</a>, <span class="kw-2">&amp;mut </span><a href="#21">serializer</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialize&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O&gt;(value: <span class="kw-2">&amp;</span>T, <span class="kw-2">mut </span>options: O) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;
 <span class="kw">where
     </span>T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>writer = {
         <span class="kw">let </span>actual_size = serialized_size(value, <span class="kw-2">&amp;mut </span>options)<span class="question-mark">?</span>;
-        Vec::with_capacity(<a href="../../src/bincode/internal.rs.html#31">actual_size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        Vec::with_capacity(<a href="#31">actual_size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     };
 
     serialize_into(<span class="kw-2">&amp;mut </span>writer, value, options.with_no_limit())<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="../../src/bincode/internal.rs.html#30">writer</a>)
+    <span class="prelude-val">Ok</span>(<a href="#30">writer</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialized_size&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>&gt;(value: <span class="kw-2">&amp;</span>T, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>serialized_size&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, O: <a href="config/mod.rs.html#388">InternalOptions</a>&gt;(value: <span class="kw-2">&amp;</span>T, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;
 <span class="kw">where
     </span>T: <a href="../../serde/ser/trait.Serialize.html">serde::Serialize</a>,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>size_counter = <a href="../../src/bincode/ser/mod.rs.html#234">::ser::SizeChecker</a> { <a href="../../src/bincode/internal.rs.html#39">options</a>, total: <span class="number">0 </span>};
+    <span class="kw">let </span><span class="kw-2">mut </span>size_counter = <a href="ser/mod.rs.html#234">::ser::SizeChecker</a> { <a href="#39">options</a>, total: <span class="number">0 </span>};
 
-    <span class="kw">let </span>result = <a href="../../src/bincode/internal.rs.html#39">value</a>.<a href="../../serde/ser/trait.Serialize.html">serialize</a>(<span class="kw-2">&amp;mut </span><a href="../../src/bincode/internal.rs.html#43">size_counter</a>);
-    <a href="../../src/bincode/internal.rs.html#45">result</a>.map(|<span class="kw">_</span>| <a href="../../src/bincode/internal.rs.html#43">size_counter</a>.total)
+    <span class="kw">let </span>result = <a href="#39">value</a>.<a href="../../serde/ser/trait.Serialize.html">serialize</a>(<span class="kw-2">&amp;mut </span><a href="#43">size_counter</a>);
+    <a href="#45">result</a>.map(|<span class="kw">_</span>| <a href="#43">size_counter</a>.total)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from&lt;R, T, O&gt;(reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
     </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
     T: <a href="../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <a href="../../src/bincode/internal.rs.html#58-62">deserialize_from_seed</a>(PhantomData, <a href="../../src/bincode/internal.rs.html#49">reader</a>, <a href="../../src/bincode/internal.rs.html#49">options</a>)
+    <a href="#58-62">deserialize_from_seed</a>(PhantomData, <a href="#49">reader</a>, <a href="#49">options</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_seed&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(seed: T, reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
 <span class="kw">where
     </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
     T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <span class="kw">let </span>reader = ::de::read::IoReader::new(<a href="../../src/bincode/internal.rs.html#58">reader</a>);
-    <a href="../../src/bincode/internal.rs.html#77-85">deserialize_from_custom_seed</a>(<a href="../../src/bincode/internal.rs.html#58">seed</a>, <a href="../../src/bincode/internal.rs.html#64">reader</a>, <a href="../../src/bincode/internal.rs.html#58">options</a>)
+    <span class="kw">let </span>reader = ::de::read::IoReader::new(<a href="#58">reader</a>);
+    <a href="#77-85">deserialize_from_custom_seed</a>(<a href="#58">seed</a>, <a href="#64">reader</a>, <a href="#58">options</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_custom&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(reader: R, options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
     T: <a href="../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <a href="../../src/bincode/internal.rs.html#77-85">deserialize_from_custom_seed</a>(PhantomData, <a href="../../src/bincode/internal.rs.html#68">reader</a>, <a href="../../src/bincode/internal.rs.html#68">options</a>)
+    <a href="#77-85">deserialize_from_custom_seed</a>(PhantomData, <a href="#68">reader</a>, <a href="#68">options</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_from_custom_seed&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(
@@ -206,45 +206,45 @@
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
     T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, O&gt;::with_bincode_read(<a href="../../src/bincode/internal.rs.html#79">reader</a>, <a href="../../src/bincode/internal.rs.html#80">options</a>);
-    <a href="../../src/bincode/internal.rs.html#78">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut </span><a href="../../src/bincode/internal.rs.html#87">deserializer</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, O&gt;::with_bincode_read(<a href="#79">reader</a>, <a href="#80">options</a>);
+    <a href="#78">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut </span><a href="#87">deserializer</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_in_place&lt;<span class="lifetime">&#39;a</span>, R, T, O&gt;(reader: R, options: O, place: <span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 <span class="kw">where
     </span>R: BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt;,
     T: serde::de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;::with_bincode_read(<a href="../../src/bincode/internal.rs.html#91">reader</a>, <a href="../../src/bincode/internal.rs.html#91">options</a>);
-    <a href="../../serde/de/trait.Deserialize.html">serde::Deserialize::deserialize_in_place</a>(<span class="kw-2">&amp;mut </span><a href="../../src/bincode/internal.rs.html#97">deserializer</a>, <a href="../../src/bincode/internal.rs.html#91">place</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;::with_bincode_read(<a href="#91">reader</a>, <a href="#91">options</a>);
+    <a href="../../serde/de/trait.Deserialize.html">serde::Deserialize::deserialize_in_place</a>(<span class="kw-2">&amp;mut </span><a href="#97">deserializer</a>, <a href="#91">place</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
     </span>T: serde::de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <a href="../../src/bincode/internal.rs.html#109-112">deserialize_seed</a>(PhantomData, <a href="../../src/bincode/internal.rs.html#101">bytes</a>, <a href="../../src/bincode/internal.rs.html#101">options</a>)
+    <a href="#109-112">deserialize_seed</a>(PhantomData, <a href="#101">bytes</a>, <a href="#101">options</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_seed&lt;<span class="lifetime">&#39;a</span>, T, O&gt;(seed: T, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], options: O) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
 <span class="kw">where
     </span>T: serde::de::DeserializeSeed&lt;<span class="lifetime">&#39;a</span>&gt;,
-    O: <a href="../../src/bincode/config/mod.rs.html#388">InternalOptions</a>,
+    O: <a href="config/mod.rs.html#388">InternalOptions</a>,
 {
-    <span class="kw">let </span>options = ::config::WithOtherLimit::new(<a href="../../src/bincode/internal.rs.html#109">options</a>, <a href="../../src/bincode/config/limit.rs.html#20">Infinite</a>);
+    <span class="kw">let </span>options = ::config::WithOtherLimit::new(<a href="#109">options</a>, <a href="config/limit.rs.html#20">Infinite</a>);
 
-    <span class="kw">let </span>reader = ::de::read::SliceReader::new(<a href="../../src/bincode/internal.rs.html#109">bytes</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::with_bincode_read(<a href="../../src/bincode/internal.rs.html#116">reader</a>, <a href="../../src/bincode/internal.rs.html#114">options</a>);
+    <span class="kw">let </span>reader = ::de::read::SliceReader::new(<a href="#109">bytes</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = ::de::Deserializer::with_bincode_read(<a href="#116">reader</a>, <a href="#114">options</a>);
     <span class="kw">let </span>val = seed.deserialize(<span class="kw-2">&amp;mut </span>deserializer)<span class="question-mark">?</span>;
 
-    <span class="kw">match </span>O::Trailing::check_end(<span class="kw-2">&amp;</span><a href="../../src/bincode/internal.rs.html#117">deserializer</a>.reader) {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/bincode/internal.rs.html#118">val</a>),
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/bincode/internal.rs.html#122">err</a>),
+    <span class="kw">match </span>O::Trailing::check_end(<span class="kw-2">&amp;</span><a href="#117">deserializer</a>.reader) {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#118">val</a>),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#122">err</a>),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

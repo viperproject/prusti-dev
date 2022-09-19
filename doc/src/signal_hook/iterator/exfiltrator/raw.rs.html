@@ -108,18 +108,18 @@
 
 <span class="kw">use </span>libc::{<a href="../../../../libc/unix/type.c_int.html">c_int</a>, <a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>};
 
-<span class="kw">use </span><a href="../../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#43"><span class="kw">super</span>::sealed::Exfiltrator</a>;
-<span class="kw">use </span><a href="../../../../src/signal_hook/low_level/channel.rs.html#110"><span class="kw">crate</span>::low_level::channel::Channel</a>;
+<span class="kw">use </span><a href="mod.rs.html#43"><span class="kw">super</span>::sealed::Exfiltrator</a>;
+<span class="kw">use </span><a href="../../low_level/channel.rs.html#110"><span class="kw">crate</span>::low_level::channel::Channel</a>;
 
 <span class="attribute">#[doc(hidden)]
 #[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>Slot(AtomicPtr&lt;Channel&lt;<a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>&gt;&gt;);
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#21">Slot</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#21">Slot</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>ptr = <a class="self" href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#24">self</a>.<span class="number">0</span>.load(Ordering::Acquire);
+        <span class="kw">let </span>ptr = <a class="self" href="#24">self</a>.<span class="number">0</span>.load(Ordering::Acquire);
         <span class="kw">if </span>!ptr.is_null() {
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#25">ptr</a>) });
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#25">ptr</a>) });
         }
     }
 }
@@ -155,33 +155,33 @@
 </span><span class="attribute">#[derive(Copy, Clone, Debug, Default)]
 </span><span class="kw">pub struct </span>WithRawSiginfo;
 
-<span class="kw">unsafe impl </span><a href="../../../../src/signal_hook/iterator/exfiltrator/mod.rs.html#43">Exfiltrator</a> <span class="kw">for </span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#61">WithRawSiginfo</a> {
-    <span class="kw">type </span>Storage = <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#21">Slot</a>;
+<span class="kw">unsafe impl </span><a href="mod.rs.html#43">Exfiltrator</a> <span class="kw">for </span><a href="#61">WithRawSiginfo</a> {
+    <span class="kw">type </span>Storage = <a href="#21">Slot</a>;
     <span class="kw">type </span>Output = <a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>;
 
     <span class="kw">fn </span>supports_signal(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>store(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">&amp;</span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#21">Slot</a>, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">c_int</a>, info: <span class="kw-2">&amp;</span><a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) {
-        <span class="kw">let </span>info = <span class="kw-2">*</span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#71">info</a>;
+    <span class="kw">fn </span>store(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">&amp;</span><a href="#21">Slot</a>, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">c_int</a>, info: <span class="kw-2">&amp;</span><a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>) {
+        <span class="kw">let </span>info = <span class="kw-2">*</span><a href="#71">info</a>;
         <span class="comment">// Condition just not to crash if someone forgot to call init.
         //
         // Lifetime is from init to our own drop, and drop needs &amp;mut self.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <span class="kw">unsafe </span>{ <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#71">slot</a>.<span class="number">0</span>.load(Ordering::Acquire).as_ref() } {
-            <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#76">slot</a>.<a href="../../../../src/signal_hook/low_level/channel.rs.html#136">send</a>(<a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#72">info</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <span class="kw">unsafe </span>{ <a href="#71">slot</a>.<span class="number">0</span>.load(Ordering::Acquire).as_ref() } {
+            <a href="#76">slot</a>.<a href="../../low_level/channel.rs.html#136">send</a>(<a href="#72">info</a>);
         }
     }
 
-    <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">&amp;</span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#21">Slot</a>, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>&gt; {
-        <span class="kw">let </span>slot = <span class="kw">unsafe </span>{ <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#81">slot</a>.<span class="number">0</span>.load(Ordering::Acquire).as_ref() };
+    <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">&amp;</span><a href="#21">Slot</a>, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>&gt; {
+        <span class="kw">let </span>slot = <span class="kw">unsafe </span>{ <a href="#81">slot</a>.<span class="number">0</span>.load(Ordering::Acquire).as_ref() };
         <span class="comment">// Condition just not to crash if someone forgot to call init.
-        </span><a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#82">slot</a>.and_then(|s| <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#84">s</a>.<a href="../../../../src/signal_hook/low_level/channel.rs.html#146">recv</a>())
+        </span><a href="#82">slot</a>.and_then(|s| <a href="#84">s</a>.<a href="../../low_level/channel.rs.html#146">recv</a>())
     }
 
     <span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <span class="kw-2">&amp;</span><span class="self">Self</span>::Storage, <span class="kw">_</span>: <a href="../../../../libc/unix/type.c_int.html">c_int</a>) {
         <span class="kw">let </span>new = Box::new(Channel::default());
-        <span class="kw">let </span>old = <a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#87">slot</a>.<span class="number">0</span>.swap(Box::into_raw(<a href="../../../../src/signal_hook/iterator/exfiltrator/raw.rs.html#88">new</a>), Ordering::Release);
+        <span class="kw">let </span>old = <a href="#87">slot</a>.<span class="number">0</span>.swap(Box::into_raw(<a href="#88">new</a>), Ordering::Release);
         <span class="comment">// We leak the pointer on purpose here. This is invalid state anyway and must not happen,
         // but if it still does, we can&#39;t drop that while some other thread might still be having
         // the raw pointer.
@@ -189,4 +189,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

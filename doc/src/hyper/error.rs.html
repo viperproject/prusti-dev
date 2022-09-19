@@ -633,24 +633,24 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
 <span class="doccomment">/// Result type often returned from methods that can have hyper `Error`s.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, <a href="../../src/hyper/error.rs.html#11">Error</a>&gt;;
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, <a href="#11">Error</a>&gt;;
 
 <span class="kw">type </span>Cause = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
 
 <span class="doccomment">/// Represents errors that can occur handling HTTP streams.
 </span><span class="kw">pub struct </span>Error {
-    inner: Box&lt;<a href="../../src/hyper/error.rs.html#15">ErrorImpl</a>&gt;,
+    inner: Box&lt;<a href="#15">ErrorImpl</a>&gt;,
 }
 
 <span class="kw">struct </span>ErrorImpl {
-    kind: <a href="../../src/hyper/error.rs.html#21">Kind</a>,
-    cause: <span class="prelude-ty">Option</span>&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;,
+    kind: <a href="#21">Kind</a>,
+    cause: <span class="prelude-ty">Option</span>&lt;<a href="#8">Cause</a>&gt;,
 }
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Kind {
-    Parse(<a href="../../src/hyper/error.rs.html#66">Parse</a>),
-    User(<a href="../../src/hyper/error.rs.html#93">User</a>),
+    Parse(<a href="#66">Parse</a>),
+    User(<a href="#93">User</a>),
     <span class="doccomment">/// A message reached EOF, but is not complete.
     </span><span class="attribute">#[allow(unused)]
     </span>IncompleteMessage,
@@ -701,7 +701,7 @@
     Uri,
     <span class="attribute">#[cfg_attr(not(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)), allow(unused))]
     </span>UriTooLong,
-    Header(<a href="../../src/hyper/error.rs.html#82">Header</a>),
+    Header(<a href="#82">Header</a>),
     TooLarge,
     Status,
     <span class="attribute">#[cfg_attr(debug_assertions, allow(unused))]
@@ -776,7 +776,7 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>TimedOut;
 
-<span class="kw">impl </span><a href="../../src/hyper/error.rs.html#11">Error</a> {
+<span class="kw">impl </span><a href="#11">Error</a> {
     <span class="doccomment">/// Returns true if this was an HTTP parse error.
     </span><span class="kw">pub fn </span>is_parse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner.kind, Kind::Parse(<span class="kw">_</span>))
@@ -828,32 +828,32 @@
 
     <span class="doccomment">/// Returns true if the error was caused by a timeout.
     </span><span class="kw">pub fn </span>is_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#200">self</a>.<a href="../../src/hyper/error.rs.html#225">find_source</a>::&lt;<a href="../../src/hyper/error.rs.html#147">TimedOut</a>&gt;().is_some()
+        <a class="self" href="#200">self</a>.<a href="#225">find_source</a>::&lt;<a href="#147">TimedOut</a>&gt;().is_some()
     }
 
     <span class="doccomment">/// Consumes the error, returning its cause.
     </span><span class="kw">pub fn </span>into_cause(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; {
-        <a class="self" href="../../src/hyper/error.rs.html#205">self</a>.inner.cause
+        <a class="self" href="#205">self</a>.inner.cause
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(kind: <a href="../../src/hyper/error.rs.html#21">Kind</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        <a href="../../src/hyper/error.rs.html#11">Error</a> {
-            inner: Box::new(<a href="../../src/hyper/error.rs.html#15">ErrorImpl</a> { <a href="../../src/hyper/error.rs.html#209">kind</a>, cause: <span class="prelude-val">None </span>}),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(kind: <a href="#21">Kind</a>) -&gt; <a href="#11">Error</a> {
+        <a href="#11">Error</a> {
+            inner: Box::new(<a href="#15">ErrorImpl</a> { <a href="#209">kind</a>, cause: <span class="prelude-val">None </span>}),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with&lt;C: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, cause: C) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#215">self</a>.inner.cause = <span class="prelude-val">Some</span>(<a href="../../src/hyper/error.rs.html#215">cause</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="../../src/hyper/error.rs.html#215">self</a>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with&lt;C: Into&lt;<a href="#8">Cause</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, cause: C) -&gt; <a href="#11">Error</a> {
+        <a class="self" href="#215">self</a>.inner.cause = <span class="prelude-val">Some</span>(<a href="#215">cause</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="#215">self</a>
     </span>}
 
     <span class="attribute">#[cfg(any(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>), feature = <span class="string">&quot;ffi&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/hyper/error.rs.html#21">Kind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#221">self</a>.inner.kind
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#21">Kind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#221">self</a>.inner.kind
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_source&lt;E: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>E&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cause = <a class="self" href="../../src/hyper/error.rs.html#225">self</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>cause = <a class="self" href="#225">self</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(err) = cause {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>typed) = err.downcast_ref() {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(typed);
@@ -869,147 +869,147 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>h2_reason(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../h2/frame/reason/struct.Reason.html">h2::Reason</a> {
         <span class="comment">// Find an h2::Reason somewhere in the cause stack, if it exists,
         // otherwise assume an INTERNAL_ERROR.
-        </span><a class="self" href="../../src/hyper/error.rs.html#239">self</a>.<a href="../../src/hyper/error.rs.html#225">find_source</a>::&lt;<a href="../../h2/error/struct.Error.html">h2::Error</a>&gt;()
-            .and_then(|h2_err| <a href="../../src/hyper/error.rs.html#243">h2_err</a>.reason())
+        </span><a class="self" href="#239">self</a>.<a href="#225">find_source</a>::&lt;<a href="../../h2/error/struct.Error.html">h2::Error</a>&gt;()
+            .and_then(|h2_err| <a href="#243">h2_err</a>.reason())
             .unwrap_or(h2::Reason::INTERNAL_ERROR)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_canceled() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#31">Kind::Canceled</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_canceled() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#31">Kind::Canceled</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_incomplete() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_incomplete() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#26">Kind::IncompleteMessage</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_too_large() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>))
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_too_large() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#22">Kind::Parse</a>(<a href="#75">Parse::TooLarge</a>))
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_version_h2() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#70">Parse::VersionH2</a>))
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_version_h2() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#22">Kind::Parse</a>(<a href="#70">Parse::VersionH2</a>))
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_unexpected_message() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#29">Kind::UnexpectedMessage</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_unexpected_message() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#29">Kind::UnexpectedMessage</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_io(cause: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#36">Kind::Io</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#272">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_io(cause: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#36">Kind::Io</a>).<a href="#215">with</a>(<a href="#272">cause</a>)
     }
 
     <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;tcp&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_listen&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#42">Kind::Listen</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#277">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_listen&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#42">Kind::Listen</a>).<a href="#215">with</a>(<a href="#277">cause</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_accept&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#46">Kind::Accept</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#283">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_accept&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#46">Kind::Accept</a>).<a href="#215">with</a>(<a href="#283">cause</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_connect&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#39">Kind::Connect</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#289">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_connect&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#39">Kind::Connect</a>).<a href="#215">with</a>(<a href="#289">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_closed() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#33">Kind::ChannelClosed</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_closed() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#33">Kind::ChannelClosed</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>, feature = <span class="string">&quot;stream&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#52">Kind::Body</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#298">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#52">Kind::Body</a>).<a href="#215">with</a>(<a href="#298">cause</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body_write&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#55">Kind::BodyWrite</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#303">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body_write&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#55">Kind::BodyWrite</a>).<a href="#215">with</a>(<a href="#303">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body_write_aborted() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#98">User::BodyWriteAborted</a>))
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_body_write_aborted() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#23">Kind::User</a>(<a href="#98">User::BodyWriteAborted</a>))
     }
 
-    <span class="kw">fn </span>new_user(user: <a href="../../src/hyper/error.rs.html#93">User</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#311">user</a>))
+    <span class="kw">fn </span>new_user(user: <a href="#93">User</a>) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#23">Kind::User</a>(<a href="#311">user</a>))
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_header() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#111">User::UnexpectedHeader</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_header() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#111">User::UnexpectedHeader</a>)
     }
 
     <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_header_timeout() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#49">Kind::HeaderTimeout</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_header_timeout() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#49">Kind::HeaderTimeout</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_version() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#115">User::UnsupportedVersion</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_version() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#115">User::UnsupportedVersion</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_request_method() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#119">User::UnsupportedRequestMethod</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_request_method() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#119">User::UnsupportedRequestMethod</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
     #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_status_code() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#123">User::UnsupportedStatusCode</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_unsupported_status_code() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#123">User::UnsupportedStatusCode</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_absolute_uri_required() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#127">User::AbsoluteUriRequired</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_absolute_uri_required() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#127">User::AbsoluteUriRequired</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_no_upgrade() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#130">User::NoUpgrade</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_no_upgrade() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#130">User::NoUpgrade</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_manual_upgrade() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#134">User::ManualUpgrade</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_manual_upgrade() -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#134">User::ManualUpgrade</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
     #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_make_service&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#102">User::MakeService</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#361">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_make_service&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#102">User::MakeService</a>).<a href="#215">with</a>(<a href="#361">cause</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_service&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#105">User::Service</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#366">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_service&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#105">User::Service</a>).<a href="#215">with</a>(<a href="#366">cause</a>)
     }
 
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_body&lt;E: Into&lt;<a href="../../src/hyper/error.rs.html#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new_user(<a href="../../src/hyper/error.rs.html#96">User::Body</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#371">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_user_body&lt;E: Into&lt;<a href="#8">Cause</a>&gt;&gt;(cause: E) -&gt; <a href="#11">Error</a> {
+        Error::new_user(<a href="#96">User::Body</a>).<a href="#215">with</a>(<a href="#371">cause</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_without_shutdown_not_h1() -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#138">User::WithoutShutdownNonHttp1</a>))
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_without_shutdown_not_h1() -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#23">Kind::User</a>(<a href="#138">User::WithoutShutdownNonHttp1</a>))
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_shutdown(cause: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#58">Kind::Shutdown</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#381">cause</a>)
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_shutdown(cause: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#58">Kind::Shutdown</a>).<a href="#215">with</a>(<a href="#381">cause</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
@@ -1018,99 +1018,99 @@
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_h2(cause: <a href="../../h2/error/struct.Error.html">::h2::Error</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_h2(cause: <a href="../../h2/error/struct.Error.html">::h2::Error</a>) -&gt; <a href="#11">Error</a> {
         <span class="kw">if </span>cause.is_io() {
-            Error::new_io(<a href="../../src/hyper/error.rs.html#391">cause</a>.into_io().expect(<span class="string">&quot;h2::Error::is_io&quot;</span>))
+            Error::new_io(<a href="#391">cause</a>.into_io().expect(<span class="string">&quot;h2::Error::is_io&quot;</span>))
         } <span class="kw">else </span>{
-            Error::new(<a href="../../src/hyper/error.rs.html#62">Kind::Http2</a>).<a href="../../src/hyper/error.rs.html#215">with</a>(<a href="../../src/hyper/error.rs.html#391">cause</a>)
+            Error::new(<a href="#62">Kind::Http2</a>).<a href="#215">with</a>(<a href="#391">cause</a>)
         }
     }
 
     <span class="doccomment">/// The error&#39;s standalone message, without the message from the source.
     </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="../../src/hyper/error.rs.html#400">self</a>.<a href="../../src/hyper/error.rs.html#404">description</a>()
+        <a class="self" href="#400">self</a>.<a href="#404">description</a>()
     }
 
     <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match </span><a class="self" href="../../src/hyper/error.rs.html#404">self</a>.inner.kind {
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#67">Parse::Method</a>) =&gt; <span class="string">&quot;invalid HTTP method parsed&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#68">Parse::Version</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed&quot;</span>,
+        <span class="kw">match </span><a class="self" href="#404">self</a>.inner.kind {
+            <a href="#22">Kind::Parse</a>(<a href="#67">Parse::Method</a>) =&gt; <span class="string">&quot;invalid HTTP method parsed&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#68">Parse::Version</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#70">Parse::VersionH2</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed (found HTTP2 preface)&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#71">Parse::Uri</a>) =&gt; <span class="string">&quot;invalid URI&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#73">Parse::UriTooLong</a>) =&gt; <span class="string">&quot;URI too long&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#83">Header::Token</a>)) =&gt; <span class="string">&quot;invalid HTTP header parsed&quot;</span>,
+            </span><a href="#22">Kind::Parse</a>(<a href="#70">Parse::VersionH2</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed (found HTTP2 preface)&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#71">Parse::Uri</a>) =&gt; <span class="string">&quot;invalid URI&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#73">Parse::UriTooLong</a>) =&gt; <span class="string">&quot;URI too long&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#74">Parse::Header</a>(<a href="#83">Header::Token</a>)) =&gt; <span class="string">&quot;invalid HTTP header parsed&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#85">Header::ContentLengthInvalid</a>)) =&gt; {
+            </span><a href="#22">Kind::Parse</a>(<a href="#74">Parse::Header</a>(<a href="#85">Header::ContentLengthInvalid</a>)) =&gt; {
                 <span class="string">&quot;invalid content-length parsed&quot;
             </span>}
             <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#87">Header::TransferEncodingInvalid</a>)) =&gt; {
+            </span><a href="#22">Kind::Parse</a>(<a href="#74">Parse::Header</a>(<a href="#87">Header::TransferEncodingInvalid</a>)) =&gt; {
                 <span class="string">&quot;invalid transfer-encoding parsed&quot;
             </span>}
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#89">Header::TransferEncodingUnexpected</a>)) =&gt; {
+            </span><a href="#22">Kind::Parse</a>(<a href="#74">Parse::Header</a>(<a href="#89">Header::TransferEncodingUnexpected</a>)) =&gt; {
                 <span class="string">&quot;unexpected transfer-encoding parsed&quot;
             </span>}
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>) =&gt; <span class="string">&quot;message head is too large&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#76">Parse::Status</a>) =&gt; <span class="string">&quot;invalid HTTP status-code parsed&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#78">Parse::Internal</a>) =&gt; {
+            <a href="#22">Kind::Parse</a>(<a href="#75">Parse::TooLarge</a>) =&gt; <span class="string">&quot;message head is too large&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#76">Parse::Status</a>) =&gt; <span class="string">&quot;invalid HTTP status-code parsed&quot;</span>,
+            <a href="#22">Kind::Parse</a>(<a href="#78">Parse::Internal</a>) =&gt; {
                 <span class="string">&quot;internal error inside Hyper and/or its dependencies, please report&quot;
             </span>}
-            <a href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a> =&gt; <span class="string">&quot;connection closed before message completed&quot;</span>,
+            <a href="#26">Kind::IncompleteMessage</a> =&gt; <span class="string">&quot;connection closed before message completed&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#29">Kind::UnexpectedMessage</a> =&gt; <span class="string">&quot;received unexpected message from connection&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#33">Kind::ChannelClosed</a> =&gt; <span class="string">&quot;channel closed&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#39">Kind::Connect</a> =&gt; <span class="string">&quot;error trying to connect&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#31">Kind::Canceled</a> =&gt; <span class="string">&quot;operation was canceled&quot;</span>,
+            </span><a href="#29">Kind::UnexpectedMessage</a> =&gt; <span class="string">&quot;received unexpected message from connection&quot;</span>,
+            <a href="#33">Kind::ChannelClosed</a> =&gt; <span class="string">&quot;channel closed&quot;</span>,
+            <a href="#39">Kind::Connect</a> =&gt; <span class="string">&quot;error trying to connect&quot;</span>,
+            <a href="#31">Kind::Canceled</a> =&gt; <span class="string">&quot;operation was canceled&quot;</span>,
             <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;tcp&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#42">Kind::Listen</a> =&gt; <span class="string">&quot;error creating server listener&quot;</span>,
+            </span><a href="#42">Kind::Listen</a> =&gt; <span class="string">&quot;error creating server listener&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#46">Kind::Accept</a> =&gt; <span class="string">&quot;error accepting connection&quot;</span>,
+            </span><a href="#46">Kind::Accept</a> =&gt; <span class="string">&quot;error accepting connection&quot;</span>,
             <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#49">Kind::HeaderTimeout</a> =&gt; <span class="string">&quot;read header from client timeout&quot;</span>,
+            </span><a href="#49">Kind::HeaderTimeout</a> =&gt; <span class="string">&quot;read header from client timeout&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>, feature = <span class="string">&quot;stream&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#52">Kind::Body</a> =&gt; <span class="string">&quot;error reading a body from connection&quot;</span>,
+            </span><a href="#52">Kind::Body</a> =&gt; <span class="string">&quot;error reading a body from connection&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#55">Kind::BodyWrite</a> =&gt; <span class="string">&quot;error writing a body to connection&quot;</span>,
+            </span><a href="#55">Kind::BodyWrite</a> =&gt; <span class="string">&quot;error writing a body to connection&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#58">Kind::Shutdown</a> =&gt; <span class="string">&quot;error shutting down connection&quot;</span>,
+            </span><a href="#58">Kind::Shutdown</a> =&gt; <span class="string">&quot;error shutting down connection&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#62">Kind::Http2</a> =&gt; <span class="string">&quot;http2 error&quot;</span>,
+            </span><a href="#62">Kind::Http2</a> =&gt; <span class="string">&quot;http2 error&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#36">Kind::Io</a> =&gt; <span class="string">&quot;connection error&quot;</span>,
+            </span><a href="#36">Kind::Io</a> =&gt; <span class="string">&quot;connection error&quot;</span>,
 
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#96">User::Body</a>) =&gt; <span class="string">&quot;error from user&#39;s HttpBody stream&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#98">User::BodyWriteAborted</a>) =&gt; <span class="string">&quot;user body write aborted&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#96">User::Body</a>) =&gt; <span class="string">&quot;error from user&#39;s HttpBody stream&quot;</span>,
+            <a href="#23">Kind::User</a>(<a href="#98">User::BodyWriteAborted</a>) =&gt; <span class="string">&quot;user body write aborted&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#102">User::MakeService</a>) =&gt; <span class="string">&quot;error from user&#39;s MakeService&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#102">User::MakeService</a>) =&gt; <span class="string">&quot;error from user&#39;s MakeService&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#105">User::Service</a>) =&gt; <span class="string">&quot;error from user&#39;s Service&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#105">User::Service</a>) =&gt; <span class="string">&quot;error from user&#39;s Service&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#111">User::UnexpectedHeader</a>) =&gt; <span class="string">&quot;user sent unexpected header&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#111">User::UnexpectedHeader</a>) =&gt; <span class="string">&quot;user sent unexpected header&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#115">User::UnsupportedVersion</a>) =&gt; <span class="string">&quot;request has unsupported HTTP version&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#115">User::UnsupportedVersion</a>) =&gt; <span class="string">&quot;request has unsupported HTTP version&quot;</span>,
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#119">User::UnsupportedRequestMethod</a>) =&gt; <span class="string">&quot;request has unsupported HTTP method&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#119">User::UnsupportedRequestMethod</a>) =&gt; <span class="string">&quot;request has unsupported HTTP method&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
             #[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#123">User::UnsupportedStatusCode</a>) =&gt; {
+            </span><a href="#23">Kind::User</a>(<a href="#123">User::UnsupportedStatusCode</a>) =&gt; {
                 <span class="string">&quot;response has 1xx status code, not supported by server&quot;
             </span>}
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
             #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#127">User::AbsoluteUriRequired</a>) =&gt; <span class="string">&quot;client requires absolute-form URIs&quot;</span>,
-            <a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#130">User::NoUpgrade</a>) =&gt; <span class="string">&quot;no upgrade available&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#127">User::AbsoluteUriRequired</a>) =&gt; <span class="string">&quot;client requires absolute-form URIs&quot;</span>,
+            <a href="#23">Kind::User</a>(<a href="#130">User::NoUpgrade</a>) =&gt; <span class="string">&quot;no upgrade available&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#134">User::ManualUpgrade</a>) =&gt; <span class="string">&quot;upgrade expected but low level API in use&quot;</span>,
+            </span><a href="#23">Kind::User</a>(<a href="#134">User::ManualUpgrade</a>) =&gt; <span class="string">&quot;upgrade expected but low level API in use&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-            </span><a href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a href="../../src/hyper/error.rs.html#138">User::WithoutShutdownNonHttp1</a>) =&gt; {
+            </span><a href="#23">Kind::User</a>(<a href="#138">User::WithoutShutdownNonHttp1</a>) =&gt; {
                 <span class="string">&quot;without_shutdown() called on a non-HTTP/1 connection&quot;
             </span>}
             <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
@@ -1119,111 +1119,111 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#11">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#11">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="../../src/hyper/error.rs.html#493">f</a>.debug_tuple(<span class="string">&quot;hyper::Error&quot;</span>);
-        <a href="../../src/hyper/error.rs.html#494">f</a>.field(<span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#493">self</a>.inner.kind);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>cause) = <a class="self" href="../../src/hyper/error.rs.html#493">self</a>.inner.cause {
-            <a href="../../src/hyper/error.rs.html#494">f</a>.field(<a href="../../src/hyper/error.rs.html#496">cause</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#493">f</a>.debug_tuple(<span class="string">&quot;hyper::Error&quot;</span>);
+        <a href="#494">f</a>.field(<span class="kw-2">&amp;</span><a class="self" href="#493">self</a>.inner.kind);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>cause) = <a class="self" href="#493">self</a>.inner.cause {
+            <a href="#494">f</a>.field(<a href="#496">cause</a>);
         }
-        <a href="../../src/hyper/error.rs.html#494">f</a>.finish()
+        <a href="#494">f</a>.finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#11">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#11">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>cause) = <a class="self" href="../../src/hyper/error.rs.html#504">self</a>.inner.cause {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/hyper/error.rs.html#504">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.description(), cause)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>cause) = <a class="self" href="#504">self</a>.inner.cause {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#504">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.description(), cause)
         } <span class="kw">else </span>{
-            <a href="../../src/hyper/error.rs.html#504">f</a>.write_str(<a class="self" href="../../src/hyper/error.rs.html#504">self</a>.<a href="../../src/hyper/error.rs.html#404">description</a>())
+            <a href="#504">f</a>.write_str(<a class="self" href="#504">self</a>.<a href="#404">description</a>())
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#11">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#11">Error</a> {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
-        <a class="self" href="../../src/hyper/error.rs.html#514">self</a>.inner
+        <a class="self" href="#514">self</a>.inner
             .cause
             .as_ref()
-            .map(|cause| <span class="kw-2">&amp;**</span><a href="../../src/hyper/error.rs.html#518">cause</a> <span class="kw">as </span><span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>))
+            .map(|cause| <span class="kw-2">&amp;**</span><a href="#518">cause</a> <span class="kw">as </span><span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>))
     }
 }
 
 <span class="attribute">#[doc(hidden)]
-</span><span class="kw">impl </span>From&lt;<a href="../../src/hyper/error.rs.html#66">Parse</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#11">Error</a> {
-    <span class="kw">fn </span>from(err: <a href="../../src/hyper/error.rs.html#66">Parse</a>) -&gt; <a href="../../src/hyper/error.rs.html#11">Error</a> {
-        Error::new(<a href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a href="../../src/hyper/error.rs.html#524">err</a>))
+</span><span class="kw">impl </span>From&lt;<a href="#66">Parse</a>&gt; <span class="kw">for </span><a href="#11">Error</a> {
+    <span class="kw">fn </span>from(err: <a href="#66">Parse</a>) -&gt; <a href="#11">Error</a> {
+        Error::new(<a href="#22">Kind::Parse</a>(<a href="#524">err</a>))
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
-</span><span class="kw">impl </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
+</span><span class="kw">impl </span><a href="#66">Parse</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>content_length_invalid() -&gt; <span class="self">Self </span>{
-        <a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#85">Header::ContentLengthInvalid</a>)
+        <a href="#74">Parse::Header</a>(<a href="#85">Header::ContentLengthInvalid</a>)
     }
 
     <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;server&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_encoding_invalid() -&gt; <span class="self">Self </span>{
-        <a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#87">Header::TransferEncodingInvalid</a>)
+        <a href="#74">Parse::Header</a>(<a href="#87">Header::TransferEncodingInvalid</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_encoding_unexpected() -&gt; <span class="self">Self </span>{
-        <a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#89">Header::TransferEncodingUnexpected</a>)
+        <a href="#74">Parse::Header</a>(<a href="#89">Header::TransferEncodingUnexpected</a>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../httparse/enum.Error.html">httparse::Error</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
-    <span class="kw">fn </span>from(err: <a href="../../httparse/enum.Error.html">httparse::Error</a>) -&gt; <a href="../../src/hyper/error.rs.html#66">Parse</a> {
-        <span class="kw">match </span><a href="../../src/hyper/error.rs.html#546">err</a> {
+<span class="kw">impl </span>From&lt;<a href="../../httparse/enum.Error.html">httparse::Error</a>&gt; <span class="kw">for </span><a href="#66">Parse</a> {
+    <span class="kw">fn </span>from(err: <a href="../../httparse/enum.Error.html">httparse::Error</a>) -&gt; <a href="#66">Parse</a> {
+        <span class="kw">match </span><a href="#546">err</a> {
             httparse::Error::HeaderName
             | httparse::Error::HeaderValue
             | httparse::Error::NewLine
-            | httparse::Error::Token =&gt; <a href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a href="../../src/hyper/error.rs.html#83">Header::Token</a>),
-            httparse::Error::Status =&gt; <a href="../../src/hyper/error.rs.html#76">Parse::Status</a>,
-            httparse::Error::TooManyHeaders =&gt; <a href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>,
-            httparse::Error::Version =&gt; <a href="../../src/hyper/error.rs.html#68">Parse::Version</a>,
+            | httparse::Error::Token =&gt; <a href="#74">Parse::Header</a>(<a href="#83">Header::Token</a>),
+            httparse::Error::Status =&gt; <a href="#76">Parse::Status</a>,
+            httparse::Error::TooManyHeaders =&gt; <a href="#75">Parse::TooLarge</a>,
+            httparse::Error::Version =&gt; <a href="#68">Parse::Version</a>,
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>) -&gt; <a href="../../src/hyper/error.rs.html#66">Parse</a> {
-        <a href="../../src/hyper/error.rs.html#67">Parse::Method</a>
+<span class="kw">impl </span>From&lt;<a href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>&gt; <span class="kw">for </span><a href="#66">Parse</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>) -&gt; <a href="#66">Parse</a> {
+        <a href="#67">Parse::Method</a>
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>) -&gt; <a href="../../src/hyper/error.rs.html#66">Parse</a> {
-        <a href="../../src/hyper/error.rs.html#76">Parse::Status</a>
+<span class="kw">impl </span>From&lt;<a href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>&gt; <span class="kw">for </span><a href="#66">Parse</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>) -&gt; <a href="#66">Parse</a> {
+        <a href="#76">Parse::Status</a>
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>) -&gt; <a href="../../src/hyper/error.rs.html#66">Parse</a> {
-        <a href="../../src/hyper/error.rs.html#71">Parse::Uri</a>
+<span class="kw">impl </span>From&lt;<a href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>&gt; <span class="kw">for </span><a href="#66">Parse</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>) -&gt; <a href="#66">Parse</a> {
+        <a href="#71">Parse::Uri</a>
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>&gt; <span class="kw">for </span><a href="../../src/hyper/error.rs.html#66">Parse</a> {
-    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>) -&gt; <a href="../../src/hyper/error.rs.html#66">Parse</a> {
-        <a href="../../src/hyper/error.rs.html#71">Parse::Uri</a>
+<span class="kw">impl </span>From&lt;<a href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>&gt; <span class="kw">for </span><a href="#66">Parse</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>) -&gt; <a href="#66">Parse</a> {
+        <a href="#71">Parse::Uri</a>
     }
 }
 
 <span class="attribute">#[doc(hidden)]
 </span><span class="kw">trait </span>AssertSendSync: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static </span>{}
 <span class="attribute">#[doc(hidden)]
-</span><span class="kw">impl </span><a href="../../src/hyper/error.rs.html#584">AssertSendSync</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#11">Error</a> {}
+</span><span class="kw">impl </span><a href="#584">AssertSendSync</a> <span class="kw">for </span><a href="#11">Error</a> {}
 
 <span class="comment">// ===== impl TimedOut ====
 
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#147">TimedOut</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#147">TimedOut</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/hyper/error.rs.html#591">f</a>.write_str(<span class="string">&quot;operation timed out&quot;</span>)
+        <a href="#591">f</a>.write_str(<span class="string">&quot;operation timed out&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/hyper/error.rs.html#147">TimedOut</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="#147">TimedOut</a> {}
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -1259,4 +1259,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

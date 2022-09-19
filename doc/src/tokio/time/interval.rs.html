@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/interval.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interval.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/time/interval.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interval.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -532,9 +532,10 @@
 <span id="532">532</span>
 <span id="533">533</span>
 <span id="534">534</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio/future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
-<span class="kw">use </span><span class="kw">crate</span>::time::{<a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>};
-<span class="kw">use </span><a href="../../../src/tokio/util/mod.rs.html#70"><span class="kw">crate</span>::util::trace</a>;
+<span id="535">535</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
+<span class="kw">use </span><span class="kw">crate</span>::time::{<a href="driver/sleep.rs.html#64">sleep_until</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="instant.rs.html#34">Instant</a>, <a href="driver/sleep.rs.html#136-235">Sleep</a>};
+<span class="kw">use </span><a href="../util/mod.rs.html#68"><span class="kw">crate</span>::util::trace</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/panic/location/struct.Location.html">std::panic::Location</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
@@ -605,9 +606,9 @@
 /// [`sleep`]: crate::time::sleep()
 /// [`.tick().await`]: Interval::tick
 </span><span class="attribute">#[track_caller]
-</span><span class="kw">pub fn </span>interval(period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/tokio/time/interval.rs.html#392">Interval</a> {
+</span><span class="kw">pub fn </span>interval(period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="#392">Interval</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(period &gt; Duration::new(<span class="number">0</span>, <span class="number">0</span>), <span class="string">&quot;`period` must be non-zero.&quot;</span>);
-    <a href="../../../src/tokio/time/interval.rs.html#115-119">internal_interval_at</a>(Instant::now(), <a href="../../../src/tokio/time/interval.rs.html#74">period</a>, <a href="../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>())
+    <a href="#115-119">internal_interval_at</a>(Instant::now(), <a href="#74">period</a>, <a href="../util/trace.rs.html#84">trace::caller_location</a>())
 }
 
 <span class="doccomment">/// Creates new [`Interval`] that yields with interval of `period` with the
@@ -640,17 +641,17 @@
 /// }
 /// ```
 </span><span class="attribute">#[track_caller]
-</span><span class="kw">pub fn </span>interval_at(start: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/tokio/time/interval.rs.html#392">Interval</a> {
+</span><span class="kw">pub fn </span>interval_at(start: <a href="instant.rs.html#34">Instant</a>, period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="#392">Interval</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(period &gt; Duration::new(<span class="number">0</span>, <span class="number">0</span>), <span class="string">&quot;`period` must be non-zero.&quot;</span>);
-    <a href="../../../src/tokio/time/interval.rs.html#115-119">internal_interval_at</a>(<a href="../../../src/tokio/time/interval.rs.html#109">start</a>, <a href="../../../src/tokio/time/interval.rs.html#109">period</a>, <a href="../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>())
+    <a href="#115-119">internal_interval_at</a>(<a href="#109">start</a>, <a href="#109">period</a>, <a href="../util/trace.rs.html#84">trace::caller_location</a>())
 }
 
 <span class="attribute">#[cfg_attr(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)), allow(unused_variables))]
 </span><span class="kw">fn </span>internal_interval_at(
-    start: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>,
+    start: <a href="instant.rs.html#34">Instant</a>,
     period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
     location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
-) -&gt; <a href="../../../src/tokio/time/interval.rs.html#392">Interval</a> {
+) -&gt; <a href="#392">Interval</a> {
     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span><span class="kw">let </span>resource_span = {
         <span class="kw">let </span>location = location.expect(<span class="string">&quot;should have location if tracing&quot;</span>);
@@ -669,11 +670,11 @@
     </span><span class="kw">let </span>delay = resource_span.in_scope(|| Box::pin(sleep_until(start)));
 
     <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
-    </span><span class="kw">let </span>delay = Box::pin(<a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>(<a href="../../../src/tokio/time/interval.rs.html#116">start</a>));
+    </span><span class="kw">let </span>delay = Box::pin(<a href="driver/sleep.rs.html#64">sleep_until</a>(<a href="#116">start</a>));
 
-    <a href="../../../src/tokio/time/interval.rs.html#392">Interval</a> {
-        <a href="../../../src/tokio/time/interval.rs.html#138">delay</a>,
-        <a href="../../../src/tokio/time/interval.rs.html#117">period</a>,
+    <a href="#392">Interval</a> {
+        <a href="#138">delay</a>,
+        <a href="#117">period</a>,
         missed_tick_behavior: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span>resource_span,
@@ -812,7 +813,7 @@
     /// // 50ms after the call to `tick` up above. That is, in `tick`, when we
     /// // recognize that we missed a tick, we schedule the next tick to happen
     /// // 50ms (or whatever the `period` is) from right then, not from when
-    /// // were were *supposed* to tick
+    /// // were *supposed* to tick
     /// interval.tick().await;
     /// # }
     /// ```
@@ -870,16 +871,16 @@
     </span>Skip,
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/time/interval.rs.html#182">MissedTickBehavior</a> {
+<span class="kw">impl </span><a href="#182">MissedTickBehavior</a> {
     <span class="doccomment">/// If a tick is missed, this method is called to determine when the next tick should happen.
-    </span><span class="kw">fn </span>next_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, timeout: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, now: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/time/interval.rs.html#341">self</a> </span>{
-            <span class="self">Self</span>::Burst =&gt; <a href="../../../src/tokio/time/interval.rs.html#341">timeout</a> + <a href="../../../src/tokio/time/interval.rs.html#341">period</a>,
-            <span class="self">Self</span>::Delay =&gt; <a href="../../../src/tokio/time/interval.rs.html#341">now</a> + <a href="../../../src/tokio/time/interval.rs.html#341">period</a>,
+    </span><span class="kw">fn </span>next_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, timeout: <a href="instant.rs.html#34">Instant</a>, now: <a href="instant.rs.html#34">Instant</a>, period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="instant.rs.html#34">Instant</a> {
+        <span class="kw">match </span><span class="self"><a href="#341">self</a> </span>{
+            <span class="self">Self</span>::Burst =&gt; <a href="#341">timeout</a> + <a href="#341">period</a>,
+            <span class="self">Self</span>::Delay =&gt; <a href="#341">now</a> + <a href="#341">period</a>,
             <span class="self">Self</span>::Skip =&gt; {
-                <a href="../../../src/tokio/time/interval.rs.html#341">now</a> + <a href="../../../src/tokio/time/interval.rs.html#341">period</a>
+                <a href="#341">now</a> + <a href="#341">period</a>
                     - Duration::from_nanos(
-                        ((<a href="../../../src/tokio/time/interval.rs.html#341">now</a> - <a href="../../../src/tokio/time/interval.rs.html#341">timeout</a>).as_nanos() % <a href="../../../src/tokio/time/interval.rs.html#341">period</a>.as_nanos())
+                        ((<a href="#341">now</a> - <a href="#341">timeout</a>).as_nanos() % <a href="#341">period</a>.as_nanos())
                             .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                             <span class="comment">// This operation is practically guaranteed not to
                             // fail, as in order for it to fail, `period` would
@@ -897,7 +898,7 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio/time/interval.rs.html#182">MissedTickBehavior</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#182">MissedTickBehavior</a> {
     <span class="doccomment">/// Returns [`MissedTickBehavior::Burst`].
     ///
     /// For most usecases, the [`Burst`] strategy is what is desired.
@@ -925,19 +926,19 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Interval {
     <span class="doccomment">/// Future that completes the next time the `Interval` yields a value.
-    </span>delay: Pin&lt;Box&lt;<a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>&gt;&gt;,
+    </span>delay: Pin&lt;Box&lt;<a href="driver/sleep.rs.html#136-235">Sleep</a>&gt;&gt;,
 
     <span class="doccomment">/// The duration between values yielded by `Interval`.
     </span>period: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
 
     <span class="doccomment">/// The strategy `Interval` should use when a tick is missed.
-    </span>missed_tick_behavior: <a href="../../../src/tokio/time/interval.rs.html#182">MissedTickBehavior</a>,
+    </span>missed_tick_behavior: <a href="#182">MissedTickBehavior</a>,
 
     <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
     </span>resource_span: tracing::Span,
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/time/interval.rs.html#392">Interval</a> {
+<span class="kw">impl </span><a href="#392">Interval</a> {
     <span class="doccomment">/// Completes when the next instant in the interval has been reached.
     ///
     /// # Cancel safety
@@ -957,13 +958,14 @@
     ///     let mut interval = time::interval(Duration::from_millis(10));
     ///
     ///     interval.tick().await;
+    ///     // approximately 0ms have elapsed. The first tick completes immediately.
     ///     interval.tick().await;
     ///     interval.tick().await;
     ///
     ///     // approximately 20ms have elapsed.
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>tick(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    </span><span class="kw">pub async fn </span>tick(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="instant.rs.html#34">Instant</a> {
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
         </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
         <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
@@ -992,12 +994,12 @@
     /// calls to `poll_tick`, only the [`Waker`](std::task::Waker) from the
     /// [`Context`] passed to the most recent call is scheduled to receive a
     /// wakeup.
-    </span><span class="kw">pub fn </span>poll_tick(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>&gt; {
+    </span><span class="kw">pub fn </span>poll_tick(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<a href="instant.rs.html#34">Instant</a>&gt; {
         <span class="comment">// Wait for the delay to be done
-        </span><a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.delay).poll(cx));
+        </span><a class="macro" href="../macros/ready.rs.html#1-8">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.delay).poll(cx));
 
         <span class="comment">// Get the time when we were scheduled to tick
-        </span><span class="kw">let </span>timeout = <a class="self" href="../../../src/tokio/time/interval.rs.html#461">self</a>.delay.<a href="../../../src/tokio/time/driver/sleep.rs.html#317">deadline</a>();
+        </span><span class="kw">let </span>timeout = <a class="self" href="#462">self</a>.delay.<a href="driver/sleep.rs.html#317">deadline</a>();
 
         <span class="kw">let </span>now = Instant::now();
 
@@ -1009,16 +1011,16 @@
         // schedule the next tick according to how the user specified with
         // `MissedTickBehavior`
         </span><span class="kw">let </span>next = <span class="kw">if </span>now &gt; timeout + Duration::from_millis(<span class="number">5</span>) {
-            <a class="self" href="../../../src/tokio/time/interval.rs.html#461">self</a>.missed_tick_behavior
-                .<a href="../../../src/tokio/time/interval.rs.html#341">next_timeout</a>(<a href="../../../src/tokio/time/interval.rs.html#466">timeout</a>, <a href="../../../src/tokio/time/interval.rs.html#468">now</a>, <a class="self" href="../../../src/tokio/time/interval.rs.html#461">self</a>.period)
+            <a class="self" href="#462">self</a>.missed_tick_behavior
+                .<a href="#341">next_timeout</a>(<a href="#467">timeout</a>, <a href="#469">now</a>, <a class="self" href="#462">self</a>.period)
         } <span class="kw">else </span>{
-            <a href="../../../src/tokio/time/interval.rs.html#466">timeout</a> + <a class="self" href="../../../src/tokio/time/interval.rs.html#461">self</a>.period
+            <a href="#467">timeout</a> + <a class="self" href="#462">self</a>.period
         };
 
-        <a class="self" href="../../../src/tokio/time/interval.rs.html#461">self</a>.delay.as_mut().<a href="../../../src/tokio/time/driver/sleep.rs.html#357">reset</a>(<a href="../../../src/tokio/time/interval.rs.html#477">next</a>);
+        <a class="self" href="#462">self</a>.delay.as_mut().<a href="driver/sleep.rs.html#357">reset</a>(<a href="#478">next</a>);
 
         <span class="comment">// Return the time when we were scheduled to tick
-        </span>Poll::Ready(<a href="../../../src/tokio/time/interval.rs.html#466">timeout</a>)
+        </span>Poll::Ready(<a href="#467">timeout</a>)
     }
 
     <span class="doccomment">/// Resets the interval to complete one period after the current time.
@@ -1048,23 +1050,23 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/time/interval.rs.html#516">self</a>.delay.as_mut().<a href="../../../src/tokio/time/driver/sleep.rs.html#357">reset</a>(Instant::now() + <a class="self" href="../../../src/tokio/time/interval.rs.html#516">self</a>.period);
+        <a class="self" href="#517">self</a>.delay.as_mut().<a href="driver/sleep.rs.html#357">reset</a>(Instant::now() + <a class="self" href="#517">self</a>.period);
     }
 
     <span class="doccomment">/// Returns the [`MissedTickBehavior`] strategy currently being used.
-    </span><span class="kw">pub fn </span>missed_tick_behavior(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/tokio/time/interval.rs.html#182">MissedTickBehavior</a> {
-        <a class="self" href="../../../src/tokio/time/interval.rs.html#521">self</a>.missed_tick_behavior
+    </span><span class="kw">pub fn </span>missed_tick_behavior(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#182">MissedTickBehavior</a> {
+        <a class="self" href="#522">self</a>.missed_tick_behavior
     }
 
     <span class="doccomment">/// Sets the [`MissedTickBehavior`] strategy that should be used.
-    </span><span class="kw">pub fn </span>set_missed_tick_behavior(<span class="kw-2">&amp;mut </span><span class="self">self</span>, behavior: <a href="../../../src/tokio/time/interval.rs.html#182">MissedTickBehavior</a>) {
-        <a class="self" href="../../../src/tokio/time/interval.rs.html#526">self</a>.missed_tick_behavior = <a href="../../../src/tokio/time/interval.rs.html#526">behavior</a>;
+    </span><span class="kw">pub fn </span>set_missed_tick_behavior(<span class="kw-2">&amp;mut </span><span class="self">self</span>, behavior: <a href="#182">MissedTickBehavior</a>) {
+        <a class="self" href="#527">self</a>.missed_tick_behavior = <a href="#527">behavior</a>;
     }
 
     <span class="doccomment">/// Returns the period of the interval.
     </span><span class="kw">pub fn </span>period(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <a class="self" href="../../../src/tokio/time/interval.rs.html#531">self</a>.period
+        <a class="self" href="#532">self</a>.period
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

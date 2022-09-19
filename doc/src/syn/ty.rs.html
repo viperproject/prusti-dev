@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1253,11 +1253,30 @@
 <span id="1253">1253</span>
 <span id="1254">1254</span>
 <span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><a href="../../src/syn/punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
+<span class="kw">use </span><a href="punctuated.rs.html#46"><span class="kw">crate</span>::punctuated::Punctuated</a>;
 <span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
 
-<a class="macro" href="../../src/syn/macros.rs.html#59-68">ast_enum_of_structs! </a>{
+<a class="macro" href="macros.rs.html#59-68">ast_enum_of_structs! </a>{
     <span class="doccomment">/// The possible types that a Rust value could have.
     ///
     /// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`
@@ -1272,49 +1291,49 @@
     #[cfg_attr(not(syn_no_non_exhaustive), non_exhaustive)]
     </span><span class="kw">pub enum </span>Type {
         <span class="doccomment">/// A fixed size array type: `[T; n]`.
-        </span>Array(<a href="../../src/syn/ty.rs.html#91-103">TypeArray</a>),
+        </span>Array(<a href="#91-103">TypeArray</a>),
 
         <span class="doccomment">/// A bare function type: `fn(usize) -&gt; bool`.
-        </span>BareFn(<a href="../../src/syn/ty.rs.html#105-121">TypeBareFn</a>),
+        </span>BareFn(<a href="#105-121">TypeBareFn</a>),
 
         <span class="doccomment">/// A type contained within invisible delimiters.
-        </span>Group(<a href="../../src/syn/ty.rs.html#123-133">TypeGroup</a>),
+        </span>Group(<a href="#123-133">TypeGroup</a>),
 
         <span class="doccomment">/// An `impl Bound1 + Bound2 + Bound3` type where `Bound` is a trait or
         /// a lifetime.
-        </span>ImplTrait(<a href="../../src/syn/ty.rs.html#135-146">TypeImplTrait</a>),
+        </span>ImplTrait(<a href="#135-146">TypeImplTrait</a>),
 
         <span class="doccomment">/// Indication that a type should be inferred by the compiler: `_`.
-        </span>Infer(<a href="../../src/syn/ty.rs.html#148-157">TypeInfer</a>),
+        </span>Infer(<a href="#148-157">TypeInfer</a>),
 
         <span class="doccomment">/// A macro in the type position.
-        </span>Macro(<a href="../../src/syn/ty.rs.html#159-168">TypeMacro</a>),
+        </span>Macro(<a href="#159-168">TypeMacro</a>),
 
         <span class="doccomment">/// The never type: `!`.
-        </span>Never(<a href="../../src/syn/ty.rs.html#170-179">TypeNever</a>),
+        </span>Never(<a href="#170-179">TypeNever</a>),
 
         <span class="doccomment">/// A parenthesized type equivalent to the inner type.
-        </span>Paren(<a href="../../src/syn/ty.rs.html#181-191">TypeParen</a>),
+        </span>Paren(<a href="#181-191">TypeParen</a>),
 
         <span class="doccomment">/// A path like `std::slice::Iter`, optionally qualified with a
         /// self-type as in `&lt;Vec&lt;T&gt; as SomeTrait&gt;::Associated`.
-        </span>Path(<a href="../../src/syn/ty.rs.html#193-204">TypePath</a>),
+        </span>Path(<a href="#193-204">TypePath</a>),
 
         <span class="doccomment">/// A raw pointer type: `*const T` or `*mut T`.
-        </span>Ptr(<a href="../../src/syn/ty.rs.html#206-218">TypePtr</a>),
+        </span>Ptr(<a href="#206-218">TypePtr</a>),
 
         <span class="doccomment">/// A reference type: `&amp;&#39;a T` or `&amp;&#39;a mut T`.
-        </span>Reference(<a href="../../src/syn/ty.rs.html#220-232">TypeReference</a>),
+        </span>Reference(<a href="#220-232">TypeReference</a>),
 
         <span class="doccomment">/// A dynamically sized slice type: `[T]`.
-        </span>Slice(<a href="../../src/syn/ty.rs.html#234-244">TypeSlice</a>),
+        </span>Slice(<a href="#234-244">TypeSlice</a>),
 
         <span class="doccomment">/// A trait object type `dyn Bound1 + Bound2 + Bound3` where `Bound` is a
         /// trait or a lifetime.
-        </span>TraitObject(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a>),
+        </span>TraitObject(<a href="#246-257">TypeTraitObject</a>),
 
         <span class="doccomment">/// A tuple type: `(A, B, C, String)`.
-        </span>Tuple(<a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a>),
+        </span>Tuple(<a href="#259-269">TypeTuple</a>),
 
         <span class="doccomment">/// Tokens in type position not interpreted by Syn.
         </span>Verbatim(<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>),
@@ -1350,10 +1369,10 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeArray {
-        <span class="kw">pub </span>bracket_token: <a href="../../src/syn/token.rs.html#756-761">token::Bracket</a>,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
-        <span class="kw">pub </span>semi_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[;],
-        <span class="kw">pub </span>len: <a href="../../src/syn/expr.rs.html#14-250">Expr</a>,
+        <span class="kw">pub </span>bracket_token: <a href="token.rs.html#756-761">token::Bracket</a>,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>semi_token: <a class="macro" href="await.rs.html#2">Token!</a>[;],
+        <span class="kw">pub </span>len: <a href="expr.rs.html#14-250">Expr</a>,
     }
 }
 
@@ -1364,14 +1383,14 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeBareFn {
-        <span class="kw">pub </span>lifetimes: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a>&gt;,
-        <span class="kw">pub </span>unsafety: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">unsafe</span>]&gt;,
-        <span class="kw">pub </span>abi: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/ty.rs.html#271-281">Abi</a>&gt;,
-        <span class="kw">pub </span>fn_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">fn</span>],
-        <span class="kw">pub </span>paren_token: <a href="../../src/syn/token.rs.html#756-761">token::Paren</a>,
-        <span class="kw">pub </span>inputs: Punctuated&lt;<a href="../../src/syn/ty.rs.html#283-294">BareFnArg</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;,
-        <span class="kw">pub </span>variadic: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/ty.rs.html#296-316">Variadic</a>&gt;,
-        <span class="kw">pub </span>output: <a href="../../src/syn/ty.rs.html#318-332">ReturnType</a>,
+        <span class="kw">pub </span>lifetimes: <span class="prelude-ty">Option</span>&lt;<a href="generics.rs.html#421-433">BoundLifetimes</a>&gt;,
+        <span class="kw">pub </span>unsafety: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">unsafe</span>]&gt;,
+        <span class="kw">pub </span>abi: <span class="prelude-ty">Option</span>&lt;<a href="#271-281">Abi</a>&gt;,
+        <span class="kw">pub </span>fn_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">fn</span>],
+        <span class="kw">pub </span>paren_token: <a href="token.rs.html#756-761">token::Paren</a>,
+        <span class="kw">pub </span>inputs: Punctuated&lt;<a href="#283-294">BareFnArg</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>variadic: <span class="prelude-ty">Option</span>&lt;<a href="#296-316">Variadic</a>&gt;,
+        <span class="kw">pub </span>output: <a href="#318-332">ReturnType</a>,
     }
 }
 
@@ -1382,8 +1401,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeGroup {
-        <span class="kw">pub </span>group_token: <a href="../../src/syn/token.rs.html#756-761">token::Group</a>,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>group_token: <a href="token.rs.html#756-761">token::Group</a>,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
     }
 }
 
@@ -1395,8 +1414,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeImplTrait {
-        <span class="kw">pub </span>impl_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">impl</span>],
-        <span class="kw">pub </span>bounds: Punctuated&lt;<a href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[+]&gt;,
+        <span class="kw">pub </span>impl_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">impl</span>],
+        <span class="kw">pub </span>bounds: Punctuated&lt;<a href="generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="await.rs.html#2">Token!</a>[+]&gt;,
     }
 }
 
@@ -1407,7 +1426,7 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeInfer {
-        <span class="kw">pub </span>underscore_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">_</span>],
+        <span class="kw">pub </span>underscore_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">_</span>],
     }
 }
 
@@ -1418,7 +1437,7 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeMacro {
-        <span class="kw">pub </span>mac: <a href="../../src/syn/mac.rs.html#10-22">Macro</a>,
+        <span class="kw">pub </span>mac: <a href="mac.rs.html#10-22">Macro</a>,
     }
 }
 
@@ -1429,7 +1448,7 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeNever {
-        <span class="kw">pub </span>bang_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[!],
+        <span class="kw">pub </span>bang_token: <a class="macro" href="await.rs.html#2">Token!</a>[!],
     }
 }
 
@@ -1440,8 +1459,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeParen {
-        <span class="kw">pub </span>paren_token: <a href="../../src/syn/token.rs.html#756-761">token::Paren</a>,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>paren_token: <a href="token.rs.html#756-761">token::Paren</a>,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
     }
 }
 
@@ -1453,8 +1472,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypePath {
-        <span class="kw">pub </span>qself: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/path.rs.html#182-210">QSelf</a>&gt;,
-        <span class="kw">pub </span>path: <a href="../../src/syn/path.rs.html#4-14">Path</a>,
+        <span class="kw">pub </span>qself: <span class="prelude-ty">Option</span>&lt;<a href="path.rs.html#182-210">QSelf</a>&gt;,
+        <span class="kw">pub </span>path: <a href="path.rs.html#4-14">Path</a>,
     }
 }
 
@@ -1465,10 +1484,10 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypePtr {
-        <span class="kw">pub </span>star_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">*</span>],
-        <span class="kw">pub </span>const_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">const</span>]&gt;,
-        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>star_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">*</span>],
+        <span class="kw">pub </span>const_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">const</span>]&gt;,
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
     }
 }
 
@@ -1479,10 +1498,10 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeReference {
-        <span class="kw">pub </span>and_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">&amp;</span>],
-        <span class="kw">pub </span>lifetime: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/lifetime.rs.html#19">Lifetime</a>&gt;,
-        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>and_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">&amp;</span>],
+        <span class="kw">pub </span>lifetime: <span class="prelude-ty">Option</span>&lt;<a href="lifetime.rs.html#19">Lifetime</a>&gt;,
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
     }
 }
 
@@ -1493,8 +1512,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeSlice {
-        <span class="kw">pub </span>bracket_token: <a href="../../src/syn/token.rs.html#756-761">token::Bracket</a>,
-        <span class="kw">pub </span>elem: Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;,
+        <span class="kw">pub </span>bracket_token: <a href="token.rs.html#756-761">token::Bracket</a>,
+        <span class="kw">pub </span>elem: Box&lt;<a href="#5-89">Type</a>&gt;,
     }
 }
 
@@ -1506,8 +1525,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeTraitObject {
-        <span class="kw">pub </span>dyn_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">dyn</span>]&gt;,
-        <span class="kw">pub </span>bounds: Punctuated&lt;<a href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[+]&gt;,
+        <span class="kw">pub </span>dyn_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">dyn</span>]&gt;,
+        <span class="kw">pub </span>bounds: Punctuated&lt;<a href="generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="await.rs.html#2">Token!</a>[+]&gt;,
     }
 }
 
@@ -1518,8 +1537,8 @@
     /// `&quot;full&quot;` feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>TypeTuple {
-        <span class="kw">pub </span>paren_token: <a href="../../src/syn/token.rs.html#756-761">token::Paren</a>,
-        <span class="kw">pub </span>elems: Punctuated&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,]&gt;,
+        <span class="kw">pub </span>paren_token: <a href="token.rs.html#756-761">token::Paren</a>,
+        <span class="kw">pub </span>elems: Punctuated&lt;<a href="#5-89">Type</a>, <a class="macro" href="await.rs.html#2">Token!</a>[,]&gt;,
     }
 }
 
@@ -1530,8 +1549,8 @@
     /// feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>Abi {
-        <span class="kw">pub </span>extern_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw">extern</span>],
-        <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/lit.rs.html#51-56">LitStr</a>&gt;,
+        <span class="kw">pub </span>extern_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">extern</span>],
+        <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;<a href="lit.rs.html#51-56">LitStr</a>&gt;,
     }
 }
 
@@ -1542,9 +1561,9 @@
     /// feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>BareFnArg {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;(<a href="../../syn/struct.Ident.html">Ident</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[:])&gt;,
-        <span class="kw">pub </span>ty: <a href="../../src/syn/ty.rs.html#5-89">Type</a>,
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;(<a href="../../syn/struct.Ident.html">Ident</a>, <a class="macro" href="await.rs.html#2">Token!</a>[:])&gt;,
+        <span class="kw">pub </span>ty: <a href="#5-89">Type</a>,
     }
 }
 
@@ -1565,8 +1584,8 @@
     /// feature.*
     </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">&quot;full&quot;</span>, feature = <span class="string">&quot;derive&quot;</span>))))]
     </span><span class="kw">pub struct </span>Variadic {
-        <span class="kw">pub </span>attrs: Vec&lt;<a href="../../src/syn/attr.rs.html#12-156">Attribute</a>&gt;,
-        <span class="kw">pub </span>dots: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[...],
+        <span class="kw">pub </span>attrs: Vec&lt;<a href="attr.rs.html#12-156">Attribute</a>&gt;,
+        <span class="kw">pub </span>dots: <a class="macro" href="await.rs.html#2">Token!</a>[...],
     }
 }
 
@@ -1582,80 +1601,80 @@
         /// Functions default to `()` and closures default to type inference.
         </span>Default,
         <span class="doccomment">/// A particular type is returned.
-        </span>Type(<a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[-&gt;], Box&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt;),
+        </span>Type(<a class="macro" href="await.rs.html#2">Token!</a>[-&gt;], Box&lt;<a href="#5-89">Type</a>&gt;),
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">pub mod </span>parsing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/ext.rs.html#18"><span class="kw">crate</span>::ext::IdentExt</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="../../src/syn/parse.rs.html#220">Parse</a>, <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
-    <span class="kw">use </span><a href="../../src/syn/lib.rs.html#420"><span class="kw">crate</span>::path</a>;
+    <span class="kw">use </span><a href="ext.rs.html#18"><span class="kw">crate</span>::ext::IdentExt</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::parse::{<a href="parse.rs.html#220">Parse</a>, <a href="parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span><a href="lib.rs.html#421"><span class="kw">crate</span>::path</a>;
     <span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Punct.html">Punct</a>, <a href="../../proc_macro2/enum.Spacing.html">Spacing</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#5-89">Type</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#5-89">Type</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">true</span>;
-            <a href="../../src/syn/ty.rs.html#363">ambig_ty</a>(<a href="../../src/syn/ty.rs.html#344">input</a>, <a href="../../src/syn/ty.rs.html#345">allow_plus</a>)
+            <a href="#363">ambig_ty</a>(<a href="#344">input</a>, <a href="#345">allow_plus</a>)
         }
     }
 
-    <span class="kw">impl </span><a href="../../src/syn/ty.rs.html#5-89">Type</a> {
+    <span class="kw">impl </span><a href="#5-89">Type</a> {
         <span class="doccomment">/// In some positions, types may not contain the `+` character, to
         /// disambiguate them. For example in the expression `1 as T`, T may not
         /// contain a `+` character.
         ///
         /// This parser does not allow a `+`, while the default parser does.
         </span><span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-        </span><span class="kw">pub fn </span>without_plus(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        </span><span class="kw">pub fn </span>without_plus(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">false</span>;
-            <a href="../../src/syn/ty.rs.html#363">ambig_ty</a>(<a href="../../src/syn/ty.rs.html#357">input</a>, <a href="../../src/syn/ty.rs.html#358">allow_plus</a>)
+            <a href="#363">ambig_ty</a>(<a href="#357">input</a>, <a href="#358">allow_plus</a>)
         }
     }
 
-    <span class="kw">fn </span>ambig_ty(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/syn/ty.rs.html#5-89">Type</a>&gt; {
-        <span class="kw">let </span>begin = <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#918">fork</a>();
+    <span class="kw">fn </span>ambig_ty(input: <a href="parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#5-89">Type</a>&gt; {
+        <span class="kw">let </span>begin = <a href="#363">input</a>.<a href="parse.rs.html#918">fork</a>();
 
         <span class="kw">if </span>input.peek(token::Group) {
-            <span class="kw">let </span><span class="kw-2">mut </span>group: <a href="../../src/syn/ty.rs.html#123-133">TypeGroup</a> = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>group: <a href="#123-133">TypeGroup</a> = input.parse()<span class="question-mark">?</span>;
             <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[::]) &amp;&amp; input.peek3(Ident::peek_any) {
-                <span class="kw">if let </span><a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<span class="kw-2">mut </span>ty) = <span class="kw-2">*</span><a href="../../src/syn/ty.rs.html#367">group</a>.elem {
+                <span class="kw">if let </span><a href="#46">Type::Path</a>(<span class="kw-2">mut </span>ty) = <span class="kw-2">*</span><a href="#367">group</a>.elem {
                     Path::parse_rest(input, <span class="kw-2">&amp;mut </span>ty.path, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#369">ty</a>));
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#46">Type::Path</a>(<a href="#369">ty</a>));
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#193-204">TypePath</a> {
-                        qself: <span class="prelude-val">Some</span>(<a href="../../src/syn/path.rs.html#182-210">QSelf</a> {
-                            lt_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[&lt;](<a href="../../src/syn/ty.rs.html#367">group</a>.group_token.span),
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#46">Type::Path</a>(<a href="#193-204">TypePath</a> {
+                        qself: <span class="prelude-val">Some</span>(<a href="path.rs.html#182-210">QSelf</a> {
+                            lt_token: <a class="macro" href="await.rs.html#2">Token!</a>[&lt;](<a href="#367">group</a>.group_token.span),
                             position: <span class="number">0</span>,
                             as_token: <span class="prelude-val">None</span>,
-                            gt_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[&gt;](<a href="../../src/syn/ty.rs.html#367">group</a>.group_token.span),
-                            ty: <a href="../../src/syn/ty.rs.html#367">group</a>.elem,
+                            gt_token: <a class="macro" href="await.rs.html#2">Token!</a>[&gt;](<a href="#367">group</a>.group_token.span),
+                            ty: <a href="#367">group</a>.elem,
                         }),
                         path: Path::parse_helper(input, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
                     }));
                 }
             } <span class="kw">else if </span>input.peek(<span class="macro">Token!</span>[&lt;]) || input.peek(<span class="macro">Token!</span>[::]) &amp;&amp; input.peek3(<span class="macro">Token!</span>[&lt;]) {
-                <span class="kw">if let </span><a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<span class="kw-2">mut </span>ty) = <span class="kw-2">*</span><a href="../../src/syn/ty.rs.html#367">group</a>.elem {
-                    <span class="kw">let </span>arguments = <span class="kw-2">&amp;mut </span><a href="../../src/syn/ty.rs.html#385">ty</a>.path.segments.<a href="../../src/syn/punctuated.rs.html#100">last_mut</a>().unwrap().arguments;
-                    <span class="kw">if let </span><a href="../../src/syn/path.rs.html#69">PathArguments::None</a> = <a href="../../src/syn/ty.rs.html#386">arguments</a> {
-                        <span class="kw-2">*</span><a href="../../src/syn/ty.rs.html#386">arguments</a> = <a href="../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(input.parse()<span class="question-mark">?</span>);
+                <span class="kw">if let </span><a href="#46">Type::Path</a>(<span class="kw-2">mut </span>ty) = <span class="kw-2">*</span><a href="#367">group</a>.elem {
+                    <span class="kw">let </span>arguments = <span class="kw-2">&amp;mut </span><a href="#385">ty</a>.path.segments.<a href="punctuated.rs.html#100">last_mut</a>().unwrap().arguments;
+                    <span class="kw">if let </span><a href="path.rs.html#69">PathArguments::None</a> = <a href="#386">arguments</a> {
+                        <span class="kw-2">*</span><a href="#386">arguments</a> = <a href="path.rs.html#71">PathArguments::AngleBracketed</a>(input.parse()<span class="question-mark">?</span>);
                         Path::parse_rest(input, <span class="kw-2">&amp;mut </span>ty.path, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#385">ty</a>));
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#46">Type::Path</a>(<a href="#385">ty</a>));
                     } <span class="kw">else </span>{
-                        <a href="../../src/syn/ty.rs.html#367">group</a>.elem = Box::new(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#385">ty</a>));
+                        <a href="#367">group</a>.elem = Box::new(<a href="#46">Type::Path</a>(<a href="#385">ty</a>));
                     }
                 }
             }
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#26">Type::Group</a>(<a href="../../src/syn/ty.rs.html#367">group</a>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#26">Type::Group</a>(<a href="#367">group</a>));
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = <span class="prelude-val">None</span>::&lt;<a href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a>&gt;;
-        <span class="kw">let </span><span class="kw-2">mut </span>lookahead = <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#788">lookahead1</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = <span class="prelude-val">None</span>::&lt;<a href="generics.rs.html#421-433">BoundLifetimes</a>&gt;;
+        <span class="kw">let </span><span class="kw-2">mut </span>lookahead = <a href="#363">input</a>.<a href="parse.rs.html#788">lookahead1</a>();
         <span class="kw">if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">for</span>]) {
-            <a href="../../src/syn/ty.rs.html#399">lifetimes</a> = input.parse()<span class="question-mark">?</span>;
-            <a href="../../src/syn/ty.rs.html#400">lookahead</a> = <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#788">lookahead1</a>();
+            <a href="#399">lifetimes</a> = input.parse()<span class="question-mark">?</span>;
+            <a href="#400">lookahead</a> = <a href="#363">input</a>.<a href="parse.rs.html#788">lookahead1</a>();
             <span class="kw">if </span>!lookahead.peek(Ident)
                 &amp;&amp; !lookahead.peek(<span class="macro">Token!</span>[<span class="kw">fn</span>])
                 &amp;&amp; !lookahead.peek(<span class="macro">Token!</span>[<span class="kw">unsafe</span>])
@@ -1666,50 +1685,50 @@
                 &amp;&amp; !lookahead.peek(<span class="macro">Token!</span>[<span class="kw">crate</span>])
                 || input.peek(<span class="macro">Token!</span>[<span class="kw">dyn</span>])
             {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/syn/ty.rs.html#400">lookahead</a>.<a href="../../src/syn/lookahead.rs.html#112">error</a>());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#400">lookahead</a>.<a href="lookahead.rs.html#112">error</a>());
             }
         }
 
         <span class="kw">if </span>lookahead.peek(token::Paren) {
             <span class="kw">let </span>content;
-            <span class="kw">let </span>paren_token = <a class="macro" href="../../src/syn/group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
+            <span class="kw">let </span>paren_token = <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
             <span class="kw">if </span>content.is_empty() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#62">Type::Tuple</a>(<a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
-                    <a href="../../src/syn/ty.rs.html#420">paren_token</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#62">Type::Tuple</a>(<a href="#259-269">TypeTuple</a> {
+                    <a href="#420">paren_token</a>,
                     elems: Punctuated::new(),
                 }));
             }
             <span class="kw">if </span>content.peek(Lifetime) {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#42">Type::Paren</a>(<a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
-                    <a href="../../src/syn/ty.rs.html#420">paren_token</a>,
-                    elem: Box::new(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(content.parse()<span class="question-mark">?</span>)),
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#42">Type::Paren</a>(<a href="#181-191">TypeParen</a> {
+                    <a href="#420">paren_token</a>,
+                    elem: Box::new(<a href="#59">Type::TraitObject</a>(content.parse()<span class="question-mark">?</span>)),
                 }));
             }
             <span class="kw">if </span>content.peek(<span class="macro">Token!</span>[<span class="question-mark">?</span>]) {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> {
                     dyn_token: <span class="prelude-val">None</span>,
                     bounds: {
                         <span class="kw">let </span><span class="kw-2">mut </span>bounds = Punctuated::new();
-                        <a href="../../src/syn/ty.rs.html#437">bounds</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<a href="../../src/syn/generics.rs.html#482-496">TraitBound</a> {
-                            paren_token: <span class="prelude-val">Some</span>(<a href="../../src/syn/ty.rs.html#420">paren_token</a>),
+                        <a href="#437">bounds</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="generics.rs.html#477">TypeParamBound::Trait</a>(<a href="generics.rs.html#482-496">TraitBound</a> {
+                            paren_token: <span class="prelude-val">Some</span>(<a href="#420">paren_token</a>),
                             ..content.parse()<span class="question-mark">?
                         </span>}));
                         <span class="kw">while let </span><span class="prelude-val">Some</span>(plus) = input.parse()<span class="question-mark">? </span>{
                             bounds.push_punct(plus);
                             bounds.push_value(input.parse()<span class="question-mark">?</span>);
                         }
-                        <a href="../../src/syn/ty.rs.html#437">bounds</a>
+                        <a href="#437">bounds</a>
                     },
                 }));
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>first: <a href="../../src/syn/ty.rs.html#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>first: <a href="#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
             <span class="kw">if </span>content.peek(<span class="macro">Token!</span>[,]) {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#62">Type::Tuple</a>(<a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
-                    <a href="../../src/syn/ty.rs.html#420">paren_token</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#62">Type::Tuple</a>(<a href="#259-269">TypeTuple</a> {
+                    <a href="#420">paren_token</a>,
                     elems: {
                         <span class="kw">let </span><span class="kw-2">mut </span>elems = Punctuated::new();
-                        <a href="../../src/syn/ty.rs.html#455">elems</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/ty.rs.html#450">first</a>);
-                        <a href="../../src/syn/ty.rs.html#455">elems</a>.<a href="../../src/syn/punctuated.rs.html#180">push_punct</a>(content.parse()<span class="question-mark">?</span>);
+                        <a href="#455">elems</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="#450">first</a>);
+                        <a href="#455">elems</a>.<a href="punctuated.rs.html#180">push_punct</a>(content.parse()<span class="question-mark">?</span>);
                         <span class="kw">while </span>!content.is_empty() {
                             elems.push_value(content.parse()<span class="question-mark">?</span>);
                             <span class="kw">if </span>content.is_empty() {
@@ -1717,61 +1736,61 @@
                             }
                             elems.push_punct(content.parse()<span class="question-mark">?</span>);
                         }
-                        <a href="../../src/syn/ty.rs.html#455">elems</a>
+                        <a href="#455">elems</a>
                     },
                 }));
             }
             <span class="kw">if </span>allow_plus &amp;&amp; input.peek(<span class="macro">Token!</span>[+]) {
                 <span class="kw">loop </span>{
-                    <span class="kw">let </span>first = <span class="kw">match </span><a href="../../src/syn/ty.rs.html#450">first</a> {
-                        <a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#193-204">TypePath</a> { qself: <span class="prelude-val">None</span>, path }) =&gt; {
-                            <a href="../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<a href="../../src/syn/generics.rs.html#482-496">TraitBound</a> {
-                                paren_token: <span class="prelude-val">Some</span>(<a href="../../src/syn/ty.rs.html#420">paren_token</a>),
-                                modifier: <a href="../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a>,
+                    <span class="kw">let </span>first = <span class="kw">match </span><a href="#450">first</a> {
+                        <a href="#46">Type::Path</a>(<a href="#193-204">TypePath</a> { qself: <span class="prelude-val">None</span>, path }) =&gt; {
+                            <a href="generics.rs.html#477">TypeParamBound::Trait</a>(<a href="generics.rs.html#482-496">TraitBound</a> {
+                                paren_token: <span class="prelude-val">Some</span>(<a href="#420">paren_token</a>),
+                                modifier: <a href="generics.rs.html#506">TraitBoundModifier::None</a>,
                                 lifetimes: <span class="prelude-val">None</span>,
-                                <a href="../../src/syn/ty.rs.html#472">path</a>,
+                                <a href="#472">path</a>,
                             })
                         }
-                        <a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+                        <a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> {
                             dyn_token: <span class="prelude-val">None</span>,
                             bounds,
                         }) =&gt; {
                             <span class="kw">if </span>bounds.len() &gt; <span class="number">1 </span>|| bounds.trailing_punct() {
-                                <a href="../../src/syn/ty.rs.html#450">first</a> = <a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+                                <a href="#450">first</a> = <a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> {
                                     dyn_token: <span class="prelude-val">None</span>,
-                                    <a href="../../src/syn/ty.rs.html#482">bounds</a>,
+                                    <a href="#482">bounds</a>,
                                 });
                                 <span class="kw">break</span>;
                             }
-                            <span class="kw">match </span><a href="../../src/syn/ty.rs.html#482">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap() {
-                                <a href="../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(trait_bound) =&gt; {
-                                    <a href="../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<a href="../../src/syn/generics.rs.html#482-496">TraitBound</a> {
-                                        paren_token: <span class="prelude-val">Some</span>(<a href="../../src/syn/ty.rs.html#420">paren_token</a>),
-                                        ..<a href="../../src/syn/ty.rs.html#492">trait_bound</a>
+                            <span class="kw">match </span><a href="#482">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap() {
+                                <a href="generics.rs.html#477">TypeParamBound::Trait</a>(trait_bound) =&gt; {
+                                    <a href="generics.rs.html#477">TypeParamBound::Trait</a>(<a href="generics.rs.html#482-496">TraitBound</a> {
+                                        paren_token: <span class="prelude-val">Some</span>(<a href="#420">paren_token</a>),
+                                        ..<a href="#492">trait_bound</a>
                                     })
                                 }
-                                other @ <a href="../../src/syn/generics.rs.html#478">TypeParamBound::Lifetime</a>(<span class="kw">_</span>) =&gt; <a href="../../src/syn/ty.rs.html#498">other</a>,
+                                other @ <a href="generics.rs.html#478">TypeParamBound::Lifetime</a>(<span class="kw">_</span>) =&gt; <a href="#498">other</a>,
                             }
                         }
                         <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                     };
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> {
                         dyn_token: <span class="prelude-val">None</span>,
                         bounds: {
                             <span class="kw">let </span><span class="kw-2">mut </span>bounds = Punctuated::new();
-                            <a href="../../src/syn/ty.rs.html#506">bounds</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/ty.rs.html#471">first</a>);
+                            <a href="#506">bounds</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="#471">first</a>);
                             <span class="kw">while let </span><span class="prelude-val">Some</span>(plus) = input.parse()<span class="question-mark">? </span>{
                                 bounds.push_punct(plus);
                                 bounds.push_value(input.parse()<span class="question-mark">?</span>);
                             }
-                            <a href="../../src/syn/ty.rs.html#506">bounds</a>
+                            <a href="#506">bounds</a>
                         },
                     }));
                 }
             }
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#42">Type::Paren</a>(<a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
-                <a href="../../src/syn/ty.rs.html#420">paren_token</a>,
-                elem: Box::new(<a href="../../src/syn/ty.rs.html#450">first</a>),
+            <span class="prelude-val">Ok</span>(<a href="#42">Type::Paren</a>(<a href="#181-191">TypeParen</a> {
+                <a href="#420">paren_token</a>,
+                elem: Box::new(<a href="#450">first</a>),
             }))
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">fn</span>])
             || lookahead.peek(<span class="macro">Token!</span>[<span class="kw">unsafe</span>])
@@ -1779,10 +1798,10 @@
         {
             <span class="kw">let </span>allow_mut_self = <span class="bool-val">true</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>bare_fn) = parse_bare_fn(input, allow_mut_self)<span class="question-mark">? </span>{
-                <a href="../../src/syn/ty.rs.html#526">bare_fn</a>.lifetimes = <a href="../../src/syn/ty.rs.html#399">lifetimes</a>;
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#23">Type::BareFn</a>(<a href="../../src/syn/ty.rs.html#526">bare_fn</a>))
+                <a href="#526">bare_fn</a>.lifetimes = <a href="#399">lifetimes</a>;
+                <span class="prelude-val">Ok</span>(<a href="#23">Type::BareFn</a>(<a href="#526">bare_fn</a>))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#65">Type::Verbatim</a>(<a href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a href="../../src/syn/ty.rs.html#364">begin</a>, <a href="../../src/syn/ty.rs.html#363">input</a>)))
+                <span class="prelude-val">Ok</span>(<a href="#65">Type::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#364">begin</a>, <a href="#363">input</a>)))
             }
         } <span class="kw">else if </span>lookahead.peek(Ident)
             || input.peek(<span class="macro">Token!</span>[<span class="kw">super</span>])
@@ -1792,14 +1811,20 @@
             || lookahead.peek(<span class="macro">Token!</span>[::])
             || lookahead.peek(<span class="macro">Token!</span>[&lt;])
         {
-            <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[<span class="kw">dyn</span>]) {
-                <span class="kw">let </span>trait_object = TypeTraitObject::parse(input, allow_plus)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#541">trait_object</a>));
+            <span class="kw">let </span>dyn_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw">dyn</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">if </span>dyn_token.is_some() {
+                <span class="kw">let </span>star_token: <span class="prelude-ty">Option</span>&lt;<a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">*</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>bounds = TypeTraitObject::parse_bounds(input, allow_plus)<span class="question-mark">?</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if </span>star_token.is_some() {
+                    <a href="#65">Type::Verbatim</a>(<a href="verbatim.rs.html#5">verbatim::between</a>(<a href="#364">begin</a>, <a href="#363">input</a>))
+                } <span class="kw">else </span>{
+                    <a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> { <a href="#540">dyn_token</a>, <a href="#543">bounds</a> })
+                });
             }
 
-            <span class="kw">let </span>ty: <a href="../../src/syn/ty.rs.html#193-204">TypePath</a> = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>ty: <a href="#193-204">TypePath</a> = input.parse()<span class="question-mark">?</span>;
             <span class="kw">if </span>ty.qself.is_some() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#545">ty</a>));
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#46">Type::Path</a>(<a href="#551">ty</a>));
             }
 
             <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[!]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[!=]) {
@@ -1814,14 +1839,14 @@
                 }
 
                 <span class="kw">if </span>!contains_arguments {
-                    <span class="kw">let </span>bang_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[!] = input.parse()<span class="question-mark">?</span>;
+                    <span class="kw">let </span>bang_token: <a class="macro" href="await.rs.html#2">Token!</a>[!] = input.parse()<span class="question-mark">?</span>;
                     <span class="kw">let </span>(delimiter, tokens) = mac::parse_delimiter(input)<span class="question-mark">?</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#36">Type::Macro</a>(<a href="../../src/syn/ty.rs.html#159-168">TypeMacro</a> {
-                        mac: <a href="../../src/syn/mac.rs.html#10-22">Macro</a> {
-                            path: <a href="../../src/syn/ty.rs.html#545">ty</a>.path,
-                            <a href="../../src/syn/ty.rs.html#562">bang_token</a>,
-                            <a href="../../src/syn/ty.rs.html#563">delimiter</a>,
-                            <a href="../../src/syn/ty.rs.html#563">tokens</a>,
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#36">Type::Macro</a>(<a href="#159-168">TypeMacro</a> {
+                        mac: <a href="mac.rs.html#10-22">Macro</a> {
+                            path: <a href="#551">ty</a>.path,
+                            <a href="#568">bang_token</a>,
+                            <a href="#569">delimiter</a>,
+                            <a href="#569">tokens</a>,
                         },
                     }));
                 }
@@ -1829,11 +1854,11 @@
 
             <span class="kw">if </span>lifetimes.is_some() || allow_plus &amp;&amp; input.peek(<span class="macro">Token!</span>[+]) {
                 <span class="kw">let </span><span class="kw-2">mut </span>bounds = Punctuated::new();
-                <a href="../../src/syn/ty.rs.html#576">bounds</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<a href="../../src/syn/generics.rs.html#482-496">TraitBound</a> {
+                <a href="#582">bounds</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="generics.rs.html#477">TypeParamBound::Trait</a>(<a href="generics.rs.html#482-496">TraitBound</a> {
                     paren_token: <span class="prelude-val">None</span>,
-                    modifier: <a href="../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a>,
-                    <a href="../../src/syn/ty.rs.html#399">lifetimes</a>,
-                    path: <a href="../../src/syn/ty.rs.html#545">ty</a>.path,
+                    modifier: <a href="generics.rs.html#506">TraitBoundModifier::None</a>,
+                    <a href="#399">lifetimes</a>,
+                    path: <a href="#551">ty</a>.path,
                 }));
                 <span class="kw">if </span>allow_plus {
                     <span class="kw">while </span>input.peek(<span class="macro">Token!</span>[+]) {
@@ -1849,64 +1874,64 @@
                         bounds.push_value(input.parse()<span class="question-mark">?</span>);
                     }
                 }
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#59">Type::TraitObject</a>(<a href="#246-257">TypeTraitObject</a> {
                     dyn_token: <span class="prelude-val">None</span>,
-                    <a href="../../src/syn/ty.rs.html#576">bounds</a>,
+                    <a href="#582">bounds</a>,
                 }));
             }
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#545">ty</a>))
+            <span class="prelude-val">Ok</span>(<a href="#46">Type::Path</a>(<a href="#551">ty</a>))
         } <span class="kw">else if </span>lookahead.peek(token::Bracket) {
             <span class="kw">let </span>content;
-            <span class="kw">let </span>bracket_token = <a class="macro" href="../../src/syn/group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input);
-            <span class="kw">let </span>elem: <a href="../../src/syn/ty.rs.html#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>bracket_token = <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input);
+            <span class="kw">let </span>elem: <a href="#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
             <span class="kw">if </span>content.peek(<span class="macro">Token!</span>[;]) {
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#20">Type::Array</a>(<a href="../../src/syn/ty.rs.html#91-103">TypeArray</a> {
-                    <a href="../../src/syn/ty.rs.html#606">bracket_token</a>,
-                    elem: Box::new(<a href="../../src/syn/ty.rs.html#607">elem</a>),
+                <span class="prelude-val">Ok</span>(<a href="#20">Type::Array</a>(<a href="#91-103">TypeArray</a> {
+                    <a href="#612">bracket_token</a>,
+                    elem: Box::new(<a href="#613">elem</a>),
                     semi_token: content.parse()<span class="question-mark">?</span>,
                     len: content.parse()<span class="question-mark">?</span>,
                 }))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#55">Type::Slice</a>(<a href="../../src/syn/ty.rs.html#234-244">TypeSlice</a> {
-                    <a href="../../src/syn/ty.rs.html#606">bracket_token</a>,
-                    elem: Box::new(<a href="../../src/syn/ty.rs.html#607">elem</a>),
+                <span class="prelude-val">Ok</span>(<a href="#55">Type::Slice</a>(<a href="#234-244">TypeSlice</a> {
+                    <a href="#612">bracket_token</a>,
+                    elem: Box::new(<a href="#613">elem</a>),
                 }))
             }
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">*</span>]) {
-            <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<a href="../../src/syn/ty.rs.html#49">Type::Ptr</a>)
+            <a href="#363">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#49">Type::Ptr</a>)
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
-            <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<a href="../../src/syn/ty.rs.html#52">Type::Reference</a>)
+            <a href="#363">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#52">Type::Reference</a>)
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[!]) &amp;&amp; !input.peek(<span class="macro">Token!</span>[=]) {
-            <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<a href="../../src/syn/ty.rs.html#39">Type::Never</a>)
+            <a href="#363">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#39">Type::Never</a>)
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">impl</span>]) {
-            TypeImplTrait::parse(<a href="../../src/syn/ty.rs.html#363">input</a>, <a href="../../src/syn/ty.rs.html#363">allow_plus</a>).map(<a href="../../src/syn/ty.rs.html#30">Type::ImplTrait</a>)
+            TypeImplTrait::parse(<a href="#363">input</a>, <a href="#363">allow_plus</a>).map(<a href="#30">Type::ImplTrait</a>)
         } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">_</span>]) {
-            <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<a href="../../src/syn/ty.rs.html#33">Type::Infer</a>)
+            <a href="#363">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#33">Type::Infer</a>)
         } <span class="kw">else if </span>lookahead.peek(Lifetime) {
-            <a href="../../src/syn/ty.rs.html#363">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<a href="../../src/syn/ty.rs.html#59">Type::TraitObject</a>)
+            <a href="#363">input</a>.<a href="parse.rs.html#467">parse</a>().map(<a href="#59">Type::TraitObject</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../src/syn/ty.rs.html#400">lookahead</a>.<a href="../../src/syn/lookahead.rs.html#112">error</a>())
+            <span class="prelude-val">Err</span>(<a href="#400">lookahead</a>.<a href="lookahead.rs.html#112">error</a>())
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#234-244">TypeSlice</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#234-244">TypeSlice</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>content;
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#234-244">TypeSlice</a> {
-                bracket_token: <a class="macro" href="../../src/syn/group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
+            <span class="prelude-val">Ok</span>(<a href="#234-244">TypeSlice</a> {
+                bracket_token: <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
                 elem: content.parse()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#91-103">TypeArray</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#91-103">TypeArray</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>content;
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#91-103">TypeArray</a> {
-                bracket_token: <a class="macro" href="../../src/syn/group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
+            <span class="prelude-val">Ok</span>(<a href="#91-103">TypeArray</a> {
+                bracket_token: <a class="macro" href="group.rs.html#270-282">bracketed!</a>(content <span class="kw">in </span>input),
                 elem: content.parse()<span class="question-mark">?</span>,
                 semi_token: content.parse()<span class="question-mark">?</span>,
                 len: content.parse()<span class="question-mark">?</span>,
@@ -1915,32 +1940,32 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#206-218">TypePtr</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>star_token: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[<span class="kw-2">*</span>] = input.parse()<span class="question-mark">?</span>;
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#206-218">TypePtr</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>star_token: <a class="macro" href="await.rs.html#2">Token!</a>[<span class="kw-2">*</span>] = input.parse()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>lookahead = <a href="../../src/syn/ty.rs.html#664">input</a>.<a href="../../src/syn/parse.rs.html#788">lookahead1</a>();
+            <span class="kw">let </span>lookahead = <a href="#670">input</a>.<a href="parse.rs.html#788">lookahead1</a>();
             <span class="kw">let </span>(const_token, mutability) = <span class="kw">if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">const</span>]) {
                 (<span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>), <span class="prelude-val">None</span>)
             } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">mut</span>]) {
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>))
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/syn/ty.rs.html#667">lookahead</a>.<a href="../../src/syn/lookahead.rs.html#112">error</a>());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#673">lookahead</a>.<a href="lookahead.rs.html#112">error</a>());
             };
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#206-218">TypePtr</a> {
-                <a href="../../src/syn/ty.rs.html#665">star_token</a>,
-                <a href="../../src/syn/ty.rs.html#668">const_token</a>,
-                <a href="../../src/syn/ty.rs.html#668">mutability</a>,
+            <span class="prelude-val">Ok</span>(<a href="#206-218">TypePtr</a> {
+                <a href="#671">star_token</a>,
+                <a href="#674">const_token</a>,
+                <a href="#674">mutability</a>,
                 elem: Box::new(input.call(Type::without_plus)<span class="question-mark">?</span>),
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#220-232">TypeReference</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#220-232">TypeReference</a> {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#220-232">TypeReference</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#220-232">TypeReference</a> {
                 and_token: input.parse()<span class="question-mark">?</span>,
                 lifetime: input.parse()<span class="question-mark">?</span>,
                 mutability: input.parse()<span class="question-mark">?</span>,
@@ -1951,24 +1976,24 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#105-121">TypeBareFn</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#105-121">TypeBareFn</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_mut_self = <span class="bool-val">false</span>;
-            <a href="../../src/syn/ty.rs.html#706">parse_bare_fn</a>(<a href="../../src/syn/ty.rs.html#700">input</a>, <a href="../../src/syn/ty.rs.html#701">allow_mut_self</a>).map(Option::unwrap)
+            <a href="#712">parse_bare_fn</a>(<a href="#706">input</a>, <a href="#707">allow_mut_self</a>).map(Option::unwrap)
         }
     }
 
-    <span class="kw">fn </span>parse_bare_fn(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_mut_self: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/ty.rs.html#105-121">TypeBareFn</a>&gt;&gt; {
+    <span class="kw">fn </span>parse_bare_fn(input: <a href="parse.rs.html#230">ParseStream</a>, allow_mut_self: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#105-121">TypeBareFn</a>&gt;&gt; {
         <span class="kw">let </span>args;
         <span class="kw">let </span><span class="kw-2">mut </span>variadic = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>has_mut_self = <span class="bool-val">false</span>;
 
-        <span class="kw">let </span>bare_fn = <a href="../../src/syn/ty.rs.html#105-121">TypeBareFn</a> {
+        <span class="kw">let </span>bare_fn = <a href="#105-121">TypeBareFn</a> {
             lifetimes: input.parse()<span class="question-mark">?</span>,
             unsafety: input.parse()<span class="question-mark">?</span>,
             abi: input.parse()<span class="question-mark">?</span>,
             fn_token: input.parse()<span class="question-mark">?</span>,
-            paren_token: <a class="macro" href="../../src/syn/group.rs.html#137-149">parenthesized!</a>(args <span class="kw">in </span>input),
+            paren_token: <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(args <span class="kw">in </span>input),
             inputs: {
                 <span class="kw">let </span><span class="kw-2">mut </span>inputs = Punctuated::new();
 
@@ -1998,57 +2023,57 @@
                     }
                 }
 
-                <a href="../../src/syn/ty.rs.html#718">inputs</a>
+                <a href="#724">inputs</a>
             },
-            <a href="../../src/syn/ty.rs.html#708">variadic</a>,
+            <a href="#714">variadic</a>,
             output: input.call(ReturnType::without_plus)<span class="question-mark">?</span>,
         };
 
         <span class="kw">if </span>has_mut_self {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/syn/ty.rs.html#711">bare_fn</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#717">bare_fn</a>))
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#170-179">TypeNever</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#170-179">TypeNever</a> {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#170-179">TypeNever</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#170-179">TypeNever</a> {
                 bang_token: input.parse()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#148-157">TypeInfer</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#148-157">TypeInfer</a> {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#148-157">TypeInfer</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#148-157">TypeInfer</a> {
                 underscore_token: input.parse()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#259-269">TypeTuple</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>content;
-            <span class="kw">let </span>paren_token = <a class="macro" href="../../src/syn/group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
+            <span class="kw">let </span>paren_token = <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input);
 
             <span class="kw">if </span>content.is_empty() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
-                    <a href="../../src/syn/ty.rs.html#781">paren_token</a>,
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#259-269">TypeTuple</a> {
+                    <a href="#787">paren_token</a>,
                     elems: Punctuated::new(),
                 });
             }
 
-            <span class="kw">let </span>first: <a href="../../src/syn/ty.rs.html#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
-                <a href="../../src/syn/ty.rs.html#781">paren_token</a>,
+            <span class="kw">let </span>first: <a href="#5-89">Type</a> = content.parse()<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a href="#259-269">TypeTuple</a> {
+                <a href="#787">paren_token</a>,
                 elems: {
                     <span class="kw">let </span><span class="kw-2">mut </span>elems = Punctuated::new();
-                    <a href="../../src/syn/ty.rs.html#794">elems</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a href="../../src/syn/ty.rs.html#790">first</a>);
-                    <a href="../../src/syn/ty.rs.html#794">elems</a>.<a href="../../src/syn/punctuated.rs.html#180">push_punct</a>(content.parse()<span class="question-mark">?</span>);
+                    <a href="#800">elems</a>.<a href="punctuated.rs.html#164">push_value</a>(<a href="#796">first</a>);
+                    <a href="#800">elems</a>.<a href="punctuated.rs.html#180">push_punct</a>(content.parse()<span class="question-mark">?</span>);
                     <span class="kw">while </span>!content.is_empty() {
                         elems.push_value(content.parse()<span class="question-mark">?</span>);
                         <span class="kw">if </span>content.is_empty() {
@@ -2056,74 +2081,87 @@
                         }
                         elems.push_punct(content.parse()<span class="question-mark">?</span>);
                     }
-                    <a href="../../src/syn/ty.rs.html#794">elems</a>
+                    <a href="#800">elems</a>
                 },
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#159-168">TypeMacro</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#159-168">TypeMacro</a> {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#159-168">TypeMacro</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#159-168">TypeMacro</a> {
                 mac: input.parse()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#193-204">TypePath</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="kw">let </span>(qself, <span class="kw-2">mut </span>path) = path::parsing::qpath(input, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#193-204">TypePath</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>expr_style = <span class="bool-val">false</span>;
+            <span class="kw">let </span>(qself, <span class="kw-2">mut </span>path) = path::parsing::qpath(input, expr_style)<span class="question-mark">?</span>;
 
-            <span class="kw">if </span>path.segments.last().unwrap().arguments.is_empty()
+            <span class="kw">while </span>path.segments.last().unwrap().arguments.is_empty()
                 &amp;&amp; (input.peek(token::Paren) || input.peek(<span class="macro">Token!</span>[::]) &amp;&amp; input.peek3(token::Paren))
             {
                 input.parse::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[::]&gt;&gt;()<span class="question-mark">?</span>;
-                <span class="kw">let </span>args: <a href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> = input.parse()<span class="question-mark">?</span>;
-                <span class="kw">let </span>parenthesized = <a href="../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<a href="../../src/syn/ty.rs.html#828">args</a>);
-                <a href="../../src/syn/ty.rs.html#822">path</a>.segments.<a href="../../src/syn/punctuated.rs.html#100">last_mut</a>().unwrap().arguments = <a href="../../src/syn/ty.rs.html#829">parenthesized</a>;
+                <span class="kw">let </span>args: ParenthesizedGenericArguments = input.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>allow_associated_type = <span class="macro">cfg!</span>(feature = <span class="string">&quot;full&quot;</span>)
+                    &amp;&amp; <span class="kw">match </span><span class="kw-2">&amp;</span>args.output {
+                        ReturnType::Default =&gt; <span class="bool-val">true</span>,
+                        ReturnType::Type(<span class="kw">_</span>, ty) =&gt; <span class="kw">match </span><span class="kw-2">**</span>ty {
+                            <span class="comment">// TODO: probably some of the other kinds allow this too.
+                            </span>Type::Paren(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+                        },
+                    };
+                <span class="kw">let </span>parenthesized = PathArguments::Parenthesized(args);
+                path.segments.last_mut().unwrap().arguments = parenthesized;
+                <span class="kw">if </span>allow_associated_type {
+                    Path::parse_rest(input, <span class="kw-2">&amp;mut </span>path, expr_style)<span class="question-mark">?</span>;
+                }
             }
 
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#193-204">TypePath</a> { <a href="../../src/syn/ty.rs.html#822">qself</a>, <a href="../../src/syn/ty.rs.html#822">path</a> })
+            <span class="prelude-val">Ok</span>(<a href="#193-204">TypePath</a> { <a href="#829">qself</a>, <a href="#829">path</a> })
         }
     }
 
-    <span class="kw">impl </span><a href="../../src/syn/ty.rs.html#318-332">ReturnType</a> {
+    <span class="kw">impl </span><a href="#318-332">ReturnType</a> {
         <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-        </span><span class="kw">pub fn </span>without_plus(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        </span><span class="kw">pub fn </span>without_plus(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">false</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#839">input</a>, <a href="../../src/syn/ty.rs.html#840">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#858">input</a>, <a href="#859">allow_plus</a>)
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[-&gt;]) {
                 <span class="kw">let </span>arrow = input.parse()<span class="question-mark">?</span>;
                 <span class="kw">let </span>ty = ambig_ty(input, allow_plus)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#330">ReturnType::Type</a>(<a href="../../src/syn/ty.rs.html#846">arrow</a>, Box::new(<a href="../../src/syn/ty.rs.html#847">ty</a>)))
+                <span class="prelude-val">Ok</span>(<a href="#330">ReturnType::Type</a>(<a href="#865">arrow</a>, Box::new(<a href="#866">ty</a>)))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#328">ReturnType::Default</a>)
+                <span class="prelude-val">Ok</span>(<a href="#328">ReturnType::Default</a>)
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#318-332">ReturnType</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#318-332">ReturnType</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">true</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#857">input</a>, <a href="../../src/syn/ty.rs.html#858">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#876">input</a>, <a href="#877">allow_plus</a>)
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#246-257">TypeTraitObject</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">true</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#865">input</a>, <a href="../../src/syn/ty.rs.html#866">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#884">input</a>, <a href="#885">allow_plus</a>)
         }
     }
 
-    <span class="kw">fn </span>at_least_one_type(bounds: <span class="kw-2">&amp;</span>Punctuated&lt;<a href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[+]&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>at_least_one_type(bounds: <span class="kw-2">&amp;</span>Punctuated&lt;<a href="generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="await.rs.html#2">Token!</a>[+]&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">for </span>bound <span class="kw">in </span>bounds {
             <span class="kw">if let </span>TypeParamBound::Trait(<span class="kw">_</span>) = <span class="kw-2">*</span>bound {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -2132,32 +2170,32 @@
         <span class="bool-val">false
     </span>}
 
-    <span class="kw">impl </span><a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+    <span class="kw">impl </span><a href="#246-257">TypeTraitObject</a> {
         <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-        </span><span class="kw">pub fn </span>without_plus(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        </span><span class="kw">pub fn </span>without_plus(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">false</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#882">input</a>, <a href="../../src/syn/ty.rs.html#883">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#901">input</a>, <a href="#902">allow_plus</a>)
         }
 
         <span class="comment">// Only allow multiple trait references if allow_plus is true.
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#246-257">TypeTraitObject</a> {
                 dyn_token: input.parse()<span class="question-mark">?</span>,
                 bounds: <span class="self">Self</span>::parse_bounds(input, allow_plus)<span class="question-mark">?</span>,
             })
         }
 
         <span class="kw">fn </span>parse_bounds(
-            input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>,
+            input: <a href="parse.rs.html#230">ParseStream</a>,
             allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        ) -&gt; <span class="prelude-ty">Result</span>&lt;Punctuated&lt;<a href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[+]&gt;&gt; {
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;Punctuated&lt;<a href="generics.rs.html#470-480">TypeParamBound</a>, <a class="macro" href="await.rs.html#2">Token!</a>[+]&gt;&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>bounds = Punctuated::new();
             <span class="kw">loop </span>{
-                <a href="../../src/syn/ty.rs.html#899">bounds</a>.<a href="../../src/syn/punctuated.rs.html#164">push_value</a>(input.parse()<span class="question-mark">?</span>);
+                <a href="#918">bounds</a>.<a href="punctuated.rs.html#164">push_value</a>(input.parse()<span class="question-mark">?</span>);
                 <span class="kw">if </span>!(allow_plus &amp;&amp; input.peek(<span class="macro">Token!</span>[+])) {
                     <span class="kw">break</span>;
                 }
-                <a href="../../src/syn/ty.rs.html#899">bounds</a>.<a href="../../src/syn/punctuated.rs.html#180">push_punct</a>(input.parse()<span class="question-mark">?</span>);
+                <a href="#918">bounds</a>.<a href="punctuated.rs.html#180">push_punct</a>(input.parse()<span class="question-mark">?</span>);
                 <span class="kw">if </span>!(input.peek(Ident::peek_any)
                     || input.peek(<span class="macro">Token!</span>[::])
                     || input.peek(<span class="macro">Token!</span>[<span class="question-mark">?</span>])
@@ -2169,29 +2207,29 @@
             }
             <span class="comment">// Just lifetimes like `&#39;a + &#39;b` is not a TraitObject.
             </span><span class="kw">if </span>!at_least_one_type(<span class="kw-2">&amp;</span>bounds) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/syn/ty.rs.html#896">input</a>.<a href="../../src/syn/parse.rs.html#957">error</a>(<span class="string">&quot;expected at least one type&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#915">input</a>.<a href="parse.rs.html#957">error</a>(<span class="string">&quot;expected at least one type&quot;</span>));
             }
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#899">bounds</a>)
+            <span class="prelude-val">Ok</span>(<a href="#918">bounds</a>)
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#135-146">TypeImplTrait</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#135-146">TypeImplTrait</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">true</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#925">input</a>, <a href="../../src/syn/ty.rs.html#926">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#944">input</a>, <a href="#945">allow_plus</a>)
         }
     }
 
-    <span class="kw">impl </span><a href="../../src/syn/ty.rs.html#135-146">TypeImplTrait</a> {
+    <span class="kw">impl </span><a href="#135-146">TypeImplTrait</a> {
         <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-        </span><span class="kw">pub fn </span>without_plus(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        </span><span class="kw">pub fn </span>without_plus(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">false</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#933">input</a>, <a href="../../src/syn/ty.rs.html#934">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#952">input</a>, <a href="#953">allow_plus</a>)
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#135-146">TypeImplTrait</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#135-146">TypeImplTrait</a> {
                 impl_token: input.parse()<span class="question-mark">?</span>,
                 bounds: TypeTraitObject::parse_bounds(input, allow_plus)<span class="question-mark">?</span>,
             })
@@ -2199,48 +2237,48 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#123-133">TypeGroup</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#123-133">TypeGroup</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>group = <span class="kw">crate</span>::group::parse_group(input)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#123-133">TypeGroup</a> {
-                group_token: <a href="../../src/syn/ty.rs.html#949">group</a>.token,
+            <span class="prelude-val">Ok</span>(<a href="#123-133">TypeGroup</a> {
+                group_token: <a href="#968">group</a>.token,
                 elem: group.content.parse()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#181-191">TypeParen</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_plus = <span class="bool-val">false</span>;
-            <span class="self">Self</span>::parse(<a href="../../src/syn/ty.rs.html#959">input</a>, <a href="../../src/syn/ty.rs.html#960">allow_plus</a>)
+            <span class="self">Self</span>::parse(<a href="#978">input</a>, <a href="#979">allow_plus</a>)
         }
     }
 
-    <span class="kw">impl </span><a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">impl </span><a href="#181-191">TypeParen</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>, allow_plus: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>content;
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
-                paren_token: <a class="macro" href="../../src/syn/group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input),
+            <span class="prelude-val">Ok</span>(<a href="#181-191">TypeParen</a> {
+                paren_token: <a class="macro" href="group.rs.html#137-149">parenthesized!</a>(content <span class="kw">in </span>input),
                 elem: Box::new(ambig_ty(<span class="kw-2">&amp;</span>content, allow_plus)<span class="question-mark">?</span>),
             })
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#283-294">BareFnArg</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#283-294">BareFnArg</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>allow_mut_self = <span class="bool-val">false</span>;
-            <a href="../../src/syn/ty.rs.html#983-986">parse_bare_fn_arg</a>(<a href="../../src/syn/ty.rs.html#977">input</a>, <a href="../../src/syn/ty.rs.html#978">allow_mut_self</a>).map(Option::unwrap)
+            <a href="#1002-1005">parse_bare_fn_arg</a>(<a href="#996">input</a>, <a href="#997">allow_mut_self</a>).map(Option::unwrap)
         }
     }
 
     <span class="kw">fn </span>parse_bare_fn_arg(
-        input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>,
+        input: <a href="parse.rs.html#230">ParseStream</a>,
         <span class="kw-2">mut </span>allow_mut_self: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/ty.rs.html#283-294">BareFnArg</a>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="#283-294">BareFnArg</a>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>has_mut_self = <span class="bool-val">false</span>;
-        <span class="kw">let </span>arg = <a href="../../src/syn/ty.rs.html#283-294">BareFnArg</a> {
+        <span class="kw">let </span>arg = <a href="#283-294">BareFnArg</a> {
             attrs: input.call(Attribute::parse_outer)<span class="question-mark">?</span>,
             name: {
                 <span class="kw">if </span>(input.peek(Ident) || input.peek(<span class="macro">Token!</span>[<span class="kw">_</span>]) || input.peek(<span class="macro">Token!</span>[<span class="self">self</span>]))
@@ -2248,16 +2286,16 @@
                     &amp;&amp; !input.peek2(<span class="macro">Token!</span>[::])
                 {
                     <span class="kw">let </span>name = input.call(Ident::parse_any)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>colon: <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[:] = input.parse()<span class="question-mark">?</span>;
-                    <span class="prelude-val">Some</span>((<a href="../../src/syn/ty.rs.html#995">name</a>, <a href="../../src/syn/ty.rs.html#996">colon</a>))
+                    <span class="kw">let </span>colon: <a class="macro" href="await.rs.html#2">Token!</a>[:] = input.parse()<span class="question-mark">?</span>;
+                    <span class="prelude-val">Some</span>((<a href="#1014">name</a>, <a href="#1015">colon</a>))
                 } <span class="kw">else if </span>allow_mut_self
                     &amp;&amp; input.peek(<span class="macro">Token!</span>[<span class="kw-2">mut</span>])
                     &amp;&amp; input.peek2(<span class="macro">Token!</span>[<span class="self">self</span>])
                     &amp;&amp; input.peek3(<span class="macro">Token!</span>[:])
                     &amp;&amp; !input.peek3(<span class="macro">Token!</span>[::])
                 {
-                    <a href="../../src/syn/ty.rs.html#987">has_mut_self</a> = <span class="bool-val">true</span>;
-                    <a href="../../src/syn/ty.rs.html#985">allow_mut_self</a> = <span class="bool-val">false</span>;
+                    <a href="#1006">has_mut_self</a> = <span class="bool-val">true</span>;
+                    <a href="#1004">allow_mut_self</a> = <span class="bool-val">false</span>;
                     input.parse::&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;()<span class="question-mark">?</span>;
                     input.parse::&lt;<span class="macro">Token!</span>[<span class="self">self</span>]&gt;()<span class="question-mark">?</span>;
                     input.parse::&lt;<span class="macro">Token!</span>[:]&gt;()<span class="question-mark">?</span>;
@@ -2273,19 +2311,19 @@
                     TokenTree::Punct(Punct::new(<span class="string">&#39;.&#39;</span>, Spacing::Joint)),
                     TokenTree::Punct(Punct::new(<span class="string">&#39;.&#39;</span>, Spacing::Alone)),
                 ];
-                <span class="kw">let </span>tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="../../src/syn/ty.rs.html#1016">args</a>
+                <span class="kw">let </span>tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="#1035">args</a>
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<span class="kw-2">&amp;</span><a href="../../src/syn/ty.rs.html#1015">dot3</a>.spans)
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<span class="kw-2">&amp;</span><a href="#1034">dot3</a>.spans)
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw-2">mut </span>arg, span)| {
-                        <a href="../../src/syn/ty.rs.html#1024">arg</a>.set_span(<span class="kw-2">*</span><a href="../../src/syn/ty.rs.html#1024">span</a>);
-                        <a href="../../src/syn/ty.rs.html#1024">arg</a>
+                        <a href="#1043">arg</a>.set_span(<span class="kw-2">*</span><a href="#1043">span</a>);
+                        <a href="#1043">arg</a>
                     })
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="../../src/syn/ty.rs.html#65">Type::Verbatim</a>(<a href="../../src/syn/ty.rs.html#1021">tokens</a>)
+                <a href="#65">Type::Verbatim</a>(<a href="#1040">tokens</a>)
             } <span class="kw">else if </span>allow_mut_self &amp;&amp; input.peek(<span class="macro">Token!</span>[<span class="kw-2">mut</span>]) &amp;&amp; input.peek2(<span class="macro">Token!</span>[<span class="self">self</span>]) {
-                <a href="../../src/syn/ty.rs.html#987">has_mut_self</a> = <span class="bool-val">true</span>;
+                <a href="#1006">has_mut_self</a> = <span class="bool-val">true</span>;
                 input.parse::&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;()<span class="question-mark">?</span>;
-                <a href="../../src/syn/ty.rs.html#46">Type::Path</a>(<a href="../../src/syn/ty.rs.html#193-204">TypePath</a> {
+                <a href="#46">Type::Path</a>(<a href="#193-204">TypePath</a> {
                     qself: <span class="prelude-val">None</span>,
                     path: input.parse::&lt;<span class="macro">Token!</span>[<span class="self">self</span>]&gt;()<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                 })
@@ -2297,14 +2335,14 @@
         <span class="kw">if </span>has_mut_self {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/syn/ty.rs.html#988">arg</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1007">arg</a>))
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#271-281">Abi</a> {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="prelude-val">Ok</span>(<a href="../../src/syn/ty.rs.html#271-281">Abi</a> {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><a href="#271-281">Abi</a> {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="prelude-val">Ok</span>(<a href="#271-281">Abi</a> {
                 extern_token: input.parse()<span class="question-mark">?</span>,
                 name: input.parse()<span class="question-mark">?</span>,
             })
@@ -2312,10 +2350,10 @@
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../src/syn/parse.rs.html#220">Parse</a> <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../src/syn/ty.rs.html#271-281">Abi</a>&gt; {
-        <span class="kw">fn </span>parse(input: <a href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">impl </span><a href="parse.rs.html#220">Parse</a> <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="#271-281">Abi</a>&gt; {
+        <span class="kw">fn </span>parse(input: <a href="parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[<span class="kw">extern</span>]) {
-                <a href="../../src/syn/ty.rs.html#1061">input</a>.<a href="../../src/syn/parse.rs.html#467">parse</a>().map(<span class="prelude-val">Some</span>)
+                <a href="#1080">input</a>.<a href="parse.rs.html#467">parse</a>().map(<span class="prelude-val">Some</span>)
             } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
             }
@@ -2326,187 +2364,187 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;printing&quot;</span>)]
 </span><span class="kw">mod </span>printing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><a href="../../src/syn/attr.rs.html#466"><span class="kw">crate</span>::attr::FilterAttrs</a>;
-    <span class="kw">use </span><a href="../../src/syn/print.rs.html#4"><span class="kw">crate</span>::print::TokensOrDefault</a>;
+    <span class="kw">use </span><a href="attr.rs.html#466"><span class="kw">crate</span>::attr::FilterAttrs</a>;
+    <span class="kw">use </span><a href="print.rs.html#4"><span class="kw">crate</span>::print::TokensOrDefault</a>;
     <span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
     <span class="kw">use </span>quote::{<a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>, <a href="../../quote/ext/trait.TokenStreamExt.html">TokenStreamExt</a>};
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#234-244">TypeSlice</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#234-244">TypeSlice</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1081">self</a>.bracket_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1081">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1081">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1082">tokens</a>);
+            <a class="self" href="#1100">self</a>.bracket_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1100">tokens</a>, |tokens| {
+                <a class="self" href="#1100">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1101">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#91-103">TypeArray</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#91-103">TypeArray</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1090">self</a>.bracket_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1090">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1090">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1091">tokens</a>);
-                <a class="self" href="../../src/syn/ty.rs.html#1090">self</a>.semi_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1091">tokens</a>);
-                <a class="self" href="../../src/syn/ty.rs.html#1090">self</a>.len.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1091">tokens</a>);
+            <a class="self" href="#1109">self</a>.bracket_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1109">tokens</a>, |tokens| {
+                <a class="self" href="#1109">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1110">tokens</a>);
+                <a class="self" href="#1109">self</a>.semi_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1110">tokens</a>);
+                <a class="self" href="#1109">self</a>.len.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1110">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#206-218">TypePtr</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#206-218">TypePtr</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1101">self</a>.star_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1101">tokens</a>);
-            <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1101">self</a>.mutability {
-                <span class="prelude-val">Some</span>(tok) =&gt; <a href="../../src/syn/ty.rs.html#1104">tok</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1101">tokens</a>),
+            <a class="self" href="#1120">self</a>.star_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1120">tokens</a>);
+            <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#1120">self</a>.mutability {
+                <span class="prelude-val">Some</span>(tok) =&gt; <a href="#1123">tok</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1120">tokens</a>),
                 <span class="prelude-val">None </span>=&gt; {
-                    <a href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1101">self</a>.const_token).<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1101">tokens</a>);
+                    <a href="print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="#1120">self</a>.const_token).<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1120">tokens</a>);
                 }
             }
-            <a class="self" href="../../src/syn/ty.rs.html#1101">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1101">tokens</a>);
+            <a class="self" href="#1120">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1120">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#220-232">TypeReference</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#220-232">TypeReference</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1115">self</a>.and_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1115">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1115">self</a>.lifetime.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1115">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1115">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1115">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1115">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1115">tokens</a>);
+            <a class="self" href="#1134">self</a>.and_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1134">tokens</a>);
+            <a class="self" href="#1134">self</a>.lifetime.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1134">tokens</a>);
+            <a class="self" href="#1134">self</a>.mutability.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1134">tokens</a>);
+            <a class="self" href="#1134">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1134">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#105-121">TypeBareFn</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#105-121">TypeBareFn</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.lifetimes.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.unsafety.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.abi.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.fn_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.paren_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.inputs.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1130">tokens</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(variadic) = <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.variadic {
+            <a class="self" href="#1144">self</a>.lifetimes.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1144">tokens</a>);
+            <a class="self" href="#1144">self</a>.unsafety.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1144">tokens</a>);
+            <a class="self" href="#1144">self</a>.abi.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1144">tokens</a>);
+            <a class="self" href="#1144">self</a>.fn_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1144">tokens</a>);
+            <a class="self" href="#1144">self</a>.paren_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1144">tokens</a>, |tokens| {
+                <a class="self" href="#1144">self</a>.inputs.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1149">tokens</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(variadic) = <span class="kw-2">&amp;</span><a class="self" href="#1144">self</a>.variadic {
                     <span class="kw">if </span>!<span class="self">self</span>.inputs.empty_or_trailing() {
-                        <span class="kw">let </span>span = <a href="../../src/syn/ty.rs.html#1132">variadic</a>.dots.spans[<span class="number">0</span>];
-                        <a class="macro" href="../../src/syn/await.rs.html#2">Token!</a>[,](<a href="../../src/syn/ty.rs.html#1134">span</a>).<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1130">tokens</a>);
+                        <span class="kw">let </span>span = <a href="#1151">variadic</a>.dots.spans[<span class="number">0</span>];
+                        <a class="macro" href="await.rs.html#2">Token!</a>[,](<a href="#1153">span</a>).<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1149">tokens</a>);
                     }
-                    <a href="../../src/syn/ty.rs.html#1132">variadic</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1130">tokens</a>);
+                    <a href="#1151">variadic</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1149">tokens</a>);
                 }
             });
-            <a class="self" href="../../src/syn/ty.rs.html#1125">self</a>.output.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1125">tokens</a>);
+            <a class="self" href="#1144">self</a>.output.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1144">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#170-179">TypeNever</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#170-179">TypeNever</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1146">self</a>.bang_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1146">tokens</a>);
+            <a class="self" href="#1165">self</a>.bang_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1165">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#259-269">TypeTuple</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#259-269">TypeTuple</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1153">self</a>.paren_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1153">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1153">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1154">tokens</a>);
+            <a class="self" href="#1172">self</a>.paren_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1172">tokens</a>, |tokens| {
+                <a class="self" href="#1172">self</a>.elems.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1173">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#193-204">TypePath</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#193-204">TypePath</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/path.rs.html#838">path::printing::print_path</a>(<a href="../../src/syn/ty.rs.html#1162">tokens</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1162">self</a>.qself, <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1162">self</a>.path);
+            <a href="path.rs.html#822">path::printing::print_path</a>(<a href="#1181">tokens</a>, <span class="kw-2">&amp;</span><a class="self" href="#1181">self</a>.qself, <span class="kw-2">&amp;</span><a class="self" href="#1181">self</a>.path);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#246-257">TypeTraitObject</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#246-257">TypeTraitObject</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1169">self</a>.dyn_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1169">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1169">self</a>.bounds.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1169">tokens</a>);
+            <a class="self" href="#1188">self</a>.dyn_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1188">tokens</a>);
+            <a class="self" href="#1188">self</a>.bounds.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1188">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#135-146">TypeImplTrait</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#135-146">TypeImplTrait</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1177">self</a>.impl_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1177">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1177">self</a>.bounds.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1177">tokens</a>);
+            <a class="self" href="#1196">self</a>.impl_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1196">tokens</a>);
+            <a class="self" href="#1196">self</a>.bounds.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1196">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#123-133">TypeGroup</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#123-133">TypeGroup</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1185">self</a>.group_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1185">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1185">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1186">tokens</a>);
+            <a class="self" href="#1204">self</a>.group_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1204">tokens</a>, |tokens| {
+                <a class="self" href="#1204">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1205">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#181-191">TypeParen</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#181-191">TypeParen</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1194">self</a>.paren_token.<a href="../../src/syn/token.rs.html#756-761">surround</a>(<a href="../../src/syn/ty.rs.html#1194">tokens</a>, |tokens| {
-                <a class="self" href="../../src/syn/ty.rs.html#1194">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1195">tokens</a>);
+            <a class="self" href="#1213">self</a>.paren_token.<a href="token.rs.html#756-761">surround</a>(<a href="#1213">tokens</a>, |tokens| {
+                <a class="self" href="#1213">self</a>.elem.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1214">tokens</a>);
             });
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#148-157">TypeInfer</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#148-157">TypeInfer</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1203">self</a>.underscore_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1203">tokens</a>);
+            <a class="self" href="#1222">self</a>.underscore_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1222">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#159-168">TypeMacro</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#159-168">TypeMacro</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1210">self</a>.mac.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1210">tokens</a>);
+            <a class="self" href="#1229">self</a>.mac.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1229">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#318-332">ReturnType</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#318-332">ReturnType</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">match </span><span class="self"><a href="../../src/syn/ty.rs.html#1217">self</a> </span>{
-                <a href="../../src/syn/ty.rs.html#328">ReturnType::Default</a> =&gt; {}
-                <a href="../../src/syn/ty.rs.html#330">ReturnType::Type</a>(arrow, ty) =&gt; {
-                    <a href="../../src/syn/ty.rs.html#1220">arrow</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1217">tokens</a>);
-                    <a href="../../src/syn/ty.rs.html#1220">ty</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1217">tokens</a>);
+            <span class="kw">match </span><span class="self"><a href="#1236">self</a> </span>{
+                <a href="#328">ReturnType::Default</a> =&gt; {}
+                <a href="#330">ReturnType::Type</a>(arrow, ty) =&gt; {
+                    <a href="#1239">arrow</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1236">tokens</a>);
+                    <a href="#1239">ty</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1236">tokens</a>);
                 }
             }
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#283-294">BareFnArg</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#283-294">BareFnArg</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/ty.rs.html#1230">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/ty.rs.html#1230">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((name, colon)) = <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/ty.rs.html#1230">self</a>.name {
-                <a href="../../src/syn/ty.rs.html#1232">name</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1230">tokens</a>);
-                <a href="../../src/syn/ty.rs.html#1232">colon</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1230">tokens</a>);
+            <a href="#1249">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#1249">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((name, colon)) = <span class="kw-2">&amp;</span><a class="self" href="#1249">self</a>.name {
+                <a href="#1251">name</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1249">tokens</a>);
+                <a href="#1251">colon</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1249">tokens</a>);
             }
-            <a class="self" href="../../src/syn/ty.rs.html#1230">self</a>.ty.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1230">tokens</a>);
+            <a class="self" href="#1249">self</a>.ty.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1249">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#296-316">Variadic</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#296-316">Variadic</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a href="../../src/syn/ty.rs.html#1242">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/ty.rs.html#1242">self</a>.attrs.<a href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/ty.rs.html#1242">self</a>.dots.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1242">tokens</a>);
+            <a href="#1261">tokens</a>.<a href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="#1261">self</a>.attrs.<a href="attr.rs.html#469">outer</a>());
+            <a class="self" href="#1261">self</a>.dots.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1261">tokens</a>);
         }
     }
 
     <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
-    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/syn/ty.rs.html#271-281">Abi</a> {
+    </span><span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#271-281">Abi</a> {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/ty.rs.html#1250">self</a>.extern_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1250">tokens</a>);
-            <a class="self" href="../../src/syn/ty.rs.html#1250">self</a>.name.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/syn/ty.rs.html#1250">tokens</a>);
+            <a class="self" href="#1269">self</a>.extern_token.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1269">tokens</a>);
+            <a class="self" href="#1269">self</a>.name.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#1269">tokens</a>);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

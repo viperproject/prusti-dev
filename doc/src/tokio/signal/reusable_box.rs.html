@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/signal/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -247,14 +247,14 @@
     </span><span class="kw">where
         </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>boxed: Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; = Box::new(<a href="../../../src/tokio/signal/reusable_box.rs.html#19">future</a>);
+        <span class="kw">let </span>boxed: Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; = Box::new(<a href="#19">future</a>);
 
-        <span class="kw">let </span>boxed = Box::into_raw(<a href="../../../src/tokio/signal/reusable_box.rs.html#23">boxed</a>);
+        <span class="kw">let </span>boxed = Box::into_raw(<a href="#23">boxed</a>);
 
         <span class="comment">// SAFETY: Box::into_raw does not return null pointers.
-        </span><span class="kw">let </span>boxed = <span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="../../../src/tokio/signal/reusable_box.rs.html#25">boxed</a>) };
+        </span><span class="kw">let </span>boxed = <span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="#25">boxed</a>) };
 
-        <span class="self">Self </span>{ <a href="../../../src/tokio/signal/reusable_box.rs.html#28">boxed</a> }
+        <span class="self">Self </span>{ <a href="#28">boxed</a> }
     }
 
     <span class="doccomment">/// Replaces the future currently stored in this box.
@@ -265,8 +265,8 @@
     <span class="kw">where
         </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(future) = <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#51-53">try_set</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#37">future</a>) {
-            <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a> </span>= <span class="self">Self</span>::new(<a href="../../../src/tokio/signal/reusable_box.rs.html#41">future</a>);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(future) = <a class="self" href="#37">self</a>.<a href="#51-53">try_set</a>(<a href="#37">future</a>) {
+            <span class="kw-2">*</span><span class="self"><a href="#37">self</a> </span>= <span class="self">Self</span>::new(<a href="#41">future</a>);
         }
     }
 
@@ -281,19 +281,19 @@
     {
         <span class="comment">// SAFETY: The pointer is not dangling.
         </span><span class="kw">let </span>self_layout = {
-            <span class="kw">let </span>dyn_future: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>) = <span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.boxed.as_ref() };
-            Layout::for_value(<a href="../../../src/tokio/signal/reusable_box.rs.html#57">dyn_future</a>)
+            <span class="kw">let </span>dyn_future: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>) = <span class="kw">unsafe </span>{ <a class="self" href="#51">self</a>.boxed.as_ref() };
+            Layout::for_value(<a href="#57">dyn_future</a>)
         };
 
         <span class="kw">if </span>Layout::new::&lt;F&gt;() == self_layout {
             <span class="comment">// SAFETY: We just checked that the layout of F is correct.
             </span><span class="kw">unsafe </span>{
-                <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#79-81">set_same_layout</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>);
+                <a class="self" href="#51">self</a>.<a href="#79-81">set_same_layout</a>(<a href="#51">future</a>);
             }
 
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>)
+            <span class="prelude-val">Err</span>(<a href="#51">future</a>)
         }
     }
 
@@ -309,23 +309,23 @@
     {
         <span class="comment">// Drop the existing future, catching any panics.
         </span><span class="kw">let </span>result = panic::catch_unwind(AssertUnwindSafe(|| {
-            <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed.as_ptr());
+            <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a class="self" href="#79">self</a>.boxed.as_ptr());
         }));
 
         <span class="comment">// Overwrite the future behind the pointer. This is safe because the
         // allocation was allocated with the same size and alignment as the type F.
-        </span><span class="kw">let </span>self_ptr: <span class="kw-2">*mut </span>F = <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>F;
-        ptr::write(<a href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>, <a href="../../../src/tokio/signal/reusable_box.rs.html#79">future</a>);
+        </span><span class="kw">let </span>self_ptr: <span class="kw-2">*mut </span>F = <a class="self" href="#79">self</a>.boxed.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>F;
+        ptr::write(<a href="#90">self_ptr</a>, <a href="#79">future</a>);
 
         <span class="comment">// Update the vtable of self.boxed. The pointer is not null because we
         // just got it from self.boxed, which is not null.
-        </span><a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed = NonNull::new_unchecked(<a href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>);
+        </span><a class="self" href="#79">self</a>.boxed = NonNull::new_unchecked(<a href="#90">self_ptr</a>);
 
         <span class="comment">// If the old future&#39;s destructor panicked, resume unwinding.
-        </span><span class="kw">match </span><a href="../../../src/tokio/signal/reusable_box.rs.html#84">result</a> {
+        </span><span class="kw">match </span><a href="#84">result</a> {
             <span class="prelude-val">Ok</span>(()) =&gt; {}
             <span class="prelude-val">Err</span>(payload) =&gt; {
-                <a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#100">payload</a>);
+                <a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="#100">payload</a>);
             }
         }
     }
@@ -334,12 +334,12 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_pin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>)&gt; {
         <span class="comment">// SAFETY: The user of this box cannot move the box, and we do not move it
         // either.
-        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#107">self</a>.boxed.as_mut()) }
+        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="#107">self</a>.boxed.as_mut()) }
     }
 
     <span class="doccomment">/// Polls the future stored inside this box.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
-        <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#114">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#114">cx</a>)
+        <a class="self" href="#114">self</a>.<a href="#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#114">cx</a>)
     }
 }
 
@@ -348,7 +348,7 @@
 
     <span class="doccomment">/// Polls the future stored inside this box.
     </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
-        Pin::into_inner(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#123">self</a>).<a href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#123">cx</a>)
+        Pin::into_inner(<a class="self" href="#123">self</a>).<a href="#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#123">cx</a>)
     }
 }
 
@@ -366,14 +366,14 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#140">self</a>.boxed.as_ptr()));
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a class="self" href="#140">self</a>.boxed.as_ptr()));
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio/signal/reusable_box.rs.html#148">f</a>.debug_struct(<span class="string">&quot;ReusableBoxFuture&quot;</span>).finish()
+        <a href="#148">f</a>.debug_struct(<span class="string">&quot;ReusableBoxFuture&quot;</span>).finish()
     }
 }
 
@@ -453,4 +453,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

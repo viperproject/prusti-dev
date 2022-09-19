@@ -1396,11 +1396,11 @@
 <span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
 
-<span class="kw">use </span><a href="../../../src/futures_channel/mpsc/queue.rs.html#74"><span class="kw">crate</span>::mpsc::queue::Queue</a>;
+<span class="kw">use </span><a href="queue.rs.html#74"><span class="kw">crate</span>::mpsc::queue::Queue</a>;
 
-<span class="kw">mod </span><a href="../../../src/futures_channel/mpsc/queue.rs.html#28-176">queue</a>;
+<span class="kw">mod </span><a href="queue.rs.html#28-176">queue</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
-</span><span class="kw">mod </span><a href="../../../src/futures_channel/mpsc/sink_impl.rs.html#1-73">sink_impl</a>;
+</span><span class="kw">mod </span><a href="sink_impl.rs.html#1-73">sink_impl</a>;
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">struct </span>UnboundedSenderInner&lt;T&gt; {
@@ -1416,7 +1416,7 @@
     <span class="comment">// Handle to the task that is blocked on this sender. This handle is sent
     // to the receiver half in order to be notified when the sender becomes
     // unblocked.
-    </span>sender_task: Arc&lt;Mutex&lt;<a href="../../../src/futures_channel/mpsc/mod.rs.html#328">SenderTask</a>&gt;&gt;,
+    </span>sender_task: Arc&lt;Mutex&lt;<a href="#328">SenderTask</a>&gt;&gt;,
 
     <span class="comment">// `true` if the sender might be blocked. This is an optimization to avoid
     // having to lock the mutex most of the time.
@@ -1440,7 +1440,7 @@
 </span><span class="kw">pub struct </span>UnboundedSender&lt;T&gt;(<span class="prelude-ty">Option</span>&lt;UnboundedSenderInner&lt;T&gt;&gt;);
 
 <span class="kw">trait </span>AssertKinds: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {}
-<span class="kw">impl </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#134">AssertKinds</a> <span class="kw">for </span>UnboundedSender&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {}
+<span class="kw">impl </span><a href="#134">AssertKinds</a> <span class="kw">for </span>UnboundedSender&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {}
 
 <span class="doccomment">/// The receiving end of a bounded mpsc channel.
 ///
@@ -1464,13 +1464,13 @@
 <span class="doccomment">/// The error type for [`Sender`s](Sender) used as `Sink`s.
 </span><span class="attribute">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>SendError {
-    kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#170">SendErrorKind</a>,
+    kind: <a href="#170">SendErrorKind</a>,
 }
 
 <span class="doccomment">/// The error type returned from [`try_send`](Sender::try_send).
 </span><span class="attribute">#[derive(Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>TrySendError&lt;T&gt; {
-    err: <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>,
+    err: <a href="#158">SendError</a>,
     val: T,
 }
 
@@ -1485,31 +1485,31 @@
     _priv: (),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#158">SendError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if </span><span class="self">self</span>.is_full() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#181">f</a>, <span class="string">&quot;send failed because channel is full&quot;</span>)
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#181">f</a>, <span class="string">&quot;send failed because channel is full&quot;</span>)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#181">f</a>, <span class="string">&quot;send failed because receiver is gone&quot;</span>)
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#181">f</a>, <span class="string">&quot;send failed because receiver is gone&quot;</span>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#158">SendError</a> {}
 
-<span class="kw">impl </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> {
+<span class="kw">impl </span><a href="#158">SendError</a> {
     <span class="doccomment">/// Returns `true` if this error is a result of the channel being full.
     </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#194">self</a>.kind {
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#171">SendErrorKind::Full</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><a class="self" href="#194">self</a>.kind {
+            <a href="#171">SendErrorKind::Full</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if this error is a result of the receiver being dropped.
     </span><span class="kw">pub fn </span>is_disconnected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#202">self</a>.kind {
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><a class="self" href="#202">self</a>.kind {
+            <a href="#172">SendErrorKind::Disconnected</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1517,16 +1517,16 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TrySendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#211">f</a>.debug_struct(<span class="string">&quot;TrySendError&quot;</span>).field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#211">self</a>.err.kind).finish()
+        <a href="#211">f</a>.debug_struct(<span class="string">&quot;TrySendError&quot;</span>).field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#211">self</a>.err.kind).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>TrySendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if </span><span class="self">self</span>.is_full() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#217">f</a>, <span class="string">&quot;send failed because channel is full&quot;</span>)
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#217">f</a>, <span class="string">&quot;send failed because channel is full&quot;</span>)
         } <span class="kw">else </span>{
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#217">f</a>, <span class="string">&quot;send failed because receiver is gone&quot;</span>)
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#217">f</a>, <span class="string">&quot;send failed because receiver is gone&quot;</span>)
         }
     }
 }
@@ -1536,38 +1536,38 @@
 <span class="kw">impl</span>&lt;T&gt; TrySendError&lt;T&gt; {
     <span class="doccomment">/// Returns `true` if this error is a result of the channel being full.
     </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#230">self</a>.err.<a href="../../../src/futures_channel/mpsc/mod.rs.html#194">is_full</a>()
+        <a class="self" href="#230">self</a>.err.<a href="#194">is_full</a>()
     }
 
     <span class="doccomment">/// Returns `true` if this error is a result of the receiver being dropped.
     </span><span class="kw">pub fn </span>is_disconnected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#235">self</a>.err.<a href="../../../src/futures_channel/mpsc/mod.rs.html#202">is_disconnected</a>()
+        <a class="self" href="#235">self</a>.err.<a href="#202">is_disconnected</a>()
     }
 
     <span class="doccomment">/// Returns the message that was attempted to be sent but failed.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#240">self</a>.val
+        <a class="self" href="#240">self</a>.val
     }
 
     <span class="doccomment">/// Drops the message and converts into a `SendError`.
-    </span><span class="kw">pub fn </span>into_send_error(<span class="self">self</span>) -&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#245">self</a>.err
+    </span><span class="kw">pub fn </span>into_send_error(<span class="self">self</span>) -&gt; <a href="#158">SendError</a> {
+        <a class="self" href="#245">self</a>.err
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#176">TryRecvError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#251">f</a>.debug_tuple(<span class="string">&quot;TryRecvError&quot;</span>).finish()
+        <a href="#251">f</a>.debug_tuple(<span class="string">&quot;TryRecvError&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#176">TryRecvError</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#257">f</a>, <span class="string">&quot;receiver channel is empty&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#257">f</a>, <span class="string">&quot;receiver channel is empty&quot;</span>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="#176">TryRecvError</a> {}
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">struct </span>UnboundedInner&lt;T&gt; {
@@ -1598,7 +1598,7 @@
     </span>message_queue: Queue&lt;T&gt;,
 
     <span class="comment">// Atomic, FIFO queue used to send parked task handles to the receiver.
-    </span>parked_queue: Queue&lt;Arc&lt;Mutex&lt;<a href="../../../src/futures_channel/mpsc/mod.rs.html#328">SenderTask</a>&gt;&gt;&gt;,
+    </span>parked_queue: Queue&lt;Arc&lt;Mutex&lt;<a href="#328">SenderTask</a>&gt;&gt;&gt;,
 
     <span class="comment">// Number of senders in existence
     </span>num_senders: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
@@ -1622,14 +1622,14 @@
 
 <span class="comment">// When a new channel is created, it is created in the open state with no
 // pending messages.
-</span><span class="kw">const </span>INIT_STATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>;
+</span><span class="kw">const </span>INIT_STATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#313">OPEN_MASK</a>;
 
 <span class="comment">// The maximum number of messages that a channel can track is `usize::max_value() &gt;&gt; 1`
-</span><span class="kw">const </span>MAX_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = !(<a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>);
+</span><span class="kw">const </span>MAX_CAPACITY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = !(<a href="#313">OPEN_MASK</a>);
 
 <span class="comment">// The maximum requested buffer size must be less than the maximum capacity of
 // a channel. This is because each sender gets a guaranteed slot.
-</span><span class="kw">const </span>MAX_BUFFER: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#320">MAX_CAPACITY</a> &gt;&gt; <span class="number">1</span>;
+</span><span class="kw">const </span>MAX_BUFFER: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="#320">MAX_CAPACITY</a> &gt;&gt; <span class="number">1</span>;
 
 <span class="comment">// Sent to the consumer to wake up blocked producers
 </span><span class="attribute">#[derive(Debug)]
@@ -1638,16 +1638,16 @@
     is_parked: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#328">SenderTask</a> {
+<span class="kw">impl </span><a href="#328">SenderTask</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ task: <span class="prelude-val">None</span>, is_parked: <span class="bool-val">false </span>}
     }
 
     <span class="kw">fn </span>notify(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#338">self</a>.is_parked = <span class="bool-val">false</span>;
+        <a class="self" href="#338">self</a>.is_parked = <span class="bool-val">false</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#338">self</a>.task.take() {
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#341">task</a>.wake();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a class="self" href="#338">self</a>.task.take() {
+            <a href="#341">task</a>.wake();
         }
     }
 }
@@ -1668,24 +1668,24 @@
     // size permitted by the system.
     </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buffer &lt; MAX_BUFFER, <span class="string">&quot;requested buffer size too large&quot;</span>);
 
-    <span class="kw">let </span>inner = Arc::new(<a href="../../../src/futures_channel/mpsc/mod.rs.html#281">BoundedInner</a> {
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#358">buffer</a>,
-        state: AtomicUsize::new(<a href="../../../src/futures_channel/mpsc/mod.rs.html#317">INIT_STATE</a>),
+    <span class="kw">let </span>inner = Arc::new(<a href="#281">BoundedInner</a> {
+        <a href="#358">buffer</a>,
+        state: AtomicUsize::new(<a href="#317">INIT_STATE</a>),
         message_queue: Queue::new(),
         parked_queue: Queue::new(),
         num_senders: AtomicUsize::new(<span class="number">1</span>),
         recv_task: AtomicWaker::new(),
     });
 
-    <span class="kw">let </span>tx = <a href="../../../src/futures_channel/mpsc/mod.rs.html#104">BoundedSenderInner</a> {
-        inner: <a href="../../../src/futures_channel/mpsc/mod.rs.html#363">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>tx = <a href="#104">BoundedSenderInner</a> {
+        inner: <a href="#363">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         sender_task: Arc::new(Mutex::new(SenderTask::new())),
         maybe_parked: <span class="bool-val">false</span>,
     };
 
-    <span class="kw">let </span>rx = <a href="../../../src/futures_channel/mpsc/mod.rs.html#141">Receiver</a> { inner: <span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#363">inner</a>) };
+    <span class="kw">let </span>rx = <a href="#141">Receiver</a> { inner: <span class="prelude-val">Some</span>(<a href="#363">inner</a>) };
 
-    (<a href="../../../src/futures_channel/mpsc/mod.rs.html#126">Sender</a>(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#372">tx</a>)), <a href="../../../src/futures_channel/mpsc/mod.rs.html#378">rx</a>)
+    (<a href="#126">Sender</a>(<span class="prelude-val">Some</span>(<a href="#372">tx</a>)), <a href="#378">rx</a>)
 }
 
 <span class="doccomment">/// Creates an unbounded mpsc channel for communicating between asynchronous
@@ -1699,18 +1699,18 @@
 /// the channel. Using an `unbounded` channel has the ability of causing the
 /// process to run out of memory. In this case, the process will be aborted.
 </span><span class="kw">pub fn </span>unbounded&lt;T&gt;() -&gt; (UnboundedSender&lt;T&gt;, UnboundedReceiver&lt;T&gt;) {
-    <span class="kw">let </span>inner = Arc::new(<a href="../../../src/futures_channel/mpsc/mod.rs.html#265">UnboundedInner</a> {
-        state: AtomicUsize::new(<a href="../../../src/futures_channel/mpsc/mod.rs.html#317">INIT_STATE</a>),
+    <span class="kw">let </span>inner = Arc::new(<a href="#265">UnboundedInner</a> {
+        state: AtomicUsize::new(<a href="#317">INIT_STATE</a>),
         message_queue: Queue::new(),
         num_senders: AtomicUsize::new(<span class="number">1</span>),
         recv_task: AtomicWaker::new(),
     });
 
-    <span class="kw">let </span>tx = <a href="../../../src/futures_channel/mpsc/mod.rs.html#98">UnboundedSenderInner</a> { inner: <a href="../../../src/futures_channel/mpsc/mod.rs.html#394">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+    <span class="kw">let </span>tx = <a href="#98">UnboundedSenderInner</a> { inner: <a href="#394">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
 
-    <span class="kw">let </span>rx = <a href="../../../src/futures_channel/mpsc/mod.rs.html#149">UnboundedReceiver</a> { inner: <span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#394">inner</a>) };
+    <span class="kw">let </span>rx = <a href="#149">UnboundedReceiver</a> { inner: <span class="prelude-val">Some</span>(<a href="#394">inner</a>) };
 
-    (<a href="../../../src/futures_channel/mpsc/mod.rs.html#132">UnboundedSender</a>(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#401">tx</a>)), <a href="../../../src/futures_channel/mpsc/mod.rs.html#403">rx</a>)
+    (<a href="#132">UnboundedSender</a>(<span class="prelude-val">Some</span>(<a href="#401">tx</a>)), <a href="#403">rx</a>)
 }
 
 <span class="comment">/*
@@ -1720,31 +1720,31 @@
  */
 
 </span><span class="kw">impl</span>&lt;T&gt; UnboundedSenderInner&lt;T&gt; {
-    <span class="kw">fn </span>poll_ready_nb(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt;&gt; {
-        <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#415">self</a>.inner.state.load(SeqCst));
+    <span class="kw">fn </span>poll_ready_nb(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt;&gt; {
+        <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a class="self" href="#415">self</a>.inner.state.load(SeqCst));
         <span class="kw">if </span>state.is_open {
             Poll::Ready(<span class="prelude-val">Ok</span>(()))
         } <span class="kw">else </span>{
-            Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> }))
+            Poll::Ready(<span class="prelude-val">Err</span>(<a href="#158">SendError</a> { kind: <a href="#172">SendErrorKind::Disconnected</a> }))
         }
     }
 
     <span class="comment">// Push message to the queue and signal to the receiver
     </span><span class="kw">fn </span>queue_push_and_signal(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) {
         <span class="comment">// Push the message onto the message queue
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#425">self</a>.inner.message_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#97">push</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#425">msg</a>);
+        </span><a class="self" href="#425">self</a>.inner.message_queue.<a href="queue.rs.html#97">push</a>(<a href="#425">msg</a>);
 
         <span class="comment">// Signal to the receiver that a message has been enqueued. If the
         // receiver is parked, this will unpark the task.
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#425">self</a>.inner.recv_task.wake();
+        </span><a class="self" href="#425">self</a>.inner.recv_task.wake();
     }
 
     <span class="comment">// Increment the number of queued messages. Returns the resulting number.
     </span><span class="kw">fn </span>inc_num_messages(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#435">self</a>.inner.state.load(SeqCst);
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#435">self</a>.inner.state.load(SeqCst);
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#436">curr</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#1296">decode_state</a>(<a href="#436">curr</a>);
 
             <span class="comment">// The receiver end closed the channel.
             </span><span class="kw">if </span>!state.is_open {
@@ -1760,36 +1760,36 @@
                     exhausted; sending this messages would overflow the state&quot;
             </span>);
 
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#439">state</a>.num_messages += <span class="number">1</span>;
+            <a href="#439">state</a>.num_messages += <span class="number">1</span>;
 
-            <span class="kw">let </span>next = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1300">encode_state</a>(<span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#439">state</a>);
-            <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#435">self</a>.inner.state.compare_exchange(<a href="../../../src/futures_channel/mpsc/mod.rs.html#436">curr</a>, <a href="../../../src/futures_channel/mpsc/mod.rs.html#457">next</a>, SeqCst, SeqCst) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#439">state</a>.num_messages),
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#436">curr</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#460">actual</a>,
+            <span class="kw">let </span>next = <a href="#1300">encode_state</a>(<span class="kw-2">&amp;</span><a href="#439">state</a>);
+            <span class="kw">match </span><a class="self" href="#435">self</a>.inner.state.compare_exchange(<a href="#436">curr</a>, <a href="#457">next</a>, SeqCst, SeqCst) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#439">state</a>.num_messages),
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#436">curr</a> = <a href="#460">actual</a>,
             }
         }
     }
 
     <span class="doccomment">/// Returns whether the senders send to the same receiver.
     </span><span class="kw">fn </span>same_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#466">self</a>.inner, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#466">other</a>.inner)
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#466">self</a>.inner, <span class="kw-2">&amp;</span><a href="#466">other</a>.inner)
     }
 
     <span class="doccomment">/// Returns whether the sender send to this receiver.
     </span><span class="kw">fn </span>is_connected_to(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Arc&lt;UnboundedInner&lt;T&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#471">self</a>.inner, <a href="../../../src/futures_channel/mpsc/mod.rs.html#471">inner</a>)
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#471">self</a>.inner, <a href="#471">inner</a>)
     }
 
     <span class="doccomment">/// Returns pointer to the Arc containing sender
     ///
     /// The returned pointer is not referenced and should be only used for hashing!
     </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>UnboundedInner&lt;T&gt; {
-        <span class="kw-2">&amp;*</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#478">self</a>.inner
+        <span class="kw-2">&amp;*</span><a class="self" href="#478">self</a>.inner
     }
 
     <span class="doccomment">/// Returns whether this channel is closed without needing a context.
     </span><span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#483">self</a>.inner.state.load(SeqCst)).is_open
+        !<a href="#1296">decode_state</a>(<a class="self" href="#483">self</a>.inner.state.load(SeqCst)).is_open
     }
 
     <span class="doccomment">/// Closes this channel from the sender side, preventing any new messages.
@@ -1798,8 +1798,8 @@
         // and we don&#39;t want to check for capacity, so skip
         // that stuff from `do_send`.
 
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#488">self</a>.inner.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1250">set_closed</a>();
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#488">self</a>.inner.recv_task.wake();
+        </span><a class="self" href="#488">self</a>.inner.<a href="#1250">set_closed</a>();
+        <a class="self" href="#488">self</a>.inner.recv_task.wake();
     }
 }
 
@@ -1809,11 +1809,11 @@
     </span><span class="kw">fn </span>try_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
         <span class="comment">// If the sender is currently blocked, reject the message
         </span><span class="kw">if </span>!<span class="self">self</span>.poll_unparked(<span class="prelude-val">None</span>).is_ready() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#164">TrySendError</a> { err: <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#171">SendErrorKind::Full</a> }, val: <a href="../../../src/futures_channel/mpsc/mod.rs.html#501">msg</a> });
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#164">TrySendError</a> { err: <a href="#158">SendError</a> { kind: <a href="#171">SendErrorKind::Full</a> }, val: <a href="#501">msg</a> });
         }
 
         <span class="comment">// The channel has capacity to accept the message, so send it
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#501">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#513">do_send_b</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#501">msg</a>)
+        </span><a class="self" href="#501">self</a>.<a href="#513">do_send_b</a>(<a href="#501">msg</a>)
     }
 
     <span class="comment">// Do the send without failing.
@@ -1830,16 +1830,16 @@
         // `None` is returned in the case that the channel has been closed by the
         // receiver. This happens when `Receiver::close` is called or the
         // receiver is dropped.
-        </span><span class="kw">let </span>park_self = <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#513">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#566">inc_num_messages</a>() {
+        </span><span class="kw">let </span>park_self = <span class="kw">match </span><a class="self" href="#513">self</a>.<a href="#566">inc_num_messages</a>() {
             <span class="prelude-val">Some</span>(num_messages) =&gt; {
                 <span class="comment">// Block if the current number of pending messages has exceeded
                 // the configured buffer size
-                </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#526">num_messages</a> &gt; <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#513">self</a>.inner.buffer
+                </span><a href="#526">num_messages</a> &gt; <a class="self" href="#513">self</a>.inner.buffer
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#164">TrySendError</a> {
-                    err: <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> },
-                    val: <a href="../../../src/futures_channel/mpsc/mod.rs.html#513">msg</a>,
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#164">TrySendError</a> {
+                    err: <a href="#158">SendError</a> { kind: <a href="#172">SendErrorKind::Disconnected</a> },
+                    val: <a href="#513">msg</a>,
                 })
             }
         };
@@ -1852,10 +1852,10 @@
         // maintain internal consistency, a blank message is pushed onto the
         // parked task queue.
         </span><span class="kw">if </span>park_self {
-            <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#513">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#596">park</a>();
+            <a class="self" href="#513">self</a>.<a href="#596">park</a>();
         }
 
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#513">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#556">queue_push_and_signal</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#513">msg</a>);
+        <a class="self" href="#513">self</a>.<a href="#556">queue_push_and_signal</a>(<a href="#513">msg</a>);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1863,19 +1863,19 @@
     <span class="comment">// Push message to the queue and signal to the receiver
     </span><span class="kw">fn </span>queue_push_and_signal(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) {
         <span class="comment">// Push the message onto the message queue
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#556">self</a>.inner.message_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#97">push</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#556">msg</a>);
+        </span><a class="self" href="#556">self</a>.inner.message_queue.<a href="queue.rs.html#97">push</a>(<a href="#556">msg</a>);
 
         <span class="comment">// Signal to the receiver that a message has been enqueued. If the
         // receiver is parked, this will unpark the task.
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#556">self</a>.inner.recv_task.wake();
+        </span><a class="self" href="#556">self</a>.inner.recv_task.wake();
     }
 
     <span class="comment">// Increment the number of queued messages. Returns the resulting number.
     </span><span class="kw">fn </span>inc_num_messages(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#566">self</a>.inner.state.load(SeqCst);
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#566">self</a>.inner.state.load(SeqCst);
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#567">curr</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#1296">decode_state</a>(<a href="#567">curr</a>);
 
             <span class="comment">// The receiver end closed the channel.
             </span><span class="kw">if </span>!state.is_open {
@@ -1891,31 +1891,31 @@
                     exhausted; sending this messages would overflow the state&quot;
             </span>);
 
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#570">state</a>.num_messages += <span class="number">1</span>;
+            <a href="#570">state</a>.num_messages += <span class="number">1</span>;
 
-            <span class="kw">let </span>next = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1300">encode_state</a>(<span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#570">state</a>);
-            <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#566">self</a>.inner.state.compare_exchange(<a href="../../../src/futures_channel/mpsc/mod.rs.html#567">curr</a>, <a href="../../../src/futures_channel/mpsc/mod.rs.html#588">next</a>, SeqCst, SeqCst) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#570">state</a>.num_messages),
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#567">curr</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#591">actual</a>,
+            <span class="kw">let </span>next = <a href="#1300">encode_state</a>(<span class="kw-2">&amp;</span><a href="#570">state</a>);
+            <span class="kw">match </span><a class="self" href="#566">self</a>.inner.state.compare_exchange(<a href="#567">curr</a>, <a href="#588">next</a>, SeqCst, SeqCst) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#570">state</a>.num_messages),
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#567">curr</a> = <a href="#591">actual</a>,
             }
         }
     }
 
     <span class="kw">fn </span>park(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>sender = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#596">self</a>.sender_task.lock().unwrap();
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#598">sender</a>.task = <span class="prelude-val">None</span>;
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#598">sender</a>.is_parked = <span class="bool-val">true</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>sender = <a class="self" href="#596">self</a>.sender_task.lock().unwrap();
+            <a href="#598">sender</a>.task = <span class="prelude-val">None</span>;
+            <a href="#598">sender</a>.is_parked = <span class="bool-val">true</span>;
         }
 
         <span class="comment">// Send handle over queue
-        </span><span class="kw">let </span>t = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#596">self</a>.sender_task.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#596">self</a>.inner.parked_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#97">push</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#604">t</a>);
+        </span><span class="kw">let </span>t = <a class="self" href="#596">self</a>.sender_task.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a class="self" href="#596">self</a>.inner.parked_queue.<a href="queue.rs.html#97">push</a>(<a href="#604">t</a>);
 
         <span class="comment">// Check to make sure we weren&#39;t closed after we sent our task on the
         // queue
-        </span><span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#596">self</a>.inner.state.load(SeqCst));
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#596">self</a>.maybe_parked = <a href="../../../src/futures_channel/mpsc/mod.rs.html#609">state</a>.is_open;
+        </span><span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a class="self" href="#596">self</a>.inner.state.load(SeqCst));
+        <a class="self" href="#596">self</a>.maybe_parked = <a href="#609">state</a>.is_open;
     }
 
     <span class="doccomment">/// Polls the channel to determine if there is guaranteed capacity to send
@@ -1930,35 +1930,35 @@
     ///   capacity, in which case the current task is queued to be notified once
     ///   capacity is available;
     /// - `Poll::Ready(Err(SendError))` if the receiver has been dropped.
-    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt;&gt; {
-        <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#625">self</a>.inner.state.load(SeqCst));
+    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt;&gt; {
+        <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a class="self" href="#625">self</a>.inner.state.load(SeqCst));
         <span class="kw">if </span>!state.is_open {
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> }));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="#158">SendError</a> { kind: <a href="#172">SendErrorKind::Disconnected</a> }));
         }
 
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#625">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#666">poll_unparked</a>(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#625">cx</a>)).map(<span class="prelude-val">Ok</span>)
+        <a class="self" href="#625">self</a>.<a href="#666">poll_unparked</a>(<span class="prelude-val">Some</span>(<a href="#625">cx</a>)).map(<span class="prelude-val">Ok</span>)
     }
 
     <span class="doccomment">/// Returns whether the senders send to the same receiver.
     </span><span class="kw">fn </span>same_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#635">self</a>.inner, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#635">other</a>.inner)
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#635">self</a>.inner, <span class="kw-2">&amp;</span><a href="#635">other</a>.inner)
     }
 
     <span class="doccomment">/// Returns whether the sender send to this receiver.
     </span><span class="kw">fn </span>is_connected_to(<span class="kw-2">&amp;</span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>Arc&lt;BoundedInner&lt;T&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#640">self</a>.inner, <a href="../../../src/futures_channel/mpsc/mod.rs.html#640">receiver</a>)
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="#640">self</a>.inner, <a href="#640">receiver</a>)
     }
 
     <span class="doccomment">/// Returns pointer to the Arc containing sender
     ///
     /// The returned pointer is not referenced and should be only used for hashing!
     </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>BoundedInner&lt;T&gt; {
-        <span class="kw-2">&amp;*</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#647">self</a>.inner
+        <span class="kw-2">&amp;*</span><a class="self" href="#647">self</a>.inner
     }
 
     <span class="doccomment">/// Returns whether this channel is closed without needing a context.
     </span><span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#652">self</a>.inner.state.load(SeqCst)).is_open
+        !<a href="#1296">decode_state</a>(<a class="self" href="#652">self</a>.inner.state.load(SeqCst)).is_open
     }
 
     <span class="doccomment">/// Closes this channel from the sender side, preventing any new messages.
@@ -1967,8 +1967,8 @@
         // and we don&#39;t want to check for capacity, so skip
         // that stuff from `do_send`.
 
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#657">self</a>.inner.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1268">set_closed</a>();
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#657">self</a>.inner.recv_task.wake();
+        </span><a class="self" href="#657">self</a>.inner.<a href="#1268">set_closed</a>();
+        <a class="self" href="#657">self</a>.inner.recv_task.wake();
     }
 
     <span class="kw">fn </span>poll_unparked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; Poll&lt;()&gt; {
@@ -1976,10 +1976,10 @@
         // lock in most cases
         </span><span class="kw">if </span><span class="self">self</span>.maybe_parked {
             <span class="comment">// Get a lock on the task handle
-            </span><span class="kw">let </span><span class="kw-2">mut </span>task = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#666">self</a>.sender_task.lock().unwrap();
+            </span><span class="kw">let </span><span class="kw-2">mut </span>task = <a class="self" href="#666">self</a>.sender_task.lock().unwrap();
 
             <span class="kw">if </span>!task.is_parked {
-                <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#666">self</a>.maybe_parked = <span class="bool-val">false</span>;
+                <a class="self" href="#666">self</a>.maybe_parked = <span class="bool-val">false</span>;
                 <span class="kw">return </span>Poll::Ready(());
             }
 
@@ -1989,7 +1989,7 @@
             //
             // Update the task in case the `Sender` has been moved to another
             // task
-            </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#671">task</a>.task = <a href="../../../src/futures_channel/mpsc/mod.rs.html#666">cx</a>.map(|cx| <a href="../../../src/futures_channel/mpsc/mod.rs.html#684">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            </span><a href="#671">task</a>.task = <a href="#666">cx</a>.map(|cx| <a href="#684">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
             Poll::Pending
         } <span class="kw">else </span>{
@@ -2002,10 +2002,10 @@
     <span class="doccomment">/// Attempts to send a message on this `Sender`, returning the message
     /// if there was an error.
     </span><span class="kw">pub fn </span>try_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#696">self</a>.<span class="number">0 </span>{
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#697">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#501">try_send</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#696">msg</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="#696">self</a>.<span class="number">0 </span>{
+            <a href="#697">inner</a>.<a href="#501">try_send</a>(<a href="#696">msg</a>)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#164">TrySendError</a> { err: <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> }, val: <a href="../../../src/futures_channel/mpsc/mod.rs.html#696">msg</a> })
+            <span class="prelude-val">Err</span>(<a href="#164">TrySendError</a> { err: <a href="#158">SendError</a> { kind: <a href="#172">SendErrorKind::Disconnected</a> }, val: <a href="#696">msg</a> })
         }
     }
 
@@ -2014,8 +2014,8 @@
     /// This function should only be called after
     /// [`poll_ready`](Sender::poll_ready) has reported that the channel is
     /// ready to receive a message.
-    </span><span class="kw">pub fn </span>start_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt; {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#709">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#696">try_send</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#709">msg</a>).map_err(|e| <a href="../../../src/futures_channel/mpsc/mod.rs.html#710">e</a>.err)
+    </span><span class="kw">pub fn </span>start_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt; {
+        <a class="self" href="#709">self</a>.<a href="#696">try_send</a>(<a href="#709">msg</a>).map_err(|e| <a href="#710">e</a>.err)
     }
 
     <span class="doccomment">/// Polls the channel to determine if there is guaranteed capacity to send
@@ -2030,40 +2030,40 @@
     ///   capacity, in which case the current task is queued to be notified once
     ///   capacity is available;
     /// - `Poll::Ready(Err(SendError))` if the receiver has been dropped.
-    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt;&gt; {
         <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.as_mut().ok_or(SendError { kind: SendErrorKind::Disconnected })<span class="question-mark">?</span>;
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#726">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#625">poll_ready</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#725">cx</a>)
+        <a href="#726">inner</a>.<a href="#625">poll_ready</a>(<a href="#725">cx</a>)
     }
 
     <span class="doccomment">/// Returns whether this channel is closed without needing a context.
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#731">self</a>.<span class="number">0</span>.as_ref().map(BoundedSenderInner::is_closed).unwrap_or(<span class="bool-val">true</span>)
+        <a class="self" href="#731">self</a>.<span class="number">0</span>.as_ref().map(BoundedSenderInner::is_closed).unwrap_or(<span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Closes this channel from the sender side, preventing any new messages.
     </span><span class="kw">pub fn </span>close_channel(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#736">self</a>.<span class="number">0 </span>{
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#737">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#657">close_channel</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="#736">self</a>.<span class="number">0 </span>{
+            <a href="#737">inner</a>.<a href="#657">close_channel</a>();
         }
     }
 
     <span class="doccomment">/// Disconnects this sender from the channel, closing it if there are no more senders left.
     </span><span class="kw">pub fn </span>disconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#743">self</a>.<span class="number">0 </span>= <span class="prelude-val">None</span>;
+        <a class="self" href="#743">self</a>.<span class="number">0 </span>= <span class="prelude-val">None</span>;
     }
 
     <span class="doccomment">/// Returns whether the senders send to the same receiver.
     </span><span class="kw">pub fn </span>same_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#748">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#748">other</a>.<span class="number">0</span>) {
-            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(other)) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#750">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#635">same_receiver</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#750">other</a>),
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#748">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#748">other</a>.<span class="number">0</span>) {
+            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(other)) =&gt; <a href="#750">inner</a>.<a href="#635">same_receiver</a>(<a href="#750">other</a>),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns whether the sender send to this receiver.
     </span><span class="kw">pub fn </span>is_connected_to(<span class="kw-2">&amp;</span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>Receiver&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#756">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#756">receiver</a>.inner) {
-            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(receiver)) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#758">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#640">is_connected_to</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#758">receiver</a>),
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#756">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#756">receiver</a>.inner) {
+            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(receiver)) =&gt; <a href="#758">inner</a>.<a href="#640">is_connected_to</a>(<a href="#758">receiver</a>),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2075,53 +2075,53 @@
     {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/macro.Hash.html">std::hash::Hash</a>;
 
-        <span class="kw">let </span>ptr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#764">self</a>.<span class="number">0</span>.as_ref().map(|inner| <a href="../../../src/futures_channel/mpsc/mod.rs.html#770">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#647">ptr</a>());
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#770">ptr</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#764">hasher</a>);
+        <span class="kw">let </span>ptr = <a class="self" href="#764">self</a>.<span class="number">0</span>.as_ref().map(|inner| <a href="#770">inner</a>.<a href="#647">ptr</a>());
+        <a href="#770">ptr</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#764">hasher</a>);
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; UnboundedSender&lt;T&gt; {
     <span class="doccomment">/// Check if the channel is ready to receive a message.
-    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt;&gt; {
         <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.as_ref().ok_or(SendError { kind: SendErrorKind::Disconnected })<span class="question-mark">?</span>;
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#778">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#415">poll_ready_nb</a>()
+        <a href="#778">inner</a>.<a href="#415">poll_ready_nb</a>()
     }
 
     <span class="doccomment">/// Returns whether this channel is closed without needing a context.
     </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#783">self</a>.<span class="number">0</span>.as_ref().map(UnboundedSenderInner::is_closed).unwrap_or(<span class="bool-val">true</span>)
+        <a class="self" href="#783">self</a>.<span class="number">0</span>.as_ref().map(UnboundedSenderInner::is_closed).unwrap_or(<span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Closes this channel from the sender side, preventing any new messages.
     </span><span class="kw">pub fn </span>close_channel(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#788">self</a>.<span class="number">0 </span>{
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#789">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#488">close_channel</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="#788">self</a>.<span class="number">0 </span>{
+            <a href="#789">inner</a>.<a href="#488">close_channel</a>();
         }
     }
 
     <span class="doccomment">/// Disconnects this sender from the channel, closing it if there are no more senders left.
     </span><span class="kw">pub fn </span>disconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#795">self</a>.<span class="number">0 </span>= <span class="prelude-val">None</span>;
+        <a class="self" href="#795">self</a>.<span class="number">0 </span>= <span class="prelude-val">None</span>;
     }
 
     <span class="comment">// Do the send without parking current task.
     </span><span class="kw">fn </span>do_send_nb(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#800">self</a>.<span class="number">0 </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="#800">self</a>.<span class="number">0 </span>{
             <span class="kw">if </span>inner.inc_num_messages().is_some() {
-                <a href="../../../src/futures_channel/mpsc/mod.rs.html#801">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#425">queue_push_and_signal</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#800">msg</a>);
+                <a href="#801">inner</a>.<a href="#425">queue_push_and_signal</a>(<a href="#800">msg</a>);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
 
-        <span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#164">TrySendError</a> { err: <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a> { kind: <a href="../../../src/futures_channel/mpsc/mod.rs.html#172">SendErrorKind::Disconnected</a> }, val: <a href="../../../src/futures_channel/mpsc/mod.rs.html#800">msg</a> })
+        <span class="prelude-val">Err</span>(<a href="#164">TrySendError</a> { err: <a href="#158">SendError</a> { kind: <a href="#172">SendErrorKind::Disconnected</a> }, val: <a href="#800">msg</a> })
     }
 
     <span class="doccomment">/// Send a message on the channel.
     ///
     /// This method should only be called after `poll_ready` has been used to
     /// verify that the channel is ready to receive a message.
-    </span><span class="kw">pub fn </span>start_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/futures_channel/mpsc/mod.rs.html#158">SendError</a>&gt; {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#815">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#800">do_send_nb</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#815">msg</a>).map_err(|e| <a href="../../../src/futures_channel/mpsc/mod.rs.html#816">e</a>.err)
+    </span><span class="kw">pub fn </span>start_send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#158">SendError</a>&gt; {
+        <a class="self" href="#815">self</a>.<a href="#800">do_send_nb</a>(<a href="#815">msg</a>).map_err(|e| <a href="#816">e</a>.err)
     }
 
     <span class="doccomment">/// Sends a message along this channel.
@@ -2130,21 +2130,21 @@
     /// by ensuring the return type reflects that the channel is always ready to
     /// receive messages.
     </span><span class="kw">pub fn </span>unbounded_send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#824">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#800">do_send_nb</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#824">msg</a>)
+        <a class="self" href="#824">self</a>.<a href="#800">do_send_nb</a>(<a href="#824">msg</a>)
     }
 
     <span class="doccomment">/// Returns whether the senders send to the same receiver.
     </span><span class="kw">pub fn </span>same_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#829">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#829">other</a>.<span class="number">0</span>) {
-            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(other)) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#831">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#466">same_receiver</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#831">other</a>),
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#829">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#829">other</a>.<span class="number">0</span>) {
+            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(other)) =&gt; <a href="#831">inner</a>.<a href="#466">same_receiver</a>(<a href="#831">other</a>),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns whether the sender send to this receiver.
     </span><span class="kw">pub fn </span>is_connected_to(<span class="kw-2">&amp;</span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>UnboundedReceiver&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#837">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#837">receiver</a>.inner) {
-            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(receiver)) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#839">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#471">is_connected_to</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#839">receiver</a>),
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><a class="self" href="#837">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a href="#837">receiver</a>.inner) {
+            (<span class="prelude-val">Some</span>(inner), <span class="prelude-val">Some</span>(receiver)) =&gt; <a href="#839">inner</a>.<a href="#471">is_connected_to</a>(<a href="#839">receiver</a>),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2156,20 +2156,20 @@
     {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/hash/macros/macro.Hash.html">std::hash::Hash</a>;
 
-        <span class="kw">let </span>ptr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#845">self</a>.<span class="number">0</span>.as_ref().map(|inner| <a href="../../../src/futures_channel/mpsc/mod.rs.html#851">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#478">ptr</a>());
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#851">ptr</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#845">hasher</a>);
+        <span class="kw">let </span>ptr = <a class="self" href="#845">self</a>.<span class="number">0</span>.as_ref().map(|inner| <a href="#851">inner</a>.<a href="#478">ptr</a>());
+        <a href="#851">ptr</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="#845">hasher</a>);
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Sender&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#857">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="self">Self</span>(<a class="self" href="#857">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>UnboundedSender&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#863">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="self">Self</span>(<a class="self" href="#863">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
@@ -2178,7 +2178,7 @@
         <span class="comment">// Since this atomic op isn&#39;t actually guarding any memory and we don&#39;t
         // care about any orderings besides the ordering on the single atomic
         // variable, a relaxed ordering is acceptable.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#869">self</a>.inner.num_senders.load(SeqCst);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#869">self</a>.inner.num_senders.load(SeqCst);
 
         <span class="kw">loop </span>{
             <span class="comment">// If the maximum number of senders has been reached, then fail
@@ -2188,14 +2188,14 @@
 
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(curr &lt; MAX_BUFFER);
 
-            <span class="kw">let </span>next = <a href="../../../src/futures_channel/mpsc/mod.rs.html#873">curr</a> + <span class="number">1</span>;
-            <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#869">self</a>.inner.num_senders.compare_exchange(<a href="../../../src/futures_channel/mpsc/mod.rs.html#873">curr</a>, <a href="../../../src/futures_channel/mpsc/mod.rs.html#883">next</a>, SeqCst, SeqCst) {
+            <span class="kw">let </span>next = <a href="#873">curr</a> + <span class="number">1</span>;
+            <span class="kw">match </span><a class="self" href="#869">self</a>.inner.num_senders.compare_exchange(<a href="#873">curr</a>, <a href="#883">next</a>, SeqCst, SeqCst) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// The ABA problem doesn&#39;t matter here. We only care that the
                     // number of senders never exceeds the maximum.
-                    </span><span class="kw">return </span><span class="self">Self </span>{ inner: <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#869">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+                    </span><span class="kw">return </span><span class="self">Self </span>{ inner: <a class="self" href="#869">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
                 }
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#873">curr</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#890">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#873">curr</a> = <a href="#890">actual</a>,
             }
         }
     }
@@ -2206,7 +2206,7 @@
         <span class="comment">// Since this atomic op isn&#39;t actually guarding any memory and we don&#39;t
         // care about any orderings besides the ordering on the single atomic
         // variable, a relaxed ordering is acceptable.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#897">self</a>.inner.num_senders.load(SeqCst);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#897">self</a>.inner.num_senders.load(SeqCst);
 
         <span class="kw">loop </span>{
             <span class="comment">// If the maximum number of senders has been reached, then fail
@@ -2216,18 +2216,18 @@
 
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(curr &lt; <span class="self">self</span>.inner.max_senders());
 
-            <span class="kw">let </span>next = <a href="../../../src/futures_channel/mpsc/mod.rs.html#901">curr</a> + <span class="number">1</span>;
-            <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#897">self</a>.inner.num_senders.compare_exchange(<a href="../../../src/futures_channel/mpsc/mod.rs.html#901">curr</a>, <a href="../../../src/futures_channel/mpsc/mod.rs.html#911">next</a>, SeqCst, SeqCst) {
+            <span class="kw">let </span>next = <a href="#901">curr</a> + <span class="number">1</span>;
+            <span class="kw">match </span><a class="self" href="#897">self</a>.inner.num_senders.compare_exchange(<a href="#901">curr</a>, <a href="#911">next</a>, SeqCst, SeqCst) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// The ABA problem doesn&#39;t matter here. We only care that the
                     // number of senders never exceeds the maximum.
                     </span><span class="kw">return </span><span class="self">Self </span>{
-                        inner: <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#897">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        inner: <a class="self" href="#897">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         sender_task: Arc::new(Mutex::new(SenderTask::new())),
                         maybe_parked: <span class="bool-val">false</span>,
                     };
                 }
-                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#901">curr</a> = <a href="../../../src/futures_channel/mpsc/mod.rs.html#922">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="#901">curr</a> = <a href="#922">actual</a>,
             }
         }
     }
@@ -2236,10 +2236,10 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>UnboundedSenderInner&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Ordering between variables don&#39;t matter here
-        </span><span class="kw">let </span>prev = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#929">self</a>.inner.num_senders.fetch_sub(<span class="number">1</span>, SeqCst);
+        </span><span class="kw">let </span>prev = <a class="self" href="#929">self</a>.inner.num_senders.fetch_sub(<span class="number">1</span>, SeqCst);
 
         <span class="kw">if </span>prev == <span class="number">1 </span>{
-            <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#929">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#488">close_channel</a>();
+            <a class="self" href="#929">self</a>.<a href="#488">close_channel</a>();
         }
     }
 }
@@ -2247,10 +2247,10 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>BoundedSenderInner&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Ordering between variables don&#39;t matter here
-        </span><span class="kw">let </span>prev = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#940">self</a>.inner.num_senders.fetch_sub(<span class="number">1</span>, SeqCst);
+        </span><span class="kw">let </span>prev = <a class="self" href="#940">self</a>.inner.num_senders.fetch_sub(<span class="number">1</span>, SeqCst);
 
         <span class="kw">if </span>prev == <span class="number">1 </span>{
-            <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#940">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#657">close_channel</a>();
+            <a class="self" href="#940">self</a>.<a href="#657">close_channel</a>();
         }
     }
 }
@@ -2267,8 +2267,8 @@
     /// This prevents any further messages from being sent on the channel while
     /// still enabling the receiver to drain messages that are buffered.
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#961">self</a>.inner {
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#962">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1268">set_closed</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="#961">self</a>.inner {
+            <a href="#962">inner</a>.<a href="#1268">set_closed</a>();
 
             <span class="comment">// Wake up any threads waiting as they&#39;ll see that we&#39;ve closed the
             // channel and will continue on their merry way.
@@ -2288,36 +2288,36 @@
     /// * `Ok(Some(t))` when message is fetched
     /// * `Ok(None)` when channel is closed and no messages left in the queue
     /// * `Err(e)` when there are no messages available, but channel is not yet closed
-    </span><span class="kw">pub fn </span>try_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#983">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#990">next_message</a>() {
-            Poll::Ready(msg) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#985">msg</a>),
-            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a> { _priv: () }),
+    </span><span class="kw">pub fn </span>try_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="#176">TryRecvError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#983">self</a>.<a href="#990">next_message</a>() {
+            Poll::Ready(msg) =&gt; <span class="prelude-val">Ok</span>(<a href="#985">msg</a>),
+            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="#176">TryRecvError</a> { _priv: () }),
         }
     }
 
     <span class="kw">fn </span>next_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#990">self</a>.inner.as_mut() {
+        <span class="kw">let </span>inner = <span class="kw">match </span><a class="self" href="#990">self</a>.inner.as_mut() {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(inner) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#993">inner</a>,
+            <span class="prelude-val">Some</span>(inner) =&gt; <a href="#993">inner</a>,
         };
         <span class="comment">// Pop off a message
-        </span><span class="kw">match unsafe </span>{ <a href="../../../src/futures_channel/mpsc/mod.rs.html#991">inner</a>.message_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#141">pop_spin</a>() } {
+        </span><span class="kw">match unsafe </span>{ <a href="#991">inner</a>.message_queue.<a href="queue.rs.html#141">pop_spin</a>() } {
             <span class="prelude-val">Some</span>(msg) =&gt; {
                 <span class="comment">// If there are any parked task handles in the parked queue,
                 // pop one and unpark it.
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#990">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1029">unpark_one</a>();
+                </span><a class="self" href="#990">self</a>.<a href="#1029">unpark_one</a>();
 
                 <span class="comment">// Decrement number of messages
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#990">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1037">dec_num_messages</a>();
+                </span><a class="self" href="#990">self</a>.<a href="#1037">dec_num_messages</a>();
 
-                Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#997">msg</a>))
+                Poll::Ready(<span class="prelude-val">Some</span>(<a href="#997">msg</a>))
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#991">inner</a>.state.load(SeqCst));
+                <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a href="#991">inner</a>.state.load(SeqCst));
                 <span class="kw">if </span>state.is_closed() {
                     <span class="comment">// If closed flag is set AND there are no pending messages
                     // it means end of stream
-                    </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#990">self</a>.inner = <span class="prelude-val">None</span>;
+                    </span><a class="self" href="#990">self</a>.inner = <span class="prelude-val">None</span>;
                     Poll::Ready(<span class="prelude-val">None</span>)
                 } <span class="kw">else </span>{
                     <span class="comment">// If queue is open, we need to return Pending
@@ -2335,19 +2335,19 @@
 
     <span class="comment">// Unpark a single task handle if there is one pending in the parked queue
     </span><span class="kw">fn </span>unpark_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1029">self</a>.inner {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <span class="kw">unsafe </span>{ <a href="../../../src/futures_channel/mpsc/mod.rs.html#1030">inner</a>.parked_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#141">pop_spin</a>() } {
-                <a href="../../../src/futures_channel/mpsc/mod.rs.html#1031">task</a>.lock().unwrap().<a href="../../../src/futures_channel/mpsc/mod.rs.html#338">notify</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="#1029">self</a>.inner {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <span class="kw">unsafe </span>{ <a href="#1030">inner</a>.parked_queue.<a href="queue.rs.html#141">pop_spin</a>() } {
+                <a href="#1031">task</a>.lock().unwrap().<a href="#338">notify</a>();
             }
         }
     }
 
     <span class="kw">fn </span>dec_num_messages(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1037">self</a>.inner {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="#1037">self</a>.inner {
             <span class="comment">// OPEN_MASK is highest bit, so it&#39;s unaffected by subtraction
             // unless there&#39;s underflow, and we know there&#39;s no underflow
             // because number of messages at this point is always &gt; 0.
-            </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#1038">inner</a>.state.fetch_sub(<span class="number">1</span>, SeqCst);
+            </span><a href="#1038">inner</a>.state.fetch_sub(<span class="number">1</span>, SeqCst);
         }
     }
 }
@@ -2357,7 +2357,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="../../../futures_core/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1051">self</a>.inner.is_none()
+        <a class="self" href="#1051">self</a>.inner.is_none()
     }
 }
 
@@ -2366,20 +2366,20 @@
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         <span class="comment">// Try to read a message off of the message queue.
-        </span><span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1059">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#990">next_message</a>() {
+        </span><span class="kw">match </span><a class="self" href="#1059">self</a>.<a href="#990">next_message</a>() {
             Poll::Ready(msg) =&gt; {
                 <span class="kw">if </span>msg.is_none() {
-                    <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1059">self</a>.inner = <span class="prelude-val">None</span>;
+                    <a class="self" href="#1059">self</a>.inner = <span class="prelude-val">None</span>;
                 }
-                Poll::Ready(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1062">msg</a>)
+                Poll::Ready(<a href="#1062">msg</a>)
             }
             Poll::Pending =&gt; {
                 <span class="comment">// There are no messages to read, in this case, park.
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1059">self</a>.inner.as_ref().unwrap().recv_task.register(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1059">cx</a>.waker());
+                </span><a class="self" href="#1059">self</a>.inner.as_ref().unwrap().recv_task.register(<a href="#1059">cx</a>.waker());
                 <span class="comment">// Check queue again after parking to prevent race condition:
                 // a message could be added to the queue after previous `next_message`
                 // before `register` call.
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1059">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#990">next_message</a>()
+                </span><a class="self" href="#1059">self</a>.<a href="#990">next_message</a>()
             }
         }
     }
@@ -2388,14 +2388,14 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Drain the channel of all pending messages
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1081">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#961">close</a>();
+        </span><a class="self" href="#1081">self</a>.<a href="#961">close</a>();
         <span class="kw">if </span><span class="self">self</span>.inner.is_some() {
             <span class="kw">loop </span>{
-                <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1081">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#990">next_message</a>() {
+                <span class="kw">match </span><a class="self" href="#1081">self</a>.<a href="#990">next_message</a>() {
                     Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {}
                     Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">break</span>,
                     Poll::Pending =&gt; {
-                        <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1081">self</a>.inner.as_ref().unwrap().state.load(SeqCst));
+                        <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a class="self" href="#1081">self</a>.inner.as_ref().unwrap().state.load(SeqCst));
 
                         <span class="comment">// If the channel is closed, then there is no need to park.
                         </span><span class="kw">if </span>state.is_closed() {
@@ -2421,8 +2421,8 @@
     /// This prevents any further messages from being sent on the channel while
     /// still enabling the receiver to drain messages that are buffered.
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1115">self</a>.inner {
-            <a href="../../../src/futures_channel/mpsc/mod.rs.html#1116">inner</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1250">set_closed</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;mut </span><a class="self" href="#1115">self</a>.inner {
+            <a href="#1116">inner</a>.<a href="#1250">set_closed</a>();
         }
     }
 
@@ -2436,32 +2436,32 @@
     /// * `Ok(Some(t))` when message is fetched
     /// * `Ok(None)` when channel is closed and no messages left in the queue
     /// * `Err(e)` when there are no messages available, but channel is not yet closed
-    </span><span class="kw">pub fn </span>try_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1131">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1138">next_message</a>() {
-            Poll::Ready(msg) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1133">msg</a>),
-            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#176">TryRecvError</a> { _priv: () }),
+    </span><span class="kw">pub fn </span>try_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="#176">TryRecvError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#1131">self</a>.<a href="#1138">next_message</a>() {
+            Poll::Ready(msg) =&gt; <span class="prelude-val">Ok</span>(<a href="#1133">msg</a>),
+            Poll::Pending =&gt; <span class="prelude-val">Err</span>(<a href="#176">TryRecvError</a> { _priv: () }),
         }
     }
 
     <span class="kw">fn </span>next_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-        <span class="kw">let </span>inner = <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1138">self</a>.inner.as_mut() {
+        <span class="kw">let </span>inner = <span class="kw">match </span><a class="self" href="#1138">self</a>.inner.as_mut() {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(inner) =&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#1141">inner</a>,
+            <span class="prelude-val">Some</span>(inner) =&gt; <a href="#1141">inner</a>,
         };
         <span class="comment">// Pop off a message
-        </span><span class="kw">match unsafe </span>{ <a href="../../../src/futures_channel/mpsc/mod.rs.html#1139">inner</a>.message_queue.<a href="../../../src/futures_channel/mpsc/queue.rs.html#141">pop_spin</a>() } {
+        </span><span class="kw">match unsafe </span>{ <a href="#1139">inner</a>.message_queue.<a href="queue.rs.html#141">pop_spin</a>() } {
             <span class="prelude-val">Some</span>(msg) =&gt; {
                 <span class="comment">// Decrement number of messages
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1138">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1172">dec_num_messages</a>();
+                </span><a class="self" href="#1138">self</a>.<a href="#1172">dec_num_messages</a>();
 
-                Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1145">msg</a>))
+                Poll::Ready(<span class="prelude-val">Some</span>(<a href="#1145">msg</a>))
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1139">inner</a>.state.load(SeqCst));
+                <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a href="#1139">inner</a>.state.load(SeqCst));
                 <span class="kw">if </span>state.is_closed() {
                     <span class="comment">// If closed flag is set AND there are no pending messages
                     // it means end of stream
-                    </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1138">self</a>.inner = <span class="prelude-val">None</span>;
+                    </span><a class="self" href="#1138">self</a>.inner = <span class="prelude-val">None</span>;
                     Poll::Ready(<span class="prelude-val">None</span>)
                 } <span class="kw">else </span>{
                     <span class="comment">// If queue is open, we need to return Pending
@@ -2478,18 +2478,18 @@
     }
 
     <span class="kw">fn </span>dec_num_messages(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1172">self</a>.inner {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><a class="self" href="#1172">self</a>.inner {
             <span class="comment">// OPEN_MASK is highest bit, so it&#39;s unaffected by subtraction
             // unless there&#39;s underflow, and we know there&#39;s no underflow
             // because number of messages at this point is always &gt; 0.
-            </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#1173">inner</a>.state.fetch_sub(<span class="number">1</span>, SeqCst);
+            </span><a href="#1173">inner</a>.state.fetch_sub(<span class="number">1</span>, SeqCst);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="../../../futures_core/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>UnboundedReceiver&lt;T&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1183">self</a>.inner.is_none()
+        <a class="self" href="#1183">self</a>.inner.is_none()
     }
 }
 
@@ -2498,20 +2498,20 @@
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         <span class="comment">// Try to read a message off of the message queue.
-        </span><span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1191">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1138">next_message</a>() {
+        </span><span class="kw">match </span><a class="self" href="#1191">self</a>.<a href="#1138">next_message</a>() {
             Poll::Ready(msg) =&gt; {
                 <span class="kw">if </span>msg.is_none() {
-                    <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1191">self</a>.inner = <span class="prelude-val">None</span>;
+                    <a class="self" href="#1191">self</a>.inner = <span class="prelude-val">None</span>;
                 }
-                Poll::Ready(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1194">msg</a>)
+                Poll::Ready(<a href="#1194">msg</a>)
             }
             Poll::Pending =&gt; {
                 <span class="comment">// There are no messages to read, in this case, park.
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1191">self</a>.inner.as_ref().unwrap().recv_task.register(<a href="../../../src/futures_channel/mpsc/mod.rs.html#1191">cx</a>.waker());
+                </span><a class="self" href="#1191">self</a>.inner.as_ref().unwrap().recv_task.register(<a href="#1191">cx</a>.waker());
                 <span class="comment">// Check queue again after parking to prevent race condition:
                 // a message could be added to the queue after previous `next_message`
                 // before `register` call.
-                </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1191">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1138">next_message</a>()
+                </span><a class="self" href="#1191">self</a>.<a href="#1138">next_message</a>()
             }
         }
     }
@@ -2520,14 +2520,14 @@
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>UnboundedReceiver&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Drain the channel of all pending messages
-        </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1213">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1115">close</a>();
+        </span><a class="self" href="#1213">self</a>.<a href="#1115">close</a>();
         <span class="kw">if </span><span class="self">self</span>.inner.is_some() {
             <span class="kw">loop </span>{
-                <span class="kw">match </span><a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1213">self</a>.<a href="../../../src/futures_channel/mpsc/mod.rs.html#1138">next_message</a>() {
+                <span class="kw">match </span><a class="self" href="#1213">self</a>.<a href="#1138">next_message</a>() {
                     Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {}
                     Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">break</span>,
                     Poll::Pending =&gt; {
-                        <span class="kw">let </span>state = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">decode_state</a>(<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1213">self</a>.inner.as_ref().unwrap().state.load(SeqCst));
+                        <span class="kw">let </span>state = <a href="#1296">decode_state</a>(<a class="self" href="#1213">self</a>.inner.as_ref().unwrap().state.load(SeqCst));
 
                         <span class="comment">// If the channel is closed, then there is no need to park.
                         </span><span class="kw">if </span>state.is_closed() {
@@ -2556,12 +2556,12 @@
 </span><span class="kw">impl</span>&lt;T&gt; UnboundedInner&lt;T&gt; {
     <span class="comment">// Clear `open` flag in the state, keep `num_messages` intact.
     </span><span class="kw">fn </span>set_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1250">self</a>.state.load(SeqCst);
+        <span class="kw">let </span>curr = <a class="self" href="#1250">self</a>.state.load(SeqCst);
         <span class="kw">if </span>!decode_state(curr).is_open {
             <span class="kw">return</span>;
         }
 
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1250">self</a>.state.fetch_and(!<a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>, SeqCst);
+        <a class="self" href="#1250">self</a>.state.fetch_and(!<a href="#313">OPEN_MASK</a>, SeqCst);
     }
 }
 
@@ -2569,17 +2569,17 @@
     <span class="comment">// The return value is such that the total number of messages that can be
     // enqueued into the channel will never exceed MAX_CAPACITY
     </span><span class="kw">fn </span>max_senders(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#320">MAX_CAPACITY</a> - <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1263">self</a>.buffer
+        <a href="#320">MAX_CAPACITY</a> - <a class="self" href="#1263">self</a>.buffer
     }
 
     <span class="comment">// Clear `open` flag in the state, keep `num_messages` intact.
     </span><span class="kw">fn </span>set_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>curr = <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1268">self</a>.state.load(SeqCst);
+        <span class="kw">let </span>curr = <a class="self" href="#1268">self</a>.state.load(SeqCst);
         <span class="kw">if </span>!decode_state(curr).is_open {
             <span class="kw">return</span>;
         }
 
-        <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1268">self</a>.state.fetch_and(!<a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>, SeqCst);
+        <a class="self" href="#1268">self</a>.state.fetch_and(!<a href="#313">OPEN_MASK</a>, SeqCst);
     }
 }
 
@@ -2589,9 +2589,9 @@
 <span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>BoundedInner&lt;T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>BoundedInner&lt;T&gt; {}
 
-<span class="kw">impl </span><a href="../../../src/futures_channel/mpsc/mod.rs.html#304">State</a> {
+<span class="kw">impl </span><a href="#304">State</a> {
     <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1285">self</a>.is_open &amp;&amp; <a class="self" href="../../../src/futures_channel/mpsc/mod.rs.html#1285">self</a>.num_messages == <span class="number">0
+        !<a class="self" href="#1285">self</a>.is_open &amp;&amp; <a class="self" href="#1285">self</a>.num_messages == <span class="number">0
     </span>}
 }
 
@@ -2601,18 +2601,18 @@
  *
  */
 
-</span><span class="kw">fn </span>decode_state(num: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/futures_channel/mpsc/mod.rs.html#304">State</a> {
-    <a href="../../../src/futures_channel/mpsc/mod.rs.html#304">State</a> { is_open: <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">num</a> &amp; <a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a> == <a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>, num_messages: <a href="../../../src/futures_channel/mpsc/mod.rs.html#1296">num</a> &amp; <a href="../../../src/futures_channel/mpsc/mod.rs.html#320">MAX_CAPACITY</a> }
+</span><span class="kw">fn </span>decode_state(num: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#304">State</a> {
+    <a href="#304">State</a> { is_open: <a href="#1296">num</a> &amp; <a href="#313">OPEN_MASK</a> == <a href="#313">OPEN_MASK</a>, num_messages: <a href="#1296">num</a> &amp; <a href="#320">MAX_CAPACITY</a> }
 }
 
-<span class="kw">fn </span>encode_state(state: <span class="kw-2">&amp;</span><a href="../../../src/futures_channel/mpsc/mod.rs.html#304">State</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>num = <a href="../../../src/futures_channel/mpsc/mod.rs.html#1300">state</a>.num_messages;
+<span class="kw">fn </span>encode_state(state: <span class="kw-2">&amp;</span><a href="#304">State</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>num = <a href="#1300">state</a>.num_messages;
 
     <span class="kw">if </span>state.is_open {
-        <a href="../../../src/futures_channel/mpsc/mod.rs.html#1301">num</a> |= <a href="../../../src/futures_channel/mpsc/mod.rs.html#313">OPEN_MASK</a>;
+        <a href="#1301">num</a> |= <a href="#313">OPEN_MASK</a>;
     }
 
-    <a href="../../../src/futures_channel/mpsc/mod.rs.html#1301">num</a>
+    <a href="#1301">num</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

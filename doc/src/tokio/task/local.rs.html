@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/task/local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/task/local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -833,11 +833,112 @@
 <span id="833">833</span>
 <span id="834">834</span>
 <span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Runs `!Send` futures on the current thread.
-</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a class="self" href="../../../src/tokio/runtime/mod.rs.html#183">self</a>, <a href="../../../src/tokio/runtime/task/join.rs.html#145">JoinHandle</a>, <a href="../../../src/tokio/runtime/task/list.rs.html#60">LocalOwnedTasks</a>, <a href="../../../src/tokio/runtime/task/mod.rs.html#210">Task</a>};
-<span class="kw">use </span><a href="../../../src/tokio/sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::sync::AtomicWaker</a>;
-<span class="kw">use </span><a href="../../../src/tokio/util/vec_deque_cell.rs.html#8"><span class="kw">crate</span>::util::VecDequeCell</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="../loom/std/mutex.rs.html#6">Mutex</a>};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a class="self" href="../runtime/mod.rs.html#187">self</a>, <a href="../runtime/task/join.rs.html#154">JoinHandle</a>, <a href="../runtime/task/list.rs.html#60">LocalOwnedTasks</a>, <a href="../runtime/task/mod.rs.html#210">Task</a>};
+<span class="kw">use </span><a href="../sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::sync::AtomicWaker</a>;
+<span class="kw">use </span><a href="../util/vec_deque_cell.rs.html#8"><span class="kw">crate</span>::util::VecDequeCell</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
@@ -845,6 +946,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
 
 <span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
@@ -994,7 +1096,7 @@
     ///                     tokio::task::spawn_local(run_task(new_task));
     ///                 }
     ///                 // If the while loop returns, then all the LocalSpawner
-    ///                 // objects have have been dropped.
+    ///                 // objects have been dropped.
     ///             });
     ///
     ///             // This will return once all senders are dropped and all
@@ -1050,7 +1152,7 @@
         </span>tick: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 
         <span class="doccomment">/// State available from thread-local.
-        </span>context: <a href="../../../src/tokio/task/local.rs.html#226">Context</a>,
+        </span>context: Rc&lt;<a href="#227">Context</a>&gt;,
 
         <span class="doccomment">/// This type should not be Send.
         </span>_not_send: PhantomData&lt;<span class="kw-2">*const </span>()&gt;,
@@ -1060,13 +1162,13 @@
 <span class="doccomment">/// State available from the thread-local.
 </span><span class="kw">struct </span>Context {
     <span class="doccomment">/// Collection of all active tasks spawned onto this executor.
-    </span>owned: LocalOwnedTasks&lt;Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt;&gt;,
+    </span>owned: LocalOwnedTasks&lt;Arc&lt;<a href="#243">Shared</a>&gt;&gt;,
 
     <span class="doccomment">/// Local run queue sender and receiver.
-    </span>queue: VecDequeCell&lt;task::Notified&lt;Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt;&gt;&gt;,
+    </span>queue: VecDequeCell&lt;task::Notified&lt;Arc&lt;<a href="#243">Shared</a>&gt;&gt;&gt;,
 
     <span class="doccomment">/// State shared between threads.
-    </span>shared: Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt;,
+    </span>shared: Arc&lt;<a href="#243">Shared</a>&gt;,
 
     <span class="doccomment">/// True if a task panicked without being handled and the local set is
     /// configured to shutdown on unhandled panic.
@@ -1076,10 +1178,10 @@
 <span class="doccomment">/// LocalSet state shared between threads.
 </span><span class="kw">struct </span>Shared {
     <span class="doccomment">/// Remote run queue sender.
-    </span>queue: Mutex&lt;<span class="prelude-ty">Option</span>&lt;VecDeque&lt;task::Notified&lt;Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt;&gt;&gt;&gt;&gt;,
+    </span>queue: Mutex&lt;<span class="prelude-ty">Option</span>&lt;VecDeque&lt;task::Notified&lt;Arc&lt;<a href="#243">Shared</a>&gt;&gt;&gt;&gt;&gt;,
 
     <span class="doccomment">/// Wake the `LocalSet` task.
-    </span>waker: <a href="../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a>,
+    </span>waker: <a href="../sync/task/atomic_waker.rs.html#27">AtomicWaker</a>,
 
     <span class="doccomment">/// How to respond to unhandled task panics.
     </span><span class="attribute">#[cfg(tokio_unstable)]
@@ -1089,13 +1191,13 @@
 <a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
     <span class="attribute">#[derive(Debug)]
     </span><span class="kw">struct </span>RunUntil&lt;<span class="lifetime">&#39;a</span>, F&gt; {
-        local_set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a>,
+        local_set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#214">LocalSet</a>,
         <span class="attribute">#[pin]
         </span>future: F,
     }
 }
 
-<a class="macro" href="../../../src/tokio/macros/scoped_tls.rs.html#7-21">scoped_thread_local!</a>(<span class="kw">static </span>CURRENT: Context);
+<a class="macro" href="../macros/thread_local.rs.html#15-17">thread_local!</a>(<span class="kw">static </span>CURRENT: Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;Context&gt;&gt;&gt; = Cell::new(<span class="prelude-val">None</span>));
 
 <span class="macro">cfg_rt! </span>{
     <span class="doccomment">/// Spawns a `!Send` future on the local task set.
@@ -1135,7 +1237,7 @@
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
         F::Output: <span class="lifetime">&#39;static</span>,
     {
-        <a href="../../../src/tokio/task/local.rs.html#308-310">spawn_local_inner</a>(<a href="../../../src/tokio/task/local.rs.html#298">future</a>, <span class="prelude-val">None</span>)
+        <a href="#309-311">spawn_local_inner</a>(<a href="#299">future</a>, <span class="prelude-val">None</span>)
     }
 
 
@@ -1144,11 +1246,13 @@
     <span class="kw">where </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
           F::Output: <span class="lifetime">&#39;static
     </span>{
-        <a href="../../../src/tokio/task/local.rs.html#263">CURRENT</a>.<a href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(|maybe_cx| {
-            <span class="kw">let </span>cx = <a href="../../../src/tokio/task/local.rs.html#312">maybe_cx</a>
-                .expect(<span class="string">&quot;`spawn_local` called from outside of a `task::LocalSet`&quot;</span>);
+        <a href="#264">CURRENT</a>.with(|maybe_cx| {
+            <span class="kw">let </span>ctx = <a href="#856">clone_rc</a>(<a href="#313">maybe_cx</a>);
+            <span class="kw">match </span><a href="#314">ctx</a> {
+                <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;`spawn_local` called from outside of a `task::LocalSet`&quot;</span>),
+                <span class="prelude-val">Some</span>(cx) =&gt; <a href="#317">cx</a>.<a href="#805-808">spawn</a>(<a href="#309">future</a>, <a href="#309">name</a>)
+            }
 
-            <a href="../../../src/tokio/task/local.rs.html#313">cx</a>.<a href="../../../src/tokio/task/local.rs.html#721-724">spawn</a>(<a href="../../../src/tokio/task/local.rs.html#308">future</a>, <a href="../../../src/tokio/task/local.rs.html#308">name</a>)
         })
     }
 }
@@ -1162,24 +1266,54 @@
 <span class="doccomment">/// How often it check the remote queue first.
 </span><span class="kw">const </span>REMOTE_FIRST_INTERVAL: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">31</span>;
 
-<span class="kw">impl </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+<span class="doccomment">/// Context guard for LocalSet
+</span><span class="kw">pub struct </span>LocalEnterGuard(<span class="prelude-ty">Option</span>&lt;Rc&lt;<a href="#227">Context</a>&gt;&gt;);
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#334">LocalEnterGuard</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="#264">CURRENT</a>.with(|ctx| {
+            <a href="#338">ctx</a>.replace(<a class="self" href="#337">self</a>.<span class="number">0</span>.take());
+        })
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#334">LocalEnterGuard</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="#345">f</a>.debug_struct(<span class="string">&quot;LocalEnterGuard&quot;</span>).finish()
+    }
+}
+
+<span class="kw">impl </span><a href="#214">LocalSet</a> {
     <span class="doccomment">/// Returns a new local task set.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
-        <a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#214">LocalSet</a> {
+        <a href="#214">LocalSet</a> {
             tick: Cell::new(<span class="number">0</span>),
-            context: <a href="../../../src/tokio/task/local.rs.html#226">Context</a> {
+            context: Rc::new(<a href="#227">Context</a> {
                 owned: LocalOwnedTasks::new(),
-                queue: VecDequeCell::with_capacity(<a href="../../../src/tokio/task/local.rs.html#322">INITIAL_CAPACITY</a>),
-                shared: Arc::new(<a href="../../../src/tokio/task/local.rs.html#242">Shared</a> {
-                    queue: Mutex::new(<span class="prelude-val">Some</span>(VecDeque::with_capacity(<a href="../../../src/tokio/task/local.rs.html#322">INITIAL_CAPACITY</a>))),
+                queue: VecDequeCell::with_capacity(<a href="#325">INITIAL_CAPACITY</a>),
+                shared: Arc::new(<a href="#243">Shared</a> {
+                    queue: Mutex::new(<span class="prelude-val">Some</span>(VecDeque::with_capacity(<a href="#325">INITIAL_CAPACITY</a>))),
                     waker: AtomicWaker::new(),
                     <span class="attribute">#[cfg(tokio_unstable)]
                     </span>unhandled_panic: <span class="kw">crate</span>::runtime::UnhandledPanic::Ignore,
                 }),
                 unhandled_panic: Cell::new(<span class="bool-val">false</span>),
-            },
+            }),
             _not_send: PhantomData,
         }
+    }
+
+    <span class="doccomment">/// Enters the context of this `LocalSet`.
+    ///
+    /// The [`spawn_local`] method will spawn tasks on the `LocalSet` whose
+    /// context you are inside.
+    ///
+    /// [`spawn_local`]: fn@crate::task::spawn_local
+    </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#334">LocalEnterGuard</a> {
+        <a href="#264">CURRENT</a>.with(|ctx| {
+            <span class="kw">let </span>old = <a href="#377">ctx</a>.replace(<span class="prelude-val">Some</span>(<a class="self" href="#376">self</a>.context.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            <a href="#334">LocalEnterGuard</a>(<a href="#378">old</a>)
+        })
     }
 
     <span class="doccomment">/// Spawns a `!Send` task onto the local task set.
@@ -1224,7 +1358,7 @@
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
         F::Output: <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="../../../src/tokio/task/local.rs.html#387">self</a>.<a href="../../../src/tokio/task/local.rs.html#505-512">spawn_named</a>(<a href="../../../src/tokio/task/local.rs.html#387">future</a>, <span class="prelude-val">None</span>)
+        <a class="self" href="#420">self</a>.<a href="#539-546">spawn_named</a>(<a href="#420">future</a>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Runs a future to completion on the provided runtime, driving any local
@@ -1289,13 +1423,14 @@
     /// [`Runtime::block_on`]: method@crate::runtime::Runtime::block_on
     /// [in-place blocking]: fn@crate::task::block_in_place
     /// [`spawn_blocking`]: fn@crate::task::spawn_blocking
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;rt&quot;</span>)]
+    </span><span class="attribute">#[track_caller]
+    #[cfg(feature = <span class="string">&quot;rt&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;rt&quot;</span>)))]
-    </span><span class="kw">pub fn </span>block_on&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rt: <span class="kw-2">&amp;</span><a href="../../../src/tokio/runtime/mod.rs.html#288"><span class="kw">crate</span>::runtime::Runtime</a>, future: F) -&gt; F::Output
+    </span><span class="kw">pub fn </span>block_on&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rt: <span class="kw-2">&amp;</span><a href="../runtime/mod.rs.html#294"><span class="kw">crate</span>::runtime::Runtime</a>, future: F) -&gt; F::Output
     <span class="kw">where
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
     {
-        <a href="../../../src/tokio/task/local.rs.html#459">rt</a>.<a href="../../../src/tokio/runtime/mod.rs.html#475">block_on</a>(<a class="self" href="../../../src/tokio/task/local.rs.html#459">self</a>.<a href="../../../src/tokio/task/local.rs.html#494-496">run_until</a>(<a href="../../../src/tokio/task/local.rs.html#459">future</a>))
+        <a href="#493">rt</a>.<a href="../runtime/mod.rs.html#483">block_on</a>(<a class="self" href="#493">self</a>.<a href="#528-530">run_until</a>(<a href="#493">future</a>))
     }
 
     <span class="doccomment">/// Runs a future to completion on the local set, returning its output.
@@ -1346,7 +1481,7 @@
         </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
         F::Output: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>handle = <a class="self" href="../../../src/tokio/task/local.rs.html#506">self</a>.context.<a href="../../../src/tokio/task/local.rs.html#721-724">spawn</a>(<a href="../../../src/tokio/task/local.rs.html#507">future</a>, <a href="../../../src/tokio/task/local.rs.html#508">name</a>);
+        <span class="kw">let </span>handle = <a class="self" href="#540">self</a>.context.<a href="#805-808">spawn</a>(<a href="#541">future</a>, <a href="#542">name</a>);
 
         <span class="comment">// Because a task was spawned from *outside* the `LocalSet`, wake the
         // `LocalSet` future to execute the new task, if it hasn&#39;t been woken.
@@ -1354,8 +1489,8 @@
         // Spawning via the free fn `spawn` does not require this, as it can
         // only be called from *within* a future executing on the `LocalSet` —
         // in that case, the `LocalSet` must already be awake.
-        </span><a class="self" href="../../../src/tokio/task/local.rs.html#506">self</a>.context.shared.waker.<a href="../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
-        <a href="../../../src/tokio/task/local.rs.html#514">handle</a>
+        </span><a class="self" href="#540">self</a>.context.shared.waker.<a href="../sync/task/atomic_waker.rs.html#303">wake</a>();
+        <a href="#548">handle</a>
     }
 
     <span class="doccomment">/// Ticks the scheduler, returning whether the local future needs to be
@@ -1387,34 +1522,83 @@
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>next_task(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::LocalNotified&lt;Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt;&gt;&gt; {
-        <span class="kw">let </span>tick = <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.tick.get();
-        <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.tick.set(<a href="../../../src/tokio/task/local.rs.html#556">tick</a>.wrapping_add(<span class="number">1</span>));
+    <span class="kw">fn </span>next_task(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;task::LocalNotified&lt;Arc&lt;<a href="#243">Shared</a>&gt;&gt;&gt; {
+        <span class="kw">let </span>tick = <a class="self" href="#589">self</a>.tick.get();
+        <a class="self" href="#589">self</a>.tick.set(<a href="#590">tick</a>.wrapping_add(<span class="number">1</span>));
 
         <span class="kw">let </span>task = <span class="kw">if </span>tick % REMOTE_FIRST_INTERVAL == <span class="number">0 </span>{
-            <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.context
+            <a class="self" href="#589">self</a>.context
                 .shared
                 .queue
-                .<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()
+                .<a href="../loom/std/mutex.rs.html#16">lock</a>()
                 .as_mut()
-                .and_then(|queue| <a href="../../../src/tokio/task/local.rs.html#565">queue</a>.pop_front())
-                .or_else(|| <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.context.queue.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#38">pop_front</a>())
+                .and_then(|queue| <a href="#599">queue</a>.pop_front())
+                .or_else(|| <a class="self" href="#589">self</a>.context.queue.<a href="../util/vec_deque_cell.rs.html#38">pop_front</a>())
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.context.queue.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#38">pop_front</a>().or_else(|| {
-                <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.context
+            <a class="self" href="#589">self</a>.context.queue.<a href="../util/vec_deque_cell.rs.html#38">pop_front</a>().or_else(|| {
+                <a class="self" href="#589">self</a>.context
                     .shared
                     .queue
-                    .<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()
+                    .<a href="../loom/std/mutex.rs.html#16">lock</a>()
                     .as_mut()
-                    .and_then(|queue| <a href="../../../src/tokio/task/local.rs.html#574">queue</a>.pop_front())
+                    .and_then(|queue| <a href="#608">queue</a>.pop_front())
             })
         };
 
-        <a href="../../../src/tokio/task/local.rs.html#559">task</a>.map(|task| <a class="self" href="../../../src/tokio/task/local.rs.html#555">self</a>.context.owned.<a href="../../../src/tokio/runtime/task/list.rs.html#249">assert_owner</a>(<a href="../../../src/tokio/task/local.rs.html#578">task</a>))
+        <a href="#593">task</a>.map(|task| <a class="self" href="#589">self</a>.context.owned.<a href="../runtime/task/list.rs.html#249">assert_owner</a>(<a href="#612">task</a>))
     }
 
     <span class="kw">fn </span>with&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; T {
-        <a href="../../../src/tokio/task/local.rs.html#263">CURRENT</a>.<a href="../../../src/tokio/macros/scoped_tls.rs.html#35-37">set</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/task/local.rs.html#581">self</a>.context, <a href="../../../src/tokio/task/local.rs.html#581">f</a>)
+        <a href="#264">CURRENT</a>.with(|ctx| {
+            <span class="kw">struct </span>Reset&lt;<span class="lifetime">&#39;a</span>&gt; {
+                ctx_ref: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;<a href="#227">Context</a>&gt;&gt;&gt;,
+                val: <span class="prelude-ty">Option</span>&lt;Rc&lt;<a href="#227">Context</a>&gt;&gt;,
+            }
+            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Reset&lt;<span class="lifetime">&#39;a</span>&gt; {
+                <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                    <a class="self" href="#622">self</a>.ctx_ref.replace(<a class="self" href="#622">self</a>.val.take());
+                }
+            }
+            <span class="kw">let </span>old = <a href="#616">ctx</a>.replace(<span class="prelude-val">Some</span>(<a class="self" href="#615">self</a>.context.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+
+            <span class="kw">let </span>_reset = <a href="#617">Reset</a> {
+                ctx_ref: <a href="#616">ctx</a>,
+                val: <a href="#626">old</a>,
+            };
+
+            <a href="#615">f</a>()
+        })
+    }
+
+    <span class="doccomment">/// This method is like `with`, but it just calls `f` without setting the thread-local if that
+    /// fails.
+    </span><span class="kw">fn </span>with_if_possible&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; T {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="prelude-val">Some</span>(<a href="#639">f</a>);
+
+        <span class="kw">let </span>res = <a href="#264">CURRENT</a>.try_with(|ctx| {
+            <span class="kw">struct </span>Reset&lt;<span class="lifetime">&#39;a</span>&gt; {
+                ctx_ref: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;<a href="#227">Context</a>&gt;&gt;&gt;,
+                val: <span class="prelude-ty">Option</span>&lt;Rc&lt;<a href="#227">Context</a>&gt;&gt;,
+            }
+            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Reset&lt;<span class="lifetime">&#39;a</span>&gt; {
+                <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                    <a class="self" href="#648">self</a>.ctx_ref.replace(<a class="self" href="#648">self</a>.val.take());
+                }
+            }
+            <span class="kw">let </span>old = <a href="#642">ctx</a>.replace(<span class="prelude-val">Some</span>(<a class="self" href="#639">self</a>.context.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+
+            <span class="kw">let </span>_reset = <a href="#643">Reset</a> {
+                ctx_ref: <a href="#642">ctx</a>,
+                val: <a href="#652">old</a>,
+            };
+
+            (<a href="#640">f</a>.take().unwrap())()
+        });
+
+        <span class="kw">match </span><a href="#642">res</a> {
+            <span class="prelude-val">Ok</span>(res) =&gt; <a href="#663">res</a>,
+            <span class="prelude-val">Err</span>(_access_error) =&gt; (<a href="#640">f</a>.take().unwrap())(),
+        }
     }
 }
 
@@ -1435,7 +1619,7 @@
         /// * `UnhandledPanic::ShutdownRuntime` will force the `LocalSet` to
         ///   shutdown immediately when a spawned task panics even if that
         ///   task&#39;s `JoinHandle` has not been dropped. All other spawned tasks
-        ///   will immediatetly terminate and further calls to
+        ///   will immediately terminate and further calls to
         ///   [`LocalSet::block_on`] and [`LocalSet::run_until`] will panic.
         ///
         /// # Panics
@@ -1480,31 +1664,32 @@
         /// [`JoinHandle`]: struct@crate::task::JoinHandle
         </span><span class="kw">pub fn </span>unhandled_panic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, behavior: <span class="kw">crate</span>::runtime::UnhandledPanic) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
             <span class="comment">// TODO: This should be set as a builder
-            </span>Arc::get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.context.shared)
-                .expect(<span class="string">&quot;TODO: we shouldn&#39;t panic&quot;</span>)
+            </span>Rc::get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.context)
+                .and_then(|ctx| Arc::get_mut(<span class="kw-2">&amp;mut </span>ctx.shared))
+                .expect(<span class="string">&quot;Unhandled Panic behavior modified after starting LocalSet&quot;</span>)
                 .unhandled_panic = behavior;
             <span class="self">self
         </span>}
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#214">LocalSet</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio/task/local.rs.html#657">fmt</a>.debug_struct(<span class="string">&quot;LocalSet&quot;</span>).finish()
+        <a href="#741">fmt</a>.debug_struct(<span class="string">&quot;LocalSet&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#214">LocalSet</a> {
     <span class="kw">type </span>Output = ();
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>std::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// Register the waker before starting to work
-        </span><a class="self" href="../../../src/tokio/task/local.rs.html#665">self</a>.context.shared.waker.<a href="../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="../../../src/tokio/task/local.rs.html#665">cx</a>.waker());
+        </span><a class="self" href="#749">self</a>.context.shared.waker.<a href="../sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="#749">cx</a>.waker());
 
         <span class="kw">if </span><span class="self">self</span>.with(|| <span class="self">self</span>.tick()) {
             <span class="comment">// If `tick` returns true, we need to notify the local future again:
             // there are still tasks remaining in the run queue.
-            </span><a href="../../../src/tokio/task/local.rs.html#665">cx</a>.waker().wake_by_ref();
+            </span><a href="#749">cx</a>.waker().wake_by_ref();
             Poll::Pending
         } <span class="kw">else if </span><span class="self">self</span>.context.owned.is_empty() {
             <span class="comment">// If the scheduler has no remaining futures, we&#39;re done!
@@ -1518,18 +1703,18 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#214">LocalSet</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#214">LocalSet</a> {
         LocalSet::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/task/local.rs.html#213">LocalSet</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#214">LocalSet</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/task/local.rs.html#693">self</a>.<a href="../../../src/tokio/task/local.rs.html#581">with</a>(|| {
+        <a class="self" href="#777">self</a>.<a href="#639">with_if_possible</a>(|| {
             <span class="comment">// Shut down all tasks in the LocalOwnedTasks and close it to
             // prevent new tasks from ever being added.
-            </span><a class="self" href="../../../src/tokio/task/local.rs.html#693">self</a>.context.owned.<a href="../../../src/tokio/runtime/task/list.rs.html#220-222">close_and_shutdown_all</a>();
+            </span><a class="self" href="#777">self</a>.context.owned.<a href="../runtime/task/list.rs.html#220-222">close_and_shutdown_all</a>();
 
             <span class="comment">// We already called shutdown on all tasks above, so there is no
             // need to call shutdown.
@@ -1539,7 +1724,7 @@
 
             <span class="comment">// Take the queue from the Shared object to prevent pushing
             // notifications to it in the future.
-            </span><span class="kw">let </span>queue = <a class="self" href="../../../src/tokio/task/local.rs.html#693">self</a>.context.shared.queue.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().take().unwrap();
+            </span><span class="kw">let </span>queue = <a class="self" href="#777">self</a>.context.shared.queue.<a href="../loom/std/mutex.rs.html#16">lock</a>().take().unwrap();
             <span class="kw">for </span>task <span class="kw">in </span>queue {
                 drop(task);
             }
@@ -1551,7 +1736,7 @@
 
 <span class="comment">// === impl Context ===
 
-</span><span class="kw">impl </span><a href="../../../src/tokio/task/local.rs.html#226">Context</a> {
+</span><span class="kw">impl </span><a href="#227">Context</a> {
     <span class="attribute">#[track_caller]
     </span><span class="kw">fn </span>spawn&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; JoinHandle&lt;F::Output&gt;
     <span class="kw">where
@@ -1559,15 +1744,15 @@
         F::Output: <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>id = <span class="kw">crate</span>::runtime::task::Id::next();
-        <span class="kw">let </span>future = <a href="../../../src/tokio/util/trace.rs.html#95"><span class="kw">crate</span>::util::trace::task</a>(<a href="../../../src/tokio/task/local.rs.html#721">future</a>, <span class="string">&quot;local&quot;</span>, <a href="../../../src/tokio/task/local.rs.html#721">name</a>, <a href="../../../src/tokio/task/local.rs.html#726">id</a>.<a href="../../../src/tokio/runtime/task/mod.rs.html#519">as_u64</a>());
+        <span class="kw">let </span>future = <a href="../util/trace.rs.html#95"><span class="kw">crate</span>::util::trace::task</a>(<a href="#805">future</a>, <span class="string">&quot;local&quot;</span>, <a href="#805">name</a>, <a href="#810">id</a>.<a href="../runtime/task/mod.rs.html#522">as_u64</a>());
 
-        <span class="kw">let </span>(handle, notified) = <a class="self" href="../../../src/tokio/task/local.rs.html#721">self</a>.owned.<a href="../../../src/tokio/runtime/task/list.rs.html#187-196">bind</a>(<a href="../../../src/tokio/task/local.rs.html#727">future</a>, <a class="self" href="../../../src/tokio/task/local.rs.html#721">self</a>.shared.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/tokio/task/local.rs.html#726">id</a>);
+        <span class="kw">let </span>(handle, notified) = <a class="self" href="#805">self</a>.owned.<a href="../runtime/task/list.rs.html#187-196">bind</a>(<a href="#811">future</a>, <a class="self" href="#805">self</a>.shared.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#810">id</a>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(notified) = <a href="../../../src/tokio/task/local.rs.html#729">notified</a> {
-            <a class="self" href="../../../src/tokio/task/local.rs.html#721">self</a>.shared.<a href="../../../src/tokio/task/local.rs.html#774">schedule</a>(<a href="../../../src/tokio/task/local.rs.html#731">notified</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(notified) = <a href="#813">notified</a> {
+            <a class="self" href="#805">self</a>.shared.<a href="#865">schedule</a>(<a href="#815">notified</a>);
         }
 
-        <a href="../../../src/tokio/task/local.rs.html#729">handle</a>
+        <a href="#813">handle</a>
     }
 }
 
@@ -1577,26 +1762,26 @@
     <span class="kw">type </span>Output = T::Output;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>std::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/task/local.rs.html#744">self</a>.<a href="../../../src/tokio/task/local.rs.html#254-261">project</a>();
+        <span class="kw">let </span>me = <a class="self" href="#828">self</a>.<a href="#255-262">project</a>();
 
-        <a href="../../../src/tokio/task/local.rs.html#745">me</a>.local_set.<a href="../../../src/tokio/task/local.rs.html#581">with</a>(|| {
-            <a href="../../../src/tokio/task/local.rs.html#745">me</a>.local_set
+        <a href="#829">me</a>.local_set.<a href="#615">with</a>(|| {
+            <a href="#829">me</a>.local_set
                 .context
                 .shared
                 .waker
-                .<a href="../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="../../../src/tokio/task/local.rs.html#744">cx</a>.waker());
+                .<a href="../sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="#828">cx</a>.waker());
 
-            <span class="kw">let </span>_no_blocking = <a href="../../../src/tokio/runtime/enter.rs.html#97"><span class="kw">crate</span>::runtime::enter::disallow_blocking</a>();
-            <span class="kw">let </span>f = <a href="../../../src/tokio/task/local.rs.html#745">me</a>.future;
+            <span class="kw">let </span>_no_blocking = <a href="../runtime/enter.rs.html#97"><span class="kw">crate</span>::runtime::enter::disallow_blocking</a>();
+            <span class="kw">let </span>f = <a href="#829">me</a>.future;
 
-            <span class="kw">if let </span>Poll::Ready(output) = <a href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(|| <a href="../../../src/tokio/task/local.rs.html#755">f</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/task/local.rs.html#744">cx</a>)) {
-                <span class="kw">return </span>Poll::Ready(<a href="../../../src/tokio/task/local.rs.html#757">output</a>);
+            <span class="kw">if let </span>Poll::Ready(output) = <a href="../coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(|| <a href="#839">f</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#828">cx</a>)) {
+                <span class="kw">return </span>Poll::Ready(<a href="#841">output</a>);
             }
 
             <span class="kw">if </span>me.local_set.tick() {
                 <span class="comment">// If `tick` returns `true`, we need to notify the local future again:
                 // there are still tasks remaining in the run queue.
-                </span><a href="../../../src/tokio/task/local.rs.html#744">cx</a>.waker().wake_by_ref();
+                </span><a href="#828">cx</a>.waker().wake_by_ref();
             }
 
             Poll::Pending
@@ -1604,44 +1789,59 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/task/local.rs.html#242">Shared</a> {
+<span class="kw">fn </span>clone_rc&lt;T&gt;(rc: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;Rc&lt;T&gt;&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Rc&lt;T&gt;&gt; {
+    <span class="kw">let </span>value = <a href="#856">rc</a>.take();
+    <span class="kw">let </span>cloned = <a href="#857">value</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#856">rc</a>.set(<a href="#857">value</a>);
+    <a href="#858">cloned</a>
+}
+
+<span class="kw">impl </span><a href="#243">Shared</a> {
     <span class="doccomment">/// Schedule the provided task on the scheduler.
     </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>, task: task::Notified&lt;Arc&lt;<span class="self">Self</span>&gt;&gt;) {
-        <a href="../../../src/tokio/task/local.rs.html#263">CURRENT</a>.<a href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(|maybe_cx| <span class="kw">match </span><a href="../../../src/tokio/task/local.rs.html#775">maybe_cx</a> {
-            <span class="prelude-val">Some</span>(cx) <span class="kw">if </span><a href="../../../src/tokio/task/local.rs.html#776">cx</a>.shared.<a href="../../../src/tokio/task/local.rs.html#794">ptr_eq</a>(<a class="self" href="../../../src/tokio/task/local.rs.html#774">self</a>) =&gt; {
-                <a href="../../../src/tokio/task/local.rs.html#776">cx</a>.queue.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#42">push_back</a>(<a href="../../../src/tokio/task/local.rs.html#774">task</a>);
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="comment">// First check whether the queue is still there (if not, the
-                // LocalSet is dropped). Then push to it if so, and if not,
-                // do nothing.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="../../../src/tokio/task/local.rs.html#774">self</a>.queue.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <a href="#264">CURRENT</a>.with(|maybe_cx| {
+            <span class="kw">let </span>ctx = <a href="#856">clone_rc</a>(<a href="#866">maybe_cx</a>);
+            <span class="kw">match </span><a href="#867">ctx</a> {
+                <span class="prelude-val">Some</span>(cx) <span class="kw">if </span><a href="#869">cx</a>.shared.<a href="#888">ptr_eq</a>(<a class="self" href="#865">self</a>) =&gt; {
+                    <a href="#869">cx</a>.queue.<a href="../util/vec_deque_cell.rs.html#42">push_back</a>(<a href="#865">task</a>);
+                }
+                <span class="kw">_ </span>=&gt; {
+                    <span class="comment">// First check whether the queue is still there (if not, the
+                    // LocalSet is dropped). Then push to it if so, and if not,
+                    // do nothing.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="#865">self</a>.queue.<a href="../loom/std/mutex.rs.html#16">lock</a>();
 
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(queue) = <a href="../../../src/tokio/task/local.rs.html#783">lock</a>.as_mut() {
-                    <a href="../../../src/tokio/task/local.rs.html#785">queue</a>.push_back(<a href="../../../src/tokio/task/local.rs.html#774">task</a>);
-                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/task/local.rs.html#783">lock</a>);
-                    <a class="self" href="../../../src/tokio/task/local.rs.html#774">self</a>.waker.<a href="../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(queue) = <a href="#876">lock</a>.as_mut() {
+                        <a href="#878">queue</a>.push_back(<a href="#865">task</a>);
+                        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#876">lock</a>);
+                        <a class="self" href="#865">self</a>.waker.<a href="../sync/task/atomic_waker.rs.html#303">wake</a>();
+                    }
                 }
             }
         });
     }
 
-    <span class="kw">fn </span>ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/tokio/task/local.rs.html#242">Shared</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        std::ptr::eq(<a class="self" href="../../../src/tokio/task/local.rs.html#794">self</a>, <a href="../../../src/tokio/task/local.rs.html#794">other</a>)
+    <span class="kw">fn </span>ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#243">Shared</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        std::ptr::eq(<a class="self" href="#888">self</a>, <a href="#888">other</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/runtime/task/mod.rs.html#249">task::Schedule</a> <span class="kw">for </span>Arc&lt;<a href="../../../src/tokio/task/local.rs.html#242">Shared</a>&gt; {
+<span class="kw">impl </span><a href="../runtime/task/mod.rs.html#249">task::Schedule</a> <span class="kw">for </span>Arc&lt;<a href="#243">Shared</a>&gt; {
     <span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, task: <span class="kw-2">&amp;</span>Task&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Task&lt;<span class="self">Self</span>&gt;&gt; {
-        <a href="../../../src/tokio/task/local.rs.html#263">CURRENT</a>.<a href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(|maybe_cx| {
-            <span class="kw">let </span>cx = <a href="../../../src/tokio/task/local.rs.html#801">maybe_cx</a>.expect(<span class="string">&quot;scheduler context missing&quot;</span>);
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cx.shared.ptr_eq(<span class="self">self</span>));
-            <a href="../../../src/tokio/task/local.rs.html#802">cx</a>.owned.<a href="../../../src/tokio/runtime/task/list.rs.html#231">remove</a>(<a href="../../../src/tokio/task/local.rs.html#800">task</a>)
+        <a href="#264">CURRENT</a>.with(|maybe_cx| {
+            <span class="kw">let </span>ctx = <a href="#856">clone_rc</a>(<a href="#895">maybe_cx</a>);
+            <span class="kw">match </span><a href="#896">ctx</a> {
+                <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;scheduler context missing&quot;</span>),
+                <span class="prelude-val">Some</span>(cx) =&gt; {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cx.shared.ptr_eq(<span class="self">self</span>));
+                    <a href="#899">cx</a>.owned.<a href="../runtime/task/list.rs.html#231">remove</a>(<a href="#894">task</a>)
+                }
+            }
         })
     }
 
     <span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>, task: task::Notified&lt;<span class="self">Self</span>&gt;) {
-        Shared::schedule(<a class="self" href="../../../src/tokio/task/local.rs.html#808">self</a>, <a href="../../../src/tokio/task/local.rs.html#808">task</a>);
+        Shared::schedule(<a class="self" href="#907">self</a>, <a href="#907">task</a>);
     }
 
     <span class="macro">cfg_unstable! </span>{
@@ -1656,17 +1856,19 @@
                     <span class="comment">// This hook is only called from within the runtime, so
                     // `CURRENT` should match with `&amp;self`, i.e. there is no
                     // opportunity for a nested scheduler to be called.
-                    </span>CURRENT.with(|maybe_cx| <span class="kw">match </span>maybe_cx {
+                    </span>CURRENT.with(|maybe_cx| {
+                        <span class="kw">let </span>ctx = clone_rc(maybe_cx);
+                        <span class="kw">match </span>ctx {
                         <span class="prelude-val">Some</span>(cx) <span class="kw">if </span>Arc::ptr_eq(<span class="self">self</span>, <span class="kw-2">&amp;</span>cx.shared) =&gt; {
                             cx.unhandled_panic.set(<span class="bool-val">true</span>);
                             cx.owned.close_and_shutdown_all();
                         }
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;runtime core not set in CURRENT thread-local&quot;</span>),
-                    })
+                    }})
                 }
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

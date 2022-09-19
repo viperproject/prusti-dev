@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.6/src/sys/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../socket2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../socket2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../socket2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.7/src/sys/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../socket2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../socket2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../socket2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2068,6 +2068,9 @@
 <span id="2068">2068</span>
 <span id="2069">2069</span>
 <span id="2070">2070</span>
+<span id="2071">2071</span>
+<span id="2072">2072</span>
+<span id="2073">2073</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2015 The Rust Project Developers.
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
@@ -2082,7 +2085,7 @@
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::mem::{<a class="self" href="https://doc.rust-lang.org/nightly/core/mem/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">size_of</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">MaybeUninit</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">std::net::Shutdown</a>;
-<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>};
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>};
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_vendor = <span class="string">&quot;apple&quot;</span>))]
 </span><span class="kw">use </span>std::num::NonZeroU32;
 <span class="attribute">#[cfg(all(
@@ -2122,8 +2125,8 @@
 <span class="kw">use </span>libc::{<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a>, <a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a>};
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span><a href="../../../src/socket2/lib.rs.html#272"><span class="kw">crate</span>::RecvFlags</a>;
-<span class="kw">use crate</span>::{<a href="../../../src/socket2/lib.rs.html#154">Domain</a>, <a href="../../../src/socket2/lib.rs.html#238">Protocol</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>, <a href="../../../src/socket2/lib.rs.html#329">TcpKeepalive</a>, <a href="../../../src/socket2/lib.rs.html#194">Type</a>};
+</span><span class="kw">use </span><a href="../lib.rs.html#272"><span class="kw">crate</span>::RecvFlags</a>;
+<span class="kw">use crate</span>::{<a href="../lib.rs.html#154">Domain</a>, <a href="../lib.rs.html#238">Protocol</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>, <a href="../lib.rs.html#329">TcpKeepalive</a>, <a href="../lib.rs.html#194">Type</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
@@ -2148,6 +2151,7 @@
 </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, not(target_os = <span class="string">&quot;redox&quot;</span>)))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../libc/unix/linux_like/constant.IP_HDRINCL.html">libc::IP_HDRINCL</a>;
 <span class="attribute">#[cfg(not(any(
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
     target_os = <span class="string">&quot;fuchsia&quot;</span>,
     target_os = <span class="string">&quot;illumos&quot;</span>,
     target_os = <span class="string">&quot;netbsd&quot;</span>,
@@ -2175,8 +2179,10 @@
     <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SO_RCVTIMEO.html">SO_RCVTIMEO</a>, <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SO_REUSEADDR.html">SO_REUSEADDR</a>, <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDBUF.html">SO_SNDBUF</a>, <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SO_SNDTIMEO.html">SO_SNDTIMEO</a>, <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SO_TYPE.html">SO_TYPE</a>, <a href="../../../libc/unix/linux_like/constant.TCP_NODELAY.html">TCP_NODELAY</a>,
 };
 <span class="attribute">#[cfg(not(any(
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
     target_os = <span class="string">&quot;haiku&quot;</span>,
     target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;</span>,
     target_os = <span class="string">&quot;redox&quot;</span>,
     target_os = <span class="string">&quot;fuchsia&quot;</span>,
 )))]
@@ -2291,10 +2297,10 @@
 </span><span class="kw">type </span>IovLen = c_int;
 
 <span class="doccomment">/// Unix only API.
-</span><span class="kw">impl </span><a href="../../../src/socket2/lib.rs.html#154">Domain</a> {
+</span><span class="kw">impl </span><a href="../lib.rs.html#154">Domain</a> {
     <span class="doccomment">/// Domain for Unix socket communication, corresponding to `AF_UNIX`.
     </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(unix)))]
-    </span><span class="kw">pub const </span>UNIX: <a href="../../../src/socket2/lib.rs.html#154">Domain</a> = <a href="../../../src/socket2/lib.rs.html#154">Domain</a>(libc::AF_UNIX);
+    </span><span class="kw">pub const </span>UNIX: <a href="../lib.rs.html#154">Domain</a> = <a href="../lib.rs.html#154">Domain</a>(libc::AF_UNIX);
 
     <span class="doccomment">/// Domain for low-level packet interface, corresponding to `AF_PACKET`.
     </span><span class="attribute">#[cfg(all(
@@ -2308,7 +2314,7 @@
             any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>)
         )))
     )]
-    </span><span class="kw">pub const </span>PACKET: <a href="../../../src/socket2/lib.rs.html#154">Domain</a> = <a href="../../../src/socket2/lib.rs.html#154">Domain</a>(libc::AF_PACKET);
+    </span><span class="kw">pub const </span>PACKET: <a href="../lib.rs.html#154">Domain</a> = <a href="../lib.rs.html#154">Domain</a>(libc::AF_PACKET);
 
     <span class="doccomment">/// Domain for low-level VSOCK interface, corresponding to `AF_VSOCK`.
     </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>)))]
@@ -2316,11 +2322,11 @@
         docsrs,
         doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))
     )]
-    </span><span class="kw">pub const </span>VSOCK: <a href="../../../src/socket2/lib.rs.html#154">Domain</a> = <a href="../../../src/socket2/lib.rs.html#154">Domain</a>(libc::AF_VSOCK);
+    </span><span class="kw">pub const </span>VSOCK: <a href="../lib.rs.html#154">Domain</a> = <a href="../lib.rs.html#154">Domain</a>(libc::AF_VSOCK);
 }
 
-<a class="macro" href="../../../src/socket2/lib.rs.html#73-98">impl_debug!</a>(
-    <a href="../../../src/socket2/lib.rs.html#154">Domain</a>,
+<a class="macro" href="../lib.rs.html#73-98">impl_debug!</a>(
+    <a href="../lib.rs.html#154">Domain</a>,
     libc::AF_INET,
     libc::AF_INET6,
     libc::AF_UNIX,
@@ -2337,7 +2343,7 @@
 </span>);
 
 <span class="doccomment">/// Unix only API.
-</span><span class="kw">impl </span><a href="../../../src/socket2/lib.rs.html#194">Type</a> {
+</span><span class="kw">impl </span><a href="../lib.rs.html#194">Type</a> {
     <span class="doccomment">/// Set `SOCK_NONBLOCK` on the `Type`.
     </span><span class="attribute">#[cfg(all(
         feature = <span class="string">&quot;all&quot;</span>,
@@ -2368,8 +2374,8 @@
             </span>)
         )))
     )]
-    </span><span class="kw">pub const fn </span>nonblocking(<span class="self">self</span>) -&gt; <a href="../../../src/socket2/lib.rs.html#194">Type</a> {
-        <a href="../../../src/socket2/lib.rs.html#194">Type</a>(<a class="self" href="../../../src/socket2/sys/unix.rs.html#301">self</a>.<span class="number">0 </span>| libc::SOCK_NONBLOCK)
+    </span><span class="kw">pub const fn </span>nonblocking(<span class="self">self</span>) -&gt; <a href="../lib.rs.html#194">Type</a> {
+        <a href="../lib.rs.html#194">Type</a>(<a class="self" href="#304">self</a>.<span class="number">0 </span>| libc::SOCK_NONBLOCK)
     }
 
     <span class="doccomment">/// Set `SOCK_CLOEXEC` on the `Type`.
@@ -2402,8 +2408,8 @@
             </span>)
         )))
     )]
-    </span><span class="kw">pub const fn </span>cloexec(<span class="self">self</span>) -&gt; <a href="../../../src/socket2/lib.rs.html#194">Type</a> {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#335">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#349">_cloexec</a>()
+    </span><span class="kw">pub const fn </span>cloexec(<span class="self">self</span>) -&gt; <a href="../lib.rs.html#194">Type</a> {
+        <a class="self" href="#338">self</a>.<a href="#352">_cloexec</a>()
     }
 
     <span class="attribute">#[cfg(any(
@@ -2416,13 +2422,13 @@
         target_os = <span class="string">&quot;netbsd&quot;</span>,
         target_os = <span class="string">&quot;openbsd&quot;
     </span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>_cloexec(<span class="self">self</span>) -&gt; <a href="../../../src/socket2/lib.rs.html#194">Type</a> {
-        <a href="../../../src/socket2/lib.rs.html#194">Type</a>(<a class="self" href="../../../src/socket2/sys/unix.rs.html#349">self</a>.<span class="number">0 </span>| libc::SOCK_CLOEXEC)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>_cloexec(<span class="self">self</span>) -&gt; <a href="../lib.rs.html#194">Type</a> {
+        <a href="../lib.rs.html#194">Type</a>(<a class="self" href="#352">self</a>.<span class="number">0 </span>| libc::SOCK_CLOEXEC)
     }
 }
 
-<a class="macro" href="../../../src/socket2/lib.rs.html#73-98">impl_debug!</a>(
-    <a href="../../../src/socket2/lib.rs.html#194">Type</a>,
+<a class="macro" href="../lib.rs.html#73-98">impl_debug!</a>(
+    <a href="../lib.rs.html#194">Type</a>,
     libc::SOCK_STREAM,
     libc::SOCK_DGRAM,
     <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
@@ -2454,8 +2460,8 @@
     */
 </span>);
 
-<a class="macro" href="../../../src/socket2/lib.rs.html#73-98">impl_debug!</a>(
-    <a href="../../../src/socket2/lib.rs.html#238">Protocol</a>,
+<a class="macro" href="../lib.rs.html#73-98">impl_debug!</a>(
+    <a href="../lib.rs.html#238">Protocol</a>,
     libc::IPPROTO_ICMP,
     libc::IPPROTO_ICMPV6,
     libc::IPPROTO_TCP,
@@ -2464,7 +2470,7 @@
 
 <span class="doccomment">/// Unix-only API.
 </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">impl </span><a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a> {
+</span><span class="kw">impl </span><a href="../lib.rs.html#272">RecvFlags</a> {
     <span class="doccomment">/// Check if the message terminates a record.
     ///
     /// Not all socket types support the notion of records.
@@ -2473,7 +2479,7 @@
     ///
     /// On Unix this corresponds to the MSG_EOR flag.
     </span><span class="kw">pub const fn </span>is_end_of_record(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#405">self</a>.<span class="number">0 </span>&amp; libc::MSG_EOR != <span class="number">0
+        <a class="self" href="#408">self</a>.<span class="number">0 </span>&amp; libc::MSG_EOR != <span class="number">0
     </span>}
 
     <span class="doccomment">/// Check if the message contains out-of-band data.
@@ -2483,17 +2489,17 @@
     ///
     /// On Unix this corresponds to the MSG_OOB flag.
     </span><span class="kw">pub const fn </span>is_out_of_band(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#415">self</a>.<span class="number">0 </span>&amp; <a href="../../../libc/unix/linux_like/constant.MSG_OOB.html">libc::MSG_OOB</a> != <span class="number">0
+        <a class="self" href="#418">self</a>.<span class="number">0 </span>&amp; <a href="../../../libc/unix/linux_like/constant.MSG_OOB.html">libc::MSG_OOB</a> != <span class="number">0
     </span>}
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../lib.rs.html#272">RecvFlags</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a href="../../../src/socket2/sys/unix.rs.html#422">f</a>.debug_struct(<span class="string">&quot;RecvFlags&quot;</span>)
-            .field(<span class="string">&quot;is_end_of_record&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/socket2/sys/unix.rs.html#422">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#405">is_end_of_record</a>())
-            .field(<span class="string">&quot;is_out_of_band&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/socket2/sys/unix.rs.html#422">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#415">is_out_of_band</a>())
-            .field(<span class="string">&quot;is_truncated&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/socket2/sys/unix.rs.html#422">self</a>.<a href="../../../src/socket2/lib.rs.html#283">is_truncated</a>())
+        <a href="#425">f</a>.debug_struct(<span class="string">&quot;RecvFlags&quot;</span>)
+            .field(<span class="string">&quot;is_end_of_record&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#425">self</a>.<a href="#408">is_end_of_record</a>())
+            .field(<span class="string">&quot;is_out_of_band&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#425">self</a>.<a href="#418">is_out_of_band</a>())
+            .field(<span class="string">&quot;is_truncated&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#425">self</a>.<a href="../lib.rs.html#283">is_truncated</a>())
             .finish()
     }
 }
@@ -2510,26 +2516,26 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; MaybeUninitSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; MaybeUninitSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="../../../src/socket2/sys/unix.rs.html#432">MaybeUninitSlice</a> {
+        <a href="#435">MaybeUninitSlice</a> {
             vec: <a href="../../../libc/unix/struct.iovec.html">libc::iovec</a> {
-                iov_base: <a href="../../../src/socket2/sys/unix.rs.html#442">buf</a>.as_mut_ptr().cast(),
-                iov_len: <a href="../../../src/socket2/sys/unix.rs.html#442">buf</a>.len(),
+                iov_base: <a href="#445">buf</a>.as_mut_ptr().cast(),
+                iov_len: <a href="#445">buf</a>.len(),
             },
             _lifetime: PhantomData,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
-        <span class="kw">unsafe </span>{ slice::from_raw_parts(<a class="self" href="../../../src/socket2/sys/unix.rs.html#452">self</a>.vec.iov_base.cast(), <a class="self" href="../../../src/socket2/sys/unix.rs.html#452">self</a>.vec.iov_len) }
+        <span class="kw">unsafe </span>{ slice::from_raw_parts(<a class="self" href="#455">self</a>.vec.iov_base.cast(), <a class="self" href="#455">self</a>.vec.iov_len) }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_mut_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
-        <span class="kw">unsafe </span>{ slice::from_raw_parts_mut(<a class="self" href="../../../src/socket2/sys/unix.rs.html#456">self</a>.vec.iov_base.cast(), <a class="self" href="../../../src/socket2/sys/unix.rs.html#456">self</a>.vec.iov_len) }
+        <span class="kw">unsafe </span>{ slice::from_raw_parts_mut(<a class="self" href="#459">self</a>.vec.iov_base.cast(), <a class="self" href="#459">self</a>.vec.iov_len) }
     }
 }
 
 <span class="doccomment">/// Unix only API.
-</span><span class="kw">impl </span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a> {
+</span><span class="kw">impl </span><a href="../sockaddr.rs.html#17">SockAddr</a> {
     <span class="doccomment">/// Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
     ///
     /// # Failure
@@ -2538,7 +2544,7 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(all(unix, feature = <span class="string">&quot;all&quot;</span>))))]
     #[allow(unused_unsafe)] </span><span class="comment">// TODO: replace with `unsafe_op_in_unsafe_fn` once stable.
-    </span><span class="kw">pub fn </span>unix&lt;P&gt;(path: P) -&gt; io::Result&lt;<a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>&gt;
+    </span><span class="kw">pub fn </span>unix&lt;P&gt;(path: P) -&gt; io::Result&lt;<a href="../sockaddr.rs.html#17">SockAddr</a>&gt;
     <span class="kw">where
         </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
     {
@@ -2546,15 +2552,15 @@
             SockAddr::init(|storage, len| {
                 <span class="comment">// Safety: `SockAddr::init` zeros the address, which is a valid
                 // representation.
-                </span><span class="kw">let </span>storage: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/socket2/sys/unix.rs.html#476">storage</a>.cast() };
-                <span class="kw">let </span>len: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/socket2/sys/unix.rs.html#476">len</a> };
+                </span><span class="kw">let </span>storage: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#479">storage</a>.cast() };
+                <span class="kw">let </span>len: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#479">len</a> };
 
-                <span class="kw">let </span>bytes = <a href="../../../src/socket2/sys/unix.rs.html#471">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>();
-                <span class="kw">let </span>too_long = <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.first() {
+                <span class="kw">let </span>bytes = <a href="#474">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>();
+                <span class="kw">let </span>too_long = <span class="kw">match </span><a href="#485">bytes</a>.first() {
                     <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
                     <span class="comment">// linux abstract namespaces aren&#39;t null-terminated
-                    </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) =&gt; <a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.len() &gt; <a href="../../../src/socket2/sys/unix.rs.html#479">storage</a>.sun_path.len(),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.len() &gt;= <a href="../../../src/socket2/sys/unix.rs.html#479">storage</a>.sun_path.len(),
+                    </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) =&gt; <a href="#485">bytes</a>.len() &gt; <a href="#482">storage</a>.sun_path.len(),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a href="#485">bytes</a>.len() &gt;= <a href="#482">storage</a>.sun_path.len(),
                 };
                 <span class="kw">if </span>too_long {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
@@ -2563,38 +2569,38 @@
                     ));
                 }
 
-                <a href="../../../src/socket2/sys/unix.rs.html#479">storage</a>.sun_family = libc::AF_UNIX <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.sa_family_t.html">sa_family_t</a>;
+                <a href="#482">storage</a>.sun_family = libc::AF_UNIX <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.sa_family_t.html">sa_family_t</a>;
                 <span class="comment">// Safety: `bytes` and `addr.sun_path` are not overlapping and
                 // both point to valid memory.
                 // `SockAddr::init` zeroes the memory, so the path is already
                 // null terminated.
                 </span><span class="kw">unsafe </span>{
                     ptr::copy_nonoverlapping(
-                        <a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.as_ptr(),
-                        <a href="../../../src/socket2/sys/unix.rs.html#479">storage</a>.sun_path.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-                        <a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.len(),
+                        <a href="#485">bytes</a>.as_ptr(),
+                        <a href="#482">storage</a>.sun_path.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+                        <a href="#485">bytes</a>.len(),
                     )
                 };
 
-                <span class="kw">let </span>base = <a href="../../../src/socket2/sys/unix.rs.html#479">storage</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="../../../src/socket2/sys/unix.rs.html#479">storage</a>.sun_path <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                <span class="kw">let </span>sun_path_offset = <a href="../../../src/socket2/sys/unix.rs.html#510">path</a> - <a href="../../../src/socket2/sys/unix.rs.html#509">base</a>;
-                <span class="kw">let </span>length = <a href="../../../src/socket2/sys/unix.rs.html#511">sun_path_offset</a>
-                    + <a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.len()
-                    + <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#482">bytes</a>.first() {
+                <span class="kw">let </span>base = <a href="#482">storage</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="#482">storage</a>.sun_path <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                <span class="kw">let </span>sun_path_offset = <a href="#513">path</a> - <a href="#512">base</a>;
+                <span class="kw">let </span>length = <a href="#514">sun_path_offset</a>
+                    + <a href="#485">bytes</a>.len()
+                    + <span class="kw">match </span><a href="#485">bytes</a>.first() {
                         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) | <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
                         <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
                     };
-                <span class="kw-2">*</span><a href="../../../src/socket2/sys/unix.rs.html#480">len</a> = <a href="../../../src/socket2/sys/unix.rs.html#512">length</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
+                <span class="kw-2">*</span><a href="#483">len</a> = <a href="#515">length</a> <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
 
                 <span class="prelude-val">Ok</span>(())
             })
         }
-        .map(|(<span class="kw">_</span>, addr)| <a href="../../../src/socket2/sys/unix.rs.html#523">addr</a>)
+        .map(|(<span class="kw">_</span>, addr)| <a href="#526">addr</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a> {
+<span class="kw">impl </span><a href="../sockaddr.rs.html#17">SockAddr</a> {
     <span class="doccomment">/// Constructs a `SockAddr` with the family `AF_VSOCK` and the provided CID/port.
     ///
     /// # Errors
@@ -2607,24 +2613,24 @@
         docsrs,
         doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))
     )]
-    </span><span class="kw">pub fn </span>vsock(cid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;<a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>&gt; {
+    </span><span class="kw">pub fn </span>vsock(cid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;<a href="../sockaddr.rs.html#17">SockAddr</a>&gt; {
         <span class="kw">unsafe </span>{
             SockAddr::init(|storage, len| {
                 <span class="comment">// Safety: `SockAddr::init` zeros the address, which is a valid
                 // representation.
-                </span><span class="kw">let </span>storage: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/socket2/sys/unix.rs.html#542">storage</a>.cast() };
-                <span class="kw">let </span>len: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/socket2/sys/unix.rs.html#542">len</a> };
+                </span><span class="kw">let </span>storage: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#545">storage</a>.cast() };
+                <span class="kw">let </span>len: <span class="kw-2">&amp;mut </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a> = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#545">len</a> };
 
-                <a href="../../../src/socket2/sys/unix.rs.html#545">storage</a>.svm_family = libc::AF_VSOCK <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.sa_family_t.html">sa_family_t</a>;
-                <a href="../../../src/socket2/sys/unix.rs.html#545">storage</a>.svm_cid = <a href="../../../src/socket2/sys/unix.rs.html#540">cid</a>;
-                <a href="../../../src/socket2/sys/unix.rs.html#545">storage</a>.svm_port = <a href="../../../src/socket2/sys/unix.rs.html#540">port</a>;
+                <a href="#548">storage</a>.svm_family = libc::AF_VSOCK <span class="kw">as </span><a href="../../../libc/unix/linux_like/type.sa_family_t.html">sa_family_t</a>;
+                <a href="#548">storage</a>.svm_cid = <a href="#543">cid</a>;
+                <a href="#548">storage</a>.svm_port = <a href="#543">port</a>;
 
-                <span class="kw-2">*</span><a href="../../../src/socket2/sys/unix.rs.html#546">len</a> = mem::size_of::&lt;<a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a>&gt;() <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
+                <span class="kw-2">*</span><a href="#549">len</a> = mem::size_of::&lt;<a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a>&gt;() <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
 
                 <span class="prelude-val">Ok</span>(())
             })
         }
-        .map(|(<span class="kw">_</span>, addr)| <a href="../../../src/socket2/sys/unix.rs.html#557">addr</a>)
+        .map(|(<span class="kw">_</span>, addr)| <a href="#560">addr</a>)
     }
 
     <span class="doccomment">/// Returns this address VSOCK CID/port if it is in the `AF_VSOCK` family,
@@ -2637,8 +2643,8 @@
     </span><span class="kw">pub fn </span>vsock_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
         <span class="kw">if </span><span class="self">self</span>.family() == libc::AF_VSOCK <span class="kw">as </span>sa_family_t {
             <span class="comment">// Safety: if the ss_family field is AF_VSOCK then storage must be a sockaddr_vm.
-            </span><span class="kw">let </span>addr = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a class="self" href="../../../src/socket2/sys/unix.rs.html#567">self</a>.<a href="../../../src/socket2/sockaddr.rs.html#153">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a>) };
-            <span class="prelude-val">Some</span>((<a href="../../../src/socket2/sys/unix.rs.html#570">addr</a>.svm_cid, <a href="../../../src/socket2/sys/unix.rs.html#570">addr</a>.svm_port))
+            </span><span class="kw">let </span>addr = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a class="self" href="#570">self</a>.<a href="../sockaddr.rs.html#153">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/struct.sockaddr_vm.html">libc::sockaddr_vm</a>) };
+            <span class="prelude-val">Some</span>((<a href="#573">addr</a>.svm_cid, <a href="#573">addr</a>.svm_port))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2647,75 +2653,75 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Socket = <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>socket_from_raw(socket: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; <a href="../../../src/socket2/socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a> {
-    <span class="kw">crate</span>::socket::Inner::from_raw_fd(<a href="../../../src/socket2/sys/unix.rs.html#580">socket</a>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>socket_from_raw(socket: <a href="#581">Socket</a>) -&gt; <a href="../socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a> {
+    <span class="kw">crate</span>::socket::Inner::from_raw_fd(<a href="#583">socket</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_as_raw(socket: <span class="kw-2">&amp;</span><a href="../../../src/socket2/socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a>) -&gt; <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a> {
-    <a href="../../../src/socket2/sys/unix.rs.html#584">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_as_raw(socket: <span class="kw-2">&amp;</span><a href="../socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a>) -&gt; <a href="#581">Socket</a> {
+    <a href="#587">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_into_raw(socket: <a href="../../../src/socket2/socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a>) -&gt; <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a> {
-    <a href="../../../src/socket2/sys/unix.rs.html#588">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_into_raw(socket: <a href="../socket.rs.html#77"><span class="kw">crate</span>::socket::Inner</a>) -&gt; <a href="#581">Socket</a> {
+    <a href="#591">socket</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket(family: <a href="../../../libc/unix/type.c_int.html">c_int</a>, ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>, protocol: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(socket(family, ty, protocol))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket(family: <a href="../../../libc/unix/type.c_int.html">c_int</a>, ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>, protocol: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="#581">Socket</a>&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(socket(family, ty, protocol))
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socketpair(family: <a href="../../../libc/unix/type.c_int.html">c_int</a>, ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>, protocol: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;[<a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>; <span class="number">2</span>]&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socketpair(family: <a href="../../../libc/unix/type.c_int.html">c_int</a>, ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>, protocol: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;[<a href="#581">Socket</a>; <span class="number">2</span>]&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>fds = [<span class="number">0</span>, <span class="number">0</span>];
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(socketpair(family, ty, protocol, fds.as_mut_ptr())).map(|<span class="kw">_</span>| <a href="../../../src/socket2/sys/unix.rs.html#598">fds</a>)
+    <a class="macro" href="#167-177">syscall!</a>(socketpair(family, ty, protocol, fds.as_mut_ptr())).map(|<span class="kw">_</span>| <a href="#601">fds</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, addr: <span class="kw-2">&amp;</span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(bind(fd, addr.as_ptr(), addr.len() <span class="kw">as _</span>)).map(|<span class="kw">_</span>| ())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind(fd: <a href="#581">Socket</a>, addr: <span class="kw-2">&amp;</span><a href="../sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(bind(fd, addr.as_ptr(), addr.len() <span class="kw">as _</span>)).map(|<span class="kw">_</span>| ())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, addr: <span class="kw-2">&amp;</span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(connect(fd, addr.as_ptr(), addr.len())).map(|<span class="kw">_</span>| ())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect(fd: <a href="#581">Socket</a>, addr: <span class="kw-2">&amp;</span><a href="../sockaddr.rs.html#17">SockAddr</a>) -&gt; io::Result&lt;()&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(connect(fd, addr.as_ptr(), addr.len())).map(|<span class="kw">_</span>| ())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_connect(socket: <span class="kw-2">&amp;</span><a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; io::Result&lt;()&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_connect(socket: <span class="kw-2">&amp;</span><a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>start = Instant::now();
 
     <span class="kw">let </span><span class="kw-2">mut </span>pollfd = <a href="../../../libc/unix/struct.pollfd.html">libc::pollfd</a> {
-        fd: <a href="../../../src/socket2/sys/unix.rs.html#610">socket</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+        fd: <a href="#613">socket</a>.<a href="../socket.rs.html#109">as_raw</a>(),
         events: libc::POLLIN | libc::POLLOUT,
         revents: <span class="number">0</span>,
     };
 
     <span class="kw">loop </span>{
-        <span class="kw">let </span>elapsed = <a href="../../../src/socket2/sys/unix.rs.html#611">start</a>.elapsed();
+        <span class="kw">let </span>elapsed = <a href="#614">start</a>.elapsed();
         <span class="kw">if </span>elapsed &gt;= timeout {
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::TimedOut.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="kw">let </span>timeout = (<a href="../../../src/socket2/sys/unix.rs.html#610">timeout</a> - <a href="../../../src/socket2/sys/unix.rs.html#620">elapsed</a>).as_millis();
-        <span class="kw">let </span>timeout = <a href="../../../src/socket2/sys/unix.rs.html#654-656">clamp</a>(<a href="../../../src/socket2/sys/unix.rs.html#625">timeout</a>, <span class="number">1</span>, c_int::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">let </span>timeout = (<a href="#613">timeout</a> - <a href="#623">elapsed</a>).as_millis();
+        <span class="kw">let </span>timeout = <a href="#657-659">clamp</a>(<a href="#628">timeout</a>, <span class="number">1</span>, c_int::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-        <span class="kw">match </span><a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(poll(<span class="kw-2">&amp;mut </span>pollfd, <span class="number">1</span>, timeout)) {
+        <span class="kw">match </span><a class="macro" href="#167-177">syscall!</a>(poll(<span class="kw-2">&amp;mut </span>pollfd, <span class="number">1</span>, timeout)) {
             <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::TimedOut.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Error or hang up indicates an error (or failure to connect).
                 </span><span class="kw">if </span>(pollfd.revents &amp; libc::POLLHUP) != <span class="number">0 </span>|| (pollfd.revents &amp; libc::POLLERR) != <span class="number">0 </span>{
-                    <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#610">socket</a>.<a href="../../../src/socket2/socket.rs.html#773">take_error</a>() {
-                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(err)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/socket2/sys/unix.rs.html#634">err</a>),
+                    <span class="kw">match </span><a href="#613">socket</a>.<a href="../socket.rs.html#773">take_error</a>() {
+                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(err)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#637">err</a>),
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                                 io::ErrorKind::Other,
                                 <span class="string">&quot;no error set after POLLHUP&quot;</span>,
                             ))
                         }
-                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/socket2/sys/unix.rs.html#641">err</a>),
+                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#644">err</a>),
                     }
                 }
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
             <span class="comment">// Got interrupted, try again.
-            </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="../../../src/socket2/sys/unix.rs.html#647">err</a>.kind() == io::ErrorKind::Interrupted =&gt; <span class="kw">continue</span>,
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/socket2/sys/unix.rs.html#648">err</a>),
+            </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="#650">err</a>.kind() == io::ErrorKind::Interrupted =&gt; <span class="kw">continue</span>,
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#651">err</a>),
         }
     }
 }
@@ -2726,75 +2732,75 @@
     </span>T: <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
 {
     <span class="kw">if </span>value &lt;= min {
-        <a href="../../../src/socket2/sys/unix.rs.html#654">min</a>
+        <a href="#657">min</a>
     } <span class="kw">else if </span>value &gt;= max {
-        <a href="../../../src/socket2/sys/unix.rs.html#654">max</a>
+        <a href="#657">max</a>
     } <span class="kw">else </span>{
-        <a href="../../../src/socket2/sys/unix.rs.html#654">value</a>
+        <a href="#657">value</a>
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>listen(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, backlog: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(listen(fd, backlog)).map(|<span class="kw">_</span>| ())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>listen(fd: <a href="#581">Socket</a>, backlog: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(listen(fd, backlog)).map(|<span class="kw">_</span>| ())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; io::Result&lt;(<a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>)&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept(fd: <a href="#581">Socket</a>) -&gt; io::Result&lt;(<a href="#581">Socket</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>)&gt; {
     <span class="comment">// Safety: `accept` initialises the `SockAddr` for us.
-    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(accept(fd, storage.cast(), len))) }
+    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="#167-177">syscall!</a>(accept(fd, storage.cast(), len))) }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getsockname(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; io::Result&lt;<a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getsockname(fd: <a href="#581">Socket</a>) -&gt; io::Result&lt;<a href="../sockaddr.rs.html#17">SockAddr</a>&gt; {
     <span class="comment">// Safety: `accept` initialises the `SockAddr` for us.
-    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(getsockname(fd, storage.cast(), len))) }
-        .map(|(<span class="kw">_</span>, addr)| <a href="../../../src/socket2/sys/unix.rs.html#679">addr</a>)
+    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="#167-177">syscall!</a>(getsockname(fd, storage.cast(), len))) }
+        .map(|(<span class="kw">_</span>, addr)| <a href="#682">addr</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getpeername(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; io::Result&lt;<a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getpeername(fd: <a href="#581">Socket</a>) -&gt; io::Result&lt;<a href="../sockaddr.rs.html#17">SockAddr</a>&gt; {
     <span class="comment">// Safety: `accept` initialises the `SockAddr` for us.
-    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(getpeername(fd, storage.cast(), len))) }
-        .map(|(<span class="kw">_</span>, addr)| <a href="../../../src/socket2/sys/unix.rs.html#685">addr</a>)
+    </span><span class="kw">unsafe </span>{ SockAddr::init(|storage, len| <a class="macro" href="#167-177">syscall!</a>(getpeername(fd, storage.cast(), len))) }
+        .map(|(<span class="kw">_</span>, addr)| <a href="#688">addr</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_clone(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; io::Result&lt;<a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(fcntl(fd, libc::F_DUPFD_CLOEXEC, <span class="number">0</span>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_clone(fd: <a href="#581">Socket</a>) -&gt; io::Result&lt;<a href="#581">Socket</a>&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(fcntl(fd, libc::F_DUPFD_CLOEXEC, <span class="number">0</span>))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_nonblocking(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_nonblocking(fd: <a href="#581">Socket</a>, nonblocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
     <span class="kw">if </span>nonblocking {
-        <a href="../../../src/socket2/sys/unix.rs.html#939">fcntl_add</a>(<a href="../../../src/socket2/sys/unix.rs.html#692">fd</a>, libc::F_GETFL, libc::F_SETFL, libc::O_NONBLOCK)
+        <a href="#942">fcntl_add</a>(<a href="#695">fd</a>, libc::F_GETFL, libc::F_SETFL, libc::O_NONBLOCK)
     } <span class="kw">else </span>{
-        <a href="../../../src/socket2/sys/unix.rs.html#951">fcntl_remove</a>(<a href="../../../src/socket2/sys/unix.rs.html#692">fd</a>, libc::F_GETFL, libc::F_SETFL, libc::O_NONBLOCK)
+        <a href="#954">fcntl_remove</a>(<a href="#695">fd</a>, libc::F_GETFL, libc::F_SETFL, libc::O_NONBLOCK)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">let </span>how = <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#700">how</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(fd: <a href="#581">Socket</a>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>how = <span class="kw">match </span><a href="#703">how</a> {
         Shutdown::Write =&gt; libc::SHUT_WR,
         Shutdown::Read =&gt; libc::SHUT_RD,
         Shutdown::Both =&gt; libc::SHUT_RDWR,
     };
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(shutdown(fd, how)).map(|<span class="kw">_</span>| ())
+    <a class="macro" href="#167-177">syscall!</a>(shutdown(fd, how)).map(|<span class="kw">_</span>| ())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(recv(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv(fd: <a href="#581">Socket</a>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(recv(
         fd,
         buf.as_mut_ptr().cast(),
         min(buf.len(), MAX_BUF_LEN),
         flags,
     ))
-    .map(|n| <a href="../../../src/socket2/sys/unix.rs.html#716">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    .map(|n| <a href="#719">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_from(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;],
     flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>)&gt; {
+) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>)&gt; {
     <span class="comment">// Safety: `recvfrom` initialises the `SockAddr` for us.
     </span><span class="kw">unsafe </span>{
         SockAddr::init(|addr, addrlen| {
-            <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(recvfrom(
+            <a class="macro" href="#167-177">syscall!</a>(recvfrom(
                 fd,
                 buf.as_mut_ptr().cast(),
                 min(buf.len(), MAX_BUF_LEN),
@@ -2802,48 +2808,48 @@
                 addr.cast(),
                 addrlen
             ))
-            .map(|n| <a href="../../../src/socket2/sys/unix.rs.html#735">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            .map(|n| <a href="#738">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         })
     }
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_vectored(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     bufs: <span class="kw-2">&amp;mut </span>[<span class="kw">crate</span>::MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a>)&gt; {
-    <a href="../../../src/socket2/sys/unix.rs.html#771-776">recvmsg</a>(<a href="../../../src/socket2/sys/unix.rs.html#742">fd</a>, ptr::null_mut(), <a href="../../../src/socket2/sys/unix.rs.html#743">bufs</a>, <a href="../../../src/socket2/sys/unix.rs.html#744">flags</a>).map(|(n, <span class="kw">_</span>, recv_flags)| (<a href="../../../src/socket2/sys/unix.rs.html#746">n</a>, <a href="../../../src/socket2/sys/unix.rs.html#746">recv_flags</a>))
+) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../lib.rs.html#272">RecvFlags</a>)&gt; {
+    <a href="#774-779">recvmsg</a>(<a href="#745">fd</a>, ptr::null_mut(), <a href="#746">bufs</a>, <a href="#747">flags</a>).map(|(n, <span class="kw">_</span>, recv_flags)| (<a href="#749">n</a>, <a href="#749">recv_flags</a>))
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_from_vectored(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     bufs: <span class="kw-2">&amp;mut </span>[<span class="kw">crate</span>::MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>)&gt; {
+) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../lib.rs.html#272">RecvFlags</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>)&gt; {
     <span class="comment">// Safety: `recvmsg` initialises the address storage and we set the length
     // manually.
     </span><span class="kw">unsafe </span>{
         SockAddr::init(|storage, len| {
-            <a href="../../../src/socket2/sys/unix.rs.html#771-776">recvmsg</a>(<a href="../../../src/socket2/sys/unix.rs.html#751">fd</a>, <a href="../../../src/socket2/sys/unix.rs.html#758">storage</a>, <a href="../../../src/socket2/sys/unix.rs.html#752">bufs</a>, <a href="../../../src/socket2/sys/unix.rs.html#753">flags</a>).map(|(n, addrlen, recv_flags)| {
+            <a href="#774-779">recvmsg</a>(<a href="#754">fd</a>, <a href="#761">storage</a>, <a href="#755">bufs</a>, <a href="#756">flags</a>).map(|(n, addrlen, recv_flags)| {
                 <span class="comment">// Set the correct address length.
-                </span><span class="kw-2">*</span><a href="../../../src/socket2/sys/unix.rs.html#758">len</a> = <a href="../../../src/socket2/sys/unix.rs.html#759">addrlen</a>;
-                (<a href="../../../src/socket2/sys/unix.rs.html#759">n</a>, <a href="../../../src/socket2/sys/unix.rs.html#759">recv_flags</a>)
+                </span><span class="kw-2">*</span><a href="#761">len</a> = <a href="#762">addrlen</a>;
+                (<a href="#762">n</a>, <a href="#762">recv_flags</a>)
             })
         })
     }
-    .map(|((n, recv_flags), addr)| (<a href="../../../src/socket2/sys/unix.rs.html#766">n</a>, <a href="../../../src/socket2/sys/unix.rs.html#766">recv_flags</a>, <a href="../../../src/socket2/sys/unix.rs.html#766">addr</a>))
+    .map(|((n, recv_flags), addr)| (<a href="#769">n</a>, <a href="#769">recv_flags</a>, <a href="#769">addr</a>))
 }
 
 <span class="doccomment">/// Returns the (bytes received, sending address len, `RecvFlags`).
 </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">fn </span>recvmsg(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     msg_name: <span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.sockaddr_storage.html">sockaddr_storage</a>,
     bufs: <span class="kw-2">&amp;mut </span>[<span class="kw">crate</span>::MaybeUninitSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>, <a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a>)&gt; {
+) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>, <a href="../lib.rs.html#272">RecvFlags</a>)&gt; {
     <span class="kw">let </span>msg_namelen = <span class="kw">if </span>msg_name.is_null() {
         <span class="number">0
     </span>} <span class="kw">else </span>{
@@ -2851,31 +2857,31 @@
     };
     <span class="comment">// libc::msghdr contains unexported padding fields on Fuchsia.
     </span><span class="kw">let </span><span class="kw-2">mut </span>msg: <a href="../../../libc/unix/linux_like/linux/gnu/struct.msghdr.html">libc::msghdr</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
-    <a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_name = <a href="../../../src/socket2/sys/unix.rs.html#773">msg_name</a>.cast();
-    <a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_namelen = <a href="../../../src/socket2/sys/unix.rs.html#777">msg_namelen</a>;
-    <a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_iov = <a href="../../../src/socket2/sys/unix.rs.html#774">bufs</a>.as_mut_ptr().cast();
-    <a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_iovlen = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="../../../src/socket2/sys/unix.rs.html#774">bufs</a>.len(), IovLen::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="../../../src/socket2/sys/unix.rs.html#201">IovLen</a>;
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(recvmsg(fd, <span class="kw-2">&amp;mut </span>msg, flags))
-        .map(|n| (<a href="../../../src/socket2/sys/unix.rs.html#789">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_namelen, <a href="../../../src/socket2/lib.rs.html#272">RecvFlags</a>(<a href="../../../src/socket2/sys/unix.rs.html#783">msg</a>.msg_flags)))
+    <a href="#786">msg</a>.msg_name = <a href="#776">msg_name</a>.cast();
+    <a href="#786">msg</a>.msg_namelen = <a href="#780">msg_namelen</a>;
+    <a href="#786">msg</a>.msg_iov = <a href="#777">bufs</a>.as_mut_ptr().cast();
+    <a href="#786">msg</a>.msg_iovlen = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="#777">bufs</a>.len(), IovLen::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="#204">IovLen</a>;
+    <a class="macro" href="#167-177">syscall!</a>(recvmsg(fd, <span class="kw-2">&amp;mut </span>msg, flags))
+        .map(|n| (<a href="#792">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="#786">msg</a>.msg_namelen, <a href="../lib.rs.html#272">RecvFlags</a>(<a href="#786">msg</a>.msg_flags)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(send(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(fd: <a href="#581">Socket</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(send(
         fd,
         buf.as_ptr().cast(),
         min(buf.len(), MAX_BUF_LEN),
         flags,
     ))
-    .map(|n| <a href="../../../src/socket2/sys/unix.rs.html#799">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    .map(|n| <a href="#802">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_vectored(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="../../../src/socket2/sys/unix.rs.html#831-837">sendmsg</a>(<a href="../../../src/socket2/sys/unix.rs.html#803">fd</a>, ptr::null(), <span class="number">0</span>, <a href="../../../src/socket2/sys/unix.rs.html#803">bufs</a>, <a href="../../../src/socket2/sys/unix.rs.html#803">flags</a>)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_vectored(fd: <a href="#581">Socket</a>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;], flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <a href="#834-840">sendmsg</a>(<a href="#806">fd</a>, ptr::null(), <span class="number">0</span>, <a href="#806">bufs</a>, <a href="#806">flags</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_to(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], addr: <span class="kw-2">&amp;</span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(sendto(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_to(fd: <a href="#581">Socket</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], addr: <span class="kw-2">&amp;</span><a href="../sockaddr.rs.html#17">SockAddr</a>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <a class="macro" href="#167-177">syscall!</a>(sendto(
         fd,
         buf.as_ptr().cast(),
         min(buf.len(), MAX_BUF_LEN),
@@ -2883,23 +2889,23 @@
         addr.as_ptr(),
         addr.len(),
     ))
-    .map(|n| <a href="../../../src/socket2/sys/unix.rs.html#816">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    .map(|n| <a href="#819">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_to_vectored(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    addr: <span class="kw-2">&amp;</span><a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>,
+    addr: <span class="kw-2">&amp;</span><a href="../sockaddr.rs.html#17">SockAddr</a>,
     flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
 ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="../../../src/socket2/sys/unix.rs.html#831-837">sendmsg</a>(<a href="../../../src/socket2/sys/unix.rs.html#821">fd</a>, <a href="../../../src/socket2/sys/unix.rs.html#823">addr</a>.<a href="../../../src/socket2/sockaddr.rs.html#159">as_storage_ptr</a>(), <a href="../../../src/socket2/sys/unix.rs.html#823">addr</a>.<a href="../../../src/socket2/sockaddr.rs.html#148">len</a>(), <a href="../../../src/socket2/sys/unix.rs.html#822">bufs</a>, <a href="../../../src/socket2/sys/unix.rs.html#824">flags</a>)
+    <a href="#834-840">sendmsg</a>(<a href="#824">fd</a>, <a href="#826">addr</a>.<a href="../sockaddr.rs.html#159">as_storage_ptr</a>(), <a href="#826">addr</a>.<a href="../sockaddr.rs.html#148">len</a>(), <a href="#825">bufs</a>, <a href="#827">flags</a>)
 }
 
 <span class="doccomment">/// Returns the (bytes received, sending address len, `RecvFlags`).
 </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">fn </span>sendmsg(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     msg_name: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/struct.sockaddr_storage.html">sockaddr_storage</a>,
     msg_namelen: <a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>,
     bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
@@ -2910,47 +2916,47 @@
     <span class="comment">// Safety: we&#39;re creating a `*mut` pointer from a reference, which is UB
     // once actually used. However the OS should not write to it in the
     // `sendmsg` system call.
-    </span><a href="../../../src/socket2/sys/unix.rs.html#839">msg</a>.msg_name = (<a href="../../../src/socket2/sys/unix.rs.html#833">msg_name</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.sockaddr_storage.html">sockaddr_storage</a>).cast();
-    <a href="../../../src/socket2/sys/unix.rs.html#839">msg</a>.msg_namelen = <a href="../../../src/socket2/sys/unix.rs.html#834">msg_namelen</a>;
+    </span><a href="#842">msg</a>.msg_name = (<a href="#836">msg_name</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/struct.sockaddr_storage.html">sockaddr_storage</a>).cast();
+    <a href="#842">msg</a>.msg_namelen = <a href="#837">msg_namelen</a>;
     <span class="comment">// Safety: Same as above about `*const` -&gt; `*mut`.
-    </span><a href="../../../src/socket2/sys/unix.rs.html#839">msg</a>.msg_iov = <a href="../../../src/socket2/sys/unix.rs.html#835">bufs</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
-    <a href="../../../src/socket2/sys/unix.rs.html#839">msg</a>.msg_iovlen = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="../../../src/socket2/sys/unix.rs.html#835">bufs</a>.len(), IovLen::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="../../../src/socket2/sys/unix.rs.html#201">IovLen</a>;
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(sendmsg(fd, <span class="kw-2">&amp;</span>msg, flags)).map(|n| <a href="../../../src/socket2/sys/unix.rs.html#848">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    </span><a href="#842">msg</a>.msg_iov = <a href="#838">bufs</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+    <a href="#842">msg</a>.msg_iovlen = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="#838">bufs</a>.len(), IovLen::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="#204">IovLen</a>;
+    <a class="macro" href="#167-177">syscall!</a>(sendmsg(fd, <span class="kw-2">&amp;</span>msg, flags)).map(|n| <a href="#851">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
 <span class="doccomment">/// Wrapper around `getsockopt` to deal with platform specific timeouts.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>timeout_opt(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>, val: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
-    <span class="kw">unsafe </span>{ <a href="../../../src/socket2/sys/unix.rs.html#963">getsockopt</a>(<a href="../../../src/socket2/sys/unix.rs.html#852">fd</a>, <a href="../../../src/socket2/sys/unix.rs.html#852">opt</a>, <a href="../../../src/socket2/sys/unix.rs.html#852">val</a>).map(<a href="../../../src/socket2/sys/unix.rs.html#856">from_timeval</a>) }
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>timeout_opt(fd: <a href="#581">Socket</a>, opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>, val: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
+    <span class="kw">unsafe </span>{ <a href="#966">getsockopt</a>(<a href="#855">fd</a>, <a href="#855">opt</a>, <a href="#855">val</a>).map(<a href="#859">from_timeval</a>) }
 }
 
 <span class="kw">fn </span>from_timeval(duration: <a href="../../../libc/unix/struct.timeval.html">libc::timeval</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
     <span class="kw">if </span>duration.tv_sec == <span class="number">0 </span>&amp;&amp; duration.tv_usec == <span class="number">0 </span>{
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="kw">let </span>sec = <a href="../../../src/socket2/sys/unix.rs.html#856">duration</a>.tv_sec <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <span class="kw">let </span>nsec = (<a href="../../../src/socket2/sys/unix.rs.html#856">duration</a>.tv_usec <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) * <span class="number">1000</span>;
-        <span class="prelude-val">Some</span>(Duration::new(<a href="../../../src/socket2/sys/unix.rs.html#860">sec</a>, <a href="../../../src/socket2/sys/unix.rs.html#861">nsec</a>))
+        <span class="kw">let </span>sec = <a href="#859">duration</a>.tv_sec <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        <span class="kw">let </span>nsec = (<a href="#859">duration</a>.tv_usec <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) * <span class="number">1000</span>;
+        <span class="prelude-val">Some</span>(Duration::new(<a href="#863">sec</a>, <a href="#864">nsec</a>))
     }
 }
 
 <span class="doccomment">/// Wrapper around `setsockopt` to deal with platform specific timeouts.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_timeout_opt(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     val: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     duration: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">let </span>duration = <a href="../../../src/socket2/sys/unix.rs.html#877">into_timeval</a>(<a href="../../../src/socket2/sys/unix.rs.html#871">duration</a>);
-    <span class="kw">unsafe </span>{ <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(<a href="../../../src/socket2/sys/unix.rs.html#868">fd</a>, <a href="../../../src/socket2/sys/unix.rs.html#869">opt</a>, <a href="../../../src/socket2/sys/unix.rs.html#870">val</a>, <a href="../../../src/socket2/sys/unix.rs.html#873">duration</a>) }
+    <span class="kw">let </span>duration = <a href="#880">into_timeval</a>(<a href="#874">duration</a>);
+    <span class="kw">unsafe </span>{ <a href="#984-989">setsockopt</a>(<a href="#871">fd</a>, <a href="#872">opt</a>, <a href="#873">val</a>, <a href="#876">duration</a>) }
 }
 
 <span class="kw">fn </span>into_timeval(duration: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <a href="../../../libc/unix/struct.timeval.html">libc::timeval</a> {
-    <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#877">duration</a> {
+    <span class="kw">match </span><a href="#880">duration</a> {
         <span class="comment">// https://github.com/rust-lang/libc/issues/1848
         </span><span class="attribute">#[cfg_attr(target_env = <span class="string">&quot;musl&quot;</span>, allow(deprecated))]
         </span><span class="prelude-val">Some</span>(duration) =&gt; <a href="../../../libc/unix/struct.timeval.html">libc::timeval</a> {
-            tv_sec: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="../../../src/socket2/sys/unix.rs.html#881">duration</a>.as_secs(), libc::time_t::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span>libc::time_t,
-            tv_usec: <a href="../../../src/socket2/sys/unix.rs.html#881">duration</a>.subsec_micros() <span class="kw">as </span>libc::suseconds_t,
+            tv_sec: <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="#884">duration</a>.as_secs(), libc::time_t::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span>libc::time_t,
+            tv_usec: <a href="#884">duration</a>.subsec_micros() <span class="kw">as </span>libc::suseconds_t,
         },
         <span class="prelude-val">None </span>=&gt; <a href="../../../libc/unix/struct.timeval.html">libc::timeval</a> {
             tv_sec: <span class="number">0</span>,
@@ -2961,18 +2967,18 @@
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
 #[cfg(not(any(target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keepalive_time(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keepalive_time(fd: <a href="#581">Socket</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
     <span class="kw">unsafe </span>{
-        getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a href="../../../src/socket2/sys/unix.rs.html#894">fd</a>, <a href="../../../libc/unix/constant.IPPROTO_TCP.html">IPPROTO_TCP</a>, <a href="../../../libc/unix/linux_like/constant.TCP_KEEPIDLE.html">KEEPALIVE_TIME</a>)
-            .map(|secs| Duration::from_secs(<a href="../../../src/socket2/sys/unix.rs.html#897">secs</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
+        getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a href="#897">fd</a>, <a href="../../../libc/unix/constant.IPPROTO_TCP.html">IPPROTO_TCP</a>, <a href="../../../libc/unix/linux_like/constant.TCP_KEEPIDLE.html">KEEPALIVE_TIME</a>)
+            .map(|secs| Duration::from_secs(<a href="#900">secs</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
     }
 }
 
 <span class="attribute">#[allow(unused_variables)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepalive(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, keepalive: <span class="kw-2">&amp;</span><a href="../../../src/socket2/lib.rs.html#329">TcpKeepalive</a>) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepalive(fd: <a href="#581">Socket</a>, keepalive: <span class="kw-2">&amp;</span><a href="../lib.rs.html#329">TcpKeepalive</a>) -&gt; io::Result&lt;()&gt; {
     <span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)))]
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(time) = <a href="../../../src/socket2/sys/unix.rs.html#902">keepalive</a>.time {
-        <span class="kw">let </span>secs = <a href="../../../src/socket2/sys/unix.rs.html#934">into_secs</a>(<a href="../../../src/socket2/sys/unix.rs.html#904">time</a>);
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(time) = <a href="#905">keepalive</a>.time {
+        <span class="kw">let </span>secs = <a href="#937">into_secs</a>(<a href="#907">time</a>);
         <span class="kw">unsafe </span>{ setsockopt(fd, libc::IPPROTO_TCP, KEEPALIVE_TIME, secs)<span class="question-mark">? </span>}
     }
 
@@ -2987,12 +2993,12 @@
         target_vendor = <span class="string">&quot;apple&quot;</span>,
     ))]
     </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(interval) = <a href="../../../src/socket2/sys/unix.rs.html#902">keepalive</a>.interval {
-            <span class="kw">let </span>secs = <a href="../../../src/socket2/sys/unix.rs.html#934">into_secs</a>(<a href="../../../src/socket2/sys/unix.rs.html#920">interval</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(interval) = <a href="#905">keepalive</a>.interval {
+            <span class="kw">let </span>secs = <a href="#937">into_secs</a>(<a href="#923">interval</a>);
             <span class="kw">unsafe </span>{ setsockopt(fd, libc::IPPROTO_TCP, libc::TCP_KEEPINTVL, secs)<span class="question-mark">? </span>}
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(retries) = <a href="../../../src/socket2/sys/unix.rs.html#902">keepalive</a>.retries {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(retries) = <a href="#905">keepalive</a>.retries {
             <span class="kw">unsafe </span>{ setsockopt(fd, libc::IPPROTO_TCP, libc::TCP_KEEPCNT, retries <span class="kw">as </span>c_int)<span class="question-mark">? </span>}
         }
     }
@@ -3002,15 +3008,15 @@
 
 <span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>)))]
 </span><span class="kw">fn </span>into_secs(duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-    <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="../../../src/socket2/sys/unix.rs.html#934">duration</a>.as_secs(), c_int::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
+    <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="#937">duration</a>.as_secs(), c_int::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
 }
 
 <span class="doccomment">/// Add `flag` to the current set flags of `F_GETFD`.
-</span><span class="kw">fn </span>fcntl_add(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, get_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, set_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, flag: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">fn </span>fcntl_add(fd: <a href="#581">Socket</a>, get_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, set_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, flag: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>previous = <span class="macro">syscall!</span>(fcntl(fd, get_cmd))<span class="question-mark">?</span>;
-    <span class="kw">let </span>new = <a href="../../../src/socket2/sys/unix.rs.html#940">previous</a> | <a href="../../../src/socket2/sys/unix.rs.html#939">flag</a>;
+    <span class="kw">let </span>new = <a href="#943">previous</a> | <a href="#942">flag</a>;
     <span class="kw">if </span>new != previous {
-        <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(fcntl(fd, set_cmd, new)).map(|<span class="kw">_</span>| ())
+        <a class="macro" href="#167-177">syscall!</a>(fcntl(fd, set_cmd, new)).map(|<span class="kw">_</span>| ())
     } <span class="kw">else </span>{
         <span class="comment">// Flag was already set.
         </span><span class="prelude-val">Ok</span>(())
@@ -3018,11 +3024,11 @@
 }
 
 <span class="doccomment">/// Remove `flag` to the current set flags of `F_GETFD`.
-</span><span class="kw">fn </span>fcntl_remove(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, get_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, set_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, flag: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">fn </span>fcntl_remove(fd: <a href="#581">Socket</a>, get_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, set_cmd: <a href="../../../libc/unix/type.c_int.html">c_int</a>, flag: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>previous = <span class="macro">syscall!</span>(fcntl(fd, get_cmd))<span class="question-mark">?</span>;
-    <span class="kw">let </span>new = <a href="../../../src/socket2/sys/unix.rs.html#952">previous</a> &amp; !<a href="../../../src/socket2/sys/unix.rs.html#951">flag</a>;
+    <span class="kw">let </span>new = <a href="#955">previous</a> &amp; !<a href="#954">flag</a>;
     <span class="kw">if </span>new != previous {
-        <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(fcntl(fd, set_cmd, new)).map(|<span class="kw">_</span>| ())
+        <a class="macro" href="#167-177">syscall!</a>(fcntl(fd, set_cmd, new)).map(|<span class="kw">_</span>| ())
     } <span class="kw">else </span>{
         <span class="comment">// Flag was already set.
         </span><span class="prelude-val">Ok</span>(())
@@ -3030,10 +3036,10 @@
 }
 
 <span class="doccomment">/// Caller must ensure `T` is the correct type for `opt` and `val`.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>getsockopt&lt;T&gt;(fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>, opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>, val: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;T&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>getsockopt&lt;T&gt;(fd: <a href="#581">Socket</a>, opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>, val: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;T&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>payload: MaybeUninit&lt;T&gt; = MaybeUninit::uninit();
     <span class="kw">let </span><span class="kw-2">mut </span>len = size_of::&lt;T&gt;() <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(getsockopt(
+    <a class="macro" href="#167-177">syscall!</a>(getsockopt(
         fd,
         opt,
         val,
@@ -3043,19 +3049,19 @@
     .map(|<span class="kw">_</span>| {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(len <span class="kw">as </span>usize, size_of::&lt;T&gt;());
         <span class="comment">// Safety: `getsockopt` initialised `payload` for us.
-        </span><a href="../../../src/socket2/sys/unix.rs.html#964">payload</a>.assume_init()
+        </span><a href="#967">payload</a>.assume_init()
     })
 }
 
 <span class="doccomment">/// Caller must ensure `T` is the correct type for `opt` and `val`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>setsockopt&lt;T&gt;(
-    fd: <a href="../../../src/socket2/sys/unix.rs.html#578">Socket</a>,
+    fd: <a href="#581">Socket</a>,
     opt: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     val: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
     payload: T,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">let </span>payload = <span class="kw-2">&amp;</span><a href="../../../src/socket2/sys/unix.rs.html#985">payload</a> <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-    <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(setsockopt(
+    <span class="kw">let </span>payload = <span class="kw-2">&amp;</span><a href="#988">payload</a> <span class="kw">as </span><span class="kw-2">*const </span>T <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+    <a class="macro" href="#167-177">syscall!</a>(setsockopt(
         fd,
         opt,
         val,
@@ -3065,27 +3071,27 @@
     .map(|<span class="kw">_</span>| ())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_in_addr(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_in_addr(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a> {
     <span class="comment">// `s_addr` is stored as BE on all machines, and the array is in BE order.
     // So the native endian conversion method is used so that it&#39;s never
     // swapped.
     </span><a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a> {
-        s_addr: u32::from_ne_bytes(<a href="../../../src/socket2/sys/unix.rs.html#998">addr</a>.octets()),
+        s_addr: u32::from_ne_bytes(<a href="#1001">addr</a>.octets()),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_in_addr(in_addr: <a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a> {
-    Ipv4Addr::from(<a href="../../../src/socket2/sys/unix.rs.html#1007">in_addr</a>.s_addr.to_ne_bytes())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_in_addr(in_addr: <a href="../../../libc/unix/linux_like/struct.in_addr.html">in_addr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a> {
+    Ipv4Addr::from(<a href="#1010">in_addr</a>.s_addr.to_ne_bytes())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_in6_addr(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>) -&gt; <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_in6_addr(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a>) -&gt; <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a> {
     <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a> {
-        s6_addr: <a href="../../../src/socket2/sys/unix.rs.html#1011">addr</a>.octets(),
+        s6_addr: <a href="#1014">addr</a>.octets(),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_in6_addr(addr: <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a> {
-    Ipv6Addr::from(<a href="../../../src/socket2/sys/unix.rs.html#1017">addr</a>.s6_addr)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_in6_addr(addr: <a href="../../../libc/unix/align/struct.in6_addr.html">in6_addr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv6Addr.html">Ipv6Addr</a> {
+    Ipv6Addr::from(<a href="#1020">addr</a>.s6_addr)
 }
 
 <span class="attribute">#[cfg(not(any(
@@ -3097,25 +3103,25 @@
     target_os = <span class="string">&quot;solaris&quot;</span>,
 )))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_mreqn(
-    multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>,
-    interface: <span class="kw-2">&amp;</span><a href="../../../src/socket2/socket.rs.html#728"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress</a>,
+    multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/struct.Ipv4Addr.html">Ipv4Addr</a>,
+    interface: <span class="kw-2">&amp;</span><a href="../socket.rs.html#728"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress</a>,
 ) -&gt; <a href="../../../libc/unix/linux_like/struct.ip_mreqn.html">libc::ip_mreqn</a> {
-    <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#1031">interface</a> {
-        <a href="../../../src/socket2/socket.rs.html#730"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress::Index</a>(interface) =&gt; <a href="../../../libc/unix/linux_like/struct.ip_mreqn.html">libc::ip_mreqn</a> {
-            imr_multiaddr: <a href="../../../src/socket2/sys/unix.rs.html#998">to_in_addr</a>(<a href="../../../src/socket2/sys/unix.rs.html#1030">multiaddr</a>),
-            imr_address: <a href="../../../src/socket2/sys/unix.rs.html#998">to_in_addr</a>(<span class="kw-2">&amp;</span>Ipv4Addr::UNSPECIFIED),
-            imr_ifindex: <span class="kw-2">*</span><a href="../../../src/socket2/sys/unix.rs.html#1034">interface</a> <span class="kw">as _</span>,
+    <span class="kw">match </span><a href="#1034">interface</a> {
+        <a href="../socket.rs.html#730"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress::Index</a>(interface) =&gt; <a href="../../../libc/unix/linux_like/struct.ip_mreqn.html">libc::ip_mreqn</a> {
+            imr_multiaddr: <a href="#1001">to_in_addr</a>(<a href="#1033">multiaddr</a>),
+            imr_address: <a href="#1001">to_in_addr</a>(<span class="kw-2">&amp;</span>Ipv4Addr::UNSPECIFIED),
+            imr_ifindex: <span class="kw-2">*</span><a href="#1037">interface</a> <span class="kw">as _</span>,
         },
-        <a href="../../../src/socket2/socket.rs.html#732"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress::Address</a>(interface) =&gt; <a href="../../../libc/unix/linux_like/struct.ip_mreqn.html">libc::ip_mreqn</a> {
-            imr_multiaddr: <a href="../../../src/socket2/sys/unix.rs.html#998">to_in_addr</a>(<a href="../../../src/socket2/sys/unix.rs.html#1030">multiaddr</a>),
-            imr_address: <a href="../../../src/socket2/sys/unix.rs.html#998">to_in_addr</a>(<a href="../../../src/socket2/sys/unix.rs.html#1039">interface</a>),
+        <a href="../socket.rs.html#732"><span class="kw">crate</span>::socket::InterfaceIndexOrAddress::Address</a>(interface) =&gt; <a href="../../../libc/unix/linux_like/struct.ip_mreqn.html">libc::ip_mreqn</a> {
+            imr_multiaddr: <a href="#1001">to_in_addr</a>(<a href="#1033">multiaddr</a>),
+            imr_address: <a href="#1001">to_in_addr</a>(<a href="#1042">interface</a>),
             imr_ifindex: <span class="number">0</span>,
         },
     }
 }
 
 <span class="doccomment">/// Unix only API.
-</span><span class="kw">impl </span><a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
+</span><span class="kw">impl </span><a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
     <span class="doccomment">/// Accept a new incoming connection from this listener.
     ///
     /// This function directly corresponds to the `accept4(2)` function.
@@ -3152,8 +3158,8 @@
             </span>)
         )))
     )]
-    </span><span class="kw">pub fn </span>accept4(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;(<a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>)&gt; {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#1085">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#1099">_accept4</a>(<a href="../../../src/socket2/sys/unix.rs.html#1085">flags</a>)
+    </span><span class="kw">pub fn </span>accept4(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;(<a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>)&gt; {
+        <a class="self" href="#1088">self</a>.<a href="#1102">_accept4</a>(<a href="#1088">flags</a>)
     }
 
     <span class="attribute">#[cfg(any(
@@ -3166,11 +3172,11 @@
         target_os = <span class="string">&quot;netbsd&quot;</span>,
         target_os = <span class="string">&quot;openbsd&quot;
     </span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_accept4(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;(<a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="../../../src/socket2/sockaddr.rs.html#17">SockAddr</a>)&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_accept4(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; io::Result&lt;(<a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="../sockaddr.rs.html#17">SockAddr</a>)&gt; {
         <span class="comment">// Safety: `accept4` initialises the `SockAddr` for us.
         </span><span class="kw">unsafe </span>{
             SockAddr::init(|storage, len| {
-                <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(accept4(<span class="self">self</span>.as_raw(), storage.cast(), len, flags))
+                <a class="macro" href="#167-177">syscall!</a>(accept4(<span class="self">self</span>.as_raw(), storage.cast(), len, flags))
                     .map(<span class="kw">crate</span>::Socket::from_raw)
             })
         }
@@ -3184,20 +3190,20 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, unix))))]
     </span><span class="kw">pub fn </span>set_cloexec(<span class="kw-2">&amp;</span><span class="self">self</span>, close_on_exec: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#1116">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#1120">_set_cloexec</a>(<a href="../../../src/socket2/sys/unix.rs.html#1116">close_on_exec</a>)
+        <a class="self" href="#1119">self</a>.<a href="#1123">_set_cloexec</a>(<a href="#1119">close_on_exec</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_set_cloexec(<span class="kw-2">&amp;</span><span class="self">self</span>, close_on_exec: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span>close_on_exec {
-            <a href="../../../src/socket2/sys/unix.rs.html#939">fcntl_add</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1120">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#942">fcntl_add</a>(
+                <a class="self" href="#1123">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 libc::F_GETFD,
                 libc::F_SETFD,
                 libc::FD_CLOEXEC,
             )
         } <span class="kw">else </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#951">fcntl_remove</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1120">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#954">fcntl_remove</a>(
+                <a class="self" href="#1123">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 libc::F_GETFD,
                 libc::F_SETFD,
                 libc::FD_CLOEXEC,
@@ -3209,7 +3215,7 @@
     </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(doc, target_vendor = <span class="string">&quot;apple&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_vendor = <span class="string">&quot;apple&quot;</span>))))]
     </span><span class="kw">pub fn </span>set_nosigpipe(<span class="kw-2">&amp;</span><span class="self">self</span>, nosigpipe: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#1141">self</a>._set_nosigpipe(<a href="../../../src/socket2/sys/unix.rs.html#1141">nosigpipe</a>)
+        <a class="self" href="#1144">self</a>._set_nosigpipe(<a href="#1144">nosigpipe</a>)
     }
 
     <span class="attribute">#[cfg(target_vendor = <span class="string">&quot;apple&quot;</span>)]
@@ -3233,8 +3239,8 @@
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, unix, not(target_os = <span class="string">&quot;redox&quot;</span>)))))]
     </span><span class="kw">pub fn </span>mss(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1164">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_MAXSEG)
-                .map(|mss| <a href="../../../src/socket2/sys/unix.rs.html#1167">mss</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1167">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_MAXSEG)
+                .map(|mss| <a href="#1170">mss</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
         }
     }
 
@@ -3246,11 +3252,11 @@
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, unix, not(target_os = <span class="string">&quot;redox&quot;</span>)))))]
     </span><span class="kw">pub fn </span>set_mss(<span class="kw-2">&amp;</span><span class="self">self</span>, mss: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1177">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1180">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_MAXSEG,
-                <a href="../../../src/socket2/sys/unix.rs.html#1177">mss</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1180">mss</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3280,8 +3286,8 @@
     )]
     </span><span class="kw">pub fn </span>is_listener(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1211">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_ACCEPTCONN)
-                .map(|v| <a href="../../../src/socket2/sys/unix.rs.html#1214">v</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1214">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_ACCEPTCONN)
+                .map(|v| <a href="#1217">v</a> != <span class="number">0</span>)
         }
     }
 
@@ -3307,8 +3313,8 @@
             target_os = <span class="string">&quot;linux&quot;</span>,
         )
     ))))]
-    </span><span class="kw">pub fn </span>domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../src/socket2/lib.rs.html#154">Domain</a>&gt; {
-        <span class="kw">unsafe </span>{ getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1240">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_DOMAIN).map(<a href="../../../src/socket2/lib.rs.html#154">Domain</a>) }
+    </span><span class="kw">pub fn </span>domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../lib.rs.html#154">Domain</a>&gt; {
+        <span class="kw">unsafe </span>{ getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1243">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_DOMAIN).map(<a href="../lib.rs.html#154">Domain</a>) }
     }
 
     <span class="doccomment">/// Returns the [`Protocol`] of this socket by checking the `SO_PROTOCOL`
@@ -3334,12 +3340,12 @@
             )
         )))
     )]
-    </span><span class="kw">pub fn </span>protocol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/socket2/lib.rs.html#238">Protocol</a>&gt;&gt; {
+    </span><span class="kw">pub fn </span>protocol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../lib.rs.html#238">Protocol</a>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1267">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_PROTOCOL).map(|v| <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#1269">v</a>
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1270">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_PROTOCOL).map(|v| <span class="kw">match </span><a href="#1272">v</a>
             {
                 <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
-                p =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/socket2/lib.rs.html#238">Protocol</a>(<a href="../../../src/socket2/sys/unix.rs.html#1272">p</a>)),
+                p =&gt; <span class="prelude-val">Some</span>(<a href="../lib.rs.html#238">Protocol</a>(<a href="#1275">p</a>)),
             })
         }
     }
@@ -3363,8 +3369,8 @@
     )]
     </span><span class="kw">pub fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1294">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_MARK)
-                .map(|mark| <a href="../../../src/socket2/sys/unix.rs.html#1297">mark</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1297">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_MARK)
+                .map(|mark| <a href="#1300">mark</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
         }
     }
 
@@ -3389,10 +3395,10 @@
     </span><span class="kw">pub fn </span>set_mark(<span class="kw-2">&amp;</span><span class="self">self</span>, mark: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
             setsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1319">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+                <a class="self" href="#1322">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>,
                 libc::SO_MARK,
-                <a href="../../../src/socket2/sys/unix.rs.html#1319">mark</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1322">mark</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3415,8 +3421,8 @@
     )]
     </span><span class="kw">pub fn </span>cork(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../src/socket2/sys/unix.rs.html#156">Bool</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1346">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_CORK)
-                .map(|cork| <a href="../../../src/socket2/sys/unix.rs.html#1349">cork</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="#159">Bool</a>&gt;(<a class="self" href="#1349">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_CORK)
+                .map(|cork| <a href="#1352">cork</a> != <span class="number">0</span>)
         }
     }
 
@@ -3439,11 +3445,11 @@
     )]
     </span><span class="kw">pub fn </span>set_cork(<span class="kw-2">&amp;</span><span class="self">self</span>, cork: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1370">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1373">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_CORK,
-                <a href="../../../src/socket2/sys/unix.rs.html#1370">cork</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1373">cork</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3466,8 +3472,8 @@
     )]
     </span><span class="kw">pub fn </span>quickack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../src/socket2/sys/unix.rs.html#156">Bool</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1397">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_QUICKACK)
-                .map(|quickack| <a href="../../../src/socket2/sys/unix.rs.html#1400">quickack</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="#159">Bool</a>&gt;(<a class="self" href="#1400">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_QUICKACK)
+                .map(|quickack| <a href="#1403">quickack</a> != <span class="number">0</span>)
         }
     }
 
@@ -3490,11 +3496,11 @@
     )]
     </span><span class="kw">pub fn </span>set_quickack(<span class="kw-2">&amp;</span><span class="self">self</span>, quickack: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1421">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1424">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_QUICKACK,
-                <a href="../../../src/socket2/sys/unix.rs.html#1421">quickack</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1424">quickack</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3517,12 +3523,12 @@
     )]
     </span><span class="kw">pub fn </span>thin_linear_timeouts(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../src/socket2/sys/unix.rs.html#156">Bool</a>&gt;(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1448">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            getsockopt::&lt;<a href="#159">Bool</a>&gt;(
+                <a class="self" href="#1451">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_THIN_LINEAR_TIMEOUTS,
             )
-            .map(|timeouts| <a href="../../../src/socket2/sys/unix.rs.html#1455">timeouts</a> != <span class="number">0</span>)
+            .map(|timeouts| <a href="#1458">timeouts</a> != <span class="number">0</span>)
         }
     }
 
@@ -3544,11 +3550,11 @@
     )]
     </span><span class="kw">pub fn </span>set_thin_linear_timeouts(<span class="kw-2">&amp;</span><span class="self">self</span>, timeouts: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1475">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1478">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_THIN_LINEAR_TIMEOUTS,
-                <a href="../../../src/socket2/sys/unix.rs.html#1475">timeouts</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1478">timeouts</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3571,7 +3577,7 @@
         <span class="comment">// TODO: replace with `MaybeUninit::uninit_array` once stable.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf: [MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;; libc::IFNAMSIZ] =
             <span class="kw">unsafe </span>{ MaybeUninit::uninit().assume_init() };
-        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="../../../src/socket2/sys/unix.rs.html#1502">buf</a>.len() <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="#1505">buf</a>.len() <span class="kw">as </span><a href="../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
         <span class="macro">syscall!</span>(getsockopt(
             <span class="self">self</span>.as_raw(),
             libc::SOL_SOCKET,
@@ -3582,9 +3588,9 @@
         <span class="kw">if </span>len == <span class="number">0 </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>buf = <span class="kw-2">&amp;</span><a href="../../../src/socket2/sys/unix.rs.html#1502">buf</a>[..<a href="../../../src/socket2/sys/unix.rs.html#1504">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>];
+            <span class="kw">let </span>buf = <span class="kw-2">&amp;</span><a href="#1505">buf</a>[..<a href="#1507">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>];
             <span class="comment">// TODO: use `MaybeUninit::slice_assume_init_ref` once stable.
-            </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="../../../src/socket2/sys/unix.rs.html#1515">buf</a> <span class="kw">as </span><span class="kw-2">*const </span>[<span class="kw">_</span>] <span class="kw">as </span><span class="kw-2">*const </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+            </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<a href="#1518">buf</a> <span class="kw">as </span><span class="kw-2">*const </span>[<span class="kw">_</span>] <span class="kw">as </span><span class="kw-2">*const </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
         }
     }
 
@@ -3607,12 +3613,12 @@
         )))
     )]
     </span><span class="kw">pub fn </span>bind_device(<span class="kw-2">&amp;</span><span class="self">self</span>, interface: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>(value, len) = <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <a href="../../../src/socket2/sys/unix.rs.html#1539">interface</a> {
-            (<a href="../../../src/socket2/sys/unix.rs.html#1540">interface</a>.as_ptr(), <a href="../../../src/socket2/sys/unix.rs.html#1540">interface</a>.len())
+        <span class="kw">let </span>(value, len) = <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <a href="#1542">interface</a> {
+            (<a href="#1543">interface</a>.as_ptr(), <a href="#1543">interface</a>.len())
         } <span class="kw">else </span>{
             (ptr::null(), <span class="number">0</span>)
         };
-        <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(setsockopt(
+        <a class="macro" href="#167-177">syscall!</a>(setsockopt(
             <span class="self">self</span>.as_raw(),
             libc::SOL_SOCKET,
             libc::SO_BINDTODEVICE,
@@ -3677,8 +3683,8 @@
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))]
     </span><span class="kw">pub fn </span>cpu_affinity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1608">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_INCOMING_CPU)
-                .map(|cpu| <a href="../../../src/socket2/sys/unix.rs.html#1611">cpu</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1611">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_INCOMING_CPU)
+                .map(|cpu| <a href="#1614">cpu</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
@@ -3689,11 +3695,11 @@
     #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))))]
     </span><span class="kw">pub fn </span>set_cpu_affinity(<span class="kw-2">&amp;</span><span class="self">self</span>, cpu: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1620">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1623">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>,
                 libc::SO_INCOMING_CPU,
-                <a href="../../../src/socket2/sys/unix.rs.html#1620">cpu</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1623">cpu</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3717,8 +3723,8 @@
     )]
     </span><span class="kw">pub fn </span>reuse_port(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1648">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_REUSEPORT)
-                .map(|reuse| <a href="../../../src/socket2/sys/unix.rs.html#1651">reuse</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1651">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_REUSEPORT)
+                .map(|reuse| <a href="#1654">reuse</a> != <span class="number">0</span>)
         }
     }
 
@@ -3741,11 +3747,11 @@
     )]
     </span><span class="kw">pub fn </span>set_reuse_port(<span class="kw-2">&amp;</span><span class="self">self</span>, reuse: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1672">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1675">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>,
                 libc::SO_REUSEPORT,
-                <a href="../../../src/socket2/sys/unix.rs.html#1672">reuse</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1675">reuse</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3768,8 +3774,8 @@
     )]
     </span><span class="kw">pub fn </span>freebind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1699">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), libc::SOL_IP, libc::IP_FREEBIND)
-                .map(|freebind| <a href="../../../src/socket2/sys/unix.rs.html#1702">freebind</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1702">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), libc::SOL_IP, libc::IP_FREEBIND)
+                .map(|freebind| <a href="#1705">freebind</a> != <span class="number">0</span>)
         }
     }
 
@@ -3793,11 +3799,11 @@
     )]
     </span><span class="kw">pub fn </span>set_freebind(<span class="kw-2">&amp;</span><span class="self">self</span>, freebind: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1724">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1727">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 libc::SOL_IP,
                 libc::IP_FREEBIND,
-                <a href="../../../src/socket2/sys/unix.rs.html#1724">freebind</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1727">freebind</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3816,8 +3822,8 @@
     )]
     </span><span class="kw">pub fn </span>freebind_ipv6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1747">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), libc::SOL_IPV6, libc::IPV6_FREEBIND)
-                .map(|freebind| <a href="../../../src/socket2/sys/unix.rs.html#1750">freebind</a> != <span class="number">0</span>)
+            getsockopt::&lt;<a href="../../../libc/unix/type.c_int.html">c_int</a>&gt;(<a class="self" href="#1750">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), libc::SOL_IPV6, libc::IPV6_FREEBIND)
+                .map(|freebind| <a href="#1753">freebind</a> != <span class="number">0</span>)
         }
     }
 
@@ -3858,11 +3864,11 @@
     )]
     </span><span class="kw">pub fn </span>set_freebind_ipv6(<span class="kw-2">&amp;</span><span class="self">self</span>, freebind: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1789">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1792">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 libc::SOL_IPV6,
                 libc::IPV6_FREEBIND,
-                <a href="../../../src/socket2/sys/unix.rs.html#1789">freebind</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#1792">freebind</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
             )
         }
     }
@@ -3915,7 +3921,7 @@
     <span class="kw">where
         </span>F: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
     {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#1840">self</a>.<a href="../../../src/socket2/sys/unix.rs.html#1877-1882">_sendfile</a>(<a href="../../../src/socket2/sys/unix.rs.html#1841">file</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../../../src/socket2/sys/unix.rs.html#1842">offset</a> <span class="kw">as _</span>, <a href="../../../src/socket2/sys/unix.rs.html#1843">length</a>)
+        <a class="self" href="#1843">self</a>.<a href="#1880-1885">_sendfile</a>(<a href="#1844">file</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="#1845">offset</a> <span class="kw">as _</span>, <a href="#1846">length</a>)
     }
 
     <span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_vendor = <span class="string">&quot;apple&quot;</span>))]
@@ -3950,13 +3956,13 @@
         offset: <a href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
         length: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>&gt;,
     ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>count = <span class="kw">match </span><a href="../../../src/socket2/sys/unix.rs.html#1881">length</a> {
-            <span class="prelude-val">Some</span>(n) =&gt; <a href="../../../src/socket2/sys/unix.rs.html#1884">n</a>.get() <span class="kw">as </span>libc::size_t,
+        <span class="kw">let </span>count = <span class="kw">match </span><a href="#1884">length</a> {
+            <span class="prelude-val">Some</span>(n) =&gt; <a href="#1887">n</a>.get() <span class="kw">as </span>libc::size_t,
             <span class="comment">// The maximum the Linux kernel will write in a single call.
             </span><span class="prelude-val">None </span>=&gt; <span class="number">0x7ffff000</span>, <span class="comment">// 2,147,479,552 bytes.
         </span>};
-        <span class="kw">let </span><span class="kw-2">mut </span>offset = <a href="../../../src/socket2/sys/unix.rs.html#1880">offset</a>;
-        <a class="macro" href="../../../src/socket2/sys/unix.rs.html#164-174">syscall!</a>(sendfile(<span class="self">self</span>.as_raw(), file, <span class="kw-2">&amp;mut </span>offset, count)).map(|n| <a href="../../../src/socket2/sys/unix.rs.html#1889">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = <a href="#1883">offset</a>;
+        <a class="macro" href="#167-177">syscall!</a>(sendfile(<span class="self">self</span>.as_raw(), file, <span class="kw-2">&amp;mut </span>offset, count)).map(|n| <a href="#1892">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
     <span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
@@ -4006,15 +4012,15 @@
         )))
     )]
     </span><span class="kw">pub fn </span>set_tcp_user_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>timeout = <a href="../../../src/socket2/sys/unix.rs.html#1938">timeout</a>
-            .map(|to| <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="../../../src/socket2/sys/unix.rs.html#1940">to</a>.as_millis(), libc::c_uint::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) <span class="kw">as </span>libc::c_uint)
+        <span class="kw">let </span>timeout = <a href="#1941">timeout</a>
+            .map(|to| <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a href="#1943">to</a>.as_millis(), libc::c_uint::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) <span class="kw">as </span>libc::c_uint)
             .unwrap_or(<span class="number">0</span>);
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1938">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1941">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>,
                 libc::TCP_USER_TIMEOUT,
-                <a href="../../../src/socket2/sys/unix.rs.html#1939">timeout</a>,
+                <a href="#1942">timeout</a>,
             )
         }
     }
@@ -4037,12 +4043,12 @@
     )]
     </span><span class="kw">pub fn </span>tcp_user_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt; {
         <span class="kw">unsafe </span>{
-            getsockopt::&lt;libc::c_uint&gt;(<a class="self" href="../../../src/socket2/sys/unix.rs.html#1968">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_USER_TIMEOUT)
+            getsockopt::&lt;libc::c_uint&gt;(<a class="self" href="#1971">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/constant.IPPROTO_TCP.html">libc::IPPROTO_TCP</a>, libc::TCP_USER_TIMEOUT)
                 .map(|millis| {
                     <span class="kw">if </span>millis == <span class="number">0 </span>{
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="prelude-val">Some</span>(Duration::from_millis(<a href="../../../src/socket2/sys/unix.rs.html#1971">millis</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
+                        <span class="prelude-val">Some</span>(Duration::from_millis(<a href="#1974">millis</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>))
                     }
                 })
         }
@@ -4057,16 +4063,16 @@
     </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))]
     </span><span class="kw">pub fn </span>attach_filter(<span class="kw-2">&amp;</span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span>[<a href="../../../libc/unix/linux_like/linux/struct.sock_filter.html">libc::sock_filter</a>]) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>prog = <a href="../../../libc/unix/linux_like/linux/struct.sock_fprog.html">libc::sock_fprog</a> {
-            len: <a href="../../../src/socket2/sys/unix.rs.html#1988">filters</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
-            filter: <a href="../../../src/socket2/sys/unix.rs.html#1988">filters</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            len: <a href="#1991">filters</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+            filter: <a href="#1991">filters</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
         };
 
         <span class="kw">unsafe </span>{
-            <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(
-                <a class="self" href="../../../src/socket2/sys/unix.rs.html#1988">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(),
+            <a href="#984-989">setsockopt</a>(
+                <a class="self" href="#1991">self</a>.<a href="../socket.rs.html#109">as_raw</a>(),
                 <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>,
                 libc::SO_ATTACH_FILTER,
-                <a href="../../../src/socket2/sys/unix.rs.html#1989">prog</a>,
+                <a href="#1992">prog</a>,
             )
         }
     }
@@ -4076,43 +4082,43 @@
     /// For more information about this option, see [`attach_filter`]
     </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;all&quot;</span>, any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))]
     </span><span class="kw">pub fn </span>detach_filter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">unsafe </span>{ <a href="../../../src/socket2/sys/unix.rs.html#981-986">setsockopt</a>(<a class="self" href="../../../src/socket2/sys/unix.rs.html#2008">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_DETACH_FILTER, <span class="number">0</span>) }
+        <span class="kw">unsafe </span>{ <a href="#984-989">setsockopt</a>(<a class="self" href="#2011">self</a>.<a href="../socket.rs.html#109">as_raw</a>(), <a href="../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">libc::SOL_SOCKET</a>, libc::SO_DETACH_FILTER, <span class="number">0</span>) }
     }
 }
 
 <span class="attribute">#[cfg_attr(docsrs, doc(cfg(unix)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#2015">self</a>.<a href="../../../src/socket2/socket.rs.html#109">as_raw</a>()
+        <a class="self" href="#2018">self</a>.<a href="../socket.rs.html#109">as_raw</a>()
     }
 }
 
 <span class="attribute">#[cfg_attr(docsrs, doc(cfg(unix)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
     <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../../src/socket2/sys/unix.rs.html#2022">self</a>.<a href="../../../src/socket2/socket.rs.html#113">into_raw</a>()
+        <a class="self" href="#2025">self</a>.<a href="../socket.rs.html#113">into_raw</a>()
     }
 }
 
 <span class="attribute">#[cfg_attr(docsrs, doc(cfg(unix)))]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
-    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
-        <span class="kw">crate</span>::Socket::from_raw(<a href="../../../src/socket2/sys/unix.rs.html#2029">fd</a>)
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
+    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a> {
+        <span class="kw">crate</span>::Socket::from_raw(<a href="#2032">fd</a>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">UnixStream</a>, <a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">UnixStream</a>, <a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">UnixListener</a>, <a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">UnixListener</a>, <a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">UnixDatagram</a>, <a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">UnixDatagram</a>, <a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>);
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">UnixStream</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">UnixStream</a>);
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">UnixListener</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">UnixListener</a>);
 <span class="attribute">#[cfg(feature = <span class="string">&quot;all&quot;</span>)]
-</span><a class="macro" href="../../../src/socket2/lib.rs.html#101-116">from!</a>(<a href="../../../src/socket2/socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">UnixDatagram</a>);
+</span><a class="macro" href="../lib.rs.html#101-116">from!</a>(<a href="../socket.rs.html#72"><span class="kw">crate</span>::Socket</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">UnixDatagram</a>);
 
 <span class="attribute">#[test]
 </span><span class="kw">fn </span>in_addr_convertion() {
@@ -4139,4 +4145,4 @@
     <span class="macro">assert_eq!</span>(from_in6_addr(raw), ip);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="socket2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="socket2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

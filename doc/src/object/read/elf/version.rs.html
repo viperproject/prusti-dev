@@ -421,34 +421,34 @@
 <span id="421">421</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../../../../src/object/read/util.rs.html#232">StringTable</a>};
-<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#108">elf</a>, <a href="../../../../src/object/lib.rs.html#90">endian</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../util.rs.html#16">Bytes</a>, <a href="../mod.rs.html#79">ReadError</a>, <a href="../read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../util.rs.html#232">StringTable</a>};
+<span class="kw">use crate</span>::{<a href="../../lib.rs.html#108">elf</a>, <a href="../../lib.rs.html#90">endian</a>};
 
-<span class="kw">use </span><a href="../../../../src/object/read/elf/file.rs.html#437"><span class="kw">super</span>::FileHeader</a>;
+<span class="kw">use </span><a href="file.rs.html#437"><span class="kw">super</span>::FileHeader</a>;
 
 <span class="doccomment">/// A version index.
 </span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
 </span><span class="kw">pub struct </span>VersionIndex(<span class="kw">pub </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
 
-<span class="kw">impl </span><a href="../../../../src/object/read/elf/version.rs.html#10">VersionIndex</a> {
+<span class="kw">impl </span><a href="#10">VersionIndex</a> {
     <span class="doccomment">/// Return the version index.
     </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#14">self</a>.<span class="number">0 </span>&amp; <a href="../../../../src/object/elf.rs.html#1714">elf::VERSYM_VERSION</a>
+        <a class="self" href="#14">self</a>.<span class="number">0 </span>&amp; <a href="../../elf.rs.html#1714">elf::VERSYM_VERSION</a>
     }
 
     <span class="doccomment">/// Return true if it is the local index.
     </span><span class="kw">pub fn </span>is_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#19">self</a>.<a href="../../../../src/object/read/elf/version.rs.html#14">index</a>() == <a href="../../../../src/object/elf.rs.html#1751">elf::VER_NDX_LOCAL</a>
+        <a class="self" href="#19">self</a>.<a href="#14">index</a>() == <a href="../../elf.rs.html#1751">elf::VER_NDX_LOCAL</a>
     }
 
     <span class="doccomment">/// Return true if it is the global index.
     </span><span class="kw">pub fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#24">self</a>.<a href="../../../../src/object/read/elf/version.rs.html#14">index</a>() == <a href="../../../../src/object/elf.rs.html#1753">elf::VER_NDX_GLOBAL</a>
+        <a class="self" href="#24">self</a>.<a href="#14">index</a>() == <a href="../../elf.rs.html#1753">elf::VER_NDX_GLOBAL</a>
     }
 
     <span class="doccomment">/// Return the hidden flag.
     </span><span class="kw">pub fn </span>is_hidden(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#29">self</a>.<span class="number">0 </span>&amp; <a href="../../../../src/object/elf.rs.html#1712">elf::VERSYM_HIDDEN</a> != <span class="number">0
+        <a class="self" href="#29">self</a>.<span class="number">0 </span>&amp; <a href="../../elf.rs.html#1712">elf::VERSYM_HIDDEN</a> != <span class="number">0
     </span>}
 }
 
@@ -466,12 +466,12 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; Version&lt;<span class="lifetime">&#39;data</span>&gt; {
     <span class="doccomment">/// Return the version name.
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#47">self</a>.name
+        <a class="self" href="#47">self</a>.name
     }
 
     <span class="doccomment">/// Return hash of the version name.
     </span><span class="kw">pub fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#52">self</a>.hash
+        <a class="self" href="#52">self</a>.hash
     }
 }
 
@@ -481,21 +481,21 @@
 ///
 /// This is derived from entries in the `SHT_GNU_versym`, `SHT_GNU_verdef` and `SHT_GNU_verneed` sections.
 </span><span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     symbols: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[elf::Versym&lt;Elf::Endian&gt;],
     versions: Vec&lt;Version&lt;<span class="lifetime">&#39;data</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/elf/version.rs.html#63">VersionTable</a> {
+        <a href="#63">VersionTable</a> {
             symbols: <span class="kw-2">&amp;</span>[],
             versions: Vec::new(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; VersionTable&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="doccomment">/// Parse the version sections.
     </span><span class="kw">pub fn </span>parse&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         endian: Elf::Endian,
@@ -505,7 +505,7 @@
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>max_index = <span class="number">0</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verdefs) = <a href="../../../../src/object/read/elf/version.rs.html#82">verdefs</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verdefs) = <a href="#82">verdefs</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
             <span class="kw">while let </span><span class="prelude-val">Some</span>((verdef, <span class="kw">_</span>)) = verdefs.next()<span class="question-mark">? </span>{
                 <span class="kw">if </span>verdef.vd_flags.get(endian) &amp; elf::VER_FLG_BASE != <span class="number">0 </span>{
                     <span class="kw">continue</span>;
@@ -516,7 +516,7 @@
                 }
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verneeds) = <a href="../../../../src/object/read/elf/version.rs.html#83">verneeds</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verneeds) = <a href="#83">verneeds</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">mut </span>vernauxs)) = verneeds.next()<span class="question-mark">? </span>{
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(vernaux) = vernauxs.next()<span class="question-mark">? </span>{
                     <span class="kw">let </span>index = vernaux.vna_other.get(endian) &amp; elf::VERSYM_VERSION;
@@ -531,7 +531,7 @@
         // 32k * size_of::&lt;Version&gt;() if max_index is bad.
         </span><span class="kw">let </span><span class="kw-2">mut </span>versions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Version::default(); max_index <span class="kw">as </span>usize + <span class="number">1</span>];
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verdefs) = <a href="../../../../src/object/read/elf/version.rs.html#82">verdefs</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verdefs) = <a href="#82">verdefs</a> {
             <span class="kw">while let </span><span class="prelude-val">Some</span>((verdef, <span class="kw-2">mut </span>verdauxs)) = verdefs.next()<span class="question-mark">? </span>{
                 <span class="kw">if </span>verdef.vd_flags.get(endian) &amp; elf::VER_FLG_BASE != <span class="number">0 </span>{
                     <span class="kw">continue</span>;
@@ -550,7 +550,7 @@
                 }
             }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verneeds) = <a href="../../../../src/object/read/elf/version.rs.html#83">verneeds</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>verneeds) = <a href="#83">verneeds</a> {
             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">mut </span>vernauxs)) = verneeds.next()<span class="question-mark">? </span>{
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(vernaux) = vernauxs.next()<span class="question-mark">? </span>{
                     <span class="kw">let </span>index = vernaux.vna_other.get(endian) &amp; elf::VERSYM_VERSION;
@@ -567,40 +567,40 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/elf/version.rs.html#63">VersionTable</a> {
-            symbols: <a href="../../../../src/object/read/elf/version.rs.html#81">versyms</a>,
-            <a href="../../../../src/object/read/elf/version.rs.html#111">versions</a>,
+        <span class="prelude-val">Ok</span>(<a href="#63">VersionTable</a> {
+            symbols: <a href="#81">versyms</a>,
+            <a href="#111">versions</a>,
         })
     }
 
     <span class="doccomment">/// Return true if the version table is empty.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#156">self</a>.symbols.is_empty()
+        <a class="self" href="#156">self</a>.symbols.is_empty()
     }
 
     <span class="doccomment">/// Return version index for a given symbol index.
-    </span><span class="kw">pub fn </span>version_index(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../src/object/read/elf/version.rs.html#10">VersionIndex</a> {
-        <span class="kw">let </span>version_index = <span class="kw">match </span><a class="self" href="../../../../src/object/read/elf/version.rs.html#161">self</a>.symbols.get(<a href="../../../../src/object/read/elf/version.rs.html#161">index</a>) {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="../../../../src/object/read/elf/version.rs.html#163">x</a>.<span class="number">0</span>.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/read/elf/version.rs.html#161">endian</a>),
+    </span><span class="kw">pub fn </span>version_index(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#10">VersionIndex</a> {
+        <span class="kw">let </span>version_index = <span class="kw">match </span><a class="self" href="#161">self</a>.symbols.get(<a href="#161">index</a>) {
+            <span class="prelude-val">Some</span>(x) =&gt; <a href="#163">x</a>.<span class="number">0</span>.<a href="../../endian.rs.html#599">get</a>(<a href="#161">endian</a>),
             <span class="comment">// Ideally this would be VER_NDX_LOCAL for undefined symbols,
             // but currently there are no checks that need this distinction.
-            </span><span class="prelude-val">None </span>=&gt; <a href="../../../../src/object/elf.rs.html#1753">elf::VER_NDX_GLOBAL</a>,
+            </span><span class="prelude-val">None </span>=&gt; <a href="../../elf.rs.html#1753">elf::VER_NDX_GLOBAL</a>,
         };
-        <a href="../../../../src/object/read/elf/version.rs.html#10">VersionIndex</a>(<a href="../../../../src/object/read/elf/version.rs.html#162">version_index</a>)
+        <a href="#10">VersionIndex</a>(<a href="#162">version_index</a>)
     }
 
     <span class="doccomment">/// Return version information for a given symbol version index.
     ///
     /// Returns `Ok(None)` for local and global versions.
     /// Returns `Err(_)` if index is invalid.
-    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="../../../../src/object/read/elf/version.rs.html#10">VersionIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Version&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="#10">VersionIndex</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Version&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
         <span class="kw">if </span>index.index() &lt;= elf::VER_NDX_GLOBAL {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#175">self</a>.versions
-            .get(usize::from(<a href="../../../../src/object/read/elf/version.rs.html#175">index</a>.<a href="../../../../src/object/read/elf/version.rs.html#14">index</a>()))
-            .filter(|version| <a href="../../../../src/object/read/elf/version.rs.html#181">version</a>.valid)
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF symbol version index&quot;</span>)
+        <a class="self" href="#175">self</a>.versions
+            .get(usize::from(<a href="#175">index</a>.<a href="#14">index</a>()))
+            .filter(|version| <a href="#181">version</a>.valid)
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF symbol version index&quot;</span>)
             .map(<span class="prelude-val">Some</span>)
     }
 
@@ -609,14 +609,14 @@
     /// Returns false for any error.
     ///
     /// Note: this function hasn&#39;t been fully tested and is likely to be incomplete.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, need: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../src/object/read/elf/version.rs.html#38">Version</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>version_index = <a class="self" href="../../../../src/object/read/elf/version.rs.html#191">self</a>.<a href="../../../../src/object/read/elf/version.rs.html#161">version_index</a>(<a href="../../../../src/object/read/elf/version.rs.html#191">endian</a>, <a href="../../../../src/object/read/elf/version.rs.html#191">index</a>);
-        <span class="kw">let </span>def = <span class="kw">match </span><a class="self" href="../../../../src/object/read/elf/version.rs.html#191">self</a>.<a href="../../../../src/object/read/elf/version.rs.html#175">version</a>(<a href="../../../../src/object/read/elf/version.rs.html#192">version_index</a>) {
-            <span class="prelude-val">Ok</span>(def) =&gt; <a href="../../../../src/object/read/elf/version.rs.html#194">def</a>,
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, need: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#38">Version</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>version_index = <a class="self" href="#191">self</a>.<a href="#161">version_index</a>(<a href="#191">endian</a>, <a href="#191">index</a>);
+        <span class="kw">let </span>def = <span class="kw">match </span><a class="self" href="#191">self</a>.<a href="#175">version</a>(<a href="#192">version_index</a>) {
+            <span class="prelude-val">Ok</span>(def) =&gt; <a href="#194">def</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
         };
-        <span class="kw">match </span>(<a href="../../../../src/object/read/elf/version.rs.html#193">def</a>, <a href="../../../../src/object/read/elf/version.rs.html#191">need</a>) {
-            (<span class="prelude-val">Some</span>(def), <span class="prelude-val">Some</span>(need)) =&gt; <a href="../../../../src/object/read/elf/version.rs.html#198">need</a>.hash == <a href="../../../../src/object/read/elf/version.rs.html#198">def</a>.hash &amp;&amp; <a href="../../../../src/object/read/elf/version.rs.html#198">need</a>.name == <a href="../../../../src/object/read/elf/version.rs.html#198">def</a>.name,
+        <span class="kw">match </span>(<a href="#193">def</a>, <a href="#191">need</a>) {
+            (<span class="prelude-val">Some</span>(def), <span class="prelude-val">Some</span>(need)) =&gt; <a href="#198">need</a>.hash == <a href="#198">def</a>.hash &amp;&amp; <a href="#198">need</a>.name == <a href="#198">def</a>.name,
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(_need)) =&gt; {
                 <span class="comment">// Version must be present if needed.
                 </span><span class="bool-val">false
@@ -624,7 +624,7 @@
             (<span class="prelude-val">Some</span>(_def), <span class="prelude-val">None</span>) =&gt; {
                 <span class="comment">// For a dlsym call, use the newest version.
                 // TODO: if not a dlsym call, then use the oldest version.
-                </span>!<a href="../../../../src/object/read/elf/version.rs.html#192">version_index</a>.<a href="../../../../src/object/read/elf/version.rs.html#29">is_hidden</a>()
+                </span>!<a href="#192">version_index</a>.<a href="#29">is_hidden</a>()
             }
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="bool-val">true</span>,
         }
@@ -633,16 +633,16 @@
 
 <span class="doccomment">/// An iterator over the entries in an ELF `SHT_GNU_verdef` section.
 </span><span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     endian: Elf::Endian,
     data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; VerdefIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(endian: Elf::Endian, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/elf/version.rs.html#215">VerdefIterator</a> {
-            <a href="../../../../src/object/read/elf/version.rs.html#221">endian</a>,
-            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/elf/version.rs.html#221">data</a>),
+        <a href="#215">VerdefIterator</a> {
+            <a href="#221">endian</a>,
+            data: <a href="../util.rs.html#16">Bytes</a>(<a href="#221">data</a>),
         }
     }
 
@@ -659,39 +659,39 @@
             .read_at::&lt;elf::Verdef&lt;<span class="kw">_</span>&gt;&gt;(<span class="number">0</span>)
             .read_error(<span class="string">&quot;ELF verdef is too short&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>verdaux_data = <a class="self" href="../../../../src/object/read/elf/version.rs.html#230">self</a>.data;
+        <span class="kw">let </span><span class="kw-2">mut </span>verdaux_data = <a class="self" href="#230">self</a>.data;
         verdaux_data
             .skip(verdef.vd_aux.get(<span class="self">self</span>.endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid ELF vd_aux&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>verdaux =
-            VerdauxIterator::new(<a class="self" href="../../../../src/object/read/elf/version.rs.html#230">self</a>.endian, <a href="../../../../src/object/read/elf/version.rs.html#241">verdaux_data</a>.<span class="number">0</span>, <a href="../../../../src/object/read/elf/version.rs.html#236">verdef</a>.vd_cnt.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#230">self</a>.endian));
+            VerdauxIterator::new(<a class="self" href="#230">self</a>.endian, <a href="#241">verdaux_data</a>.<span class="number">0</span>, <a href="#236">verdef</a>.vd_cnt.<a href="../../endian.rs.html#599">get</a>(<a class="self" href="#230">self</a>.endian));
 
-        <span class="kw">let </span>next = <a href="../../../../src/object/read/elf/version.rs.html#236">verdef</a>.vd_next.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#230">self</a>.endian);
+        <span class="kw">let </span>next = <a href="#236">verdef</a>.vd_next.<a href="../../endian.rs.html#621">get</a>(<a class="self" href="#230">self</a>.endian);
         <span class="kw">if </span>next != <span class="number">0 </span>{
             <span class="self">self</span>.data
                 .skip(next <span class="kw">as </span>usize)
                 .read_error(<span class="string">&quot;Invalid ELF vd_next&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="../../../../src/object/read/elf/version.rs.html#230">self</a>.data = <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
+            <a class="self" href="#230">self</a>.data = <a href="../util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../../../src/object/read/elf/version.rs.html#236">verdef</a>, <a href="../../../../src/object/read/elf/version.rs.html#245">verdaux</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#236">verdef</a>, <a href="#245">verdaux</a>)))
     }
 }
 
 <span class="doccomment">/// An iterator over the auxiliary records for an entry in an ELF `SHT_GNU_verdef` section.
 </span><span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>VerdauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>VerdauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     endian: Elf::Endian,
     data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
     count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; VerdauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; VerdauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(endian: Elf::Endian, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/elf/version.rs.html#262">VerdauxIterator</a> {
-            <a href="../../../../src/object/read/elf/version.rs.html#269">endian</a>,
-            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/elf/version.rs.html#269">data</a>),
-            <a href="../../../../src/object/read/elf/version.rs.html#269">count</a>,
+        <a href="#262">VerdauxIterator</a> {
+            <a href="#269">endian</a>,
+            data: <a href="../util.rs.html#16">Bytes</a>(<a href="#269">data</a>),
+            <a href="#269">count</a>,
         }
     }
 
@@ -709,23 +709,23 @@
         <span class="self">self</span>.data
             .skip(verdaux.vda_next.get(<span class="self">self</span>.endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid ELF vda_next&quot;</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#278">self</a>.count -= <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/version.rs.html#283">verdaux</a>))
+        <a class="self" href="#278">self</a>.count -= <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#283">verdaux</a>))
     }
 }
 
 <span class="doccomment">/// An iterator over the entries in an ELF `SHT_GNU_verneed` section.
 </span><span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     endian: Elf::Endian,
     data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; VerneedIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(endian: Elf::Endian, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/elf/version.rs.html#298">VerneedIterator</a> {
-            <a href="../../../../src/object/read/elf/version.rs.html#304">endian</a>,
-            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/elf/version.rs.html#304">data</a>),
+        <a href="#298">VerneedIterator</a> {
+            <a href="#304">endian</a>,
+            data: <a href="../util.rs.html#16">Bytes</a>(<a href="#304">data</a>),
         }
     }
 
@@ -747,39 +747,39 @@
             .read_at::&lt;elf::Verneed&lt;<span class="kw">_</span>&gt;&gt;(<span class="number">0</span>)
             .read_error(<span class="string">&quot;ELF verneed is too short&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>vernaux_data = <a class="self" href="../../../../src/object/read/elf/version.rs.html#313">self</a>.data;
+        <span class="kw">let </span><span class="kw-2">mut </span>vernaux_data = <a class="self" href="#313">self</a>.data;
         vernaux_data
             .skip(verneed.vn_aux.get(<span class="self">self</span>.endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid ELF vn_aux&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>vernaux =
-            VernauxIterator::new(<a class="self" href="../../../../src/object/read/elf/version.rs.html#313">self</a>.endian, <a href="../../../../src/object/read/elf/version.rs.html#329">vernaux_data</a>.<span class="number">0</span>, <a href="../../../../src/object/read/elf/version.rs.html#324">verneed</a>.vn_cnt.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#313">self</a>.endian));
+            VernauxIterator::new(<a class="self" href="#313">self</a>.endian, <a href="#329">vernaux_data</a>.<span class="number">0</span>, <a href="#324">verneed</a>.vn_cnt.<a href="../../endian.rs.html#599">get</a>(<a class="self" href="#313">self</a>.endian));
 
-        <span class="kw">let </span>next = <a href="../../../../src/object/read/elf/version.rs.html#324">verneed</a>.vn_next.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#313">self</a>.endian);
+        <span class="kw">let </span>next = <a href="#324">verneed</a>.vn_next.<a href="../../endian.rs.html#621">get</a>(<a class="self" href="#313">self</a>.endian);
         <span class="kw">if </span>next != <span class="number">0 </span>{
             <span class="self">self</span>.data
                 .skip(next <span class="kw">as </span>usize)
                 .read_error(<span class="string">&quot;Invalid ELF vn_next&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <a class="self" href="../../../../src/object/read/elf/version.rs.html#313">self</a>.data = <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
+            <a class="self" href="#313">self</a>.data = <a href="../util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../../../src/object/read/elf/version.rs.html#324">verneed</a>, <a href="../../../../src/object/read/elf/version.rs.html#333">vernaux</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#324">verneed</a>, <a href="#333">vernaux</a>)))
     }
 }
 
 <span class="doccomment">/// An iterator over the auxiliary records for an entry in an ELF `SHT_GNU_verneed` section.
 </span><span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>VernauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+</span><span class="kw">pub struct </span>VernauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; {
     endian: Elf::Endian,
     data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
     count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; VernauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="file.rs.html#437">FileHeader</a>&gt; VernauxIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(endian: Elf::Endian, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/object/read/elf/version.rs.html#350">VernauxIterator</a> {
-            <a href="../../../../src/object/read/elf/version.rs.html#357">endian</a>,
-            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/elf/version.rs.html#357">data</a>),
-            <a href="../../../../src/object/read/elf/version.rs.html#357">count</a>,
+        <a href="#350">VernauxIterator</a> {
+            <a href="#357">endian</a>,
+            data: <a href="../util.rs.html#16">Bytes</a>(<a href="#357">data</a>),
+            <a href="#357">count</a>,
         }
     }
 
@@ -797,48 +797,48 @@
         <span class="self">self</span>.data
             .skip(vernaux.vna_next.get(<span class="self">self</span>.endian) <span class="kw">as </span>usize)
             .read_error(<span class="string">&quot;Invalid ELF vna_next&quot;</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/object/read/elf/version.rs.html#366">self</a>.count -= <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/version.rs.html#371">vernaux</a>))
+        <a class="self" href="#366">self</a>.count -= <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#371">vernaux</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; elf::Verdaux&lt;Endian&gt; {
+<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; elf::Verdaux&lt;Endian&gt; {
     <span class="doccomment">/// Parse the version name from the string table.
     </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Endian,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="../../../../src/object/read/elf/version.rs.html#389">strings</a>
-            .<a href="../../../../src/object/read/util.rs.html#254">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#387">self</a>.vda_name.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/version.rs.html#388">endian</a>))
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vda_name&quot;</span>)
+        <a href="#389">strings</a>
+            .<a href="../util.rs.html#254">get</a>(<a class="self" href="#387">self</a>.vda_name.<a href="../../endian.rs.html#621">get</a>(<a href="#388">endian</a>))
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vda_name&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; elf::Verneed&lt;Endian&gt; {
+<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; elf::Verneed&lt;Endian&gt; {
     <span class="doccomment">/// Parse the file from the string table.
     </span><span class="kw">pub fn </span>file&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Endian,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="../../../../src/object/read/elf/version.rs.html#402">strings</a>
-            .<a href="../../../../src/object/read/util.rs.html#254">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#400">self</a>.vn_file.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/version.rs.html#401">endian</a>))
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vn_file&quot;</span>)
+        <a href="#402">strings</a>
+            .<a href="../util.rs.html#254">get</a>(<a class="self" href="#400">self</a>.vn_file.<a href="../../endian.rs.html#621">get</a>(<a href="#401">endian</a>))
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vn_file&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; elf::Vernaux&lt;Endian&gt; {
+<span class="kw">impl</span>&lt;Endian: <a href="../../endian.rs.html#13">endian::Endian</a>&gt; elf::Vernaux&lt;Endian&gt; {
     <span class="doccomment">/// Parse the version name from the string table.
     </span><span class="kw">pub fn </span>name&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         endian: Endian,
         strings: StringTable&lt;<span class="lifetime">&#39;data</span>, R&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a href="../../../../src/object/read/elf/version.rs.html#415">strings</a>
-            .<a href="../../../../src/object/read/util.rs.html#254">get</a>(<a class="self" href="../../../../src/object/read/elf/version.rs.html#413">self</a>.vna_name.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/version.rs.html#414">endian</a>))
-            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vna_name&quot;</span>)
+        <a href="#415">strings</a>
+            .<a href="../util.rs.html#254">get</a>(<a class="self" href="#413">self</a>.vna_name.<a href="../../endian.rs.html#621">get</a>(<a href="#414">endian</a>))
+            .<a href="../mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF vna_name&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

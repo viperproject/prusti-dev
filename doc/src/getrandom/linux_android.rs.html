@@ -57,27 +57,27 @@
 
 </span><span class="doccomment">//! Implementation for Linux / Android
 </span><span class="kw">use crate</span>::{
-    <a href="../../src/getrandom/util.rs.html#54">util::LazyBool</a>,
-    util_libc::{<a href="../../src/getrandom/util_libc.rs.html#49">last_os_error</a>, <a href="../../src/getrandom/util_libc.rs.html#61-64">sys_fill_exact</a>},
-    {<a href="../../src/getrandom/lib.rs.html#182">use_file</a>, <a href="../../src/getrandom/error.rs.html#25">Error</a>},
+    <a href="util.rs.html#54">util::LazyBool</a>,
+    util_libc::{<a href="util_libc.rs.html#49">last_os_error</a>, <a href="util_libc.rs.html#61-64">sys_fill_exact</a>},
+    {<a href="lib.rs.html#182">use_file</a>, <a href="error.rs.html#25">Error</a>},
 };
 
-<span class="kw">pub fn </span>getrandom_inner(dest: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/getrandom/error.rs.html#25">Error</a>&gt; {
+<span class="kw">pub fn </span>getrandom_inner(dest: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#25">Error</a>&gt; {
     <span class="comment">// getrandom(2) was introduced in Linux 3.17
-    </span><span class="kw">static </span>HAS_GETRANDOM: <a href="../../src/getrandom/util.rs.html#54">LazyBool</a> = LazyBool::new();
+    </span><span class="kw">static </span>HAS_GETRANDOM: <a href="util.rs.html#54">LazyBool</a> = LazyBool::new();
     <span class="kw">if </span>HAS_GETRANDOM.unsync_init(is_getrandom_available) {
-        <a href="../../src/getrandom/util_libc.rs.html#61-64">sys_fill_exact</a>(<a href="../../src/getrandom/linux_android.rs.html#16">dest</a>, |buf| <span class="kw">unsafe </span>{
-            <a href="../../src/getrandom/linux_android.rs.html#41-45">getrandom</a>(<a href="../../src/getrandom/linux_android.rs.html#20">buf</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>, <a href="../../src/getrandom/linux_android.rs.html#20">buf</a>.len(), <span class="number">0</span>)
+        <a href="util_libc.rs.html#61-64">sys_fill_exact</a>(<a href="#16">dest</a>, |buf| <span class="kw">unsafe </span>{
+            <a href="#41-45">getrandom</a>(<a href="#20">buf</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>, <a href="#20">buf</a>.len(), <span class="number">0</span>)
         })
     } <span class="kw">else </span>{
-        <a href="../../src/getrandom/use_file.rs.html#32">use_file::getrandom_inner</a>(<a href="../../src/getrandom/linux_android.rs.html#16">dest</a>)
+        <a href="use_file.rs.html#32">use_file::getrandom_inner</a>(<a href="#16">dest</a>)
     }
 }
 
 <span class="kw">fn </span>is_getrandom_available() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ <a href="../../src/getrandom/linux_android.rs.html#41-45">getrandom</a>(core::ptr::null_mut(), <span class="number">0</span>, libc::GRND_NONBLOCK) };
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ <a href="#41-45">getrandom</a>(core::ptr::null_mut(), <span class="number">0</span>, libc::GRND_NONBLOCK) };
     <span class="kw">if </span>res &lt; <span class="number">0 </span>{
-        <span class="kw">match </span><a href="../../src/getrandom/util_libc.rs.html#49">last_os_error</a>().<a href="../../src/getrandom/error.rs.html#74">raw_os_error</a>() {
+        <span class="kw">match </span><a href="util_libc.rs.html#49">last_os_error</a>().<a href="error.rs.html#74">raw_os_error</a>() {
             <span class="prelude-val">Some</span>(libc::ENOSYS) =&gt; <span class="bool-val">false</span>, <span class="comment">// No kernel support
             </span><span class="prelude-val">Some</span>(libc::EPERM) =&gt; <span class="bool-val">false</span>,  <span class="comment">// Blocked by seccomp
             </span><span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
@@ -92,7 +92,7 @@
     buflen: <a href="../../libc/unix/type.size_t.html">libc::size_t</a>,
     flags: <a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>,
 ) -&gt; <a href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a> {
-    libc::syscall(libc::SYS_getrandom, <a href="../../src/getrandom/linux_android.rs.html#42">buf</a>, <a href="../../src/getrandom/linux_android.rs.html#43">buflen</a>, <a href="../../src/getrandom/linux_android.rs.html#44">flags</a>) <span class="kw">as </span><a href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a>
+    libc::syscall(libc::SYS_getrandom, <a href="#42">buf</a>, <a href="#43">buflen</a>, <a href="#44">flags</a>) <span class="kw">as </span><a href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

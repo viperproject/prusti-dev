@@ -1508,11 +1508,11 @@ Defines an abstract syntax for regular expressions.
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">pub use </span><span class="kw">crate</span>::ast::visitor::{<a href="../../../src/regex_syntax/ast/visitor.rs.html#119">visit</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>};
+<span class="kw">pub use </span><span class="kw">crate</span>::ast::visitor::{<a href="visitor.rs.html#119">visit</a>, <a href="visitor.rs.html#23">Visitor</a>};
 
-<span class="kw">pub mod </span><a href="../../../src/regex_syntax/ast/parse.rs.html#1-5930">parse</a>;
-<span class="kw">pub mod </span><a href="../../../src/regex_syntax/ast/print.rs.html#1-568">print</a>;
-<span class="kw">mod </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#1-517">visitor</a>;
+<span class="kw">pub mod </span><a href="parse.rs.html#1-5930">parse</a>;
+<span class="kw">pub mod </span><a href="print.rs.html#1-568">print</a>;
+<span class="kw">mod </span><a href="visitor.rs.html#1-517">visitor</a>;
 
 <span class="doccomment">/// An error that occurred while parsing a regular expression into an abstract
 /// syntax tree.
@@ -1524,30 +1524,30 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Error {
     <span class="doccomment">/// The kind of error.
-    </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#69">ErrorKind</a>,
+    </span>kind: <a href="#69">ErrorKind</a>,
     <span class="doccomment">/// The original pattern that the parser generated the error from. Every
     /// span in an error is a valid range into this string.
     </span>pattern: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The span of this error.
-    </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span>span: <a href="#323">Span</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#23">Error</a> {
+<span class="kw">impl </span><a href="#23">Error</a> {
     <span class="doccomment">/// Return the type of this error.
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#69">ErrorKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#35">self</a>.kind
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#69">ErrorKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#35">self</a>.kind
     }
 
     <span class="doccomment">/// The original pattern string in which this error occurred.
     ///
     /// Every span reported by this error is reported in terms of this string.
     </span><span class="kw">pub fn </span>pattern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#42">self</a>.pattern
+        <span class="kw-2">&amp;</span><a class="self" href="#42">self</a>.pattern
     }
 
     <span class="doccomment">/// Return the span at which this error occurred.
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#47">self</a>.span
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#323">Span</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#47">self</a>.span
     }
 
     <span class="doccomment">/// Return an auxiliary span. This span exists only for some errors that
@@ -1555,12 +1555,12 @@ Defines an abstract syntax for regular expressions.
     /// regular expression. For example, &quot;duplicate&quot; errors will have the
     /// main error position set to the duplicate occurrence while its
     /// auxiliary span will be set to the initial occurrence.
-    </span><span class="kw">pub fn </span>auxiliary_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>&gt; {
-        <span class="kw">use </span><a href="../../../src/regex_syntax/ast/mod.rs.html#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#56">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#108">FlagDuplicate</a> { <span class="kw-2">ref </span>original } =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#59">original</a>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#114">FlagRepeatedNegation</a> { <span class="kw-2">ref </span>original, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#60">original</a>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#124">GroupNameDuplicate</a> { <span class="kw-2">ref </span>original, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#61">original</a>),
+    </span><span class="kw">pub fn </span>auxiliary_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#323">Span</a>&gt; {
+        <span class="kw">use </span><a href="#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#56">self</a>.kind {
+            <a href="#108">FlagDuplicate</a> { <span class="kw-2">ref </span>original } =&gt; <span class="prelude-val">Some</span>(<a href="#59">original</a>),
+            <a href="#114">FlagRepeatedNegation</a> { <span class="kw-2">ref </span>original, .. } =&gt; <span class="prelude-val">Some</span>(<a href="#60">original</a>),
+            <a href="#124">GroupNameDuplicate</a> { <span class="kw-2">ref </span>original, .. } =&gt; <span class="prelude-val">Some</span>(<a href="#61">original</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1610,13 +1610,13 @@ Defines an abstract syntax for regular expressions.
     </span>FlagDuplicate {
         <span class="doccomment">/// The position of the original flag. The error position
         /// points to the duplicate flag.
-        </span>original: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+        </span>original: <a href="#323">Span</a>,
     },
     <span class="doccomment">/// The negation operator was used twice, e.g., `-i-s`.
     </span>FlagRepeatedNegation {
         <span class="doccomment">/// The position of the original negation operator. The error position
         /// points to the duplicate negation operator.
-        </span>original: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+        </span>original: <a href="#323">Span</a>,
     },
     <span class="doccomment">/// Expected a flag but got EOF, e.g., `(?`.
     </span>FlagUnexpectedEof,
@@ -1626,7 +1626,7 @@ Defines an abstract syntax for regular expressions.
     </span>GroupNameDuplicate {
         <span class="doccomment">/// The position of the initial occurrence of the capture name. The
         /// error position itself points to the duplicate occurrence.
-        </span>original: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+        </span>original: <a href="#323">Span</a>,
     },
     <span class="doccomment">/// A capture group name is empty, e.g., `(?P&lt;&gt;abc)`.
     </span>GroupNameEmpty,
@@ -1680,135 +1680,135 @@ Defines an abstract syntax for regular expressions.
     </span>__Nonexhaustive,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#23">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="#23">Error</a> {
     <span class="comment">// TODO: Remove this method entirely on the next breaking semver release.
     </span><span class="attribute">#[allow(deprecated)]
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">use </span><a href="../../../src/regex_syntax/ast/mod.rs.html#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#184">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#76">CaptureLimitExceeded</a> =&gt; <span class="string">&quot;capture group limit exceeded&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#78">ClassEscapeInvalid</a> =&gt; <span class="string">&quot;invalid escape sequence in character class&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#81">ClassRangeInvalid</a> =&gt; <span class="string">&quot;invalid character class range&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#85">ClassRangeLiteral</a> =&gt; <span class="string">&quot;invalid range boundary, must be a literal&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#87">ClassUnclosed</a> =&gt; <span class="string">&quot;unclosed character class&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#92">DecimalEmpty</a> =&gt; <span class="string">&quot;empty decimal literal&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#94">DecimalInvalid</a> =&gt; <span class="string">&quot;invalid decimal literal&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#96">EscapeHexEmpty</a> =&gt; <span class="string">&quot;empty hexadecimal literal&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#98">EscapeHexInvalid</a> =&gt; <span class="string">&quot;invalid hexadecimal literal&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#100">EscapeHexInvalidDigit</a> =&gt; <span class="string">&quot;invalid hexadecimal digit&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#102">EscapeUnexpectedEof</a> =&gt; <span class="string">&quot;unexpected eof (escape sequence)&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#104">EscapeUnrecognized</a> =&gt; <span class="string">&quot;unrecognized escape sequence&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#106">FlagDanglingNegation</a> =&gt; <span class="string">&quot;dangling flag negation operator&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#108">FlagDuplicate</a> { .. } =&gt; <span class="string">&quot;duplicate flag&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#114">FlagRepeatedNegation</a> { .. } =&gt; <span class="string">&quot;repeated negation&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#120">FlagUnexpectedEof</a> =&gt; <span class="string">&quot;unexpected eof (flag)&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#122">FlagUnrecognized</a> =&gt; <span class="string">&quot;unrecognized flag&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#124">GroupNameDuplicate</a> { .. } =&gt; <span class="string">&quot;duplicate capture group name&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#130">GroupNameEmpty</a> =&gt; <span class="string">&quot;empty capture group name&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#134">GroupNameInvalid</a> =&gt; <span class="string">&quot;invalid capture group name&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#136">GroupNameUnexpectedEof</a> =&gt; <span class="string">&quot;unclosed capture group name&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#140">GroupUnclosed</a> =&gt; <span class="string">&quot;unclosed group&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#142">GroupUnopened</a> =&gt; <span class="string">&quot;unopened group&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#145">NestLimitExceeded</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;nest limit exceeded&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#148">RepetitionCountInvalid</a> =&gt; <span class="string">&quot;invalid repetition count range&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#153">RepetitionCountUnclosed</a> =&gt; <span class="string">&quot;unclosed counted repetition&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#158">RepetitionMissing</a> =&gt; <span class="string">&quot;repetition operator missing expression&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#161">UnicodeClassInvalid</a> =&gt; <span class="string">&quot;invalid Unicode character class&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#165">UnsupportedBackreference</a> =&gt; <span class="string">&quot;backreferences are not supported&quot;</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#171">UnsupportedLookAround</a> =&gt; <span class="string">&quot;look-around is not supported&quot;</span>,
+        <span class="kw">use </span><a href="#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a class="self" href="#184">self</a>.kind {
+            <a href="#76">CaptureLimitExceeded</a> =&gt; <span class="string">&quot;capture group limit exceeded&quot;</span>,
+            <a href="#78">ClassEscapeInvalid</a> =&gt; <span class="string">&quot;invalid escape sequence in character class&quot;</span>,
+            <a href="#81">ClassRangeInvalid</a> =&gt; <span class="string">&quot;invalid character class range&quot;</span>,
+            <a href="#85">ClassRangeLiteral</a> =&gt; <span class="string">&quot;invalid range boundary, must be a literal&quot;</span>,
+            <a href="#87">ClassUnclosed</a> =&gt; <span class="string">&quot;unclosed character class&quot;</span>,
+            <a href="#92">DecimalEmpty</a> =&gt; <span class="string">&quot;empty decimal literal&quot;</span>,
+            <a href="#94">DecimalInvalid</a> =&gt; <span class="string">&quot;invalid decimal literal&quot;</span>,
+            <a href="#96">EscapeHexEmpty</a> =&gt; <span class="string">&quot;empty hexadecimal literal&quot;</span>,
+            <a href="#98">EscapeHexInvalid</a> =&gt; <span class="string">&quot;invalid hexadecimal literal&quot;</span>,
+            <a href="#100">EscapeHexInvalidDigit</a> =&gt; <span class="string">&quot;invalid hexadecimal digit&quot;</span>,
+            <a href="#102">EscapeUnexpectedEof</a> =&gt; <span class="string">&quot;unexpected eof (escape sequence)&quot;</span>,
+            <a href="#104">EscapeUnrecognized</a> =&gt; <span class="string">&quot;unrecognized escape sequence&quot;</span>,
+            <a href="#106">FlagDanglingNegation</a> =&gt; <span class="string">&quot;dangling flag negation operator&quot;</span>,
+            <a href="#108">FlagDuplicate</a> { .. } =&gt; <span class="string">&quot;duplicate flag&quot;</span>,
+            <a href="#114">FlagRepeatedNegation</a> { .. } =&gt; <span class="string">&quot;repeated negation&quot;</span>,
+            <a href="#120">FlagUnexpectedEof</a> =&gt; <span class="string">&quot;unexpected eof (flag)&quot;</span>,
+            <a href="#122">FlagUnrecognized</a> =&gt; <span class="string">&quot;unrecognized flag&quot;</span>,
+            <a href="#124">GroupNameDuplicate</a> { .. } =&gt; <span class="string">&quot;duplicate capture group name&quot;</span>,
+            <a href="#130">GroupNameEmpty</a> =&gt; <span class="string">&quot;empty capture group name&quot;</span>,
+            <a href="#134">GroupNameInvalid</a> =&gt; <span class="string">&quot;invalid capture group name&quot;</span>,
+            <a href="#136">GroupNameUnexpectedEof</a> =&gt; <span class="string">&quot;unclosed capture group name&quot;</span>,
+            <a href="#140">GroupUnclosed</a> =&gt; <span class="string">&quot;unclosed group&quot;</span>,
+            <a href="#142">GroupUnopened</a> =&gt; <span class="string">&quot;unopened group&quot;</span>,
+            <a href="#145">NestLimitExceeded</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;nest limit exceeded&quot;</span>,
+            <a href="#148">RepetitionCountInvalid</a> =&gt; <span class="string">&quot;invalid repetition count range&quot;</span>,
+            <a href="#153">RepetitionCountUnclosed</a> =&gt; <span class="string">&quot;unclosed counted repetition&quot;</span>,
+            <a href="#158">RepetitionMissing</a> =&gt; <span class="string">&quot;repetition operator missing expression&quot;</span>,
+            <a href="#161">UnicodeClassInvalid</a> =&gt; <span class="string">&quot;invalid Unicode character class&quot;</span>,
+            <a href="#165">UnsupportedBackreference</a> =&gt; <span class="string">&quot;backreferences are not supported&quot;</span>,
+            <a href="#171">UnsupportedLookAround</a> =&gt; <span class="string">&quot;look-around is not supported&quot;</span>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#23">Error</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#23">Error</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">crate</span>::error::Formatter::from(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#223">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#223">f</a>)
+        <span class="kw">crate</span>::error::Formatter::from(<a class="self" href="#223">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#223">f</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#69">ErrorKind</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#69">ErrorKind</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">use </span><a href="../../../src/regex_syntax/ast/mod.rs.html#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#229">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#76">CaptureLimitExceeded</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+        <span class="kw">use </span><a href="#69"><span class="self">self</span>::ErrorKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#229">self</a> </span>{
+            <a href="#76">CaptureLimitExceeded</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;exceeded the maximum number of \
                  capturing groups ({})&quot;</span>,
                 ::std::u32::MAX
             ),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#78">ClassEscapeInvalid</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;invalid escape sequence found in character class&quot;</span>)
+            <a href="#78">ClassEscapeInvalid</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;invalid escape sequence found in character class&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#81">ClassRangeInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+            <a href="#81">ClassRangeInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;invalid character class range, \
                  the start must be &lt;= the end&quot;
             </span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#85">ClassRangeLiteral</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;invalid range boundary, must be a literal&quot;</span>)
+            <a href="#85">ClassRangeLiteral</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;invalid range boundary, must be a literal&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#87">ClassUnclosed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unclosed character class&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#92">DecimalEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;decimal literal empty&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#94">DecimalInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;decimal literal invalid&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#96">EscapeHexEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;hexadecimal literal empty&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#98">EscapeHexInvalid</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;hexadecimal literal is not a Unicode scalar value&quot;</span>)
+            <a href="#87">ClassUnclosed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unclosed character class&quot;</span>),
+            <a href="#92">DecimalEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;decimal literal empty&quot;</span>),
+            <a href="#94">DecimalInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;decimal literal invalid&quot;</span>),
+            <a href="#96">EscapeHexEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;hexadecimal literal empty&quot;</span>),
+            <a href="#98">EscapeHexInvalid</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;hexadecimal literal is not a Unicode scalar value&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#100">EscapeHexInvalidDigit</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;invalid hexadecimal digit&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#102">EscapeUnexpectedEof</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+            <a href="#100">EscapeHexInvalidDigit</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;invalid hexadecimal digit&quot;</span>),
+            <a href="#102">EscapeUnexpectedEof</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;incomplete escape sequence, \
                  reached end of pattern prematurely&quot;
             </span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#104">EscapeUnrecognized</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unrecognized escape sequence&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#106">FlagDanglingNegation</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;dangling flag negation operator&quot;</span>)
+            <a href="#104">EscapeUnrecognized</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unrecognized escape sequence&quot;</span>),
+            <a href="#106">FlagDanglingNegation</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;dangling flag negation operator&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#108">FlagDuplicate</a> { .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;duplicate flag&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#114">FlagRepeatedNegation</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;flag negation operator repeated&quot;</span>)
+            <a href="#108">FlagDuplicate</a> { .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;duplicate flag&quot;</span>),
+            <a href="#114">FlagRepeatedNegation</a> { .. } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;flag negation operator repeated&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#120">FlagUnexpectedEof</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;expected flag but got end of regex&quot;</span>)
+            <a href="#120">FlagUnexpectedEof</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;expected flag but got end of regex&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#122">FlagUnrecognized</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unrecognized flag&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#124">GroupNameDuplicate</a> { .. } =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;duplicate capture group name&quot;</span>)
+            <a href="#122">FlagUnrecognized</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unrecognized flag&quot;</span>),
+            <a href="#124">GroupNameDuplicate</a> { .. } =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;duplicate capture group name&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#130">GroupNameEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;empty capture group name&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#134">GroupNameInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;invalid capture group character&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#136">GroupNameUnexpectedEof</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unclosed capture group name&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#140">GroupUnclosed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unclosed group&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#142">GroupUnopened</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unopened group&quot;</span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#145">NestLimitExceeded</a>(limit) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+            <a href="#130">GroupNameEmpty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;empty capture group name&quot;</span>),
+            <a href="#134">GroupNameInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;invalid capture group character&quot;</span>),
+            <a href="#136">GroupNameUnexpectedEof</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unclosed capture group name&quot;</span>),
+            <a href="#140">GroupUnclosed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unclosed group&quot;</span>),
+            <a href="#142">GroupUnopened</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unopened group&quot;</span>),
+            <a href="#145">NestLimitExceeded</a>(limit) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;exceed the maximum number of \
                  nested parentheses/brackets ({})&quot;</span>,
                 limit
             ),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#148">RepetitionCountInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+            <a href="#148">RepetitionCountInvalid</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;invalid repetition count range, \
                  the start must be &lt;= the end&quot;
             </span>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#151">RepetitionCountDecimalEmpty</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;repetition quantifier expects a valid decimal&quot;</span>)
+            <a href="#151">RepetitionCountDecimalEmpty</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;repetition quantifier expects a valid decimal&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#153">RepetitionCountUnclosed</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;unclosed counted repetition&quot;</span>)
+            <a href="#153">RepetitionCountUnclosed</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;unclosed counted repetition&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#158">RepetitionMissing</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;repetition operator missing expression&quot;</span>)
+            <a href="#158">RepetitionMissing</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;repetition operator missing expression&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#161">UnicodeClassInvalid</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;invalid Unicode character class&quot;</span>)
+            <a href="#161">UnicodeClassInvalid</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;invalid Unicode character class&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#165">UnsupportedBackreference</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>, <span class="string">&quot;backreferences are not supported&quot;</span>)
+            <a href="#165">UnsupportedBackreference</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#229">f</a>, <span class="string">&quot;backreferences are not supported&quot;</span>)
             }
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#171">UnsupportedLookAround</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#229">f</a>,
+            <a href="#171">UnsupportedLookAround</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="#229">f</a>,
                 <span class="string">&quot;look-around, including look-ahead and look-behind, \
                  is not supported&quot;
             </span>),
@@ -1824,26 +1824,26 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Copy, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Span {
     <span class="doccomment">/// The start byte offset.
-    </span><span class="kw">pub </span>start: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>,
+    </span><span class="kw">pub </span>start: <a href="#353">Position</a>,
     <span class="doccomment">/// The end byte offset.
-    </span><span class="kw">pub </span>end: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>,
+    </span><span class="kw">pub </span>end: <a href="#353">Position</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#323">Span</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#331">f</a>, <span class="string">&quot;Span({:?}, {:?})&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#331">f</a>, <span class="string">&quot;Span({:?}, {:?})&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        (<span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#337">self</a>.start, <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#337">self</a>.end).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#337">other</a>.start, <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#337">other</a>.end))
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#323">Span</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#323">Span</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        (<span class="kw-2">&amp;</span><a class="self" href="#337">self</a>.start, <span class="kw-2">&amp;</span><a class="self" href="#337">self</a>.end).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span><a href="#337">other</a>.start, <span class="kw-2">&amp;</span><a href="#337">other</a>.end))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#343">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#343">other</a>))
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#323">Span</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#323">Span</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="#343">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#343">other</a>))
     }
 }
 
@@ -1862,64 +1862,64 @@ Defines an abstract syntax for regular expressions.
     </span><span class="kw">pub </span>column: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#353">Position</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#364">f</a>,
+            <a href="#364">f</a>,
             <span class="string">&quot;Position(o: {:?}, l: {:?}, c: {:?})&quot;</span>,
             <span class="self">self</span>.offset, <span class="self">self</span>.line, <span class="self">self</span>.column
         )
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#374">self</a>.offset.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#374">other</a>.offset)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#353">Position</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#353">Position</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <a class="self" href="#374">self</a>.offset.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#374">other</a>.offset)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#380">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#380">other</a>))
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#353">Position</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#353">Position</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="#380">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#380">other</a>))
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
+<span class="kw">impl </span><a href="#323">Span</a> {
     <span class="doccomment">/// Create a new span with the given positions.
-    </span><span class="kw">pub fn </span>new(start: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>, end: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> { <a href="../../../src/regex_syntax/ast/mod.rs.html#387">start</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#387">end</a> }
+    </span><span class="kw">pub fn </span>new(start: <a href="#353">Position</a>, end: <a href="#353">Position</a>) -&gt; <a href="#323">Span</a> {
+        <a href="#323">Span</a> { <a href="#387">start</a>, <a href="#387">end</a> }
     }
 
     <span class="doccomment">/// Create a new span using the given position as the start and end.
-    </span><span class="kw">pub fn </span>splat(pos: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        Span::new(<a href="../../../src/regex_syntax/ast/mod.rs.html#392">pos</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#392">pos</a>)
+    </span><span class="kw">pub fn </span>splat(pos: <a href="#353">Position</a>) -&gt; <a href="#323">Span</a> {
+        Span::new(<a href="#392">pos</a>, <a href="#392">pos</a>)
     }
 
     <span class="doccomment">/// Create a new span by replacing the starting the position with the one
     /// given.
-    </span><span class="kw">pub fn </span>with_start(<span class="self">self</span>, pos: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> { start: <a href="../../../src/regex_syntax/ast/mod.rs.html#398">pos</a>, ..<span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#398">self</a> </span>}
+    </span><span class="kw">pub fn </span>with_start(<span class="self">self</span>, pos: <a href="#353">Position</a>) -&gt; <a href="#323">Span</a> {
+        <a href="#323">Span</a> { start: <a href="#398">pos</a>, ..<span class="self"><a href="#398">self</a> </span>}
     }
 
     <span class="doccomment">/// Create a new span by replacing the ending the position with the one
     /// given.
-    </span><span class="kw">pub fn </span>with_end(<span class="self">self</span>, pos: <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> { end: <a href="../../../src/regex_syntax/ast/mod.rs.html#404">pos</a>, ..<span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#404">self</a> </span>}
+    </span><span class="kw">pub fn </span>with_end(<span class="self">self</span>, pos: <a href="#353">Position</a>) -&gt; <a href="#323">Span</a> {
+        <a href="#323">Span</a> { end: <a href="#404">pos</a>, ..<span class="self"><a href="#404">self</a> </span>}
     }
 
     <span class="doccomment">/// Returns true if and only if this span occurs on a single line.
     </span><span class="kw">pub fn </span>is_one_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#409">self</a>.start.line == <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#409">self</a>.end.line
+        <a class="self" href="#409">self</a>.start.line == <a class="self" href="#409">self</a>.end.line
     }
 
     <span class="doccomment">/// Returns true if and only if this span is empty. That is, it points to
     /// a single position in the concrete syntax of a regular expression.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#415">self</a>.start.offset == <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#415">self</a>.end.offset
+        <a class="self" href="#415">self</a>.start.offset == <a class="self" href="#415">self</a>.end.offset
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> {
+<span class="kw">impl </span><a href="#353">Position</a> {
     <span class="doccomment">/// Create a new position with the given information.
     ///
     /// `offset` is the absolute offset of the position, starting at `0` from
@@ -1928,8 +1928,8 @@ Defines an abstract syntax for regular expressions.
     /// `line` is the line number, starting at `1`.
     ///
     /// `column` is the approximate column number, starting at `1`.
-    </span><span class="kw">pub fn </span>new(offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, line: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, column: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> {
-        <a href="../../../src/regex_syntax/ast/mod.rs.html#353">Position</a> { <a href="../../../src/regex_syntax/ast/mod.rs.html#429">offset</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#429">line</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#429">column</a> }
+    </span><span class="kw">pub fn </span>new(offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, line: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, column: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#353">Position</a> {
+        <a href="#353">Position</a> { <a href="#429">offset</a>, <a href="#429">line</a>, <a href="#429">column</a> }
     }
 }
 
@@ -1942,9 +1942,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>WithComments {
     <span class="doccomment">/// The actual ast.
-    </span><span class="kw">pub </span>ast: <a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
+    </span><span class="kw">pub </span>ast: <a href="#469">Ast</a>,
     <span class="doccomment">/// All comments found in the original regular expression.
-    </span><span class="kw">pub </span>comments: Vec&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#453">Comment</a>&gt;,
+    </span><span class="kw">pub </span>comments: Vec&lt;<a href="#453">Comment</a>&gt;,
 }
 
 <span class="doccomment">/// A comment from a regular expression with an associated span.
@@ -1954,7 +1954,7 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Comment {
     <span class="doccomment">/// The span of this comment, including the beginning `#` and ending `\n`.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The comment text, starting with the first character following the `#`
     /// and ending with the last character preceding the `\n`.
     </span><span class="kw">pub </span>comment: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
@@ -1970,49 +1970,49 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>Ast {
     <span class="doccomment">/// An empty regex that matches everything.
-    </span>Empty(<a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>),
+    </span>Empty(<a href="#323">Span</a>),
     <span class="doccomment">/// A set of flags, e.g., `(?is)`.
-    </span>Flags(<a href="../../../src/regex_syntax/ast/mod.rs.html#1250">SetFlags</a>),
+    </span>Flags(<a href="#1250">SetFlags</a>),
     <span class="doccomment">/// A single character literal, which includes escape sequences.
-    </span>Literal(<a href="../../../src/regex_syntax/ast/mod.rs.html#605">Literal</a>),
+    </span>Literal(<a href="#605">Literal</a>),
     <span class="doccomment">/// The &quot;any character&quot; class.
-    </span>Dot(<a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>),
+    </span>Dot(<a href="#323">Span</a>),
     <span class="doccomment">/// A single zero-width assertion.
-    </span>Assertion(<a href="../../../src/regex_syntax/ast/mod.rs.html#1093">Assertion</a>),
+    </span>Assertion(<a href="#1093">Assertion</a>),
     <span class="doccomment">/// A single character class. This includes all forms of character classes
     /// except for `.`. e.g., `\d`, `\pN`, `[a-z]` and `[[:alpha:]]`.
-    </span>Class(<a href="../../../src/regex_syntax/ast/mod.rs.html#706">Class</a>),
+    </span>Class(<a href="#706">Class</a>),
     <span class="doccomment">/// A repetition operator applied to an arbitrary regular expression.
-    </span>Repetition(<a href="../../../src/regex_syntax/ast/mod.rs.html#1119">Repetition</a>),
+    </span>Repetition(<a href="#1119">Repetition</a>),
     <span class="doccomment">/// A grouped regular expression.
-    </span>Group(<a href="../../../src/regex_syntax/ast/mod.rs.html#1184">Group</a>),
+    </span>Group(<a href="#1184">Group</a>),
     <span class="doccomment">/// An alternation of regular expressions.
-    </span>Alternation(<a href="../../../src/regex_syntax/ast/mod.rs.html#553">Alternation</a>),
+    </span>Alternation(<a href="#553">Alternation</a>),
     <span class="doccomment">/// A concatenation of regular expressions.
-    </span>Concat(<a href="../../../src/regex_syntax/ast/mod.rs.html#577">Concat</a>),
+    </span>Concat(<a href="#577">Concat</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
+<span class="kw">impl </span><a href="#469">Ast</a> {
     <span class="doccomment">/// Return the span of this abstract syntax tree.
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#495">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw-2">ref </span>span) =&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#497">span</a>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#473">Ast::Flags</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#498">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#475">Ast::Literal</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#499">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#477">Ast::Dot</a>(<span class="kw-2">ref </span>span) =&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#500">span</a>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#479">Ast::Assertion</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#501">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<span class="kw-2">ref </span>x) =&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#502">x</a>.<a href="../../../src/regex_syntax/ast/mod.rs.html#719">span</a>(),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#503">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#504">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#505">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#506">x</a>.span,
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#323">Span</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#495">self</a> </span>{
+            <a href="#471">Ast::Empty</a>(<span class="kw-2">ref </span>span) =&gt; <a href="#497">span</a>,
+            <a href="#473">Ast::Flags</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#498">x</a>.span,
+            <a href="#475">Ast::Literal</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#499">x</a>.span,
+            <a href="#477">Ast::Dot</a>(<span class="kw-2">ref </span>span) =&gt; <a href="#500">span</a>,
+            <a href="#479">Ast::Assertion</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#501">x</a>.span,
+            <a href="#482">Ast::Class</a>(<span class="kw-2">ref </span>x) =&gt; <a href="#502">x</a>.<a href="#719">span</a>(),
+            <a href="#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#503">x</a>.span,
+            <a href="#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#504">x</a>.span,
+            <a href="#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#505">x</a>.span,
+            <a href="#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#506">x</a>.span,
         }
     }
 
     <span class="doccomment">/// Return true if and only if this Ast is empty.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#511">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#511">self</a> </span>{
+            <a href="#471">Ast::Empty</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2020,17 +2020,17 @@ Defines an abstract syntax for regular expressions.
     <span class="doccomment">/// Returns true if and only if this AST has any (including possibly empty)
     /// subexpressions.
     </span><span class="kw">fn </span>has_subexprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#520">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#473">Ast::Flags</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#475">Ast::Literal</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#477">Ast::Dot</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#479">Ast::Assertion</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#486">Ast::Group</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#520">self</a> </span>{
+            <a href="#471">Ast::Empty</a>(<span class="kw">_</span>)
+            | <a href="#473">Ast::Flags</a>(<span class="kw">_</span>)
+            | <a href="#475">Ast::Literal</a>(<span class="kw">_</span>)
+            | <a href="#477">Ast::Dot</a>(<span class="kw">_</span>)
+            | <a href="#479">Ast::Assertion</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <a href="#482">Ast::Class</a>(<span class="kw">_</span>)
+            | <a href="#484">Ast::Repetition</a>(<span class="kw">_</span>)
+            | <a href="#486">Ast::Group</a>(<span class="kw">_</span>)
+            | <a href="#488">Ast::Alternation</a>(<span class="kw">_</span>)
+            | <a href="#490">Ast::Concat</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
@@ -2043,10 +2043,10 @@ Defines an abstract syntax for regular expressions.
 ///
 /// This implementation uses constant stack space and heap space proportional
 /// to the size of the `Ast`.
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#469">Ast</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">use </span><a href="../../../src/regex_syntax/ast/print.rs.html#45"><span class="kw">crate</span>::ast::print::Printer</a>;
-        Printer::new().<a href="../../../src/regex_syntax/ast/print.rs.html#59">print</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#545">self</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#545">f</a>)
+        <span class="kw">use </span><a href="print.rs.html#45"><span class="kw">crate</span>::ast::print::Printer</a>;
+        Printer::new().<a href="print.rs.html#59">print</a>(<a class="self" href="#545">self</a>, <a href="#545">f</a>)
     }
 }
 
@@ -2054,22 +2054,22 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Alternation {
     <span class="doccomment">/// The span of this alternation.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The alternate regular expressions.
-    </span><span class="kw">pub </span>asts: Vec&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>&gt;,
+    </span><span class="kw">pub </span>asts: Vec&lt;<a href="#469">Ast</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#553">Alternation</a> {
+<span class="kw">impl </span><a href="#553">Alternation</a> {
     <span class="doccomment">/// Return this alternation as an AST.
     ///
     /// If this alternation contains zero ASTs, then Ast::Empty is
     /// returned. If this alternation contains exactly 1 AST, then the
     /// corresponding AST is returned. Otherwise, Ast::Alternation is returned.
-    </span><span class="kw">pub fn </span>into_ast(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#566">self</a>.asts.len() {
-            <span class="number">0 </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#566">self</a>.span),
-            <span class="number">1 </span>=&gt; <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#566">self</a>.asts.pop().unwrap(),
-            <span class="kw">_ </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#566">self</a>),
+    </span><span class="kw">pub fn </span>into_ast(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#469">Ast</a> {
+        <span class="kw">match </span><a class="self" href="#566">self</a>.asts.len() {
+            <span class="number">0 </span>=&gt; <a href="#471">Ast::Empty</a>(<a class="self" href="#566">self</a>.span),
+            <span class="number">1 </span>=&gt; <a class="self" href="#566">self</a>.asts.pop().unwrap(),
+            <span class="kw">_ </span>=&gt; <a href="#488">Ast::Alternation</a>(<a class="self" href="#566">self</a>),
         }
     }
 }
@@ -2078,22 +2078,22 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Concat {
     <span class="doccomment">/// The span of this concatenation.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The concatenation regular expressions.
-    </span><span class="kw">pub </span>asts: Vec&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>&gt;,
+    </span><span class="kw">pub </span>asts: Vec&lt;<a href="#469">Ast</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#577">Concat</a> {
+<span class="kw">impl </span><a href="#577">Concat</a> {
     <span class="doccomment">/// Return this concatenation as an AST.
     ///
     /// If this concatenation contains zero ASTs, then Ast::Empty is
     /// returned. If this concatenation contains exactly 1 AST, then the
     /// corresponding AST is returned. Otherwise, Ast::Concat is returned.
-    </span><span class="kw">pub fn </span>into_ast(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#590">self</a>.asts.len() {
-            <span class="number">0 </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#590">self</a>.span),
-            <span class="number">1 </span>=&gt; <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#590">self</a>.asts.pop().unwrap(),
-            <span class="kw">_ </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#590">self</a>),
+    </span><span class="kw">pub fn </span>into_ast(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#469">Ast</a> {
+        <span class="kw">match </span><a class="self" href="#590">self</a>.asts.len() {
+            <span class="number">0 </span>=&gt; <a href="#471">Ast::Empty</a>(<a class="self" href="#590">self</a>.span),
+            <span class="number">1 </span>=&gt; <a class="self" href="#590">self</a>.asts.pop().unwrap(),
+            <span class="kw">_ </span>=&gt; <a href="#490">Ast::Concat</a>(<a class="self" href="#590">self</a>),
         }
     }
 }
@@ -2106,20 +2106,20 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Literal {
     <span class="doccomment">/// The span of this literal.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The kind of this literal.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#629">LiteralKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#629">LiteralKind</a>,
     <span class="doccomment">/// The Unicode scalar value corresponding to this literal.
     </span><span class="kw">pub </span>c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#605">Literal</a> {
+<span class="kw">impl </span><a href="#605">Literal</a> {
     <span class="doccomment">/// If this literal was written as a `\x` hex escape, then this returns
     /// the corresponding byte value. Otherwise, this returns `None`.
     </span><span class="kw">pub fn </span>byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>short_hex = <a href="../../../src/regex_syntax/ast/mod.rs.html#640">LiteralKind::HexFixed</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#682">HexLiteralKind::X</a>);
+        <span class="kw">let </span>short_hex = <a href="#640">LiteralKind::HexFixed</a>(<a href="#682">HexLiteralKind::X</a>);
         <span class="kw">if </span><span class="self">self</span>.c <span class="kw">as </span>u32 &lt;= <span class="number">255 </span>&amp;&amp; <span class="self">self</span>.kind == short_hex {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#617">self</a>.c <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+            <span class="prelude-val">Some</span>(<a class="self" href="#617">self</a>.c <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2139,14 +2139,14 @@ Defines an abstract syntax for regular expressions.
     <span class="doccomment">/// The literal is written as a hex code with a fixed number of digits
     /// depending on the type of the escape, e.g., `\x61` or or `\u0061` or
     /// `\U00000061`.
-    </span>HexFixed(<a href="../../../src/regex_syntax/ast/mod.rs.html#679">HexLiteralKind</a>),
+    </span>HexFixed(<a href="#679">HexLiteralKind</a>),
     <span class="doccomment">/// The literal is written as a hex code with a bracketed number of
     /// digits. The only restriction is that the bracketed hex code must refer
     /// to a valid Unicode scalar value.
-    </span>HexBrace(<a href="../../../src/regex_syntax/ast/mod.rs.html#679">HexLiteralKind</a>),
+    </span>HexBrace(<a href="#679">HexLiteralKind</a>),
     <span class="doccomment">/// The literal is written as a specially recognized escape, e.g., `\f`
     /// or `\n`.
-    </span>Special(<a href="../../../src/regex_syntax/ast/mod.rs.html#655">SpecialLiteralKind</a>),
+    </span>Special(<a href="#655">SpecialLiteralKind</a>),
 }
 
 <span class="doccomment">/// The type of a special literal.
@@ -2190,15 +2190,15 @@ Defines an abstract syntax for regular expressions.
     </span>UnicodeLong,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#679">HexLiteralKind</a> {
+<span class="kw">impl </span><a href="#679">HexLiteralKind</a> {
     <span class="doccomment">/// The number of digits that must be used with this literal form when
     /// used without brackets. When used with brackets, there is no
     /// restriction on the number of digits.
     </span><span class="kw">pub fn </span>digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#695">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#682">HexLiteralKind::X</a> =&gt; <span class="number">2</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#685">HexLiteralKind::UnicodeShort</a> =&gt; <span class="number">4</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#688">HexLiteralKind::UnicodeLong</a> =&gt; <span class="number">8</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#695">self</a> </span>{
+            <a href="#682">HexLiteralKind::X</a> =&gt; <span class="number">2</span>,
+            <a href="#685">HexLiteralKind::UnicodeShort</a> =&gt; <span class="number">4</span>,
+            <a href="#688">HexLiteralKind::UnicodeLong</a> =&gt; <span class="number">8</span>,
         }
     }
 }
@@ -2207,22 +2207,22 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>Class {
     <span class="doccomment">/// A Unicode character class, e.g., `\pL` or `\p{Greek}`.
-    </span>Unicode(<a href="../../../src/regex_syntax/ast/mod.rs.html#828">ClassUnicode</a>),
+    </span>Unicode(<a href="#828">ClassUnicode</a>),
     <span class="doccomment">/// A perl character class, e.g., `\d` or `\W`.
-    </span>Perl(<a href="../../../src/regex_syntax/ast/mod.rs.html#730">ClassPerl</a>),
+    </span>Perl(<a href="#730">ClassPerl</a>),
     <span class="doccomment">/// A bracketed character class set, which may contain zero or more
     /// character ranges and/or zero or more nested classes. e.g.,
     /// `[a-zA-Z\pL]`.
-    </span>Bracketed(<a href="../../../src/regex_syntax/ast/mod.rs.html#904">ClassBracketed</a>),
+    </span>Bracketed(<a href="#904">ClassBracketed</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#706">Class</a> {
+<span class="kw">impl </span><a href="#706">Class</a> {
     <span class="doccomment">/// Return the span of this character class.
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#719">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#710">Class::Perl</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#721">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#708">Class::Unicode</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#722">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#714">Class::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#723">x</a>.span,
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#323">Span</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#719">self</a> </span>{
+            <a href="#710">Class::Perl</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#721">x</a>.span,
+            <a href="#708">Class::Unicode</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#722">x</a>.span,
+            <a href="#714">Class::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#723">x</a>.span,
         }
     }
 }
@@ -2231,9 +2231,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassPerl {
     <span class="doccomment">/// The span of this class.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The kind of Perl class.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#742">ClassPerlKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#742">ClassPerlKind</a>,
     <span class="doccomment">/// Whether the class is negated or not. e.g., `\d` is not negated but
     /// `\D` is.
     </span><span class="kw">pub </span>negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -2254,9 +2254,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassAscii {
     <span class="doccomment">/// The span of this class.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The kind of ASCII class.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#765">ClassAsciiKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#765">ClassAsciiKind</a>,
     <span class="doccomment">/// Whether the class is negated or not. e.g., `[[:alpha:]]` is not negated
     /// but `[[:^alpha:]]` is.
     </span><span class="kw">pub </span>negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -2295,7 +2295,7 @@ Defines an abstract syntax for regular expressions.
     </span>Xdigit,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#765">ClassAsciiKind</a> {
+<span class="kw">impl </span><a href="#765">ClassAsciiKind</a> {
     <span class="doccomment">/// Return the corresponding ClassAsciiKind variant for the given name.
     ///
     /// The name given should correspond to the lowercase version of the
@@ -2303,23 +2303,23 @@ Defines an abstract syntax for regular expressions.
     ///
     /// If no variant with the corresponding name exists, then `None` is
     /// returned.
-    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#765">ClassAsciiKind</a>&gt; {
-        <span class="kw">use </span><a href="../../../src/regex_syntax/ast/mod.rs.html#765"><span class="self">self</span>::ClassAsciiKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">match </span><a href="../../../src/regex_syntax/ast/mod.rs.html#804">name</a> {
-            <span class="string">&quot;alnum&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#767">Alnum</a>),
-            <span class="string">&quot;alpha&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#769">Alpha</a>),
-            <span class="string">&quot;ascii&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#771">Ascii</a>),
-            <span class="string">&quot;blank&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#773">Blank</a>),
-            <span class="string">&quot;cntrl&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#775">Cntrl</a>),
-            <span class="string">&quot;digit&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#777">Digit</a>),
-            <span class="string">&quot;graph&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#779">Graph</a>),
-            <span class="string">&quot;lower&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#781">Lower</a>),
-            <span class="string">&quot;print&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#783">Print</a>),
-            <span class="string">&quot;punct&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#785">Punct</a>),
-            <span class="string">&quot;space&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#787">Space</a>),
-            <span class="string">&quot;upper&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#789">Upper</a>),
-            <span class="string">&quot;word&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#791">Word</a>),
-            <span class="string">&quot;xdigit&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#793">Xdigit</a>),
+    </span><span class="kw">pub fn </span>from_name(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#765">ClassAsciiKind</a>&gt; {
+        <span class="kw">use </span><a href="#765"><span class="self">self</span>::ClassAsciiKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a href="#804">name</a> {
+            <span class="string">&quot;alnum&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#767">Alnum</a>),
+            <span class="string">&quot;alpha&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#769">Alpha</a>),
+            <span class="string">&quot;ascii&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#771">Ascii</a>),
+            <span class="string">&quot;blank&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#773">Blank</a>),
+            <span class="string">&quot;cntrl&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#775">Cntrl</a>),
+            <span class="string">&quot;digit&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#777">Digit</a>),
+            <span class="string">&quot;graph&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#779">Graph</a>),
+            <span class="string">&quot;lower&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#781">Lower</a>),
+            <span class="string">&quot;print&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#783">Print</a>),
+            <span class="string">&quot;punct&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#785">Punct</a>),
+            <span class="string">&quot;space&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#787">Space</a>),
+            <span class="string">&quot;upper&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#789">Upper</a>),
+            <span class="string">&quot;word&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#791">Word</a>),
+            <span class="string">&quot;xdigit&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#793">Xdigit</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2329,7 +2329,7 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassUnicode {
     <span class="doccomment">/// The span of this class.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// Whether this class is negated or not.
     ///
     /// Note: be careful when using this attribute. This specifically refers
@@ -2341,21 +2341,21 @@ Defines an abstract syntax for regular expressions.
     /// or not, use the `is_negated` method.
     </span><span class="kw">pub </span>negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// The kind of Unicode class.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#863">ClassUnicodeKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#863">ClassUnicodeKind</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#828">ClassUnicode</a> {
+<span class="kw">impl </span><a href="#828">ClassUnicode</a> {
     <span class="doccomment">/// Returns true if this class has been negated.
     ///
     /// Note that this takes the Unicode op into account, if it&#39;s present.
     /// e.g., `is_negated` for `\P{scx!=Katakana}` will return `false`.
     </span><span class="kw">pub fn </span>is_negated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#850">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#870">ClassUnicodeKind::NamedValue</a> {
-                op: <a href="../../../src/regex_syntax/ast/mod.rs.html#889">ClassUnicodeOpKind::NotEqual</a>,
+        <span class="kw">match </span><a class="self" href="#850">self</a>.kind {
+            <a href="#870">ClassUnicodeKind::NamedValue</a> {
+                op: <a href="#889">ClassUnicodeOpKind::NotEqual</a>,
                 ..
-            } =&gt; !<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#850">self</a>.negated,
-            <span class="kw">_ </span>=&gt; <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#850">self</a>.negated,
+            } =&gt; !<a class="self" href="#850">self</a>.negated,
+            <span class="kw">_ </span>=&gt; <a class="self" href="#850">self</a>.negated,
         }
     }
 }
@@ -2371,7 +2371,7 @@ Defines an abstract syntax for regular expressions.
     <span class="doccomment">/// A property name and an associated value.
     </span>NamedValue {
         <span class="doccomment">/// The type of Unicode op used to associate `name` with `value`.
-        </span>op: <a href="../../../src/regex_syntax/ast/mod.rs.html#882">ClassUnicodeOpKind</a>,
+        </span>op: <a href="#882">ClassUnicodeOpKind</a>,
         <span class="doccomment">/// The property name (which may be empty).
         </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         <span class="doccomment">/// The property value (which may be empty).
@@ -2391,11 +2391,11 @@ Defines an abstract syntax for regular expressions.
     </span>NotEqual,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#882">ClassUnicodeOpKind</a> {
+<span class="kw">impl </span><a href="#882">ClassUnicodeOpKind</a> {
     <span class="doccomment">/// Whether the op is an equality op or not.
     </span><span class="kw">pub fn </span>is_equal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#894">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#884">ClassUnicodeOpKind::Equal</a> | <a href="../../../src/regex_syntax/ast/mod.rs.html#887">ClassUnicodeOpKind::Colon</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#894">self</a> </span>{
+            <a href="#884">ClassUnicodeOpKind::Equal</a> | <a href="#887">ClassUnicodeOpKind::Colon</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2405,13 +2405,13 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassBracketed {
     <span class="doccomment">/// The span of this class.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// Whether this class is negated or not. e.g., `[a]` is not negated but
     /// `[^a]` is.
     </span><span class="kw">pub </span>negated: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// The type of this set. A set is either a normal union of things, e.g.,
     /// `[abc]` or a result of applying set operations, e.g., `[\pL--c]`.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a>,
+    </span><span class="kw">pub </span>kind: <a href="#922">ClassSet</a>,
 }
 
 <span class="doccomment">/// A character class set.
@@ -2424,29 +2424,29 @@ Defines an abstract syntax for regular expressions.
 </span><span class="kw">pub enum </span>ClassSet {
     <span class="doccomment">/// An item, which can be a single literal, range, nested character class
     /// or a union of items.
-    </span>Item(<a href="../../../src/regex_syntax/ast/mod.rs.html#955">ClassSetItem</a>),
+    </span>Item(<a href="#955">ClassSetItem</a>),
     <span class="doccomment">/// A single binary operation (i.e., &amp;&amp;, -- or ~~).
-    </span>BinaryOp(<a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ClassSetBinaryOp</a>),
+    </span>BinaryOp(<a href="#1063">ClassSetBinaryOp</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a> {
+<span class="kw">impl </span><a href="#922">ClassSet</a> {
     <span class="doccomment">/// Build a set from a union.
-    </span><span class="kw">pub fn </span>union(ast: <a href="../../../src/regex_syntax/ast/mod.rs.html#1019">ClassSetUnion</a>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a> {
-        <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ClassSet::Item</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#977">ClassSetItem::Union</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#932">ast</a>))
+    </span><span class="kw">pub fn </span>union(ast: <a href="#1019">ClassSetUnion</a>) -&gt; <a href="#922">ClassSet</a> {
+        <a href="#925">ClassSet::Item</a>(<a href="#977">ClassSetItem::Union</a>(<a href="#932">ast</a>))
     }
 
     <span class="doccomment">/// Return the span of this character class set.
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#937">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ClassSet::Item</a>(<span class="kw-2">ref </span>x) =&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#939">x</a>.<a href="../../../src/regex_syntax/ast/mod.rs.html#982">span</a>(),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#927">ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#940">x</a>.span,
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#323">Span</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#937">self</a> </span>{
+            <a href="#925">ClassSet::Item</a>(<span class="kw-2">ref </span>x) =&gt; <a href="#939">x</a>.<a href="#982">span</a>(),
+            <a href="#927">ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#940">x</a>.span,
         }
     }
 
     <span class="doccomment">/// Return true if and only if this class set is empty.
     </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#945">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ClassSet::Item</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#961">ClassSetItem::Empty</a>(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#945">self</a> </span>{
+            <a href="#925">ClassSet::Item</a>(<a href="#961">ClassSetItem::Empty</a>(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2460,37 +2460,37 @@ Defines an abstract syntax for regular expressions.
     /// Note that a bracketed character class cannot contain a single empty
     /// item. Empty items can appear when using one of the binary operators.
     /// For example, `[&amp;&amp;]` is the intersection of two empty classes.
-    </span>Empty(<a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>),
+    </span>Empty(<a href="#323">Span</a>),
     <span class="doccomment">/// A single literal.
-    </span>Literal(<a href="../../../src/regex_syntax/ast/mod.rs.html#605">Literal</a>),
+    </span>Literal(<a href="#605">Literal</a>),
     <span class="doccomment">/// A range between two literals.
-    </span>Range(<a href="../../../src/regex_syntax/ast/mod.rs.html#998">ClassSetRange</a>),
+    </span>Range(<a href="#998">ClassSetRange</a>),
     <span class="doccomment">/// An ASCII character class, e.g., `[:alnum:]` or `[:punct:]`.
-    </span>Ascii(<a href="../../../src/regex_syntax/ast/mod.rs.html#753">ClassAscii</a>),
+    </span>Ascii(<a href="#753">ClassAscii</a>),
     <span class="doccomment">/// A Unicode character class, e.g., `\pL` or `\p{Greek}`.
-    </span>Unicode(<a href="../../../src/regex_syntax/ast/mod.rs.html#828">ClassUnicode</a>),
+    </span>Unicode(<a href="#828">ClassUnicode</a>),
     <span class="doccomment">/// A perl character class, e.g., `\d` or `\W`.
-    </span>Perl(<a href="../../../src/regex_syntax/ast/mod.rs.html#730">ClassPerl</a>),
+    </span>Perl(<a href="#730">ClassPerl</a>),
     <span class="doccomment">/// A bracketed character class set, which may contain zero or more
     /// character ranges and/or zero or more nested classes. e.g.,
     /// `[a-zA-Z\pL]`.
-    </span>Bracketed(Box&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#904">ClassBracketed</a>&gt;),
+    </span>Bracketed(Box&lt;<a href="#904">ClassBracketed</a>&gt;),
     <span class="doccomment">/// A union of items.
-    </span>Union(<a href="../../../src/regex_syntax/ast/mod.rs.html#1019">ClassSetUnion</a>),
+    </span>Union(<a href="#1019">ClassSetUnion</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#955">ClassSetItem</a> {
+<span class="kw">impl </span><a href="#955">ClassSetItem</a> {
     <span class="doccomment">/// Return the span of this character class set item.
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#982">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#961">ClassSetItem::Empty</a>(<span class="kw-2">ref </span>span) =&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#984">span</a>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#963">ClassSetItem::Literal</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#985">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#965">ClassSetItem::Range</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#986">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#967">ClassSetItem::Ascii</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#987">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#971">ClassSetItem::Perl</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#988">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#969">ClassSetItem::Unicode</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#989">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#975">ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#990">x</a>.span,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#977">ClassSetItem::Union</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#991">x</a>.span,
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="#323">Span</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#982">self</a> </span>{
+            <a href="#961">ClassSetItem::Empty</a>(<span class="kw-2">ref </span>span) =&gt; <a href="#984">span</a>,
+            <a href="#963">ClassSetItem::Literal</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#985">x</a>.span,
+            <a href="#965">ClassSetItem::Range</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#986">x</a>.span,
+            <a href="#967">ClassSetItem::Ascii</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#987">x</a>.span,
+            <a href="#971">ClassSetItem::Perl</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#988">x</a>.span,
+            <a href="#969">ClassSetItem::Unicode</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#989">x</a>.span,
+            <a href="#975">ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#990">x</a>.span,
+            <a href="#977">ClassSetItem::Union</a>(<span class="kw-2">ref </span>x) =&gt; <span class="kw-2">&amp;</span><a href="#991">x</a>.span,
         }
     }
 }
@@ -2499,20 +2499,20 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassSetRange {
     <span class="doccomment">/// The span of this range.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The start of this range.
-    </span><span class="kw">pub </span>start: <a href="../../../src/regex_syntax/ast/mod.rs.html#605">Literal</a>,
+    </span><span class="kw">pub </span>start: <a href="#605">Literal</a>,
     <span class="doccomment">/// The end of this range.
-    </span><span class="kw">pub </span>end: <a href="../../../src/regex_syntax/ast/mod.rs.html#605">Literal</a>,
+    </span><span class="kw">pub </span>end: <a href="#605">Literal</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#998">ClassSetRange</a> {
+<span class="kw">impl </span><a href="#998">ClassSetRange</a> {
     <span class="doccomment">/// Returns true if and only if this character class range is valid.
     ///
     /// The only case where a range is invalid is if its start is greater than
     /// its end.
     </span><span class="kw">pub fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1012">self</a>.start.c &lt;= <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1012">self</a>.end.c
+        <a class="self" href="#1012">self</a>.start.c &lt;= <a class="self" href="#1012">self</a>.end.c
     }
 }
 
@@ -2521,12 +2521,12 @@ Defines an abstract syntax for regular expressions.
 </span><span class="kw">pub struct </span>ClassSetUnion {
     <span class="doccomment">/// The span of the items in this operation. e.g., the `a-z0-9` in
     /// `[^a-z0-9]`
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The sequence of items that make up this union.
-    </span><span class="kw">pub </span>items: Vec&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#955">ClassSetItem</a>&gt;,
+    </span><span class="kw">pub </span>items: Vec&lt;<a href="#955">ClassSetItem</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1019">ClassSetUnion</a> {
+<span class="kw">impl </span><a href="#1019">ClassSetUnion</a> {
     <span class="doccomment">/// Push a new item in this union.
     ///
     /// The ending position of this union&#39;s span is updated to the ending
@@ -2537,12 +2537,12 @@ Defines an abstract syntax for regular expressions.
     /// In other words, if you only use this method to add items to a union
     /// and you set the spans on each item correctly, then you should never
     /// need to adjust the span of the union directly.
-    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="../../../src/regex_syntax/ast/mod.rs.html#955">ClassSetItem</a>) {
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="#955">ClassSetItem</a>) {
         <span class="kw">if </span><span class="self">self</span>.items.is_empty() {
-            <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1038">self</a>.span.start = <a href="../../../src/regex_syntax/ast/mod.rs.html#1038">item</a>.<a href="../../../src/regex_syntax/ast/mod.rs.html#982">span</a>().start;
+            <a class="self" href="#1038">self</a>.span.start = <a href="#1038">item</a>.<a href="#982">span</a>().start;
         }
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1038">self</a>.span.end = <a href="../../../src/regex_syntax/ast/mod.rs.html#1038">item</a>.<a href="../../../src/regex_syntax/ast/mod.rs.html#982">span</a>().end;
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1038">self</a>.items.push(<a href="../../../src/regex_syntax/ast/mod.rs.html#1038">item</a>);
+        <a class="self" href="#1038">self</a>.span.end = <a href="#1038">item</a>.<a href="#982">span</a>().end;
+        <a class="self" href="#1038">self</a>.items.push(<a href="#1038">item</a>);
     }
 
     <span class="doccomment">/// Return this union as a character class set item.
@@ -2551,11 +2551,11 @@ Defines an abstract syntax for regular expressions.
     /// returned. If this concatenation contains exactly 1 item, then the
     /// corresponding item is returned. Otherwise, ClassSetItem::Union is
     /// returned.
-    </span><span class="kw">pub fn </span>into_item(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#955">ClassSetItem</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1052">self</a>.items.len() {
-            <span class="number">0 </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#961">ClassSetItem::Empty</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1052">self</a>.span),
-            <span class="number">1 </span>=&gt; <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1052">self</a>.items.pop().unwrap(),
-            <span class="kw">_ </span>=&gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#977">ClassSetItem::Union</a>(<a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1052">self</a>),
+    </span><span class="kw">pub fn </span>into_item(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#955">ClassSetItem</a> {
+        <span class="kw">match </span><a class="self" href="#1052">self</a>.items.len() {
+            <span class="number">0 </span>=&gt; <a href="#961">ClassSetItem::Empty</a>(<a class="self" href="#1052">self</a>.span),
+            <span class="number">1 </span>=&gt; <a class="self" href="#1052">self</a>.items.pop().unwrap(),
+            <span class="kw">_ </span>=&gt; <a href="#977">ClassSetItem::Union</a>(<a class="self" href="#1052">self</a>),
         }
     }
 }
@@ -2564,13 +2564,13 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassSetBinaryOp {
     <span class="doccomment">/// The span of this operation. e.g., the `a-z--[h-p]` in `[a-z--h-p]`.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The type of this set operation.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#1080">ClassSetBinaryOpKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#1080">ClassSetBinaryOpKind</a>,
     <span class="doccomment">/// The left hand side of the operation.
-    </span><span class="kw">pub </span>lhs: Box&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a>&gt;,
+    </span><span class="kw">pub </span>lhs: Box&lt;<a href="#922">ClassSet</a>&gt;,
     <span class="doccomment">/// The right hand side of the operation.
-    </span><span class="kw">pub </span>rhs: Box&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a>&gt;,
+    </span><span class="kw">pub </span>rhs: Box&lt;<a href="#922">ClassSet</a>&gt;,
 }
 
 <span class="doccomment">/// The type of a Unicode character class set operation.
@@ -2594,9 +2594,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Assertion {
     <span class="doccomment">/// The span of this assertion.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The assertion kind, e.g., `\b` or `^`.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#1102">AssertionKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#1102">AssertionKind</a>,
 }
 
 <span class="doccomment">/// An assertion kind.
@@ -2620,13 +2620,13 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Repetition {
     <span class="doccomment">/// The span of this operation.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The actual operation.
-    </span><span class="kw">pub </span>op: <a href="../../../src/regex_syntax/ast/mod.rs.html#1132">RepetitionOp</a>,
+    </span><span class="kw">pub </span>op: <a href="#1132">RepetitionOp</a>,
     <span class="doccomment">/// Whether this operation was applied greedily or not.
     </span><span class="kw">pub </span>greedy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// The regular expression under repetition.
-    </span><span class="kw">pub </span>ast: Box&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>&gt;,
+    </span><span class="kw">pub </span>ast: Box&lt;<a href="#469">Ast</a>&gt;,
 }
 
 <span class="doccomment">/// The repetition operator itself.
@@ -2634,9 +2634,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="kw">pub struct </span>RepetitionOp {
     <span class="doccomment">/// The span of this operator. This includes things like `+`, `*?` and
     /// `{m,n}`.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The type of operation.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#1142">RepetitionKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#1142">RepetitionKind</a>,
 }
 
 <span class="doccomment">/// The kind of a repetition operator.
@@ -2649,7 +2649,7 @@ Defines an abstract syntax for regular expressions.
     <span class="doccomment">/// `+`
     </span>OneOrMore,
     <span class="doccomment">/// `{m,n}`
-    </span>Range(<a href="../../../src/regex_syntax/ast/mod.rs.html#1155">RepetitionRange</a>),
+    </span>Range(<a href="#1155">RepetitionRange</a>),
 }
 
 <span class="doccomment">/// A range repetition operator.
@@ -2663,14 +2663,14 @@ Defines an abstract syntax for regular expressions.
     </span>Bounded(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1155">RepetitionRange</a> {
+<span class="kw">impl </span><a href="#1155">RepetitionRange</a> {
     <span class="doccomment">/// Returns true if and only if this repetition range is valid.
     ///
     /// The only case where a repetition range is invalid is if it is bounded
     /// and its start is greater than its end.
     </span><span class="kw">pub fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#1169">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1161">RepetitionRange::Bounded</a>(s, e) <span class="kw">if </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1171">s</a> &gt; <a href="../../../src/regex_syntax/ast/mod.rs.html#1171">e</a> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1169">self</a> </span>{
+            <a href="#1161">RepetitionRange::Bounded</a>(s, e) <span class="kw">if </span><a href="#1171">s</a> &gt; <a href="#1171">e</a> =&gt; <span class="bool-val">false</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
         }
     }
@@ -2685,28 +2685,28 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Group {
     <span class="doccomment">/// The span of this group.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The kind of this group.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#1225">GroupKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#1225">GroupKind</a>,
     <span class="doccomment">/// The regular expression in this group.
-    </span><span class="kw">pub </span>ast: Box&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>&gt;,
+    </span><span class="kw">pub </span>ast: Box&lt;<a href="#469">Ast</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1184">Group</a> {
+<span class="kw">impl </span><a href="#1184">Group</a> {
     <span class="doccomment">/// If this group is non-capturing, then this returns the (possibly empty)
     /// set of flags. Otherwise, `None` is returned.
-    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#1261">Flags</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1196">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1231">GroupKind::NonCapturing</a>(<span class="kw-2">ref </span>flags) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#1198">flags</a>),
+    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#1261">Flags</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#1196">self</a>.kind {
+            <a href="#1231">GroupKind::NonCapturing</a>(<span class="kw-2">ref </span>flags) =&gt; <span class="prelude-val">Some</span>(<a href="#1198">flags</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if and only if this group is capturing.
     </span><span class="kw">pub fn </span>is_capturing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1204">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1227">GroupKind::CaptureIndex</a>(<span class="kw">_</span>) | <a href="../../../src/regex_syntax/ast/mod.rs.html#1229">GroupKind::CaptureName</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1231">GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><a class="self" href="#1204">self</a>.kind {
+            <a href="#1227">GroupKind::CaptureIndex</a>(<span class="kw">_</span>) | <a href="#1229">GroupKind::CaptureName</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#1231">GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -2714,10 +2714,10 @@ Defines an abstract syntax for regular expressions.
     ///
     /// This returns a capture index precisely when `is_capturing` is `true`.
     </span><span class="kw">pub fn </span>capture_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1214">self</a>.kind {
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1227">GroupKind::CaptureIndex</a>(i) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#1216">i</a>),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1229">GroupKind::CaptureName</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/mod.rs.html#1217">x</a>.index),
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1231">GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match </span><a class="self" href="#1214">self</a>.kind {
+            <a href="#1227">GroupKind::CaptureIndex</a>(i) =&gt; <span class="prelude-val">Some</span>(<a href="#1216">i</a>),
+            <a href="#1229">GroupKind::CaptureName</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="#1217">x</a>.index),
+            <a href="#1231">GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2728,9 +2728,9 @@ Defines an abstract syntax for regular expressions.
     <span class="doccomment">/// `(a)`
     </span>CaptureIndex(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
     <span class="doccomment">/// `(?P&lt;name&gt;a)`
-    </span>CaptureName(<a href="../../../src/regex_syntax/ast/mod.rs.html#1239">CaptureName</a>),
+    </span>CaptureName(<a href="#1239">CaptureName</a>),
     <span class="doccomment">/// `(?:a)` and `(?i:a)`
-    </span>NonCapturing(<a href="../../../src/regex_syntax/ast/mod.rs.html#1261">Flags</a>),
+    </span>NonCapturing(<a href="#1261">Flags</a>),
 }
 
 <span class="doccomment">/// A capture name.
@@ -2740,7 +2740,7 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>CaptureName {
     <span class="doccomment">/// The span of this capture name.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The capture name.
     </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The capture index.
@@ -2751,9 +2751,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>SetFlags {
     <span class="doccomment">/// The span of these flags, including the grouping parentheses.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The actual sequence of flags.
-    </span><span class="kw">pub </span>flags: <a href="../../../src/regex_syntax/ast/mod.rs.html#1261">Flags</a>,
+    </span><span class="kw">pub </span>flags: <a href="#1261">Flags</a>,
 }
 
 <span class="doccomment">/// A group of flags.
@@ -2762,25 +2762,25 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Flags {
     <span class="doccomment">/// The span of this group of flags.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// A sequence of flag items. Each item is either a flag or a negation
     /// operator.
-    </span><span class="kw">pub </span>items: Vec&lt;<a href="../../../src/regex_syntax/ast/mod.rs.html#1313">FlagsItem</a>&gt;,
+    </span><span class="kw">pub </span>items: Vec&lt;<a href="#1313">FlagsItem</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1261">Flags</a> {
+<span class="kw">impl </span><a href="#1261">Flags</a> {
     <span class="doccomment">/// Add the given item to this sequence of flags.
     ///
     /// If the item was added successfully, then `None` is returned. If the
     /// given item is a duplicate, then `Some(i)` is returned, where
     /// `items[i].kind == item.kind`.
-    </span><span class="kw">pub fn </span>add_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="../../../src/regex_syntax/ast/mod.rs.html#1313">FlagsItem</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    </span><span class="kw">pub fn </span>add_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <a href="#1313">FlagsItem</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">for </span>(i, x) <span class="kw">in </span><span class="self">self</span>.items.iter().enumerate() {
             <span class="kw">if </span>x.kind == item.kind {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(i);
             }
         }
-        <a class="self" href="../../../src/regex_syntax/ast/mod.rs.html#1275">self</a>.items.push(<a href="../../../src/regex_syntax/ast/mod.rs.html#1275">item</a>);
+        <a class="self" href="#1275">self</a>.items.push(<a href="#1275">item</a>);
         <span class="prelude-val">None
     </span>}
 
@@ -2793,7 +2793,7 @@ Defines an abstract syntax for regular expressions.
     /// is returned.
     ///
     /// Otherwise, `None` is returned.
-    </span><span class="kw">pub fn </span>flag_state(<span class="kw-2">&amp;</span><span class="self">self</span>, flag: <a href="../../../src/regex_syntax/ast/mod.rs.html#1342">Flag</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    </span><span class="kw">pub fn </span>flag_state(<span class="kw-2">&amp;</span><span class="self">self</span>, flag: <a href="#1342">Flag</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>negated = <span class="bool-val">false</span>;
         <span class="kw">for </span>x <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.items {
             <span class="kw">match </span>x.kind {
@@ -2814,9 +2814,9 @@ Defines an abstract syntax for regular expressions.
 </span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>FlagsItem {
     <span class="doccomment">/// The span of this item.
-    </span><span class="kw">pub </span>span: <a href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+    </span><span class="kw">pub </span>span: <a href="#323">Span</a>,
     <span class="doccomment">/// The kind of this item.
-    </span><span class="kw">pub </span>kind: <a href="../../../src/regex_syntax/ast/mod.rs.html#1322">FlagsItemKind</a>,
+    </span><span class="kw">pub </span>kind: <a href="#1322">FlagsItemKind</a>,
 }
 
 <span class="doccomment">/// The kind of an item in a group of flags.
@@ -2826,14 +2826,14 @@ Defines an abstract syntax for regular expressions.
     /// group.
     </span>Negation,
     <span class="doccomment">/// A single flag in a group.
-    </span>Flag(<a href="../../../src/regex_syntax/ast/mod.rs.html#1342">Flag</a>),
+    </span>Flag(<a href="#1342">Flag</a>),
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1322">FlagsItemKind</a> {
+<span class="kw">impl </span><a href="#1322">FlagsItemKind</a> {
     <span class="doccomment">/// Returns true if and only if this item is a negation operator.
     </span><span class="kw">pub fn </span>is_negation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#1332">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#1325">FlagsItemKind::Negation</a> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1332">self</a> </span>{
+            <a href="#1325">FlagsItemKind::Negation</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2858,27 +2858,27 @@ Defines an abstract syntax for regular expressions.
 
 <span class="doccomment">/// A custom `Drop` impl is used for `Ast` such that it uses constant stack
 /// space but heap space proportional to the depth of the `Ast`.
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#469">Ast</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#1360">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#473">Ast::Flags</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#475">Ast::Literal</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#477">Ast::Dot</a>(<span class="kw">_</span>)
-            | <a href="../../../src/regex_syntax/ast/mod.rs.html#479">Ast::Assertion</a>(<span class="kw">_</span>)
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1360">self</a> </span>{
+            <a href="#471">Ast::Empty</a>(<span class="kw">_</span>)
+            | <a href="#473">Ast::Flags</a>(<span class="kw">_</span>)
+            | <a href="#475">Ast::Literal</a>(<span class="kw">_</span>)
+            | <a href="#477">Ast::Dot</a>(<span class="kw">_</span>)
+            | <a href="#479">Ast::Assertion</a>(<span class="kw">_</span>)
             <span class="comment">// Classes are recursive, so they get their own Drop impl.
-            </span>| <a href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span>!<a href="../../../src/regex_syntax/ast/mod.rs.html#1371">x</a>.ast.<a href="../../../src/regex_syntax/ast/mod.rs.html#520">has_subexprs</a>() =&gt; <span class="kw">return</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span>!<a href="../../../src/regex_syntax/ast/mod.rs.html#1372">x</a>.ast.<a href="../../../src/regex_syntax/ast/mod.rs.html#520">has_subexprs</a>() =&gt; <span class="kw">return</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1373">x</a>.asts.is_empty() =&gt; <span class="kw">return</span>,
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1374">x</a>.asts.is_empty() =&gt; <span class="kw">return</span>,
+            </span>| <a href="#482">Ast::Class</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+            <a href="#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span>!<a href="#1371">x</a>.ast.<a href="#520">has_subexprs</a>() =&gt; <span class="kw">return</span>,
+            <a href="#486">Ast::Group</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span>!<a href="#1372">x</a>.ast.<a href="#520">has_subexprs</a>() =&gt; <span class="kw">return</span>,
+            <a href="#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#1373">x</a>.asts.is_empty() =&gt; <span class="kw">return</span>,
+            <a href="#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="#1374">x</a>.asts.is_empty() =&gt; <span class="kw">return</span>,
             <span class="kw">_ </span>=&gt; {}
         }
 
         <span class="kw">let </span>empty_span = || Span::splat(Position::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
-        <span class="kw">let </span>empty_ast = || <a href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#1378">empty_span</a>());
+        <span class="kw">let </span>empty_ast = || <a href="#471">Ast::Empty</a>(<a href="#1378">empty_span</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[mem::replace(<span class="self">self</span>, empty_ast())];
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>ast) = stack.pop() {
             <span class="kw">match </span>ast {
@@ -2908,30 +2908,30 @@ Defines an abstract syntax for regular expressions.
 
 <span class="doccomment">/// A custom `Drop` impl is used for `ClassSet` such that it uses constant
 /// stack space but heap space proportional to the depth of the `ClassSet`.
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ClassSet</a> {
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#922">ClassSet</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/mod.rs.html#1410">self</a> </span>{
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/mod.rs.html#1414">item</a> {
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#961">ClassSetItem::Empty</a>(<span class="kw">_</span>)
-                | <a href="../../../src/regex_syntax/ast/mod.rs.html#963">ClassSetItem::Literal</a>(<span class="kw">_</span>)
-                | <a href="../../../src/regex_syntax/ast/mod.rs.html#965">ClassSetItem::Range</a>(<span class="kw">_</span>)
-                | <a href="../../../src/regex_syntax/ast/mod.rs.html#967">ClassSetItem::Ascii</a>(<span class="kw">_</span>)
-                | <a href="../../../src/regex_syntax/ast/mod.rs.html#969">ClassSetItem::Unicode</a>(<span class="kw">_</span>)
-                | <a href="../../../src/regex_syntax/ast/mod.rs.html#971">ClassSetItem::Perl</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#975">ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1410">self</a> </span>{
+            <a href="#925">ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="#1414">item</a> {
+                <a href="#961">ClassSetItem::Empty</a>(<span class="kw">_</span>)
+                | <a href="#963">ClassSetItem::Literal</a>(<span class="kw">_</span>)
+                | <a href="#965">ClassSetItem::Range</a>(<span class="kw">_</span>)
+                | <a href="#967">ClassSetItem::Ascii</a>(<span class="kw">_</span>)
+                | <a href="#969">ClassSetItem::Unicode</a>(<span class="kw">_</span>)
+                | <a href="#971">ClassSetItem::Perl</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+                <a href="#975">ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x) =&gt; {
                     <span class="kw">if </span>x.kind.is_empty() {
                         <span class="kw">return</span>;
                     }
                 }
-                <a href="../../../src/regex_syntax/ast/mod.rs.html#977">ClassSetItem::Union</a>(<span class="kw-2">ref </span>x) =&gt; {
+                <a href="#977">ClassSetItem::Union</a>(<span class="kw-2">ref </span>x) =&gt; {
                     <span class="kw">if </span>x.items.is_empty() {
                         <span class="kw">return</span>;
                     }
                 }
             },
-            <a href="../../../src/regex_syntax/ast/mod.rs.html#927">ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; {
+            <a href="#927">ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; {
                 <span class="kw">if </span>op.lhs.is_empty() &amp;&amp; op.rhs.is_empty() {
                     <span class="kw">return</span>;
                 }
@@ -2939,7 +2939,7 @@ Defines an abstract syntax for regular expressions.
         }
 
         <span class="kw">let </span>empty_span = || Span::splat(Position::new(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
-        <span class="kw">let </span>empty_set = || <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ClassSet::Item</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#961">ClassSetItem::Empty</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#1439">empty_span</a>()));
+        <span class="kw">let </span>empty_set = || <a href="#925">ClassSet::Item</a>(<a href="#961">ClassSetItem::Empty</a>(<a href="#1439">empty_span</a>()));
         <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[mem::replace(<span class="self">self</span>, empty_set())];
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>set) = stack.pop() {
             <span class="kw">match </span>set {
@@ -3003,4 +3003,4 @@ Defines an abstract syntax for regular expressions.
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

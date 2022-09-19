@@ -102,9 +102,9 @@
 <span class="kw">use </span><a href="../../../futures_core/macro.ready.html">futures_util::ready</a>;
 <span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
 
-<span class="kw">use super</span>::{<a href="../../../src/warp/generic.rs.html#45">Combine</a>, <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>, <a href="../../../src/warp/generic.rs.html#25">Tuple</a>};
-<span class="kw">use </span><a href="../../../src/warp/generic.rs.html#41"><span class="kw">crate</span>::generic::CombinedTuples</a>;
-<span class="kw">use </span><a href="../../../src/warp/reject.rs.html#631"><span class="kw">crate</span>::reject::CombineRejection</a>;
+<span class="kw">use super</span>::{<a href="../generic.rs.html#45">Combine</a>, <a href="mod.rs.html#93">Filter</a>, <a href="mod.rs.html#39">FilterBase</a>, <a href="mod.rs.html#70">Internal</a>, <a href="../generic.rs.html#25">Tuple</a>};
+<span class="kw">use </span><a href="../generic.rs.html#41"><span class="kw">crate</span>::generic::CombinedTuples</a>;
+<span class="kw">use </span><a href="../reject.rs.html#631"><span class="kw">crate</span>::reject::CombineRejection</a>;
 
 <span class="attribute">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>And&lt;T, U&gt; {
@@ -112,11 +112,11 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) second: U,
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>And&lt;T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; <a href="mod.rs.html#39">FilterBase</a> <span class="kw">for </span>And&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
     T::Extract: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    U: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    U: <a href="mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     &lt;T::Extract <span class="kw">as </span>Tuple&gt;::HList: Combine&lt;&lt;U::Extract <span class="kw">as </span>Tuple&gt;::HList&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     CombinedTuples&lt;T::Extract, U::Extract&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     U::Error: CombineRejection&lt;T::Error&gt;,
@@ -125,22 +125,22 @@
     <span class="kw">type </span>Error = &lt;U::Error <span class="kw">as </span>CombineRejection&lt;T::Error&gt;&gt;::One;
     <span class="kw">type </span>Future = AndFuture&lt;T, U&gt;;
 
-    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
-        <a href="../../../src/warp/filter/and.rs.html#40">AndFuture</a> {
-            state: <a href="../../../src/warp/filter/and.rs.html#47">State::First</a>(<a class="self" href="../../../src/warp/filter/and.rs.html#31">self</a>.first.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>), <a class="self" href="../../../src/warp/filter/and.rs.html#31">self</a>.second.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <a href="#40">AndFuture</a> {
+            state: <a href="#47">State::First</a>(<a class="self" href="#31">self</a>.first.<a href="mod.rs.html#44">filter</a>(<a href="mod.rs.html#70">Internal</a>), <a class="self" href="#31">self</a>.second.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
         }
     }
 }
 
 <span class="attribute">#[allow(missing_debug_implementations)]
 #[pin_project]
-</span><span class="kw">pub struct </span>AndFuture&lt;T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, U: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>&gt; {
+</span><span class="kw">pub struct </span>AndFuture&lt;T: <a href="mod.rs.html#93">Filter</a>, U: <a href="mod.rs.html#93">Filter</a>&gt; {
     <span class="attribute">#[pin]
     </span>state: State&lt;T::Future, T::Extract, U&gt;,
 }
 
 <span class="attribute">#[pin_project(project = StateProj)]
-</span><span class="kw">enum </span>State&lt;T, TE, U: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>&gt; {
+</span><span class="kw">enum </span>State&lt;T, TE, U: <a href="mod.rs.html#93">Filter</a>&gt; {
     First(<span class="attribute">#[pin] </span>T, U),
     Second(<span class="prelude-ty">Option</span>&lt;TE&gt;, <span class="attribute">#[pin] </span>U::Future),
     Done,
@@ -148,8 +148,8 @@
 
 <span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>AndFuture&lt;T, U&gt;
 <span class="kw">where
-    </span>T: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
-    U: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+    </span>T: <a href="mod.rs.html#93">Filter</a>,
+    U: <a href="mod.rs.html#93">Filter</a>,
     &lt;T::Extract <span class="kw">as </span>Tuple&gt;::HList: Combine&lt;&lt;U::Extract <span class="kw">as </span>Tuple&gt;::HList&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     U::Error: CombineRejection&lt;T::Error&gt;,
 {
@@ -159,15 +159,15 @@
     &gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <a class="self" href="../../../src/warp/filter/and.rs.html#64">self</a>.<a href="../../../src/warp/filter/and.rs.html#40">project</a>().state.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/warp/filter/and.rs.html#64">cx</a>)
+        <a class="self" href="#64">self</a>.<a href="#40">project</a>().state.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#64">cx</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T, TE, U, E&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>State&lt;T, TE, U&gt;
 <span class="kw">where
     </span>T: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;TE, E&gt;&gt;,
-    U: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
-    TE: <a href="../../../src/warp/generic.rs.html#25">Tuple</a>,
+    U: <a href="mod.rs.html#93">Filter</a>,
+    TE: <a href="../generic.rs.html#25">Tuple</a>,
     TE::HList: Combine&lt;&lt;U::Extract <span class="kw">as </span>Tuple&gt;::HList&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     U::Error: CombineRejection&lt;E&gt;,
 {
@@ -175,22 +175,22 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a class="self" href="../../../src/warp/filter/and.rs.html#79">self</a>.as_mut().<a href="../../../src/warp/filter/and.rs.html#45">project</a>() {
-                <a href="../../../src/warp/filter/and.rs.html#45">StateProj::First</a>(first, second) =&gt; {
+            <span class="kw">match </span><a class="self" href="#79">self</a>.as_mut().<a href="#45">project</a>() {
+                <a href="#45">StateProj::First</a>(first, second) =&gt; {
                     <span class="kw">let </span>ex1 = <span class="macro">ready!</span>(first.poll(cx))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>fut2 = <a href="../../../src/warp/filter/and.rs.html#82">second</a>.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>);
-                    <a class="self" href="../../../src/warp/filter/and.rs.html#79">self</a>.set(<a href="../../../src/warp/filter/and.rs.html#48">State::Second</a>(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filter/and.rs.html#83">ex1</a>), <a href="../../../src/warp/filter/and.rs.html#84">fut2</a>));
+                    <span class="kw">let </span>fut2 = <a href="#82">second</a>.<a href="mod.rs.html#44">filter</a>(<a href="mod.rs.html#70">Internal</a>);
+                    <a class="self" href="#79">self</a>.set(<a href="#48">State::Second</a>(<span class="prelude-val">Some</span>(<a href="#83">ex1</a>), <a href="#84">fut2</a>));
                 }
-                <a href="../../../src/warp/filter/and.rs.html#45">StateProj::Second</a>(ex1, second) =&gt; {
+                <a href="#45">StateProj::Second</a>(ex1, second) =&gt; {
                     <span class="kw">let </span>ex2 = <span class="macro">ready!</span>(second.poll(cx))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>ex3 = <a href="../../../src/warp/filter/and.rs.html#87">ex1</a>.take().unwrap().<a href="../../../src/warp/generic.rs.html#31-35">combine</a>(<a href="../../../src/warp/filter/and.rs.html#88">ex2</a>);
-                    <a class="self" href="../../../src/warp/filter/and.rs.html#79">self</a>.set(<a href="../../../src/warp/filter/and.rs.html#49">State::Done</a>);
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filter/and.rs.html#89">ex3</a>));
+                    <span class="kw">let </span>ex3 = <a href="#87">ex1</a>.take().unwrap().<a href="../generic.rs.html#31-35">combine</a>(<a href="#88">ex2</a>);
+                    <a class="self" href="#79">self</a>.set(<a href="#49">State::Done</a>);
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#89">ex3</a>));
                 }
-                <a href="../../../src/warp/filter/and.rs.html#49">StateProj::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled after complete&quot;</span>),
+                <a href="#49">StateProj::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled after complete&quot;</span>),
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

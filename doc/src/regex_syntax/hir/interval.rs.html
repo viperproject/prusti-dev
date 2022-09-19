@@ -524,7 +524,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/u8/index.html">std::u8</a>;
 
-<span class="kw">use </span><a href="../../../src/regex_syntax/lib.rs.html#170"><span class="kw">crate</span>::unicode</a>;
+<span class="kw">use </span><a href="../lib.rs.html#170"><span class="kw">crate</span>::unicode</a>;
 
 <span class="comment">// This module contains an *internal* implementation of interval sets.
 //
@@ -557,38 +557,38 @@
     ranges: Vec&lt;I&gt;,
 }
 
-<span class="kw">impl</span>&lt;I: <a href="../../../src/regex_syntax/hir/interval.rs.html#335-336">Interval</a>&gt; IntervalSet&lt;I&gt; {
+<span class="kw">impl</span>&lt;I: <a href="#335-336">Interval</a>&gt; IntervalSet&lt;I&gt; {
     <span class="doccomment">/// Create a new set from a sequence of intervals. Each interval is
     /// specified as a pair of bounds, where both bounds are inclusive.
     ///
     /// The given ranges do not need to be in any specific order, and ranges
     /// may overlap.
     </span><span class="kw">pub fn </span>new&lt;T: IntoIterator&lt;Item = I&gt;&gt;(intervals: T) -&gt; IntervalSet&lt;I&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>set = <a href="../../../src/regex_syntax/hir/interval.rs.html#36">IntervalSet</a> { ranges: <a href="../../../src/regex_syntax/hir/interval.rs.html#46">intervals</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() };
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#47">set</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#282">canonicalize</a>();
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#47">set</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>set = <a href="#36">IntervalSet</a> { ranges: <a href="#46">intervals</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() };
+        <a href="#47">set</a>.<a href="#282">canonicalize</a>();
+        <a href="#47">set</a>
     }
 
     <span class="doccomment">/// Add a new interval to this set.
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interval: I) {
         <span class="comment">// TODO: This could be faster. e.g., Push the interval such that
         // it preserves canonicalization.
-        </span><a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#53">self</a>.ranges.push(<a href="../../../src/regex_syntax/hir/interval.rs.html#53">interval</a>);
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#53">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#282">canonicalize</a>();
+        </span><a class="self" href="#53">self</a>.ranges.push(<a href="#53">interval</a>);
+        <a class="self" href="#53">self</a>.<a href="#282">canonicalize</a>();
     }
 
     <span class="doccomment">/// Return an iterator over all intervals in this set.
     ///
     /// The iterator yields intervals in ascending order.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntervalSetIter&lt;<span class="lifetime">&#39;_</span>, I&gt; {
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#325">IntervalSetIter</a>(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#63">self</a>.ranges.iter())
+        <a href="#325">IntervalSetIter</a>(<a class="self" href="#63">self</a>.ranges.iter())
     }
 
     <span class="doccomment">/// Return an immutable slice of intervals in this set.
     ///
     /// The sequence returned is in canonical ordering.
     </span><span class="kw">pub fn </span>intervals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[I] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#70">self</a>.ranges
+        <span class="kw-2">&amp;</span><a class="self" href="#70">self</a>.ranges
     }
 
     <span class="doccomment">/// Expand this interval set such that it contains all case folded
@@ -598,8 +598,8 @@
     ///
     /// This returns an error if the necessary case mapping data is not
     /// available.
-    </span><span class="kw">pub fn </span>case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/regex_syntax/unicode.rs.html#36">unicode::CaseFoldError</a>&gt; {
-        <span class="kw">let </span>len = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#81">self</a>.ranges.len();
+    </span><span class="kw">pub fn </span>case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../unicode.rs.html#36">unicode::CaseFoldError</a>&gt; {
+        <span class="kw">let </span>len = <a class="self" href="#81">self</a>.ranges.len();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..len {
             <span class="kw">let </span>range = <span class="self">self</span>.ranges[i];
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = range.case_fold_simple(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ranges) {
@@ -607,15 +607,15 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(err);
             }
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#81">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#282">canonicalize</a>();
+        <a class="self" href="#81">self</a>.<a href="#282">canonicalize</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Union this set with the given set, in place.
     </span><span class="kw">pub fn </span>union(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IntervalSet&lt;I&gt;) {
         <span class="comment">// This could almost certainly be done more efficiently.
-        </span><a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#95">self</a>.ranges.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/hir/interval.rs.html#95">other</a>.ranges);
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#95">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#282">canonicalize</a>();
+        </span><a class="self" href="#95">self</a>.ranges.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="kw-2">&amp;</span><a href="#95">other</a>.ranges);
+        <a class="self" href="#95">self</a>.<a href="#282">canonicalize</a>();
     }
 
     <span class="doccomment">/// Intersect this set with the given set, in place.
@@ -624,7 +624,7 @@
             <span class="kw">return</span>;
         }
         <span class="kw">if </span>other.ranges.is_empty() {
-            <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#102">self</a>.ranges.clear();
+            <a class="self" href="#102">self</a>.ranges.clear();
             <span class="kw">return</span>;
         }
 
@@ -632,28 +632,28 @@
         // but I couldn&#39;t figure out a simple way to do it. So just append
         // the intersection to the end of this range, and then drain it before
         // we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#102">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <a class="self" href="#102">self</a>.ranges.len();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>ita = <span class="number">0</span>..<a href="../../../src/regex_syntax/hir/interval.rs.html#115">drain_end</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>itb = <span class="number">0</span>..<a href="../../../src/regex_syntax/hir/interval.rs.html#102">other</a>.ranges.len();
-        <span class="kw">let </span><span class="kw-2">mut </span>a = <a href="../../../src/regex_syntax/hir/interval.rs.html#117">ita</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>b = <a href="../../../src/regex_syntax/hir/interval.rs.html#118">itb</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>ita = <span class="number">0</span>..<a href="#115">drain_end</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>itb = <span class="number">0</span>..<a href="#102">other</a>.ranges.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>a = <a href="#117">ita</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>b = <a href="#118">itb</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
         <span class="kw">loop </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(ab) = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#102">self</a>.ranges[<a href="../../../src/regex_syntax/hir/interval.rs.html#119">a</a>].<a href="../../../src/regex_syntax/hir/interval.rs.html#377">intersect</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/hir/interval.rs.html#102">other</a>.ranges[<a href="../../../src/regex_syntax/hir/interval.rs.html#120">b</a>]) {
-                <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#102">self</a>.ranges.push(<a href="../../../src/regex_syntax/hir/interval.rs.html#122">ab</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ab) = <a class="self" href="#102">self</a>.ranges[<a href="#119">a</a>].<a href="#377">intersect</a>(<span class="kw-2">&amp;</span><a href="#102">other</a>.ranges[<a href="#120">b</a>]) {
+                <a class="self" href="#102">self</a>.ranges.push(<a href="#122">ab</a>);
             }
             <span class="kw">let </span>(it, aorb) =
                 <span class="kw">if </span><span class="self">self</span>.ranges[a].upper() &lt; other.ranges[b].upper() {
-                    (<span class="kw-2">&amp;mut </span><a href="../../../src/regex_syntax/hir/interval.rs.html#117">ita</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/regex_syntax/hir/interval.rs.html#119">a</a>)
+                    (<span class="kw-2">&amp;mut </span><a href="#117">ita</a>, <span class="kw-2">&amp;mut </span><a href="#119">a</a>)
                 } <span class="kw">else </span>{
-                    (<span class="kw-2">&amp;mut </span><a href="../../../src/regex_syntax/hir/interval.rs.html#118">itb</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/regex_syntax/hir/interval.rs.html#120">b</a>)
+                    (<span class="kw-2">&amp;mut </span><a href="#118">itb</a>, <span class="kw-2">&amp;mut </span><a href="#120">b</a>)
                 };
-            <span class="kw">match </span><a href="../../../src/regex_syntax/hir/interval.rs.html#125">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <span class="prelude-val">Some</span>(v) =&gt; <span class="kw-2">*</span><a href="../../../src/regex_syntax/hir/interval.rs.html#125">aorb</a> = <a href="../../../src/regex_syntax/hir/interval.rs.html#132">v</a>,
+            <span class="kw">match </span><a href="#125">it</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                <span class="prelude-val">Some</span>(v) =&gt; <span class="kw-2">*</span><a href="#125">aorb</a> = <a href="#132">v</a>,
                 <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
             }
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#102">self</a>.ranges.drain(..<a href="../../../src/regex_syntax/hir/interval.rs.html#115">drain_end</a>);
+        <a class="self" href="#102">self</a>.ranges.drain(..<a href="#115">drain_end</a>);
     }
 
     <span class="doccomment">/// Subtract the given set from this set, in place.
@@ -674,7 +674,7 @@
         // Remember, we can assume the canonical format invariant here, which
         // says that all ranges are sorted, not overlapping and not adjacent in
         // each class.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#140">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <a class="self" href="#140">self</a>.ranges.len();
         <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = (<span class="number">0</span>, <span class="number">0</span>);
         <span class="lifetime">&#39;LOOP</span>: <span class="kw">while </span>a &lt; drain_end &amp;&amp; b &lt; other.ranges.len() {
             <span class="comment">// Basically, the easy cases are when neither range overlaps with
@@ -745,7 +745,7 @@
             <span class="self">self</span>.ranges.push(range);
             a += <span class="number">1</span>;
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#140">self</a>.ranges.drain(..<a href="../../../src/regex_syntax/hir/interval.rs.html#157">drain_end</a>);
+        <a class="self" href="#140">self</a>.ranges.drain(..<a href="#157">drain_end</a>);
     }
 
     <span class="doccomment">/// Compute the symmetric difference of the two sets, in place.
@@ -757,10 +757,10 @@
     /// but will not contain any elements that are in both sets.
     </span><span class="kw">pub fn </span>symmetric_difference(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>IntervalSet&lt;I&gt;) {
         <span class="comment">// TODO(burntsushi): Fix this so that it amortizes allocation.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>intersection = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#238">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#240">intersection</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#102">intersect</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#238">other</a>);
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#238">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#95">union</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#238">other</a>);
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#238">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#140">difference</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/hir/interval.rs.html#240">intersection</a>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>intersection = <a class="self" href="#238">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#240">intersection</a>.<a href="#102">intersect</a>(<a href="#238">other</a>);
+        <a class="self" href="#238">self</a>.<a href="#95">union</a>(<a href="#238">other</a>);
+        <a class="self" href="#238">self</a>.<a href="#140">difference</a>(<span class="kw-2">&amp;</span><a href="#240">intersection</a>);
     }
 
     <span class="doccomment">/// Negate this interval set.
@@ -770,7 +770,7 @@
     </span><span class="kw">pub fn </span>negate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.ranges.is_empty() {
             <span class="kw">let </span>(min, max) = (I::Bound::min_value(), I::Bound::max_value());
-            <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges.push(I::create(<a href="../../../src/regex_syntax/hir/interval.rs.html#252">min</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#252">max</a>));
+            <a class="self" href="#250">self</a>.ranges.push(I::create(<a href="#252">min</a>, <a href="#252">max</a>));
             <span class="kw">return</span>;
         }
 
@@ -778,13 +778,13 @@
         // but I couldn&#39;t figure out a simple way to do it. So just append
         // the negation to the end of this range, and then drain it before
         // we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <a class="self" href="#250">self</a>.ranges.len();
 
         <span class="comment">// We do checked arithmetic below because of the canonical ordering
         // invariant.
         </span><span class="kw">if </span><span class="self">self</span>.ranges[<span class="number">0</span>].lower() &gt; I::Bound::min_value() {
-            <span class="kw">let </span>upper = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges[<span class="number">0</span>].<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#473">decrement</a>();
-            <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges.push(I::create(I::Bound::min_value(), <a href="../../../src/regex_syntax/hir/interval.rs.html#266">upper</a>));
+            <span class="kw">let </span>upper = <a class="self" href="#250">self</a>.ranges[<span class="number">0</span>].<a href="#340">lower</a>().<a href="#473">decrement</a>();
+            <a class="self" href="#250">self</a>.ranges.push(I::create(I::Bound::min_value(), <a href="#266">upper</a>));
         }
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..drain_end {
             <span class="kw">let </span>lower = <span class="self">self</span>.ranges[i - <span class="number">1</span>].upper().increment();
@@ -792,10 +792,10 @@
             <span class="self">self</span>.ranges.push(I::create(lower, upper));
         }
         <span class="kw">if </span><span class="self">self</span>.ranges[drain_end - <span class="number">1</span>].upper() &lt; I::Bound::max_value() {
-            <span class="kw">let </span>lower = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges[<a href="../../../src/regex_syntax/hir/interval.rs.html#261">drain_end</a> - <span class="number">1</span>].<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#472">increment</a>();
-            <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges.push(I::create(<a href="../../../src/regex_syntax/hir/interval.rs.html#275">lower</a>, I::Bound::max_value()));
+            <span class="kw">let </span>lower = <a class="self" href="#250">self</a>.ranges[<a href="#261">drain_end</a> - <span class="number">1</span>].<a href="#341">upper</a>().<a href="#472">increment</a>();
+            <a class="self" href="#250">self</a>.ranges.push(I::create(<a href="#275">lower</a>, I::Bound::max_value()));
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#250">self</a>.ranges.drain(..<a href="../../../src/regex_syntax/hir/interval.rs.html#261">drain_end</a>);
+        <a class="self" href="#250">self</a>.ranges.drain(..<a href="#261">drain_end</a>);
     }
 
     <span class="doccomment">/// Converts this set into a canonical ordering.
@@ -803,13 +803,13 @@
         <span class="kw">if </span><span class="self">self</span>.is_canonical() {
             <span class="kw">return</span>;
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#282">self</a>.ranges.sort();
+        <a class="self" href="#282">self</a>.ranges.sort();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.ranges.is_empty());
 
         <span class="comment">// Is there a way to do this in-place with constant memory? I couldn&#39;t
         // figure out a way to do it. So just append the canonicalization to
         // the end of this range, and then drain it before we&#39;re done.
-        </span><span class="kw">let </span>drain_end = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#282">self</a>.ranges.len();
+        </span><span class="kw">let </span>drain_end = <a class="self" href="#282">self</a>.ranges.len();
         <span class="kw">for </span>oldi <span class="kw">in </span><span class="number">0</span>..drain_end {
             <span class="comment">// If we&#39;ve added at least one new range, then check if we can
             // merge this range in the previously added range.
@@ -823,7 +823,7 @@
             <span class="kw">let </span>range = <span class="self">self</span>.ranges[oldi];
             <span class="self">self</span>.ranges.push(range);
         }
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#282">self</a>.ranges.drain(..<a href="../../../src/regex_syntax/hir/interval.rs.html#292">drain_end</a>);
+        <a class="self" href="#282">self</a>.ranges.drain(..<a href="#292">drain_end</a>);
     }
 
     <span class="doccomment">/// Returns true if and only if this class is in a canonical ordering.
@@ -848,14 +848,14 @@
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>I;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>I&gt; {
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#330">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#330">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 }
 
 <span class="kw">pub trait </span>Interval:
     <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>
 {
-    <span class="kw">type </span>Bound: <a href="../../../src/regex_syntax/hir/interval.rs.html#466-467">Bound</a>;
+    <span class="kw">type </span>Bound: <a href="#466-467">Bound</a>;
 
     <span class="kw">fn </span>lower(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bound;
     <span class="kw">fn </span>upper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bound;
@@ -864,19 +864,19 @@
     <span class="kw">fn </span>case_fold_simple(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         intervals: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/regex_syntax/unicode.rs.html#36">unicode::CaseFoldError</a>&gt;;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../unicode.rs.html#36">unicode::CaseFoldError</a>&gt;;
 
     <span class="doccomment">/// Create a new interval.
     </span><span class="kw">fn </span>create(lower: <span class="self">Self</span>::Bound, upper: <span class="self">Self</span>::Bound) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>int = <span class="self">Self</span>::default();
         <span class="kw">if </span>lower &lt;= upper {
-            <a href="../../../src/regex_syntax/hir/interval.rs.html#351">int</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#342">set_lower</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#350">lower</a>);
-            <a href="../../../src/regex_syntax/hir/interval.rs.html#351">int</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#343">set_upper</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#350">upper</a>);
+            <a href="#351">int</a>.<a href="#342">set_lower</a>(<a href="#350">lower</a>);
+            <a href="#351">int</a>.<a href="#343">set_upper</a>(<a href="#350">upper</a>);
         } <span class="kw">else </span>{
-            <a href="../../../src/regex_syntax/hir/interval.rs.html#351">int</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#342">set_lower</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#350">upper</a>);
-            <a href="../../../src/regex_syntax/hir/interval.rs.html#351">int</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#343">set_upper</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#350">lower</a>);
+            <a href="#351">int</a>.<a href="#342">set_lower</a>(<a href="#350">upper</a>);
+            <a href="#351">int</a>.<a href="#343">set_upper</a>(<a href="#350">lower</a>);
         }
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#351">int</a>
+        <a href="#351">int</a>
     }
 
     <span class="doccomment">/// Union the given overlapping range into this range.
@@ -886,19 +886,19 @@
         <span class="kw">if </span>!<span class="self">self</span>.is_contiguous(other) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>lower = cmp::min(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#365">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#365">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>());
-        <span class="kw">let </span>upper = cmp::max(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#365">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#365">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
-        <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="../../../src/regex_syntax/hir/interval.rs.html#369">lower</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#370">upper</a>))
+        <span class="kw">let </span>lower = cmp::min(<a class="self" href="#365">self</a>.<a href="#340">lower</a>(), <a href="#365">other</a>.<a href="#340">lower</a>());
+        <span class="kw">let </span>upper = cmp::max(<a class="self" href="#365">self</a>.<a href="#341">upper</a>(), <a href="#365">other</a>.<a href="#341">upper</a>());
+        <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="#369">lower</a>, <a href="#370">upper</a>))
     }
 
     <span class="doccomment">/// Intersect this range with the given range and return the result.
     ///
     /// If the intersection is empty, then this returns `None`.
     </span><span class="kw">fn </span>intersect(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>lower = cmp::max(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#377">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#377">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>());
-        <span class="kw">let </span>upper = cmp::min(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#377">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#377">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
+        <span class="kw">let </span>lower = cmp::max(<a class="self" href="#377">self</a>.<a href="#340">lower</a>(), <a href="#377">other</a>.<a href="#340">lower</a>());
+        <span class="kw">let </span>upper = cmp::min(<a class="self" href="#377">self</a>.<a href="#341">upper</a>(), <a href="#377">other</a>.<a href="#341">upper</a>());
         <span class="kw">if </span>lower &lt;= upper {
-            <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="../../../src/regex_syntax/hir/interval.rs.html#378">lower</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#379">upper</a>))
+            <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a href="#378">lower</a>, <a href="#379">upper</a>))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -914,28 +914,28 @@
             <span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         }
         <span class="kw">if </span><span class="self">self</span>.is_intersection_empty(other) {
-            <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#392">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">None</span>);
+            <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#392">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">None</span>);
         }
-        <span class="kw">let </span>add_lower = <a href="../../../src/regex_syntax/hir/interval.rs.html#392">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>() &gt; <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#392">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>();
-        <span class="kw">let </span>add_upper = <a href="../../../src/regex_syntax/hir/interval.rs.html#392">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>() &lt; <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#392">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>();
+        <span class="kw">let </span>add_lower = <a href="#392">other</a>.<a href="#340">lower</a>() &gt; <a class="self" href="#392">self</a>.<a href="#340">lower</a>();
+        <span class="kw">let </span>add_upper = <a href="#392">other</a>.<a href="#341">upper</a>() &lt; <a class="self" href="#392">self</a>.<a href="#341">upper</a>();
         <span class="comment">// We know this because !self.is_subset(other) and the ranges have
         // a non-empty intersection.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(add_lower || add_upper);
         <span class="kw">let </span><span class="kw-2">mut </span>ret = (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         <span class="kw">if </span>add_lower {
-            <span class="kw">let </span>upper = <a href="../../../src/regex_syntax/hir/interval.rs.html#392">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#473">decrement</a>();
-            <a href="../../../src/regex_syntax/hir/interval.rs.html#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#392">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#406">upper</a>));
+            <span class="kw">let </span>upper = <a href="#392">other</a>.<a href="#340">lower</a>().<a href="#473">decrement</a>();
+            <a href="#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="self">Self</span>::create(<a class="self" href="#392">self</a>.<a href="#340">lower</a>(), <a href="#406">upper</a>));
         }
         <span class="kw">if </span>add_upper {
-            <span class="kw">let </span>lower = <a href="../../../src/regex_syntax/hir/interval.rs.html#392">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#472">increment</a>();
-            <span class="kw">let </span>range = <span class="self">Self</span>::create(<a href="../../../src/regex_syntax/hir/interval.rs.html#410">lower</a>, <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#392">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
+            <span class="kw">let </span>lower = <a href="#392">other</a>.<a href="#341">upper</a>().<a href="#472">increment</a>();
+            <span class="kw">let </span>range = <span class="self">Self</span>::create(<a href="#410">lower</a>, <a class="self" href="#392">self</a>.<a href="#341">upper</a>());
             <span class="kw">if </span>ret.<span class="number">0</span>.is_none() {
-                <a href="../../../src/regex_syntax/hir/interval.rs.html#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/hir/interval.rs.html#411">range</a>);
+                <a href="#404">ret</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="#411">range</a>);
             } <span class="kw">else </span>{
-                <a href="../../../src/regex_syntax/hir/interval.rs.html#404">ret</a>.<span class="number">1 </span>= <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/hir/interval.rs.html#411">range</a>);
+                <a href="#404">ret</a>.<span class="number">1 </span>= <span class="prelude-val">Some</span>(<a href="#411">range</a>);
             }
         }
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#404">ret</a>
+        <a href="#404">ret</a>
     }
 
     <span class="doccomment">/// Compute the symmetric difference the given range from this range. This
@@ -944,42 +944,42 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
     ) -&gt; (<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
-        <span class="kw">let </span>union = <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#424">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#365">union</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#425">other</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/hir/interval.rs.html#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            <span class="prelude-val">Some</span>(union) =&gt; <a href="../../../src/regex_syntax/hir/interval.rs.html#429">union</a>,
+        <span class="kw">let </span>union = <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#365">union</a>(<a href="#425">other</a>) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+            <span class="prelude-val">Some</span>(union) =&gt; <a href="#429">union</a>,
         };
-        <span class="kw">let </span>intersection = <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#424">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#377">intersect</a>(<a href="../../../src/regex_syntax/hir/interval.rs.html#425">other</a>) {
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/hir/interval.rs.html#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
-            <span class="prelude-val">Some</span>(intersection) =&gt; <a href="../../../src/regex_syntax/hir/interval.rs.html#433">intersection</a>,
+        <span class="kw">let </span>intersection = <span class="kw">match </span><a class="self" href="#424">self</a>.<a href="#377">intersect</a>(<a href="#425">other</a>) {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="prelude-val">Some</span>(<a class="self" href="#424">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="prelude-val">Some</span>(<a href="#425">other</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+            <span class="prelude-val">Some</span>(intersection) =&gt; <a href="#433">intersection</a>,
         };
-        <a href="../../../src/regex_syntax/hir/interval.rs.html#427">union</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#392">difference</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/hir/interval.rs.html#431">intersection</a>)
+        <a href="#427">union</a>.<a href="#392">difference</a>(<span class="kw-2">&amp;</span><a href="#431">intersection</a>)
     }
 
     <span class="doccomment">/// Returns true if and only if the two ranges are contiguous. Two ranges
     /// are contiguous if and only if the ranges are either overlapping or
     /// adjacent.
     </span><span class="kw">fn </span>is_contiguous(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>lower1 = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#441">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#471">as_u32</a>();
-        <span class="kw">let </span>upper1 = <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#441">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#471">as_u32</a>();
-        <span class="kw">let </span>lower2 = <a href="../../../src/regex_syntax/hir/interval.rs.html#441">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#471">as_u32</a>();
-        <span class="kw">let </span>upper2 = <a href="../../../src/regex_syntax/hir/interval.rs.html#441">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>().<a href="../../../src/regex_syntax/hir/interval.rs.html#471">as_u32</a>();
-        cmp::max(<a href="../../../src/regex_syntax/hir/interval.rs.html#442">lower1</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#444">lower2</a>) &lt;= cmp::min(<a href="../../../src/regex_syntax/hir/interval.rs.html#443">upper1</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#445">upper2</a>).saturating_add(<span class="number">1</span>)
+        <span class="kw">let </span>lower1 = <a class="self" href="#441">self</a>.<a href="#340">lower</a>().<a href="#471">as_u32</a>();
+        <span class="kw">let </span>upper1 = <a class="self" href="#441">self</a>.<a href="#341">upper</a>().<a href="#471">as_u32</a>();
+        <span class="kw">let </span>lower2 = <a href="#441">other</a>.<a href="#340">lower</a>().<a href="#471">as_u32</a>();
+        <span class="kw">let </span>upper2 = <a href="#441">other</a>.<a href="#341">upper</a>().<a href="#471">as_u32</a>();
+        cmp::max(<a href="#442">lower1</a>, <a href="#444">lower2</a>) &lt;= cmp::min(<a href="#443">upper1</a>, <a href="#445">upper2</a>).saturating_add(<span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns true if and only if the intersection of this range and the
     /// other range is empty.
     </span><span class="kw">fn </span>is_intersection_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#451">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#451">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
-        <span class="kw">let </span>(lower2, upper2) = (<a href="../../../src/regex_syntax/hir/interval.rs.html#451">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#451">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
-        cmp::max(<a href="../../../src/regex_syntax/hir/interval.rs.html#452">lower1</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#453">lower2</a>) &gt; cmp::min(<a href="../../../src/regex_syntax/hir/interval.rs.html#452">upper1</a>, <a href="../../../src/regex_syntax/hir/interval.rs.html#453">upper2</a>)
+        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="#451">self</a>.<a href="#340">lower</a>(), <a class="self" href="#451">self</a>.<a href="#341">upper</a>());
+        <span class="kw">let </span>(lower2, upper2) = (<a href="#451">other</a>.<a href="#340">lower</a>(), <a href="#451">other</a>.<a href="#341">upper</a>());
+        cmp::max(<a href="#452">lower1</a>, <a href="#453">lower2</a>) &gt; cmp::min(<a href="#452">upper1</a>, <a href="#453">upper2</a>)
     }
 
     <span class="doccomment">/// Returns true if and only if this range is a subset of the other range.
     </span><span class="kw">fn </span>is_subset(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#458">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#458">self</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
-        <span class="kw">let </span>(lower2, upper2) = (<a href="../../../src/regex_syntax/hir/interval.rs.html#458">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#340">lower</a>(), <a href="../../../src/regex_syntax/hir/interval.rs.html#458">other</a>.<a href="../../../src/regex_syntax/hir/interval.rs.html#341">upper</a>());
-        (<a href="../../../src/regex_syntax/hir/interval.rs.html#460">lower2</a> &lt;= <a href="../../../src/regex_syntax/hir/interval.rs.html#459">lower1</a> &amp;&amp; <a href="../../../src/regex_syntax/hir/interval.rs.html#459">lower1</a> &lt;= <a href="../../../src/regex_syntax/hir/interval.rs.html#460">upper2</a>)
-            &amp;&amp; (<a href="../../../src/regex_syntax/hir/interval.rs.html#460">lower2</a> &lt;= <a href="../../../src/regex_syntax/hir/interval.rs.html#459">upper1</a> &amp;&amp; <a href="../../../src/regex_syntax/hir/interval.rs.html#459">upper1</a> &lt;= <a href="../../../src/regex_syntax/hir/interval.rs.html#460">upper2</a>)
+        <span class="kw">let </span>(lower1, upper1) = (<a class="self" href="#458">self</a>.<a href="#340">lower</a>(), <a class="self" href="#458">self</a>.<a href="#341">upper</a>());
+        <span class="kw">let </span>(lower2, upper2) = (<a href="#458">other</a>.<a href="#340">lower</a>(), <a href="#458">other</a>.<a href="#341">upper</a>());
+        (<a href="#460">lower2</a> &lt;= <a href="#459">lower1</a> &amp;&amp; <a href="#459">lower1</a> &lt;= <a href="#460">upper2</a>)
+            &amp;&amp; (<a href="#460">lower2</a> &lt;= <a href="#459">upper1</a> &amp;&amp; <a href="#459">upper1</a> &lt;= <a href="#460">upper2</a>)
     }
 }
 
@@ -993,7 +993,7 @@
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/hir/interval.rs.html#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+<span class="kw">impl </span><a href="#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
     <span class="kw">fn </span>min_value() -&gt; <span class="self">Self </span>{
         u8::MIN
     }
@@ -1001,17 +1001,17 @@
         u8::MAX
     }
     <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="self"><a href="../../../src/regex_syntax/hir/interval.rs.html#483">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        <span class="self"><a href="#483">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
     <span class="kw">fn </span>increment(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#486">self</a>.checked_add(<span class="number">1</span>).unwrap()
+        <a class="self" href="#486">self</a>.checked_add(<span class="number">1</span>).unwrap()
     }
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../../src/regex_syntax/hir/interval.rs.html#489">self</a>.checked_sub(<span class="number">1</span>).unwrap()
+        <a class="self" href="#489">self</a>.checked_sub(<span class="number">1</span>).unwrap()
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/regex_syntax/hir/interval.rs.html#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
+<span class="kw">impl </span><a href="#466-467">Bound</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
     <span class="kw">fn </span>min_value() -&gt; <span class="self">Self </span>{
         <span class="string">&#39;\x00&#39;
     </span>}
@@ -1019,24 +1019,24 @@
         <span class="string">&#39;\u{10FFFF}&#39;
     </span>}
     <span class="kw">fn </span>as_u32(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="self"><a href="../../../src/regex_syntax/hir/interval.rs.html#501">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        <span class="self"><a href="#501">self</a> </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="kw">fn </span>increment(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="../../../src/regex_syntax/hir/interval.rs.html#505">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#505">self</a> </span>{
             <span class="string">&#39;\u{D7FF}&#39; </span>=&gt; <span class="string">&#39;\u{E000}&#39;</span>,
-            c =&gt; char::from_u32((<a href="../../../src/regex_syntax/hir/interval.rs.html#508">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_add(<span class="number">1</span>).unwrap()).unwrap(),
+            c =&gt; char::from_u32((<a href="#508">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_add(<span class="number">1</span>).unwrap()).unwrap(),
         }
     }
 
     <span class="kw">fn </span>decrement(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="../../../src/regex_syntax/hir/interval.rs.html#512">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#512">self</a> </span>{
             <span class="string">&#39;\u{E000}&#39; </span>=&gt; <span class="string">&#39;\u{D7FF}&#39;</span>,
-            c =&gt; char::from_u32((<a href="../../../src/regex_syntax/hir/interval.rs.html#515">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_sub(<span class="number">1</span>).unwrap()).unwrap(),
+            c =&gt; char::from_u32((<a href="#515">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).checked_sub(<span class="number">1</span>).unwrap()).unwrap(),
         }
     }
 }
 
 <span class="comment">// Tests for interval sets are written in src/hir.rs against the public API.
 </span></code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

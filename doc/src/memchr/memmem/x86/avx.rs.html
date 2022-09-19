@@ -140,30 +140,30 @@
 </pre><pre class="rust"><code><span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::nostd::Forward;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../../src/memchr/memmem/x86/avx.rs.html#15"><span class="self">self</span>::std::Forward</a>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="#15"><span class="self">self</span>::std::Forward</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">mod </span>std {
     <span class="kw">use </span>core::arch::x86_64::{<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>, <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>};
 
-    <span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="../../../../src/memchr/memmem/mod.rs.html#150">genericsimd</a>, <a href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::memmem::{<a href="../mod.rs.html#150">genericsimd</a>, <a href="../mod.rs.html#767">NeedleInfo</a>};
 
     <span class="doccomment">/// An AVX accelerated vectorized substring search routine that only works
     /// on small needles.
     </span><span class="attribute">#[derive(Clone, Copy, Debug)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Forward(<a href="../../../../src/memchr/memmem/genericsimd.rs.html#56">genericsimd::Forward</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Forward(<a href="../genericsimd.rs.html#56">genericsimd::Forward</a>);
 
-    <span class="kw">impl </span><a href="../../../../src/memchr/memmem/x86/avx.rs.html#15">Forward</a> {
+    <span class="kw">impl </span><a href="#15">Forward</a> {
         <span class="doccomment">/// Create a new &quot;generic simd&quot; forward searcher. If one could not be
         /// created from the given inputs, then None is returned.
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-            ninfo: <span class="kw-2">&amp;</span><a href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>,
+            ninfo: <span class="kw-2">&amp;</span><a href="../mod.rs.html#767">NeedleInfo</a>,
             needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/memchr/memmem/x86/avx.rs.html#15">Forward</a>&gt; {
+        ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#15">Forward</a>&gt; {
             <span class="kw">if </span>!<span class="macro">cfg!</span>(memchr_runtime_avx) || !<span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>) {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            genericsimd::Forward::new(<a href="../../../../src/memchr/memmem/x86/avx.rs.html#21">ninfo</a>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#22">needle</a>).map(<a href="../../../../src/memchr/memmem/x86/avx.rs.html#15">Forward</a>)
+            genericsimd::Forward::new(<a href="#21">ninfo</a>, <a href="#22">needle</a>).map(<a href="#15">Forward</a>)
         }
 
         <span class="doccomment">/// Returns the minimum length of haystack that is needed for this
@@ -171,7 +171,7 @@
         /// this will cause `find` to panic.
         </span><span class="attribute">#[inline(always)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>min_haystack_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-            <a class="self" href="../../../../src/memchr/memmem/x86/avx.rs.html#34">self</a>.<span class="number">0</span>.<a href="../../../../src/memchr/memmem/genericsimd.rs.html#83">min_haystack_len</a>::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;()
+            <a class="self" href="#34">self</a>.<span class="number">0</span>.<a href="../genericsimd.rs.html#83">min_haystack_len</a>::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;()
         }
 
         <span class="attribute">#[inline(always)]
@@ -183,7 +183,7 @@
             <span class="comment">// SAFETY: The only way a Forward value can exist is if the avx2
             // target feature is enabled. This is the only safety requirement
             // for calling the genericsimd searcher.
-            </span><span class="kw">unsafe </span>{ <a class="self" href="../../../../src/memchr/memmem/x86/avx.rs.html#40">self</a>.<a href="../../../../src/memchr/memmem/x86/avx.rs.html#58-62">find_impl</a>(<a href="../../../../src/memchr/memmem/x86/avx.rs.html#41">haystack</a>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#42">needle</a>) }
+            </span><span class="kw">unsafe </span>{ <a class="self" href="#40">self</a>.<a href="#58-62">find_impl</a>(<a href="#41">haystack</a>, <a href="#42">needle</a>) }
         }
 
         <span class="doccomment">/// The implementation of find marked with the appropriate target
@@ -200,9 +200,9 @@
             needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
             <span class="kw">if </span>haystack.len() &lt; <span class="self">self</span>.<span class="number">0</span>.min_haystack_len::&lt;__m256i&gt;() {
-                genericsimd::fwd_find::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/memchr/memmem/x86/avx.rs.html#59">self</a>.<span class="number">0</span>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#60">haystack</a>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#61">needle</a>)
+                genericsimd::fwd_find::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a>&gt;(<span class="kw-2">&amp;</span><a class="self" href="#59">self</a>.<span class="number">0</span>, <a href="#60">haystack</a>, <a href="#61">needle</a>)
             } <span class="kw">else </span>{
-                genericsimd::fwd_find::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>&gt;(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/memchr/memmem/x86/avx.rs.html#59">self</a>.<span class="number">0</span>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#60">haystack</a>, <a href="../../../../src/memchr/memmem/x86/avx.rs.html#61">needle</a>)
+                genericsimd::fwd_find::&lt;<a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a>&gt;(<span class="kw-2">&amp;</span><a class="self" href="#59">self</a>.<span class="number">0</span>, <a href="#60">haystack</a>, <a href="#61">needle</a>)
             }
         }
     }
@@ -277,4 +277,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

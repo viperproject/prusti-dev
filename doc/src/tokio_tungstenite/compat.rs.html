@@ -239,8 +239,8 @@
     // write_waker_proxy is always used for AsyncWrite, read_waker_proxy for
     // AsyncRead. The read_waker slots of both are used for the Stream impl
     // (and handshaking), the write_waker slots for the Sink impl.
-    </span>write_waker_proxy: Arc&lt;<a href="../../src/tokio_tungstenite/compat.rs.html#106">WakerProxy</a>&gt;,
-    read_waker_proxy: Arc&lt;<a href="../../src/tokio_tungstenite/compat.rs.html#106">WakerProxy</a>&gt;,
+    </span>write_waker_proxy: Arc&lt;<a href="#106">WakerProxy</a>&gt;,
+    read_waker_proxy: Arc&lt;<a href="#106">WakerProxy</a>&gt;,
 }
 
 <span class="comment">// Internal trait used only in the Handshake module for registering
@@ -252,26 +252,26 @@
     <span class="kw">fn </span>set_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">task::Waker</a>);
 }
 
-<span class="kw">impl</span>&lt;S&gt; <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a> <span class="kw">for </span>AllowStd&lt;S&gt; {
+<span class="kw">impl</span>&lt;S&gt; <a href="#53">SetWaker</a> <span class="kw">for </span>AllowStd&lt;S&gt; {
     <span class="kw">fn </span>set_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">task::Waker</a>) {
-        <a class="self" href="../../src/tokio_tungstenite/compat.rs.html#58">self</a>.<a href="../../src/tokio_tungstenite/compat.rs.html#87">set_waker</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#14">ContextWaker::Read</a>, <a href="../../src/tokio_tungstenite/compat.rs.html#58">waker</a>);
+        <a class="self" href="#58">self</a>.<a href="#87">set_waker</a>(<a href="#14">ContextWaker::Read</a>, <a href="#58">waker</a>);
     }
 }
 
 <span class="kw">impl</span>&lt;S&gt; AllowStd&lt;S&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: S, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">task::Waker</a>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>res = <span class="self">Self </span>{
-            <a href="../../src/tokio_tungstenite/compat.rs.html#64">inner</a>,
+            <a href="#64">inner</a>,
             write_waker_proxy: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             read_waker_proxy: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         };
 
         <span class="comment">// Register the handshake waker as read waker for both proxies,
         // see also the SetWaker trait.
-        </span><a href="../../src/tokio_tungstenite/compat.rs.html#65">res</a>.write_waker_proxy.read_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#64">waker</a>);
-        <a href="../../src/tokio_tungstenite/compat.rs.html#65">res</a>.read_waker_proxy.read_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#64">waker</a>);
+        </span><a href="#65">res</a>.write_waker_proxy.read_waker.register(<a href="#64">waker</a>);
+        <a href="#65">res</a>.read_waker_proxy.read_waker.register(<a href="#64">waker</a>);
 
-        <a href="../../src/tokio_tungstenite/compat.rs.html#65">res</a>
+        <a href="#65">res</a>
     }
 
     <span class="comment">// Set the read or write waker for our proxies.
@@ -282,15 +282,15 @@
     //
     // Write: this is only supposde to be called by write operations, i.e. the Sink impl on the
     // WebSocketStream.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../../src/tokio_tungstenite/compat.rs.html#13">ContextWaker</a>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">task::Waker</a>) {
-        <span class="kw">match </span><a href="../../src/tokio_tungstenite/compat.rs.html#87">kind</a> {
-            <a href="../../src/tokio_tungstenite/compat.rs.html#14">ContextWaker::Read</a> =&gt; {
-                <a class="self" href="../../src/tokio_tungstenite/compat.rs.html#87">self</a>.write_waker_proxy.read_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#87">waker</a>);
-                <a class="self" href="../../src/tokio_tungstenite/compat.rs.html#87">self</a>.read_waker_proxy.read_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#87">waker</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#13">ContextWaker</a>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">task::Waker</a>) {
+        <span class="kw">match </span><a href="#87">kind</a> {
+            <a href="#14">ContextWaker::Read</a> =&gt; {
+                <a class="self" href="#87">self</a>.write_waker_proxy.read_waker.register(<a href="#87">waker</a>);
+                <a class="self" href="#87">self</a>.read_waker_proxy.read_waker.register(<a href="#87">waker</a>);
             }
-            <a href="../../src/tokio_tungstenite/compat.rs.html#15">ContextWaker::Write</a> =&gt; {
-                <a class="self" href="../../src/tokio_tungstenite/compat.rs.html#87">self</a>.write_waker_proxy.write_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#87">waker</a>);
-                <a class="self" href="../../src/tokio_tungstenite/compat.rs.html#87">self</a>.read_waker_proxy.write_waker.register(<a href="../../src/tokio_tungstenite/compat.rs.html#87">waker</a>);
+            <a href="#15">ContextWaker::Write</a> =&gt; {
+                <a class="self" href="#87">self</a>.write_waker_proxy.write_waker.register(<a href="#87">waker</a>);
+                <a class="self" href="#87">self</a>.read_waker_proxy.write_waker.register(<a href="#87">waker</a>);
             }
         }
     }
@@ -306,10 +306,10 @@
     write_waker: task::AtomicWaker,
 }
 
-<span class="kw">impl </span><a href="../../futures_task/arc_wake/trait.ArcWake.html">task::ArcWake</a> <span class="kw">for </span><a href="../../src/tokio_tungstenite/compat.rs.html#106">WakerProxy</a> {
+<span class="kw">impl </span><a href="../../futures_task/arc_wake/trait.ArcWake.html">task::ArcWake</a> <span class="kw">for </span><a href="#106">WakerProxy</a> {
     <span class="kw">fn </span>wake_by_ref(arc_self: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-        <a href="../../src/tokio_tungstenite/compat.rs.html#112">arc_self</a>.read_waker.wake();
-        <a href="../../src/tokio_tungstenite/compat.rs.html#112">arc_self</a>.write_waker.wake();
+        <a href="#112">arc_self</a>.read_waker.wake();
+        <a href="#112">arc_self</a>.write_waker.wake();
     }
 }
 
@@ -317,25 +317,25 @@
 <span class="kw">where
     </span>S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn </span>with_context&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="../../src/tokio_tungstenite/compat.rs.html#13">ContextWaker</a>, f: F) -&gt; Poll&lt;std::io::Result&lt;R&gt;&gt;
+    <span class="kw">fn </span>with_context&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="#13">ContextWaker</a>, f: F) -&gt; Poll&lt;std::io::Result&lt;R&gt;&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>S&gt;) -&gt; Poll&lt;std::io::Result&lt;R&gt;&gt;,
     {
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} AllowStd.with_context&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-        <span class="kw">let </span>waker = <span class="kw">match </span><a href="../../src/tokio_tungstenite/compat.rs.html#122">kind</a> {
-            <a href="../../src/tokio_tungstenite/compat.rs.html#14">ContextWaker::Read</a> =&gt; task::waker_ref(<span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#122">self</a>.read_waker_proxy),
-            <a href="../../src/tokio_tungstenite/compat.rs.html#15">ContextWaker::Write</a> =&gt; task::waker_ref(<span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#122">self</a>.write_waker_proxy),
+        <span class="kw">let </span>waker = <span class="kw">match </span><a href="#122">kind</a> {
+            <a href="#14">ContextWaker::Read</a> =&gt; task::waker_ref(<span class="kw-2">&amp;</span><a class="self" href="#122">self</a>.read_waker_proxy),
+            <a href="#15">ContextWaker::Write</a> =&gt; task::waker_ref(<span class="kw-2">&amp;</span><a class="self" href="#122">self</a>.write_waker_proxy),
         };
-        <span class="kw">let </span><span class="kw-2">mut </span>context = task::Context::from_waker(<span class="kw-2">&amp;</span><a href="../../src/tokio_tungstenite/compat.rs.html#127">waker</a>);
-        <a href="../../src/tokio_tungstenite/compat.rs.html#122">f</a>(<span class="kw-2">&amp;mut </span><a href="../../src/tokio_tungstenite/compat.rs.html#131">context</a>, Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#122">self</a>.inner))
+        <span class="kw">let </span><span class="kw-2">mut </span>context = task::Context::from_waker(<span class="kw-2">&amp;</span><a href="#127">waker</a>);
+        <a href="#122">f</a>(<span class="kw-2">&amp;mut </span><a href="#131">context</a>, Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="#122">self</a>.inner))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>S {
-        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#135">self</a>.inner
+        <span class="kw-2">&amp;mut </span><a class="self" href="#135">self</a>.inner
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#139">self</a>.inner
+        <span class="kw-2">&amp;</span><a class="self" href="#139">self</a>.inner
     }
 }
 
@@ -345,13 +345,13 @@
 {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; std::io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Read.read&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<a href="../../src/tokio_tungstenite/compat.rs.html#148">buf</a>);
-        <span class="kw">match </span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#148">self</a>.<a href="../../src/tokio_tungstenite/compat.rs.html#122-124">with_context</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#14">ContextWaker::Read</a>, |ctx, stream| {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = ReadBuf::new(<a href="#148">buf</a>);
+        <span class="kw">match </span><a class="self" href="#148">self</a>.<a href="#122-124">with_context</a>(<a href="#14">ContextWaker::Read</a>, |ctx, stream| {
             <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Read.with_context read -&gt; poll_read&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-            <a href="../../src/tokio_tungstenite/compat.rs.html#151">stream</a>.<a href="../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#151">ctx</a>, <span class="kw-2">&amp;mut </span><a href="../../src/tokio_tungstenite/compat.rs.html#150">buf</a>)
+            <a href="#151">stream</a>.<a href="../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="#151">ctx</a>, <span class="kw-2">&amp;mut </span><a href="#150">buf</a>)
         }) {
-            Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/compat.rs.html#150">buf</a>.filled().len()),
-            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/tokio_tungstenite/compat.rs.html#156">err</a>),
+            Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<a href="#150">buf</a>.filled().len()),
+            Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#156">err</a>),
             Poll::Pending =&gt; <span class="prelude-val">Err</span>(std::io::Error::from(std::io::ErrorKind::WouldBlock)),
         }
     }
@@ -363,36 +363,36 @@
 {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; std::io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Write.write&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-        <span class="kw">match </span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#166">self</a>.<a href="../../src/tokio_tungstenite/compat.rs.html#122-124">with_context</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#15">ContextWaker::Write</a>, |ctx, stream| {
+        <span class="kw">match </span><a class="self" href="#166">self</a>.<a href="#122-124">with_context</a>(<a href="#15">ContextWaker::Write</a>, |ctx, stream| {
             <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Write.with_context write -&gt; poll_write&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-            <a href="../../src/tokio_tungstenite/compat.rs.html#168">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#168">ctx</a>, <a href="../../src/tokio_tungstenite/compat.rs.html#166">buf</a>)
+            <a href="#168">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="#168">ctx</a>, <a href="#166">buf</a>)
         }) {
-            Poll::Ready(r) =&gt; <a href="../../src/tokio_tungstenite/compat.rs.html#172">r</a>,
+            Poll::Ready(r) =&gt; <a href="#172">r</a>,
             Poll::Pending =&gt; <span class="prelude-val">Err</span>(std::io::Error::from(std::io::ErrorKind::WouldBlock)),
         }
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; std::io::Result&lt;()&gt; {
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Write.flush&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-        <span class="kw">match </span><a class="self" href="../../src/tokio_tungstenite/compat.rs.html#177">self</a>.<a href="../../src/tokio_tungstenite/compat.rs.html#122-124">with_context</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#15">ContextWaker::Write</a>, |ctx, stream| {
+        <span class="kw">match </span><a class="self" href="#177">self</a>.<a href="#122-124">with_context</a>(<a href="#15">ContextWaker::Write</a>, |ctx, stream| {
             <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;{}:{} Write.with_context flush -&gt; poll_flush&quot;</span>, <span class="macro">file!</span>(), <span class="macro">line!</span>());
-            <a href="../../src/tokio_tungstenite/compat.rs.html#179">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="../../src/tokio_tungstenite/compat.rs.html#179">ctx</a>)
+            <a href="#179">stream</a>.<a href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="#179">ctx</a>)
         }) {
-            Poll::Ready(r) =&gt; <a href="../../src/tokio_tungstenite/compat.rs.html#183">r</a>,
+            Poll::Ready(r) =&gt; <a href="#183">r</a>,
             Poll::Pending =&gt; <span class="prelude-val">Err</span>(std::io::Error::from(std::io::ErrorKind::WouldBlock)),
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cvt&lt;T&gt;(r: <span class="prelude-ty">Result</span>&lt;T, <a href="../../tungstenite/error/enum.Error.html">WsError</a>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../../tungstenite/error/enum.Error.html">WsError</a>&gt;&gt; {
-    <span class="kw">match </span><a href="../../src/tokio_tungstenite/compat.rs.html#189">r</a> {
-        <span class="prelude-val">Ok</span>(v) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/compat.rs.html#191">v</a>)),
-        <span class="prelude-val">Err</span>(WsError::Io(<span class="kw-2">ref </span>e)) <span class="kw">if </span><a href="../../src/tokio_tungstenite/compat.rs.html#192">e</a>.kind() == std::io::ErrorKind::WouldBlock =&gt; {
+    <span class="kw">match </span><a href="#189">r</a> {
+        <span class="prelude-val">Ok</span>(v) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#191">v</a>)),
+        <span class="prelude-val">Err</span>(WsError::Io(<span class="kw-2">ref </span>e)) <span class="kw">if </span><a href="#192">e</a>.kind() == std::io::ErrorKind::WouldBlock =&gt; {
             <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;WouldBlock&quot;</span>);
             Poll::Pending
         }
-        <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/tokio_tungstenite/compat.rs.html#196">e</a>)),
+        <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#196">e</a>)),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

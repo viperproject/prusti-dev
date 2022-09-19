@@ -91,7 +91,7 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
 <span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
@@ -112,8 +112,8 @@
 
 <span class="kw">impl</span>&lt;F&gt; CallbackState&lt;F&gt; {
     <span class="kw">pub fn </span>new(callback: F) -&gt; <span class="self">Self </span>{
-        <a href="../../src/openssl/util.rs.html#12">CallbackState</a> {
-            cb: <span class="prelude-val">Some</span>(<a href="../../src/openssl/util.rs.html#21">callback</a>),
+        <a href="#12">CallbackState</a> {
+            cb: <span class="prelude-val">Some</span>(<a href="#21">callback</a>),
             panic: <span class="prelude-val">None</span>,
         }
     }
@@ -121,8 +121,8 @@
 
 <span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CallbackState&lt;F&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(panic) = <a class="self" href="../../src/openssl/util.rs.html#30">self</a>.panic.take() {
-            <a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="../../src/openssl/util.rs.html#31">panic</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(panic) = <a class="self" href="#30">self</a>.panic.take() {
+            <a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="#31">panic</a>);
         }
     }
 }
@@ -137,23 +137,23 @@
     cb_state: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt;,
 {
-    <span class="kw">let </span>callback = <span class="kw-2">&amp;mut *</span>(<a href="../../src/openssl/util.rs.html#44">cb_state</a> <span class="kw">as </span><span class="kw-2">*mut </span>CallbackState&lt;F&gt;);
+    <span class="kw">let </span>callback = <span class="kw-2">&amp;mut *</span>(<a href="#44">cb_state</a> <span class="kw">as </span><span class="kw-2">*mut </span>CallbackState&lt;F&gt;);
 
     <span class="kw">let </span>result = <a href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">panic::catch_unwind</a>(AssertUnwindSafe(|| {
-        <span class="kw">let </span>pass_slice = slice::from_raw_parts_mut(<a href="../../src/openssl/util.rs.html#41">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/openssl/util.rs.html#42">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a href="../../src/openssl/util.rs.html#49">callback</a>.cb.take().unwrap()(<a href="../../src/openssl/util.rs.html#52">pass_slice</a>)
+        <span class="kw">let </span>pass_slice = slice::from_raw_parts_mut(<a href="#41">buf</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="#42">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="#49">callback</a>.cb.take().unwrap()(<a href="#52">pass_slice</a>)
     }));
 
-    <span class="kw">match </span><a href="../../src/openssl/util.rs.html#51">result</a> {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="../../src/openssl/util.rs.html#57">len</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+    <span class="kw">match </span><a href="#51">result</a> {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(len)) =&gt; <a href="#57">len</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; {
             <span class="comment">// FIXME restore error stack
             </span><span class="number">0
         </span>}
         <span class="prelude-val">Err</span>(err) =&gt; {
-            <a href="../../src/openssl/util.rs.html#49">callback</a>.panic = <span class="prelude-val">Some</span>(<a href="../../src/openssl/util.rs.html#62">err</a>);
+            <a href="#49">callback</a>.panic = <span class="prelude-val">Some</span>(<a href="#62">err</a>);
             <span class="number">0
         </span>}
     }
@@ -164,25 +164,25 @@
         <span class="kw">if </span>ptr.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="self">Self</span>::from_ptr(<a href="../../src/openssl/util.rs.html#70">ptr</a>))
+            <span class="prelude-val">Some</span>(<span class="self">Self</span>::from_ptr(<a href="#70">ptr</a>))
         }
     }
 }
-<span class="kw">impl</span>&lt;FT: <a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>&gt; <a href="../../src/openssl/util.rs.html#69">ForeignTypeExt</a> <span class="kw">for </span>FT {}
+<span class="kw">impl</span>&lt;FT: <a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>&gt; <a href="#69">ForeignTypeExt</a> <span class="kw">for </span>FT {}
 
 <span class="kw">pub trait </span>ForeignTypeRefExt: <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> {
     <span class="kw">unsafe fn </span>from_const_ptr&lt;<span class="lifetime">&#39;a</span>&gt;(ptr: <span class="kw-2">*const </span><span class="self">Self</span>::CType) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self </span>{
-        <span class="self">Self</span>::from_ptr(<a href="../../src/openssl/util.rs.html#81">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>::CType)
+        <span class="self">Self</span>::from_ptr(<a href="#81">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>::CType)
     }
 
     <span class="kw">unsafe fn </span>from_const_ptr_opt&lt;<span class="lifetime">&#39;a</span>&gt;(ptr: <span class="kw-2">*const </span><span class="self">Self</span>::CType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>&gt; {
         <span class="kw">if </span>ptr.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="self">Self</span>::from_const_ptr(<a href="../../src/openssl/util.rs.html#85">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>::CType))
+            <span class="prelude-val">Some</span>(<span class="self">Self</span>::from_const_ptr(<a href="#85">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>::CType))
         }
     }
 }
-<span class="kw">impl</span>&lt;FT: <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>&gt; <a href="../../src/openssl/util.rs.html#80">ForeignTypeRefExt</a> <span class="kw">for </span>FT {}
+<span class="kw">impl</span>&lt;FT: <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>&gt; <a href="#80">ForeignTypeRefExt</a> <span class="kw">for </span>FT {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

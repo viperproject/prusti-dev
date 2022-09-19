@@ -95,8 +95,8 @@
 <span class="kw">use </span><a href="../../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>;
 <span class="kw">use </span><a href="../../../serde_urlencoded/index.html">serde_urlencoded</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/generic.rs.html#4">One</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../generic.rs.html#4">One</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#210">Rejection</a>};
 
 <span class="doccomment">/// Creates a `Filter` that decodes query parameters to the type `T`.
 ///
@@ -154,31 +154,31 @@
 ///
 /// [Serde]: https://docs.rs/serde
 </span><span class="kw">pub fn </span>query&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
-        <span class="kw">let </span>query_string = <a href="../../../src/warp/filters/query.rs.html#67">route</a>.<a href="../../../src/warp/route.rs.html#108">query</a>().unwrap_or_else(|| {
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
+        <span class="kw">let </span>query_string = <a href="#67">route</a>.<a href="../route.rs.html#108">query</a>().unwrap_or_else(|| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;route was called without a query string, defaulting to empty&quot;</span>);
             <span class="string">&quot;&quot;
         </span>});
 
-        <span class="kw">let </span>query_encoded = serde_urlencoded::from_str(<a href="../../../src/warp/filters/query.rs.html#68">query_string</a>).map_err(|e| {
+        <span class="kw">let </span>query_encoded = serde_urlencoded::from_str(<a href="#68">query_string</a>).map_err(|e| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;failed to decode query string &#39;{}&#39;: {:?}&quot;</span>, query_string, e);
-            <a href="../../../src/warp/reject.rs.html#94">reject::invalid_query</a>()
+            <a href="../reject.rs.html#94">reject::invalid_query</a>()
         });
-        future::ready(<a href="../../../src/warp/filters/query.rs.html#73">query_encoded</a>)
+        future::ready(<a href="#73">query_encoded</a>)
     })
 }
 
 <span class="doccomment">/// Creates a `Filter` that returns the raw query string as type String.
-</span><span class="kw">pub fn </span>raw() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
-        <span class="kw">let </span>route = <a href="../../../src/warp/filters/query.rs.html#83">route</a>
-            .<a href="../../../src/warp/route.rs.html#108">query</a>()
-            .map(|q| <a href="../../../src/warp/filters/query.rs.html#86">q</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+</span><span class="kw">pub fn </span>raw() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
+        <span class="kw">let </span>route = <a href="#83">route</a>
+            .<a href="../route.rs.html#108">query</a>()
+            .map(|q| <a href="#86">q</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
             .map(<span class="prelude-val">Ok</span>)
-            .unwrap_or_else(|| <span class="prelude-val">Err</span>(<a href="../../../src/warp/reject.rs.html#94">reject::invalid_query</a>()));
-        future::ready(<a href="../../../src/warp/filters/query.rs.html#84">route</a>)
+            .unwrap_or_else(|| <span class="prelude-val">Err</span>(<a href="../reject.rs.html#94">reject::invalid_query</a>()));
+        future::ready(<a href="#84">route</a>)
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

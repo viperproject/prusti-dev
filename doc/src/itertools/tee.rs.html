@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/tee.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tee.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/tee.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tee.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -76,7 +76,7 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/itertools/lib.rs.html#232"><span class="kw">super</span>::size_hint</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="lib.rs.html#234"><span class="kw">super</span>::size_hint</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">alloc::collections::VecDeque</a>;
@@ -106,10 +106,10 @@
 <span class="kw">pub fn </span>new&lt;I&gt;(iter: I) -&gt; (Tee&lt;I&gt;, Tee&lt;I&gt;)
     <span class="kw">where </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>
 {
-    <span class="kw">let </span>buffer = <a href="../../src/itertools/tee.rs.html#9">TeeBuffer</a>{backlog: VecDeque::new(), <a href="../../src/itertools/tee.rs.html#28">iter</a>, owner: <span class="bool-val">false</span>};
-    <span class="kw">let </span>t1 = <a href="../../src/itertools/tee.rs.html#21">Tee</a>{rcbuffer: Rc::new(RefCell::new(<a href="../../src/itertools/tee.rs.html#31">buffer</a>)), id: <span class="bool-val">true</span>};
-    <span class="kw">let </span>t2 = <a href="../../src/itertools/tee.rs.html#21">Tee</a>{rcbuffer: <a href="../../src/itertools/tee.rs.html#32">t1</a>.rcbuffer.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), id: <span class="bool-val">false</span>};
-    (<a href="../../src/itertools/tee.rs.html#32">t1</a>, <a href="../../src/itertools/tee.rs.html#33">t2</a>)
+    <span class="kw">let </span>buffer = <a href="#9">TeeBuffer</a>{backlog: VecDeque::new(), <a href="#28">iter</a>, owner: <span class="bool-val">false</span>};
+    <span class="kw">let </span>t1 = <a href="#21">Tee</a>{rcbuffer: Rc::new(RefCell::new(<a href="#31">buffer</a>)), id: <span class="bool-val">true</span>};
+    <span class="kw">let </span>t2 = <a href="#21">Tee</a>{rcbuffer: <a href="#32">t1</a>.rcbuffer.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), id: <span class="bool-val">false</span>};
+    (<a href="#32">t1</a>, <a href="#33">t2</a>)
 }
 
 <span class="kw">impl</span>&lt;I&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Tee&lt;I&gt;
@@ -120,32 +120,32 @@
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="comment">// .borrow_mut may fail here -- but only if the user has tied some kind of weird
         // knot where the iterator refers back to itself.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = <a class="self" href="../../src/itertools/tee.rs.html#42">self</a>.rcbuffer.borrow_mut();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = <a class="self" href="#42">self</a>.rcbuffer.borrow_mut();
         <span class="kw">if </span>buffer.owner == <span class="self">self</span>.id {
-            <span class="kw">match </span><a href="../../src/itertools/tee.rs.html#45">buffer</a>.backlog.pop_front() {
+            <span class="kw">match </span><a href="#45">buffer</a>.backlog.pop_front() {
                 <span class="prelude-val">None </span>=&gt; {}
-                some_elt =&gt; <span class="kw">return </span><a href="../../src/itertools/tee.rs.html#49">some_elt</a>,
+                some_elt =&gt; <span class="kw">return </span><a href="#49">some_elt</a>,
             }
         }
-        <span class="kw">match </span><a href="../../src/itertools/tee.rs.html#45">buffer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">match </span><a href="#45">buffer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(elt) =&gt; {
-                <a href="../../src/itertools/tee.rs.html#45">buffer</a>.backlog.push_back(<a href="../../src/itertools/tee.rs.html#54">elt</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a href="../../src/itertools/tee.rs.html#45">buffer</a>.owner = !<a class="self" href="../../src/itertools/tee.rs.html#42">self</a>.id;
-                <span class="prelude-val">Some</span>(<a href="../../src/itertools/tee.rs.html#54">elt</a>)
+                <a href="#45">buffer</a>.backlog.push_back(<a href="#54">elt</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a href="#45">buffer</a>.owner = !<a class="self" href="#42">self</a>.id;
+                <span class="prelude-val">Some</span>(<a href="#54">elt</a>)
             }
         }
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>buffer = <a class="self" href="../../src/itertools/tee.rs.html#62">self</a>.rcbuffer.borrow();
-        <span class="kw">let </span>sh = <a href="../../src/itertools/tee.rs.html#63">buffer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
+        <span class="kw">let </span>buffer = <a class="self" href="#62">self</a>.rcbuffer.borrow();
+        <span class="kw">let </span>sh = <a href="#63">buffer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>();
 
         <span class="kw">if </span>buffer.owner == <span class="self">self</span>.id {
-            <span class="kw">let </span>log_len = <a href="../../src/itertools/tee.rs.html#63">buffer</a>.backlog.len();
-            <a href="../../src/itertools/size_hint.rs.html#25">size_hint::add_scalar</a>(<a href="../../src/itertools/tee.rs.html#64">sh</a>, <a href="../../src/itertools/tee.rs.html#67">log_len</a>)
+            <span class="kw">let </span>log_len = <a href="#63">buffer</a>.backlog.len();
+            <a href="size_hint.rs.html#25">size_hint::add_scalar</a>(<a href="#64">sh</a>, <a href="#67">log_len</a>)
         } <span class="kw">else </span>{
-            <a href="../../src/itertools/tee.rs.html#64">sh</a>
+            <a href="#64">sh</a>
         }
     }
 }
@@ -155,4 +155,4 @@
           I::Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
 {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

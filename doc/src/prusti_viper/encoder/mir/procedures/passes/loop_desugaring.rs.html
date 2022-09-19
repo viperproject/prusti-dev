@@ -213,9 +213,9 @@
 <span id="213">213</span>
 <span id="214">214</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
-    <a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a>,
+    errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    <a href="../../errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
+    <a href="../../../encoder.rs.html#68">Encoder</a>,
 };
 <span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 <span class="kw">use </span>vir_crate::{
@@ -307,7 +307,7 @@
             invariant_block.statements.push(statement);
         }
     }
-    <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#17">procedure</a>)
+    <span class="prelude-val">Ok</span>(<a href="#17">procedure</a>)
 }
 
 <span class="kw">fn </span>find_loop_invariant(
@@ -328,7 +328,7 @@
     loop_head: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>&gt; {
     <span class="kw">let </span>(blocks_to_duplicate, old_labels_remap) = {
-        <span class="kw">let </span>predecessors = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#112">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
+        <span class="kw">let </span>predecessors = <a href="#112">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>old_labels_remap = BTreeMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>blocks_to_duplicate = BTreeSet::new();
         <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[invariant_block];
@@ -348,16 +348,16 @@
                 work_queue.extend(<span class="kw-2">&amp;</span>predecessors[block]);
             }
         }
-        (<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#119">blocks_to_duplicate</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#118">old_labels_remap</a>)
+        (<a href="#119">blocks_to_duplicate</a>, <a href="#118">old_labels_remap</a>)
     };
     <span class="kw">let </span>new_label = |bb: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>| {
         <span class="kw">if </span>blocks_to_duplicate.contains(bb) {
             vir_high::BasicBlockId::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;loop__{}__{}&quot;</span>, loop_head, bb))
         } <span class="kw">else </span>{
-            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">bb</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <a href="#139">bb</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>updater = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> { <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#116">old_labels_remap</a> };
+    <span class="kw">let </span><span class="kw-2">mut </span>updater = <a href="#186">OldLabelUpdater</a> { <a href="#116">old_labels_remap</a> };
     <span class="kw">for </span>bb <span class="kw">in </span><span class="kw-2">&amp;</span>blocks_to_duplicate {
         <span class="kw">let </span><span class="kw-2">mut </span>block = procedure.basic_blocks[bb].clone();
         <span class="kw">if </span>bb == invariant_block {
@@ -390,7 +390,7 @@
             .insert(new_label(bb), block)
             .is_none())
     }
-    <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">new_label</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#114">loop_head</a>))
+    <span class="prelude-val">Ok</span>(<a href="#139">new_label</a>(<a href="#114">loop_head</a>))
 }
 
 <span class="kw">fn </span>construct_magic_label() -&gt; <a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a> {
@@ -401,30 +401,30 @@
     old_labels_remap: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for </span><a href="#186">OldLabelUpdater</a> {
     <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
-        <a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">self</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">expression</a>)
+        <a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="#191">self</a>, <a href="#191">expression</a>)
     }
     <span class="kw">fn </span>fold_old_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>.name) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#194">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#194">statement</a>.name) {
             <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-                name: <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#195">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                ..<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
+                name: <a href="#195">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                ..<a href="#194">statement</a>
             }
         } <span class="kw">else </span>{
-            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
+            <a href="#194">statement</a>
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for </span><a href="#186">OldLabelUpdater</a> {
     <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>expression = vir_high::visitors::default_fold_labelled_old(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">expression</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.label) {
-            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.label = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#209">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>expression = vir_high::visitors::default_fold_labelled_old(<a class="self" href="#207">self</a>, <a href="#207">expression</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#207">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#208">expression</a>.label) {
+            <a href="#208">expression</a>.label = <a href="#209">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
-        <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>
+        <a href="#208">expression</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

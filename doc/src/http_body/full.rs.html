@@ -149,7 +149,7 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/http_body/lib.rs.html#46">Body</a>, <a href="../../src/http_body/size_hint.rs.html#10">SizeHint</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="lib.rs.html#46">Body</a>, <a href="size_hint.rs.html#10">SizeHint</a>};
 <span class="kw">use </span>bytes::{<a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>};
 <span class="kw">use </span><a href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>;
 <span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
@@ -173,15 +173,15 @@
     <span class="doccomment">/// Create a new `Full`.
     </span><span class="kw">pub fn </span>new(data: D) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>data = <span class="kw">if </span>data.has_remaining() {
-            <span class="prelude-val">Some</span>(<a href="../../src/http_body/full.rs.html#23">data</a>)
+            <span class="prelude-val">Some</span>(<a href="#23">data</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
-        <a href="../../src/http_body/full.rs.html#10-16">Full</a> { <a href="../../src/http_body/full.rs.html#24">data</a> }
+        <a href="#10-16">Full</a> { <a href="#24">data</a> }
     }
 }
 
-<span class="kw">impl</span>&lt;D&gt; <a href="../../src/http_body/lib.rs.html#46">Body</a> <span class="kw">for </span>Full&lt;D&gt;
+<span class="kw">impl</span>&lt;D&gt; <a href="lib.rs.html#46">Body</a> <span class="kw">for </span>Full&lt;D&gt;
 <span class="kw">where
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
@@ -192,7 +192,7 @@
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;D, <span class="self">Self</span>::Error&gt;&gt;&gt; {
-        Poll::Ready(<a class="self" href="../../src/http_body/full.rs.html#41">self</a>.data.take().map(<span class="prelude-val">Ok</span>))
+        Poll::Ready(<a class="self" href="#41">self</a>.data.take().map(<span class="prelude-val">Ok</span>))
     }
 
     <span class="kw">fn </span>poll_trailers(
@@ -203,13 +203,13 @@
     }
 
     <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/http_body/full.rs.html#54">self</a>.data.is_none()
+        <a class="self" href="#54">self</a>.data.is_none()
     }
 
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/http_body/size_hint.rs.html#10">SizeHint</a> {
-        <a class="self" href="../../src/http_body/full.rs.html#58">self</a>.data
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="size_hint.rs.html#10">SizeHint</a> {
+        <a class="self" href="#58">self</a>.data
             .as_ref()
-            .map(|data| SizeHint::with_exact(u64::try_from(<a href="../../src/http_body/full.rs.html#61">data</a>.<a href="../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>()).unwrap()))
+            .map(|data| SizeHint::with_exact(u64::try_from(<a href="#61">data</a>.<a href="../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>()).unwrap()))
             .unwrap_or_else(|| SizeHint::with_exact(<span class="number">0</span>))
     }
 }
@@ -220,7 +220,7 @@
 {
     <span class="doccomment">/// Create an empty `Full`.
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="../../src/http_body/full.rs.html#10-16">Full</a> { data: <span class="prelude-val">None </span>}
+        <a href="#10-16">Full</a> { data: <span class="prelude-val">None </span>}
     }
 }
 
@@ -229,7 +229,7 @@
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + From&lt;<a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;,
 {
     <span class="kw">fn </span>from(bytes: <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self </span>{
-        Full::new(D::from(<a href="../../src/http_body/full.rs.html#80">bytes</a>))
+        Full::new(D::from(<a href="#80">bytes</a>))
     }
 }
 
@@ -238,7 +238,7 @@
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
 {
     <span class="kw">fn </span>from(vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="self">Self </span>{
-        Full::new(D::from(<a href="../../src/http_body/full.rs.html#89">vec</a>))
+        Full::new(D::from(<a href="#89">vec</a>))
     }
 }
 
@@ -247,7 +247,7 @@
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
 {
     <span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
-        Full::new(D::from(<a href="../../src/http_body/full.rs.html#98">slice</a>))
+        Full::new(D::from(<a href="#98">slice</a>))
     }
 }
 
@@ -257,9 +257,9 @@
     B: <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, B&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><a href="../../src/http_body/full.rs.html#108">cow</a> {
-            Cow::Borrowed(b) =&gt; Full::new(D::from(<a href="../../src/http_body/full.rs.html#110">b</a>)),
-            Cow::Owned(o) =&gt; Full::new(D::from(<a href="../../src/http_body/full.rs.html#111">o</a>)),
+        <span class="kw">match </span><a href="#108">cow</a> {
+            Cow::Borrowed(b) =&gt; Full::new(D::from(<a href="#110">b</a>)),
+            Cow::Owned(o) =&gt; Full::new(D::from(<a href="#111">o</a>)),
         }
     }
 }
@@ -269,7 +269,7 @@
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 {
     <span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        Full::new(D::from(<a href="../../src/http_body/full.rs.html#120">s</a>))
+        Full::new(D::from(<a href="#120">s</a>))
     }
 }
 
@@ -278,7 +278,7 @@
     </span>D: <a href="../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> + From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
 {
     <span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        Full::new(D::from(<a href="../../src/http_body/full.rs.html#129">slice</a>))
+        Full::new(D::from(<a href="#129">slice</a>))
     }
 }
 
@@ -301,4 +301,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http_body" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -149,16 +149,16 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">use </span><a href="../../../src/hyper/body/body.rs.html#36"><span class="kw">crate</span>::body::Body</a>;
+</span><span class="kw">use </span><a href="../body/body.rs.html#36"><span class="kw">crate</span>::body::Body</a>;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
 </span><span class="kw">use </span><a href="../../../hyper/body/trait.HttpBody.html"><span class="kw">crate</span>::body::HttpBody</a>;
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, feature = <span class="string">&quot;server&quot;</span>))]
-</span><span class="kw">use </span><a href="../../../src/hyper/proto/h2/server.rs.html#372-382"><span class="kw">crate</span>::proto::h2::server::H2Stream</a>;
-<span class="kw">use </span><a href="../../../src/hyper/rt.rs.html#9"><span class="kw">crate</span>::rt::Executor</a>;
+</span><span class="kw">use </span><a href="../proto/h2/server.rs.html#372-382"><span class="kw">crate</span>::proto::h2::server::H2Stream</a>;
+<span class="kw">use </span><a href="../rt.rs.html#9"><span class="kw">crate</span>::rt::Executor</a>;
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">use </span><span class="kw">crate</span>::server::server::{<a href="../../../src/hyper/server/server.rs.html#655-661">new_svc::NewSvcTask</a>, <a href="../../../src/hyper/server/server.rs.html#607">Watcher</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::server::server::{<a href="../server/server.rs.html#655-661">new_svc::NewSvcTask</a>, <a href="../server/server.rs.html#607">Watcher</a>};
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">use </span><a href="../../../src/hyper/service/http.rs.html#8"><span class="kw">crate</span>::service::HttpService</a>;
+</span><span class="kw">use </span><a href="../service/http.rs.html#8"><span class="kw">crate</span>::service::HttpService</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
 </span><span class="kw">pub trait </span>ConnStreamExec&lt;F, B: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>&gt;: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
@@ -166,7 +166,7 @@
 }
 
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">pub trait </span>NewSvcExec&lt;I, N, S: HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;, E, W: Watcher&lt;I, S, E&gt;&gt;: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
+</span><span class="kw">pub trait </span>NewSvcExec&lt;I, N, S: HttpService&lt;<a href="../body/body.rs.html#36">Body</a>&gt;, E, W: Watcher&lt;I, S, E&gt;&gt;: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
     <span class="kw">fn </span>execute_new_svc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: NewSvcTask&lt;I, N, S, E, W&gt;);
 }
 
@@ -177,21 +177,21 @@
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub enum </span>Exec {
     Default,
-    Executor(Arc&lt;<span class="kw">dyn </span>Executor&lt;<a href="../../../src/hyper/common/exec.rs.html#28">BoxSendFuture</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;),
+    Executor(Arc&lt;<span class="kw">dyn </span>Executor&lt;<a href="#28">BoxSendFuture</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;),
 }
 
 <span class="comment">// ===== impl Exec =====
 
-</span><span class="kw">impl </span><a href="../../../src/hyper/common/exec.rs.html#33">Exec</a> {
+</span><span class="kw">impl </span><a href="#33">Exec</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>execute&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, fut: F)
     <span class="kw">where
         </span>F: Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/hyper/common/exec.rs.html#41">self</a> </span>{
-            <a href="../../../src/hyper/common/exec.rs.html#34">Exec::Default</a> =&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#41">self</a> </span>{
+            <a href="#34">Exec::Default</a> =&gt; {
                 <span class="attribute">#[cfg(feature = <span class="string">&quot;tcp&quot;</span>)]
                 </span>{
-                    tokio::task::spawn(<a href="../../../src/hyper/common/exec.rs.html#41">fut</a>);
+                    tokio::task::spawn(<a href="#41">fut</a>);
                 }
                 <span class="attribute">#[cfg(not(feature = <span class="string">&quot;tcp&quot;</span>))]
                 </span>{
@@ -199,39 +199,39 @@
                     </span><span class="macro">panic!</span>(<span class="string">&quot;executor must be set&quot;</span>)
                 }
             }
-            <a href="../../../src/hyper/common/exec.rs.html#35">Exec::Executor</a>(<span class="kw-2">ref </span>e) =&gt; {
-                <a href="../../../src/hyper/common/exec.rs.html#57">e</a>.<a href="../../../src/hyper/rt.rs.html#11">execute</a>(Box::pin(<a href="../../../src/hyper/common/exec.rs.html#41">fut</a>));
+            <a href="#35">Exec::Executor</a>(<span class="kw-2">ref </span>e) =&gt; {
+                <a href="#57">e</a>.<a href="../rt.rs.html#11">execute</a>(Box::pin(<a href="#41">fut</a>));
             }
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/hyper/common/exec.rs.html#33">Exec</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#33">Exec</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/hyper/common/exec.rs.html#65">f</a>.debug_struct(<span class="string">&quot;Exec&quot;</span>).finish()
+        <a href="#65">f</a>.debug_struct(<span class="string">&quot;Exec&quot;</span>).finish()
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
-</span><span class="kw">impl</span>&lt;F, B&gt; ConnStreamExec&lt;F, B&gt; <span class="kw">for </span><a href="../../../src/hyper/common/exec.rs.html#33">Exec</a>
+</span><span class="kw">impl</span>&lt;F, B&gt; ConnStreamExec&lt;F, B&gt; <span class="kw">for </span><a href="#33">Exec</a>
 <span class="kw">where
     </span>H2Stream&lt;F, B&gt;: Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     B: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
 {
     <span class="kw">fn </span>execute_h2stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: H2Stream&lt;F, B&gt;) {
-        <a class="self" href="../../../src/hyper/common/exec.rs.html#76">self</a>.<a href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a href="../../../src/hyper/common/exec.rs.html#76">fut</a>)
+        <a class="self" href="#76">self</a>.<a href="#41-43">execute</a>(<a href="#76">fut</a>)
     }
 }
 
 <span class="attribute">#[cfg(all(feature = <span class="string">&quot;server&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
-</span><span class="kw">impl</span>&lt;I, N, S, E, W&gt; NewSvcExec&lt;I, N, S, E, W&gt; <span class="kw">for </span><a href="../../../src/hyper/common/exec.rs.html#33">Exec</a>
+</span><span class="kw">impl</span>&lt;I, N, S, E, W&gt; NewSvcExec&lt;I, N, S, E, W&gt; <span class="kw">for </span><a href="#33">Exec</a>
 <span class="kw">where
     </span>NewSvcTask&lt;I, N, S, E, W&gt;: Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
-    S: HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;,
+    S: HttpService&lt;<a href="../body/body.rs.html#36">Body</a>&gt;,
     W: Watcher&lt;I, S, E&gt;,
 {
     <span class="kw">fn </span>execute_new_svc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: NewSvcTask&lt;I, N, S, E, W&gt;) {
-        <a class="self" href="../../../src/hyper/common/exec.rs.html#88">self</a>.<a href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a href="../../../src/hyper/common/exec.rs.html#88">fut</a>)
+        <a class="self" href="#88">self</a>.<a href="#41-43">execute</a>(<a href="#88">fut</a>)
     }
 }
 
@@ -245,7 +245,7 @@
     B: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
 {
     <span class="kw">fn </span>execute_h2stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: H2Stream&lt;F, B&gt;) {
-        <a class="self" href="../../../src/hyper/common/exec.rs.html#102">self</a>.<a href="../../../src/hyper/rt.rs.html#11">execute</a>(<a href="../../../src/hyper/common/exec.rs.html#102">fut</a>)
+        <a class="self" href="#102">self</a>.<a href="../rt.rs.html#11">execute</a>(<a href="#102">fut</a>)
     }
 }
 
@@ -254,11 +254,11 @@
 <span class="kw">where
     </span>E: Executor&lt;NewSvcTask&lt;I, N, S, E, W&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     NewSvcTask&lt;I, N, S, E, W&gt;: Future&lt;Output = ()&gt;,
-    S: HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;,
+    S: HttpService&lt;<a href="../body/body.rs.html#36">Body</a>&gt;,
     W: Watcher&lt;I, S, E&gt;,
 {
     <span class="kw">fn </span>execute_new_svc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: NewSvcTask&lt;I, N, S, E, W&gt;) {
-        <a class="self" href="../../../src/hyper/common/exec.rs.html#115">self</a>.<a href="../../../src/hyper/rt.rs.html#11">execute</a>(<a href="../../../src/hyper/common/exec.rs.html#115">fut</a>)
+        <a class="self" href="#115">self</a>.<a href="../rt.rs.html#11">execute</a>(<a href="#115">fut</a>)
     }
 }
 
@@ -289,4 +289,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -202,27 +202,27 @@
 //! enc_len += seal.finalize(&amp;mut encrypted[enc_len..]).unwrap();
 //! encrypted.truncate(enc_len);
 //! ```
-</span><span class="kw">use </span><a href="../../src/openssl/cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use </span><a href="../../src/openssl/cipher_ctx.rs.html#72-80"><span class="kw">crate</span>::cipher_ctx::CipherCtx</a>;
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKey</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+</span><span class="kw">use </span><a href="cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
+<span class="kw">use </span><a href="cipher_ctx.rs.html#72-80"><span class="kw">crate</span>::cipher_ctx::CipherCtx</a>;
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#126">HasPrivate</a>, <a href="pkey.rs.html#119">HasPublic</a>, <a href="pkey.rs.html#130-138">PKey</a>, <a href="pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
 <span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
 
 <span class="doccomment">/// Represents an EVP_Seal context.
 </span><span class="kw">pub struct </span>Seal {
-    ctx: <a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtx</a>,
+    ctx: <a href="cipher_ctx.rs.html#72-80">CipherCtx</a>,
     iv: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
     enc_keys: Vec&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/envelope.rs.html#32">Seal</a> {
+<span class="kw">impl </span><a href="#32">Seal</a> {
     <span class="doccomment">/// Creates a new `Seal`.
-    </span><span class="kw">pub fn </span>new&lt;T&gt;(cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>, pub_keys: <span class="kw-2">&amp;</span>[PKey&lt;T&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/envelope.rs.html#32">Seal</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(cipher: <a href="symm.rs.html#73">Cipher</a>, pub_keys: <span class="kw-2">&amp;</span>[PKey&lt;T&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#32">Seal</a>, <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+        </span>T: <a href="pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="../../src/openssl/envelope.rs.html#40">cipher</a>.<a href="../../src/openssl/symm.rs.html#358">iv_len</a>().map(|len| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; len]);
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="#40">cipher</a>.<a href="symm.rs.html#358">iv_len</a>().map(|len| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; len]);
         <span class="kw">let </span><span class="kw-2">mut </span>enc_keys = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; pub_keys.len()];
 
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = CipherCtx::new()<span class="question-mark">?</span>;
@@ -233,18 +233,18 @@
             iv.as_deref_mut(),
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/envelope.rs.html#32">Seal</a> { <a href="../../src/openssl/envelope.rs.html#47">ctx</a>, <a href="../../src/openssl/envelope.rs.html#44">iv</a>, <a href="../../src/openssl/envelope.rs.html#45">enc_keys</a> })
+        <span class="prelude-val">Ok</span>(<a href="#32">Seal</a> { <a href="#47">ctx</a>, <a href="#44">iv</a>, <a href="#45">enc_keys</a> })
     }
 
     <span class="doccomment">/// Returns the initialization vector, if the cipher uses one.
     </span><span class="attribute">#[allow(clippy::option_as_ref_deref)]
     </span><span class="kw">pub fn </span>iv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
-        <a class="self" href="../../src/openssl/envelope.rs.html#60">self</a>.iv.as_ref().map(|v| <span class="kw-2">&amp;**</span><a href="../../src/openssl/envelope.rs.html#61">v</a>)
+        <a class="self" href="#60">self</a>.iv.as_ref().map(|v| <span class="kw-2">&amp;**</span><a href="#61">v</a>)
     }
 
     <span class="doccomment">/// Returns the encrypted keys.
     </span><span class="kw">pub fn </span>encrypted_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/openssl/envelope.rs.html#65">self</a>.enc_keys
+        <span class="kw-2">&amp;</span><a class="self" href="#65">self</a>.enc_keys
     }
 
     <span class="doccomment">/// Feeds data from `input` through the cipher, writing encrypted bytes into `output`.
@@ -257,8 +257,8 @@
     /// Panics if `output.len() &lt; input.len() + block_size` where `block_size` is
     /// the block size of the cipher (see `Cipher::block_size`), or if
     /// `output.len() &gt; c_int::max_value()`.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/envelope.rs.html#79">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="../../src/openssl/envelope.rs.html#79">input</a>, <span class="prelude-val">Some</span>(<a href="../../src/openssl/envelope.rs.html#79">output</a>))
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#79">self</a>.ctx.<a href="cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="#79">input</a>, <span class="prelude-val">Some</span>(<a href="#79">output</a>))
     }
 
     <span class="doccomment">/// Finishes the encryption process, writing any remaining data to `output`.
@@ -270,26 +270,26 @@
     /// # Panics
     ///
     /// Panics if `output` is less than the cipher&#39;s block size.
-    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/envelope.rs.html#92">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#554">cipher_final</a>(<a href="../../src/openssl/envelope.rs.html#92">output</a>)
+    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#92">self</a>.ctx.<a href="cipher_ctx.rs.html#554">cipher_final</a>(<a href="#92">output</a>)
     }
 }
 
 <span class="doccomment">/// Represents an EVP_Open context.
 </span><span class="kw">pub struct </span>Open {
-    ctx: <a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtx</a>,
+    ctx: <a href="cipher_ctx.rs.html#72-80">CipherCtx</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/envelope.rs.html#98">Open</a> {
+<span class="kw">impl </span><a href="#98">Open</a> {
     <span class="doccomment">/// Creates a new `Open`.
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
-        cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+        cipher: <a href="symm.rs.html#73">Cipher</a>,
         priv_key: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;,
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         encrypted_key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/envelope.rs.html#98">Open</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#98">Open</a>, <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+        </span>T: <a href="pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = CipherCtx::new()<span class="question-mark">?</span>;
         ctx.open_init(
@@ -299,7 +299,7 @@
             <span class="prelude-val">Some</span>(priv_key),
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/envelope.rs.html#98">Open</a> { <a href="../../src/openssl/envelope.rs.html#113">ctx</a> })
+        <span class="prelude-val">Ok</span>(<a href="#98">Open</a> { <a href="#113">ctx</a> })
     }
 
     <span class="doccomment">/// Feeds data from `input` through the cipher, writing decrypted bytes into `output`.
@@ -312,8 +312,8 @@
     /// Panics if `output.len() &lt; input.len() + block_size` where
     /// `block_size` is the block size of the cipher (see `Cipher::block_size`),
     /// or if `output.len() &gt; c_int::max_value()`.
-    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/envelope.rs.html#134">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="../../src/openssl/envelope.rs.html#134">input</a>, <span class="prelude-val">Some</span>(<a href="../../src/openssl/envelope.rs.html#134">output</a>))
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#134">self</a>.ctx.<a href="cipher_ctx.rs.html#501-505">cipher_update</a>(<a href="#134">input</a>, <span class="prelude-val">Some</span>(<a href="#134">output</a>))
     }
 
     <span class="doccomment">/// Finishes the decryption process, writing any remaining data to `output`.
@@ -325,8 +325,8 @@
     /// # Panics
     ///
     /// Panics if `output` is less than the cipher&#39;s block size.
-    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/envelope.rs.html#147">self</a>.ctx.<a href="../../src/openssl/cipher_ctx.rs.html#554">cipher_final</a>(<a href="../../src/openssl/envelope.rs.html#147">output</a>)
+    </span><span class="kw">pub fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#147">self</a>.ctx.<a href="cipher_ctx.rs.html#554">cipher_final</a>(<a href="#147">output</a>)
     }
 }
 
@@ -361,4 +361,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

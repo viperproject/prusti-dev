@@ -731,8 +731,8 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="../../src/git2/lib.rs.html#658">self</a>, <a href="../../src/git2/util.rs.html#25">Binding</a>};
-<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/lib.rs.html#373">ConfigLevel</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="lib.rs.html#658">self</a>, <a href="util.rs.html#25">Binding</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="buf.rs.html#13">Buf</a>, <a href="lib.rs.html#373">ConfigLevel</a>, <a href="error.rs.html#12">Error</a>, <a href="util.rs.html#101">IntoCString</a>};
 
 <span class="doccomment">/// A structure representing a git configuration key/value store
 </span><span class="kw">pub struct </span>Config {
@@ -744,39 +744,39 @@
 /// An entry has a name, a value, and a level it applies to.
 </span><span class="kw">pub struct </span>ConfigEntry&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_config_entry.html">raw::git_config_entry</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cfg </span><a href="../../src/git2/config.rs.html#12">Config</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cfg </span><a href="#12">Config</a>&gt;,
     owned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
 <span class="doccomment">/// An iterator over the `ConfigEntry` values of a `Config` structure.
 </span><span class="kw">pub struct </span>ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config_iterator.html">raw::git_config_iterator</a>,
-    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cfg </span><a href="../../src/git2/config.rs.html#12">Config</a>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cfg </span><a href="#12">Config</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/git2/config.rs.html#12">Config</a> {
+<span class="kw">impl </span><a href="#12">Config</a> {
     <span class="doccomment">/// Allocate a new configuration object
     ///
     /// This object is empty, so you have to add a file to it before you can do
     /// anything with it.
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_new(<span class="kw-2">&amp;mut </span>raw));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#38">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_new(<span class="kw-2">&amp;mut </span>raw));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#38">raw</a>))
         }
     }
 
     <span class="doccomment">/// Create a new config instance containing a single on-disk file
-    </span><span class="kw">pub fn </span>open(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>open(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="comment">// Normal file path OK (does not need Windows conversion).
         </span><span class="kw">let </span>path = path.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_open_ondisk(<span class="kw-2">&amp;mut </span>raw, path));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#48">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_open_ondisk(<span class="kw-2">&amp;mut </span>raw, path));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#48">raw</a>))
         }
     }
 
@@ -785,12 +785,12 @@
     /// Utility wrapper that finds the global, XDG and system configuration
     /// files and opens them into a single prioritized config object that can
     /// be used when accessing default config data outside a repository.
-    </span><span class="kw">pub fn </span>open_default() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>open_default() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_open_default(<span class="kw-2">&amp;mut </span>raw));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#64">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_open_default(<span class="kw-2">&amp;mut </span>raw));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#64">raw</a>))
         }
     }
 
@@ -805,38 +805,38 @@
     ///
     /// This method will not guess the path to the xdg compatible config file
     /// (`.config/git/config`).
-    </span><span class="kw">pub fn </span>find_global() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>find_global() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>buf = Buf::new();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_find_global(buf.raw()));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_find_global(buf.raw()));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#84">buf</a>).to_path_buf())
+        <span class="prelude-val">Ok</span>(<a href="util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="#84">buf</a>).to_path_buf())
     }
 
     <span class="doccomment">/// Locate the path to the system configuration file
     ///
     /// If /etc/gitconfig doesn&#39;t exist, it will look for %PROGRAMFILES%
-    </span><span class="kw">pub fn </span>find_system() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>find_system() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>buf = Buf::new();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_find_system(buf.raw()));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_find_system(buf.raw()));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#96">buf</a>).to_path_buf())
+        <span class="prelude-val">Ok</span>(<a href="util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="#96">buf</a>).to_path_buf())
     }
 
     <span class="doccomment">/// Locate the path to the global xdg compatible configuration file
     ///
     /// The xdg compatible configuration file is usually located in
     /// `$HOME/.config/git/config`.
-    </span><span class="kw">pub fn </span>find_xdg() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    </span><span class="kw">pub fn </span>find_xdg() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="error.rs.html#12">Error</a>&gt; {
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">let </span>buf = Buf::new();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_find_xdg(buf.raw()));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_find_xdg(buf.raw()));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#109">buf</a>).to_path_buf())
+        <span class="prelude-val">Ok</span>(<a href="util.rs.html#87">util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="#109">buf</a>).to_path_buf())
     }
 
     <span class="doccomment">/// Add an on-disk config file instance to an existing config
@@ -848,11 +848,11 @@
     /// Further queries on this config object will access each of the config
     /// file instances in order (instances with a higher priority level will be
     /// accessed first).
-    </span><span class="kw">pub fn </span>add_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, level: <a href="../../src/git2/lib.rs.html#373">ConfigLevel</a>, force: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>add_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, level: <a href="lib.rs.html#373">ConfigLevel</a>, force: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="comment">// Normal file path OK (does not need Windows conversion).
         </span><span class="kw">let </span>path = path.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_add_file_ondisk(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_add_file_ondisk(
                 <span class="self">self</span>.raw,
                 path,
                 level,
@@ -865,10 +865,10 @@
 
     <span class="doccomment">/// Delete a config variable from the config file with the highest level
     /// (usually the local one).
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_delete_entry(<span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_delete_entry(<span class="self">self</span>.raw, name));
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -877,11 +877,11 @@
     /// local one).
     ///
     /// The regular expression is applied case-sensitively on the value.
-    </span><span class="kw">pub fn </span>remove_multivar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>remove_multivar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>regexp = CString::new(regexp)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_delete_multivar(<span class="self">self</span>.raw, name, regexp));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_delete_multivar(<span class="self">self</span>.raw, name, regexp));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -891,13 +891,13 @@
     /// All config files will be looked into, in the order of their defined
     /// level. A higher level means a higher priority. The first occurrence of
     /// the variable will be returned here.
-    </span><span class="kw">pub fn </span>get_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0 </span><span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_bool(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_bool(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#169">out</a> != <span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(<a href="#169">out</a> != <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Get the value of an integer config variable.
@@ -905,13 +905,13 @@
     /// All config files will be looked into, in the order of their defined
     /// level. A higher level means a higher priority. The first occurrence of
     /// the variable will be returned here.
-    </span><span class="kw">pub fn </span>get_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0i32</span>;
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_int32(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_int32(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#183">out</a>)
+        <span class="prelude-val">Ok</span>(<a href="#183">out</a>)
     }
 
     <span class="doccomment">/// Get the value of an integer config variable.
@@ -919,13 +919,13 @@
     /// All config files will be looked into, in the order of their defined
     /// level. A higher level means a higher priority. The first occurrence of
     /// the variable will be returned here.
-    </span><span class="kw">pub fn </span>get_i64(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_i64(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0i64</span>;
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_int64(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_int64(<span class="kw-2">&amp;mut </span>out, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#197">out</a>)
+        <span class="prelude-val">Ok</span>(<a href="#197">out</a>)
     }
 
     <span class="doccomment">/// Get the value of a string config variable.
@@ -934,7 +934,7 @@
     /// the bytes are not valid utf-8.
     ///
     /// This method will return an error if this `Config` is not a snapshot.
-    </span><span class="kw">pub fn </span>get_str(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_str(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="self">self</span>.get_bytes(name)<span class="question-mark">?</span>)
             .map_err(|<span class="kw">_</span>| Error::from_str(<span class="string">&quot;configuration value is not valid utf8&quot;</span>))
     }
@@ -942,12 +942,12 @@
     <span class="doccomment">/// Get the value of a string config variable as a byte slice.
     ///
     /// This method will return an error if this `Config` is not a snapshot.
-    </span><span class="kw">pub fn </span>get_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_string(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/config.rs.html#219">self</a>, <a href="../../src/git2/config.rs.html#220">ret</a>).unwrap())
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_string(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name));
+            <span class="prelude-val">Ok</span>(<a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#219">self</a>, <a href="#220">ret</a>).unwrap())
         }
     }
 
@@ -958,14 +958,14 @@
     /// first occurrence of the variable will be returned here.
     ///
     /// An error will be returned if the config value is not valid utf-8.
-    </span><span class="kw">pub fn </span>get_string(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_string(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>ret = Buf::new();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_string_buf(ret.raw(), <span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_string_buf(ret.raw(), <span class="self">self</span>.raw, name));
         }
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#236">ret</a>)
-            .map(|s| <a href="../../src/git2/config.rs.html#242">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#236">ret</a>)
+            .map(|s| <a href="#242">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             .map_err(|<span class="kw">_</span>| Error::from_str(<span class="string">&quot;configuration value is not valid utf8&quot;</span>))
     }
 
@@ -978,22 +978,22 @@
     /// All config files will be looked into, in the order of their
     /// defined level. A higher level means a higher priority. The
     /// first occurrence of the variable will be returned here.
-    </span><span class="kw">pub fn </span>get_path(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_path(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>ret = Buf::new();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_path(ret.raw(), <span class="self">self</span>.raw, name));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_path(ret.raw(), <span class="self">self</span>.raw, name));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#87"><span class="kw">crate</span>::util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/config.rs.html#256">ret</a>).to_path_buf())
+        <span class="prelude-val">Ok</span>(<a href="util.rs.html#87"><span class="kw">crate</span>::util::bytes2path</a>(<span class="kw-2">&amp;</span><a href="#256">ret</a>).to_path_buf())
     }
 
     <span class="doccomment">/// Get the ConfigEntry for a config variable.
-    </span><span class="kw">pub fn </span>get_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>get_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_get_entry(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw, name));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#266">ret</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_get_entry(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw, name));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#266">ret</a>))
         }
     }
 
@@ -1019,19 +1019,19 @@
     ///     println!(&quot;{} =&gt; {}&quot;, entry.name().unwrap(), entry.value().unwrap());
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>, glob: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntries&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>, glob: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntries&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <span class="kw">match </span><a href="../../src/git2/config.rs.html#296">glob</a> {
+            <span class="kw">match </span><a href="#296">glob</a> {
                 <span class="prelude-val">Some</span>(s) =&gt; {
                     <span class="kw">let </span>s = CString::new(s)<span class="question-mark">?</span>;
-                    <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_iterator_glob_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, s));
+                    <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_iterator_glob_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, s));
                 }
                 <span class="prelude-val">None </span>=&gt; {
-                    <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_iterator_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw));
+                    <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_iterator_new(<span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw));
                 }
             }
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#297">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#297">ret</a>))
         }
     }
 
@@ -1043,15 +1043,15 @@
     /// The regular expression is applied case-sensitively on the normalized form of
     /// the variable name: the section and variable parts are lower-cased. The
     /// subsection is left unchanged.
-    </span><span class="kw">pub fn </span>multivar(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntries&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>multivar(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ConfigEntries&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>regexp = regexp.map(CString::new).transpose()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_multivar_iterator_new(
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_multivar_iterator_new(
                 <span class="kw-2">&amp;mut </span>ret, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, name, regexp
             ));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#321">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#321">ret</a>))
         }
     }
 
@@ -1061,11 +1061,11 @@
     /// `$XDG_CONFIG_HOME/git/config`. For backwards compatability, the XDG file
     /// shouldn&#39;t be used unless the use has created it explicitly. With this
     /// function you&#39;ll open the correct one to write to.
-    </span><span class="kw">pub fn </span>open_global(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>open_global(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_open_global(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#339">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_open_global(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#339">raw</a>))
         }
     }
 
@@ -1073,40 +1073,40 @@
     ///
     /// The returned config object can be used to perform get/set/delete
     /// operations on a single specific level.
-    </span><span class="kw">pub fn </span>open_level(<span class="kw-2">&amp;</span><span class="self">self</span>, level: <a href="../../src/git2/lib.rs.html#373">ConfigLevel</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>open_level(<span class="kw-2">&amp;</span><span class="self">self</span>, level: <a href="lib.rs.html#373">ConfigLevel</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_open_level(<span class="kw-2">&amp;mut </span>raw, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, level));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#351">raw</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_open_level(<span class="kw-2">&amp;mut </span>raw, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw, level));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#351">raw</a>))
         }
     }
 
     <span class="doccomment">/// Set the value of a boolean config variable in the config file with the
     /// highest level (usually the local one).
-    </span><span class="kw">pub fn </span>set_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_set_bool(<span class="self">self</span>.raw, name, value));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_set_bool(<span class="self">self</span>.raw, name, value));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Set the value of an integer config variable in the config file with the
     /// highest level (usually the local one).
-    </span><span class="kw">pub fn </span>set_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_set_int32(<span class="self">self</span>.raw, name, value));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_set_int32(<span class="self">self</span>.raw, name, value));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Set the value of an integer config variable in the config file with the
     /// highest level (usually the local one).
-    </span><span class="kw">pub fn </span>set_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_set_int64(<span class="self">self</span>.raw, name, value));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_set_int64(<span class="self">self</span>.raw, name, value));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1115,23 +1115,23 @@
     /// highest level (usually the local one).
     ///
     /// The regular expression is applied case-sensitively on the value.
-    </span><span class="kw">pub fn </span>set_multivar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_multivar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, regexp: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>regexp = CString::new(regexp)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = CString::new(value)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_set_multivar(<span class="self">self</span>.raw, name, regexp, value));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_set_multivar(<span class="self">self</span>.raw, name, regexp, value));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Set the value of a string config variable in the config file with the
     /// highest level (usually the local one).
-    </span><span class="kw">pub fn </span>set_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>set_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = CString::new(value)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_set_string(<span class="self">self</span>.raw, name, value));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_set_string(<span class="self">self</span>.raw, name, value));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1141,11 +1141,11 @@
     /// Create a snapshot of the current state of a configuration, which allows
     /// you to look into a consistent view of the configuration for looking up
     /// complex values (e.g. a remote, submodule).
-    </span><span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/config.rs.html#12">Config</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#12">Config</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_snapshot(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw));
-            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/config.rs.html#419">ret</a>))
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_snapshot(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(<a href="util.rs.html#28">Binding::from_raw</a>(<a href="#419">ret</a>))
         }
     }
 
@@ -1153,54 +1153,54 @@
     ///
     /// Interprets &quot;true&quot;, &quot;yes&quot;, &quot;on&quot;, 1, or any non-zero number as true.
     /// Interprets &quot;false&quot;, &quot;no&quot;, &quot;off&quot;, 0, or an empty string as false.
-    </span><span class="kw">pub fn </span>parse_bool&lt;S: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>parse_bool&lt;S: <a href="util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>s = s.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_parse_bool(<span class="kw-2">&amp;mut </span>out, s));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_parse_bool(<span class="kw-2">&amp;mut </span>out, s));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#432">out</a> != <span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(<a href="#432">out</a> != <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Parse a string as an i32; handles suffixes like k, M, or G, and
     /// multiplies by the appropriate power of 1024.
-    </span><span class="kw">pub fn </span>parse_i32&lt;S: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>parse_i32&lt;S: <a href="util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>s = s.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_parse_int32(<span class="kw-2">&amp;mut </span>out, s));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_parse_int32(<span class="kw-2">&amp;mut </span>out, s));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#444">out</a>)
+        <span class="prelude-val">Ok</span>(<a href="#444">out</a>)
     }
 
     <span class="doccomment">/// Parse a string as an i64; handles suffixes like k, M, or G, and
     /// multiplies by the appropriate power of 1024.
-    </span><span class="kw">pub fn </span>parse_i64&lt;S: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+    </span><span class="kw">pub fn </span>parse_i64&lt;S: <a href="util.rs.html#101">IntoCString</a>&gt;(s: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a href="error.rs.html#12">Error</a>&gt; {
         <span class="kw">let </span>s = s.into_c_string()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
-        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <a href="lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_config_parse_int64(<span class="kw-2">&amp;mut </span>out, s));
+            <a class="macro" href="call.rs.html#12-19">try_call!</a>(raw::git_config_parse_int64(<span class="kw-2">&amp;mut </span>out, s));
         }
-        <span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#456">out</a>)
+        <span class="prelude-val">Ok</span>(<a href="#456">out</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/config.rs.html#12">Config</a> {
+<span class="kw">impl </span><a href="util.rs.html#25">Binding</a> <span class="kw">for </span><a href="#12">Config</a> {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config.html">raw::git_config</a>;
-    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config.html">raw::git_config</a>) -&gt; <a href="../../src/git2/config.rs.html#12">Config</a> {
-        <a href="../../src/git2/config.rs.html#12">Config</a> { <a href="../../src/git2/config.rs.html#467">raw</a> }
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config.html">raw::git_config</a>) -&gt; <a href="#12">Config</a> {
+        <a href="#12">Config</a> { <a href="#467">raw</a> }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config.html">raw::git_config</a> {
-        <a class="self" href="../../src/git2/config.rs.html#470">self</a>.raw
+        <a class="self" href="#470">self</a>.raw
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/config.rs.html#12">Config</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#12">Config</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_config_free(<a class="self" href="../../src/git2/config.rs.html#476">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_config_free(<a class="self" href="#476">self</a>.raw) }
     }
 }
 
@@ -1209,12 +1209,12 @@
     ///
     /// May return `None` if the name is not valid utf-8
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/config.rs.html#485">self</a>.<a href="../../src/git2/config.rs.html#490">name_bytes</a>()).ok()
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#485">self</a>.<a href="#490">name_bytes</a>()).ok()
     }
 
     <span class="doccomment">/// Gets the name of this entry as a byte slice.
     </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/config.rs.html#490">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/config.rs.html#490">self</a>.raw).name).unwrap() }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#490">self</a>, (<span class="kw-2">*</span><a class="self" href="#490">self</a>.raw).name).unwrap() }
     }
 
     <span class="doccomment">/// Gets the value of this entry.
@@ -1225,7 +1225,7 @@
     ///
     /// Panics when no value is defined.
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/config.rs.html#501">self</a>.<a href="../../src/git2/config.rs.html#510">value_bytes</a>()).ok()
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="#501">self</a>.<a href="#510">value_bytes</a>()).ok()
     }
 
     <span class="doccomment">/// Gets the value of this entry as a byte slice.
@@ -1234,53 +1234,53 @@
     ///
     /// Panics when no value is defined.
     </span><span class="kw">pub fn </span>value_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/config.rs.html#510">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/config.rs.html#510">self</a>.raw).value).unwrap() }
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="#510">self</a>, (<span class="kw-2">*</span><a class="self" href="#510">self</a>.raw).value).unwrap() }
     }
 
     <span class="doccomment">/// Returns `true` when a value is defined otherwise `false`.
     ///
     /// No value defined is a short-hand to represent a Boolean `true`.
     </span><span class="kw">pub fn </span>has_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ !(<span class="kw-2">*</span><a class="self" href="../../src/git2/config.rs.html#517">self</a>.raw).value.is_null() }
+        <span class="kw">unsafe </span>{ !(<span class="kw-2">*</span><a class="self" href="#517">self</a>.raw).value.is_null() }
     }
 
     <span class="doccomment">/// Gets the configuration level of this entry.
-    </span><span class="kw">pub fn </span>level(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/lib.rs.html#373">ConfigLevel</a> {
-        <span class="kw">unsafe </span>{ ConfigLevel::from_raw((<span class="kw-2">*</span><a class="self" href="../../src/git2/config.rs.html#522">self</a>.raw).level) }
+    </span><span class="kw">pub fn </span>level(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="lib.rs.html#373">ConfigLevel</a> {
+        <span class="kw">unsafe </span>{ ConfigLevel::from_raw((<span class="kw-2">*</span><a class="self" href="#522">self</a>.raw).level) }
     }
 
     <span class="doccomment">/// Depth of includes where this variable was found
     </span><span class="kw">pub fn </span>include_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/git2/config.rs.html#527">self</a>.raw).include_depth <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+        <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="#527">self</a>.raw).include_depth <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>ConfigEntry&lt;<span class="lifetime">&#39;cfg</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>ConfigEntry&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_config_entry.html">raw::git_config_entry</a>;
 
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_config_entry.html">raw::git_config_entry</a>) -&gt; ConfigEntry&lt;<span class="lifetime">&#39;cfg</span>&gt; {
-        <a href="../../src/git2/config.rs.html#19">ConfigEntry</a> {
-            <a href="../../src/git2/config.rs.html#535">raw</a>,
+        <a href="#19">ConfigEntry</a> {
+            <a href="#535">raw</a>,
             _marker: marker::PhantomData,
             owned: <span class="bool-val">true</span>,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_config_entry.html">raw::git_config_entry</a> {
-        <a class="self" href="../../src/git2/config.rs.html#542">self</a>.raw
+        <a class="self" href="#542">self</a>.raw
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="util.rs.html#25">Binding</a> <span class="kw">for </span>ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config_iterator.html">raw::git_config_iterator</a>;
 
     <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config_iterator.html">raw::git_config_iterator</a>) -&gt; ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
-        <a href="../../src/git2/config.rs.html#26">ConfigEntries</a> {
-            <a href="../../src/git2/config.rs.html#550">raw</a>,
+        <a href="#26">ConfigEntries</a> {
+            <a href="#550">raw</a>,
             _marker: marker::PhantomData,
         }
     }
     <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_config_iterator.html">raw::git_config_iterator</a> {
-        <a class="self" href="../../src/git2/config.rs.html#556">self</a>.raw
+        <a class="self" href="#556">self</a>.raw
     }
 }
 
@@ -1290,14 +1290,14 @@
 // It&#39;s also not implemented for `&amp;&#39;b mut T` so we can have multiple entries
 // (ok).
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>, <span class="lifetime">&#39;b</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;b</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;b</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;b</span>&gt;, <a href="error.rs.html#12">Error</a>&gt;;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;ConfigEntry&lt;<span class="lifetime">&#39;b</span>&gt;, <a href="error.rs.html#12">Error</a>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
         <span class="kw">unsafe </span>{
-            <a class="macro" href="../../src/git2/call.rs.html#21-29">try_call_iter!</a>(raw::git_config_next(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../src/git2/config.rs.html#19">ConfigEntry</a> {
+            <a class="macro" href="call.rs.html#21-29">try_call_iter!</a>(raw::git_config_next(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="#19">ConfigEntry</a> {
                 owned: <span class="bool-val">false</span>,
-                <a href="../../src/git2/config.rs.html#569">raw</a>,
+                <a href="#569">raw</a>,
                 _marker: marker::PhantomData,
             }))
         }
@@ -1306,14 +1306,14 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ConfigEntries&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ raw::git_config_iterator_free(<a class="self" href="../../src/git2/config.rs.html#582">self</a>.raw) }
+        <span class="kw">unsafe </span>{ raw::git_config_iterator_free(<a class="self" href="#582">self</a>.raw) }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;cfg</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ConfigEntry&lt;<span class="lifetime">&#39;cfg</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.owned {
-            <span class="kw">unsafe </span>{ raw::git_config_entry_free(<a class="self" href="../../src/git2/config.rs.html#588">self</a>.raw) }
+            <span class="kw">unsafe </span>{ raw::git_config_entry_free(<a class="self" href="#588">self</a>.raw) }
         }
     }
 }
@@ -1451,4 +1451,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

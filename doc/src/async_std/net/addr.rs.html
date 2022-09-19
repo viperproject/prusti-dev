@@ -291,9 +291,9 @@
 <span class="kw">use </span>std::net::{<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>, <a href="../../../async_std/net/struct.SocketAddrV4.html">SocketAddrV4</a>, <a href="../../../async_std/net/struct.SocketAddrV6.html">SocketAddrV6</a>};
 <span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use </span><a href="../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
-<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../src/async_std/task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
-<span class="kw">use </span><a href="../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as </span>ErrorContext;
+<span class="kw">use </span><a href="../lib.rs.html#307"><span class="kw">crate</span>::io</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>, <a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../task/join_handle.rs.html#15">JoinHandle</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as </span>ErrorContext;
 
 <span class="macro">cfg_not_docs! </span>{
     <span class="macro">macro_rules! </span>ret {
@@ -361,11 +361,11 @@
 <span class="doccomment">/// Wrap `std::io::Error` with additional message
 ///
 /// Keeps the original error kind and stores the original I/O error as `source`.
-</span><span class="kw">impl</span>&lt;T&gt; <a href="../../../src/async_std/utils.rs.html#58">ErrorContext</a> <span class="kw">for </span>ToSocketAddrsFuture&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; <a href="../utils.rs.html#58">ErrorContext</a> <span class="kw">for </span>ToSocketAddrsFuture&lt;T&gt; {
     <span class="kw">fn </span>context(<span class="self">self</span>, message: <span class="kw">impl </span>Fn() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="../../../src/async_std/net/addr.rs.html#78">self</a> </span>{
-            <a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(res) =&gt; <a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<a href="../../../src/async_std/net/addr.rs.html#80">res</a>.<a href="../../../src/async_std/utils.rs.html#59">context</a>(<a href="../../../src/async_std/net/addr.rs.html#78">message</a>)),
-            x =&gt; <a href="../../../src/async_std/net/addr.rs.html#81">x</a>,
+        <span class="kw">match </span><span class="self"><a href="#78">self</a> </span>{
+            <a href="#67">ToSocketAddrsFuture::Ready</a>(res) =&gt; <a href="#67">ToSocketAddrsFuture::Ready</a>(<a href="#80">res</a>.<a href="../utils.rs.html#59">context</a>(<a href="#78">message</a>)),
+            x =&gt; <a href="#81">x</a>,
         }
     }
 }
@@ -374,24 +374,24 @@
     <span class="kw">type </span>Output = io::Result&lt;I&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <a class="self" href="../../../src/async_std/net/addr.rs.html#89">self</a>.get_mut();
-        <span class="kw">let </span>state = mem::replace(<a href="../../../src/async_std/net/addr.rs.html#90">this</a>, <a href="../../../src/async_std/net/addr.rs.html#68">ToSocketAddrsFuture::Done</a>);
+        <span class="kw">let </span>this = <a class="self" href="#89">self</a>.get_mut();
+        <span class="kw">let </span>state = mem::replace(<a href="#90">this</a>, <a href="#68">ToSocketAddrsFuture::Done</a>);
 
-        <span class="kw">match </span><a href="../../../src/async_std/net/addr.rs.html#91">state</a> {
-            <a href="../../../src/async_std/net/addr.rs.html#66">ToSocketAddrsFuture::Resolving</a>(<span class="kw-2">mut </span>task) =&gt; {
-                <span class="kw">let </span>poll = Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/async_std/net/addr.rs.html#94">task</a>).<a href="../../../async_std/future/trait.Future.html">poll</a>(<a href="../../../src/async_std/net/addr.rs.html#89">cx</a>);
+        <span class="kw">match </span><a href="#91">state</a> {
+            <a href="#66">ToSocketAddrsFuture::Resolving</a>(<span class="kw-2">mut </span>task) =&gt; {
+                <span class="kw">let </span>poll = Pin::new(<span class="kw-2">&amp;mut </span><a href="#94">task</a>).<a href="../../../async_std/future/trait.Future.html">poll</a>(<a href="#89">cx</a>);
                 <span class="kw">if </span>poll.is_pending() {
-                    <span class="kw-2">*</span><a href="../../../src/async_std/net/addr.rs.html#90">this</a> = <a href="../../../src/async_std/net/addr.rs.html#66">ToSocketAddrsFuture::Resolving</a>(<a href="../../../src/async_std/net/addr.rs.html#94">task</a>);
+                    <span class="kw-2">*</span><a href="#90">this</a> = <a href="#66">ToSocketAddrsFuture::Resolving</a>(<a href="#94">task</a>);
                 }
-                <a href="../../../src/async_std/net/addr.rs.html#95">poll</a>
+                <a href="#95">poll</a>
             }
-            <a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(res) =&gt; Poll::Ready(<a href="../../../src/async_std/net/addr.rs.html#101">res</a>),
-            <a href="../../../src/async_std/net/addr.rs.html#68">ToSocketAddrsFuture::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled a completed future&quot;</span>),
+            <a href="#67">ToSocketAddrsFuture::Ready</a>(res) =&gt; Poll::Ready(<a href="#101">res</a>),
+            <a href="#68">ToSocketAddrsFuture::Done</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;polled a completed future&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a> {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a> {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -400,11 +400,11 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#111">self</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()))
+        <a href="#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><a class="self" href="#111">self</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()))
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/struct.SocketAddrV4.html">SocketAddrV4</a> {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/struct.SocketAddrV4.html">SocketAddrV4</a> {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -413,13 +413,13 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        SocketAddr::V4(<span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#124">self</a>)
-            .<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
-            .<a href="../../../src/async_std/utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{}`&quot;</span>, <span class="self">self</span>))
+        SocketAddr::V4(<span class="kw-2">*</span><a class="self" href="#124">self</a>)
+            .<a href="#55-60">to_socket_addrs</a>()
+            .<a href="../utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{}`&quot;</span>, <span class="self">self</span>))
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/struct.SocketAddrV6.html">SocketAddrV6</a> {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span><a href="../../../async_std/net/struct.SocketAddrV6.html">SocketAddrV6</a> {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -428,13 +428,13 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        SocketAddr::V6(<span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#139">self</a>)
-            .<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
-            .<a href="../../../src/async_std/utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{}`&quot;</span>, <span class="self">self</span>))
+        SocketAddr::V6(<span class="kw-2">*</span><a class="self" href="#139">self</a>)
+            .<a href="#55-60">to_socket_addrs</a>()
+            .<a href="../utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{}`&quot;</span>, <span class="self">self</span>))
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/enum.IpAddr.html">IpAddr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/enum.IpAddr.html">IpAddr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -443,15 +443,15 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#154">self</a>;
-        <span class="kw">match </span><a href="../../../src/async_std/net/addr.rs.html#159">ip</a> {
-            IpAddr::V4(a) =&gt; (<a href="../../../src/async_std/net/addr.rs.html#161">a</a>, <a href="../../../src/async_std/net/addr.rs.html#159">port</a>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>(),
-            IpAddr::V6(a) =&gt; (<a href="../../../src/async_std/net/addr.rs.html#162">a</a>, <a href="../../../src/async_std/net/addr.rs.html#159">port</a>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>(),
+        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="#154">self</a>;
+        <span class="kw">match </span><a href="#159">ip</a> {
+            IpAddr::V4(a) =&gt; (<a href="#161">a</a>, <a href="#159">port</a>).<a href="#55-60">to_socket_addrs</a>(),
+            IpAddr::V6(a) =&gt; (<a href="#162">a</a>, <a href="#159">port</a>).<a href="#55-60">to_socket_addrs</a>(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -460,12 +460,12 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#171">self</a>;
-        SocketAddrV4::new(<a href="../../../src/async_std/net/addr.rs.html#176">ip</a>, <a href="../../../src/async_std/net/addr.rs.html#176">port</a>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
+        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="#171">self</a>;
+        SocketAddrV4::new(<a href="#176">ip</a>, <a href="#176">port</a>).<a href="#55-60">to_socket_addrs</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span>(<a href="../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
     <span class="kw">type </span>Iter = std::option::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -474,12 +474,12 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#185">self</a>;
-        SocketAddrV6::new(<a href="../../../src/async_std/net/addr.rs.html#190">ip</a>, <a href="../../../src/async_std/net/addr.rs.html#190">port</a>, <span class="number">0</span>, <span class="number">0</span>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
+        <span class="kw">let </span>(ip, port) = <span class="kw-2">*</span><a class="self" href="#185">self</a>;
+        SocketAddrV6::new(<a href="#190">ip</a>, <a href="#190">port</a>, <span class="number">0</span>, <span class="number">0</span>).<a href="#55-60">to_socket_addrs</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span>(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span>(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
     <span class="kw">type </span>Iter = std::vec::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -488,29 +488,29 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <span class="kw">let </span>(host, port) = <span class="kw-2">*</span><a class="self" href="../../../src/async_std/net/addr.rs.html#199">self</a>;
+        <span class="kw">let </span>(host, port) = <span class="kw-2">*</span><a class="self" href="#199">self</a>;
 
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a href="../../../src/async_std/net/addr.rs.html#204">host</a>.parse::&lt;<a href="../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>&gt;() {
-            <span class="kw">let </span>addr = SocketAddrV4::new(<a href="../../../src/async_std/net/addr.rs.html#206">addr</a>, <a href="../../../src/async_std/net/addr.rs.html#204">port</a>);
-            <span class="kw">return </span><a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SocketAddr::V4(addr)].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a href="#204">host</a>.parse::&lt;<a href="../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>&gt;() {
+            <span class="kw">let </span>addr = SocketAddrV4::new(<a href="#206">addr</a>, <a href="#204">port</a>);
+            <span class="kw">return </span><a href="#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SocketAddr::V4(addr)].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a href="../../../src/async_std/net/addr.rs.html#204">host</a>.parse::&lt;<a href="../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>&gt;() {
-            <span class="kw">let </span>addr = SocketAddrV6::new(<a href="../../../src/async_std/net/addr.rs.html#211">addr</a>, <a href="../../../src/async_std/net/addr.rs.html#204">port</a>, <span class="number">0</span>, <span class="number">0</span>);
-            <span class="kw">return </span><a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SocketAddr::V6(addr)].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a href="#204">host</a>.parse::&lt;<a href="../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>&gt;() {
+            <span class="kw">let </span>addr = SocketAddrV6::new(<a href="#211">addr</a>, <a href="#204">port</a>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return </span><a href="#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SocketAddr::V6(addr)].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
         }
 
-        <span class="kw">let </span>host = <a href="../../../src/async_std/net/addr.rs.html#204">host</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>task = <a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-            <span class="kw">let </span>addr = (<a href="../../../src/async_std/net/addr.rs.html#216">host</a>.as_str(), <a href="../../../src/async_std/net/addr.rs.html#204">port</a>);
-            <a href="https://doc.rust-lang.org/nightly/std/net/addr/trait.ToSocketAddrs.html">std::net::ToSocketAddrs::to_socket_addrs</a>(<span class="kw-2">&amp;</span><a href="../../../src/async_std/net/addr.rs.html#218">addr</a>)
-                .<a href="../../../src/async_std/utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{:?}`&quot;</span>, addr))
+        <span class="kw">let </span>host = <a href="#204">host</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>task = <a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
+            <span class="kw">let </span>addr = (<a href="#216">host</a>.as_str(), <a href="#204">port</a>);
+            <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/trait.ToSocketAddrs.html">std::net::ToSocketAddrs::to_socket_addrs</a>(<span class="kw-2">&amp;</span><a href="#218">addr</a>)
+                .<a href="../utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{:?}`&quot;</span>, addr))
         });
-        <a href="../../../src/async_std/net/addr.rs.html#66">ToSocketAddrsFuture::Resolving</a>(<a href="../../../src/async_std/net/addr.rs.html#217">task</a>)
+        <a href="#66">ToSocketAddrsFuture::Resolving</a>(<a href="#217">task</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="kw">type </span>Iter = std::vec::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -519,20 +519,20 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a class="self" href="../../../src/async_std/net/addr.rs.html#230">self</a>.parse() {
-            <span class="kw">return </span><a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[addr].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a class="self" href="#230">self</a>.parse() {
+            <span class="kw">return </span><a href="#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[addr].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()));
         }
 
-        <span class="kw">let </span>addr = <a class="self" href="../../../src/async_std/net/addr.rs.html#230">self</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>task = <a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
-            <a href="https://doc.rust-lang.org/nightly/std/net/addr/trait.ToSocketAddrs.html">std::net::ToSocketAddrs::to_socket_addrs</a>(<a href="../../../src/async_std/net/addr.rs.html#239">addr</a>.as_str())
-                .<a href="../../../src/async_std/utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{:?}`&quot;</span>, addr))
+        <span class="kw">let </span>addr = <a class="self" href="#230">self</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>task = <a href="../task/spawn_blocking.rs.html#31-34">spawn_blocking</a>(<span class="kw">move </span>|| {
+            <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/trait.ToSocketAddrs.html">std::net::ToSocketAddrs::to_socket_addrs</a>(<a href="#239">addr</a>.as_str())
+                .<a href="../utils.rs.html#59">context</a>(|| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;could not resolve address `{:?}`&quot;</span>, addr))
         });
-        <a href="../../../src/async_std/net/addr.rs.html#66">ToSocketAddrsFuture::Resolving</a>(<a href="../../../src/async_std/net/addr.rs.html#240">task</a>)
+        <a href="#66">ToSocketAddrsFuture::Resolving</a>(<a href="#240">task</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>] {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="#45">ToSocketAddrs</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>] {
     <span class="kw">type </span>Iter = std::iter::Cloned&lt;std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, <a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -541,11 +541,11 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        <a href="../../../src/async_std/net/addr.rs.html#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../src/async_std/net/addr.rs.html#252">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()))
+        <a href="#67">ToSocketAddrsFuture::Ready</a>(<span class="prelude-val">Ok</span>(<a class="self" href="#252">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()))
     }
 }
 
-<span class="kw">impl</span>&lt;T: <a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><span class="kw-2">&amp;</span>T {
+<span class="kw">impl</span>&lt;T: <a href="#45">ToSocketAddrs</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="#45">ToSocketAddrs</a> <span class="kw">for </span><span class="kw-2">&amp;</span>T {
     <span class="kw">type </span>Iter = T::Iter;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -554,11 +554,11 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        (<span class="kw-2">**</span><a class="self" href="../../../src/async_std/net/addr.rs.html#265">self</a>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
+        (<span class="kw-2">**</span><a class="self" href="#265">self</a>).<a href="#55-60">to_socket_addrs</a>()
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">impl </span><a href="#45">ToSocketAddrs</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">type </span>Iter = std::vec::IntoIter&lt;<a href="../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt;;
 
     <span class="kw">fn </span>to_socket_addrs(
@@ -567,8 +567,8 @@
         <span class="kw">impl </span>Future&lt;Output = <span class="self">Self</span>::Iter&gt;,
         ToSocketAddrsFuture&lt;<span class="self">Self</span>::Iter&gt;
     ) {
-        (<span class="kw-2">&amp;**</span><a class="self" href="../../../src/async_std/net/addr.rs.html#278">self</a>).<a href="../../../src/async_std/net/addr.rs.html#55-60">to_socket_addrs</a>()
+        (<span class="kw-2">&amp;**</span><a class="self" href="#278">self</a>).<a href="#55-60">to_socket_addrs</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -90,8 +90,8 @@
 <span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high};
 
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#23">mir::types::MirTypeEncoderInterface</a>,
+    errors::{<a href="../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>},
+    <a href="../types/interface.rs.html#23">mir::types::MirTypeEncoderInterface</a>,
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ConstantsEncoderInterface&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -108,12 +108,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         constant: <span class="kw-2">&amp;</span>mir::Constant&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <span class="kw">let </span>mir_type = <a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#22">constant</a>.ty();
+        <span class="kw">let </span>mir_type = <a href="#22">constant</a>.ty();
         <span class="kw">let _ </span>= <span class="self">self</span>.encode_type_high(mir_type)<span class="question-mark">?</span>; <span class="comment">// Trigger encoding of the type.
                                                   // FIXME: encode_snapshot_constant also handled non literal constants
-        </span><span class="kw">let </span>scalar_value = || <a class="self" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#21">self</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#298-301">const_eval_intlike</a>(<a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#22">constant</a>.literal);
+        </span><span class="kw">let </span>scalar_value = || <a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#310-313">const_eval_intlike</a>(<a href="#22">constant</a>.literal);
 
-        <span class="kw">let </span>expr = <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#24">mir_type</a>.kind() {
+        <span class="kw">let </span>expr = <span class="kw">match </span><a href="#24">mir_type</a>.kind() {
             ty::TyKind::Bool =&gt; scalar_value()<span class="question-mark">?</span>.to_bool().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Char =&gt; scalar_value()<span class="question-mark">?</span>.to_char().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Int(ty::IntTy::I8) =&gt; scalar_value()<span class="question-mark">?</span>.to_i8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
@@ -123,11 +123,11 @@
             ty::TyKind::Int(ty::IntTy::I128) =&gt; scalar_value()<span class="question-mark">?</span>.to_i128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Int(ty::IntTy::Isize) =&gt; {
                 <span class="kw">let </span>number: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> = scalar_value()<span class="question-mark">?
-                    </span>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#21">self</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().tcx())
+                    </span>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#223">env</a>().tcx())
                     .unwrap()
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                     .unwrap();
-                <a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#38">number</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                <a href="#38">number</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
             }
             ty::TyKind::Uint(ty::UintTy::U8) =&gt; scalar_value()<span class="question-mark">?</span>.to_u8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Uint(ty::UintTy::U16) =&gt; scalar_value()<span class="question-mark">?</span>.to_u16().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
@@ -136,23 +136,23 @@
             ty::TyKind::Uint(ty::UintTy::U128) =&gt; scalar_value()<span class="question-mark">?</span>.to_u128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Uint(ty::UintTy::Usize) =&gt; {
                 <span class="kw">let </span>number: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = scalar_value()<span class="question-mark">?
-                    </span>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#21">self</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#223">env</a>().tcx())
+                    </span>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#223">env</a>().tcx())
                     .unwrap()
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                     .unwrap();
-                <a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#51">number</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                <a href="#51">number</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
             }
             ty::TyKind::FnDef(def_id, <span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.encode_spec_funcs(<span class="kw-2">*</span>def_id)<span class="question-mark">?</span>;
                 <span class="kw">let </span>ty = <span class="self">self</span>.encode_type_high(mir_type)<span class="question-mark">?</span>;
                 vir_high::Expression::constant_no_pos(
                     vir_high::expression::ConstantValue::FnPtr,
-                    <a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#60">ty</a>,
+                    <a href="#60">ty</a>,
                 )
             }
-            ty::TyKind::Tuple(elements) <span class="kw">if </span><a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#66">elements</a>.is_empty() =&gt; {
+            ty::TyKind::Tuple(elements) <span class="kw">if </span><a href="#66">elements</a>.is_empty() =&gt; {
                 <span class="kw">let </span>ty = <span class="self">self</span>.encode_type_high(mir_type)<span class="question-mark">?</span>;
-                vir_high::Expression::constructor_no_pos(<a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#67">ty</a>, Vec::new())
+                vir_high::Expression::constructor_no_pos(<a href="#67">ty</a>, Vec::new())
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
@@ -162,15 +162,15 @@
             }
         };
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encode_const_expr {:?} --&gt; {:?}&quot;</span>, constant.literal, expr);
-        <span class="prelude-val">Ok</span>(<a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#29">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="#29">expr</a>)
     }
 
     <span class="kw">fn </span>compute_array_len(<span class="kw-2">&amp;</span><span class="self">self</span>, size: ty::Const&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#81">self</a>.<a href="../../../../../src/prusti_viper/encoder/encoder.rs.html#298-301">const_eval_intlike</a>(mir::ConstantKind::Ty(<a href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#81">size</a>))
+        <a class="self" href="#81">self</a>.<a href="../../encoder.rs.html#310-313">const_eval_intlike</a>(mir::ConstantKind::Ty(<a href="#81">size</a>))
             .unwrap()
             .to_u64()
             .unwrap()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

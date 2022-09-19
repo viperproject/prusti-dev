@@ -144,8 +144,8 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/hashbrown/raw/bitmask.rs.html#17"><span class="kw">super</span>::bitmask::BitMask</a>;
-<span class="kw">use </span><a href="../../../src/hashbrown/raw/mod.rs.html#105"><span class="kw">super</span>::EMPTY</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="bitmask.rs.html#17"><span class="kw">super</span>::bitmask::BitMask</a>;
+<span class="kw">use </span><a href="mod.rs.html#105"><span class="kw">super</span>::EMPTY</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 
 <span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
@@ -155,7 +155,7 @@
 
 <span class="kw">pub type </span>BitMaskWord = <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
 <span class="kw">pub const </span>BITMASK_STRIDE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
-<span class="kw">pub const </span>BITMASK_MASK: <a href="../../../src/hashbrown/raw/sse2.rs.html#10">BitMaskWord</a> = <span class="number">0xffff</span>;
+<span class="kw">pub const </span>BITMASK_MASK: <a href="#10">BitMaskWord</a> = <span class="number">0xffff</span>;
 
 <span class="doccomment">/// Abstraction over a group of control bytes which can be scanned in
 /// parallel.
@@ -166,7 +166,7 @@
 
 <span class="comment">// FIXME: https://github.com/rust-lang/rust-clippy/issues/3859
 </span><span class="attribute">#[allow(clippy::use_self)]
-</span><span class="kw">impl </span><a href="../../../src/hashbrown/raw/sse2.rs.html#19">Group</a> {
+</span><span class="kw">impl </span><a href="#19">Group</a> {
     <span class="doccomment">/// Number of bytes in the group.
     </span><span class="kw">pub const </span>WIDTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = mem::size_of::&lt;<span class="self">Self</span>&gt;();
 
@@ -179,21 +179,21 @@
     </span><span class="kw">pub const fn </span>static_empty() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; Group::WIDTH] {
         <span class="attribute">#[repr(C)]
         </span><span class="kw">struct </span>AlignedBytes {
-            _align: [<a href="../../../src/hashbrown/raw/sse2.rs.html#19">Group</a>; <span class="number">0</span>],
+            _align: [<a href="#19">Group</a>; <span class="number">0</span>],
             bytes: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; Group::WIDTH],
         }
-        <span class="kw">const </span>ALIGNED_BYTES: <a href="../../../src/hashbrown/raw/sse2.rs.html#35">AlignedBytes</a> = <a href="../../../src/hashbrown/raw/sse2.rs.html#35">AlignedBytes</a> {
+        <span class="kw">const </span>ALIGNED_BYTES: <a href="#35">AlignedBytes</a> = <a href="#35">AlignedBytes</a> {
             _align: [],
-            bytes: [<a href="../../../src/hashbrown/raw/mod.rs.html#105">EMPTY</a>; Group::WIDTH],
+            bytes: [<a href="mod.rs.html#105">EMPTY</a>; Group::WIDTH],
         };
-        <span class="kw-2">&amp;</span><a href="../../../src/hashbrown/raw/sse2.rs.html#39">ALIGNED_BYTES</a>.bytes
+        <span class="kw-2">&amp;</span><a href="#39">ALIGNED_BYTES</a>.bytes
     }
 
     <span class="doccomment">/// Loads a group of bytes starting at the given address.
     </span><span class="attribute">#[inline]
     #[allow(clippy::cast_ptr_alignment)] </span><span class="comment">// unaligned load
     </span><span class="kw">pub unsafe fn </span>load(ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../../src/hashbrown/raw/sse2.rs.html#19">Group</a>(x86::_mm_loadu_si128(<a href="../../../src/hashbrown/raw/sse2.rs.html#49">ptr</a>.cast()))
+        <a href="#19">Group</a>(x86::_mm_loadu_si128(<a href="#49">ptr</a>.cast()))
     }
 
     <span class="doccomment">/// Loads a group of bytes starting at the given address, which must be
@@ -203,7 +203,7 @@
     </span><span class="kw">pub unsafe fn </span>load_aligned(ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// FIXME: use align_offset once it stabilizes
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ptr <span class="kw">as </span>usize &amp; (mem::align_of::&lt;<span class="self">Self</span>&gt;() - <span class="number">1</span>), <span class="number">0</span>);
-        <a href="../../../src/hashbrown/raw/sse2.rs.html#19">Group</a>(x86::_mm_load_si128(<a href="../../../src/hashbrown/raw/sse2.rs.html#57">ptr</a>.cast()))
+        <a href="#19">Group</a>(x86::_mm_load_si128(<a href="#57">ptr</a>.cast()))
     }
 
     <span class="doccomment">/// Stores the group of bytes to the given address, which must be
@@ -213,13 +213,13 @@
     </span><span class="kw">pub unsafe fn </span>store_aligned(<span class="self">self</span>, ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
         <span class="comment">// FIXME: use align_offset once it stabilizes
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ptr <span class="kw">as </span>usize &amp; (mem::align_of::&lt;<span class="self">Self</span>&gt;() - <span class="number">1</span>), <span class="number">0</span>);
-        x86::_mm_store_si128(<a href="../../../src/hashbrown/raw/sse2.rs.html#67">ptr</a>.cast(), <a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#67">self</a>.<span class="number">0</span>);
+        x86::_mm_store_si128(<a href="#67">ptr</a>.cast(), <a class="self" href="#67">self</a>.<span class="number">0</span>);
     }
 
     <span class="doccomment">/// Returns a `BitMask` indicating all bytes in the group which have
     /// the given value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>match_byte(<span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
+    </span><span class="kw">pub fn </span>match_byte(<span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="bitmask.rs.html#17">BitMask</a> {
         <span class="attribute">#[allow(
             clippy::cast_possible_wrap, <span class="comment">// byte: u8 as i8
             // byte: i32 as u16
@@ -229,22 +229,22 @@
             clippy::cast_possible_truncation
         )]
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>cmp = x86::_mm_cmpeq_epi8(<a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#76">self</a>.<span class="number">0</span>, x86::_mm_set1_epi8(<a href="../../../src/hashbrown/raw/sse2.rs.html#76">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>));
-            <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a>(x86::_mm_movemask_epi8(<a href="../../../src/hashbrown/raw/sse2.rs.html#86">cmp</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+            <span class="kw">let </span>cmp = x86::_mm_cmpeq_epi8(<a class="self" href="#76">self</a>.<span class="number">0</span>, x86::_mm_set1_epi8(<a href="#76">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>));
+            <a href="bitmask.rs.html#17">BitMask</a>(x86::_mm_movemask_epi8(<a href="#86">cmp</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
         }
     }
 
     <span class="doccomment">/// Returns a `BitMask` indicating all bytes in the group which are
     /// `EMPTY`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>match_empty(<span class="self">self</span>) -&gt; <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
-        <a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#94">self</a>.<a href="../../../src/hashbrown/raw/sse2.rs.html#76">match_byte</a>(<a href="../../../src/hashbrown/raw/mod.rs.html#105">EMPTY</a>)
+    </span><span class="kw">pub fn </span>match_empty(<span class="self">self</span>) -&gt; <a href="bitmask.rs.html#17">BitMask</a> {
+        <a class="self" href="#94">self</a>.<a href="#76">match_byte</a>(<a href="mod.rs.html#105">EMPTY</a>)
     }
 
     <span class="doccomment">/// Returns a `BitMask` indicating all bytes in the group which are
     /// `EMPTY` or `DELETED`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>match_empty_or_deleted(<span class="self">self</span>) -&gt; <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
+    </span><span class="kw">pub fn </span>match_empty_or_deleted(<span class="self">self</span>) -&gt; <a href="bitmask.rs.html#17">BitMask</a> {
         <span class="attribute">#[allow(
             <span class="comment">// byte: i32 as u16
             //   note: _mm_movemask_epi8 returns a 16-bit mask in a i32, the
@@ -254,14 +254,14 @@
         )]
         </span><span class="kw">unsafe </span>{
             <span class="comment">// A byte is EMPTY or DELETED iff the high bit is set
-            </span><a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a>(x86::_mm_movemask_epi8(<a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#101">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+            </span><a href="bitmask.rs.html#17">BitMask</a>(x86::_mm_movemask_epi8(<a class="self" href="#101">self</a>.<span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
         }
     }
 
     <span class="doccomment">/// Returns a `BitMask` indicating all bytes in the group which are full.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>match_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/hashbrown/raw/bitmask.rs.html#17">BitMask</a> {
-        <a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#117">self</a>.<a href="../../../src/hashbrown/raw/sse2.rs.html#101">match_empty_or_deleted</a>().<a href="../../../src/hashbrown/raw/bitmask.rs.html#24">invert</a>()
+    </span><span class="kw">pub fn </span>match_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="bitmask.rs.html#17">BitMask</a> {
+        <a class="self" href="#117">self</a>.<a href="#101">match_empty_or_deleted</a>().<a href="bitmask.rs.html#24">invert</a>()
     }
 
     <span class="doccomment">/// Performs the following transformation on all bytes in the group:
@@ -282,13 +282,13 @@
         </span>)]
         </span><span class="kw">unsafe </span>{
             <span class="kw">let </span>zero = x86::_mm_setzero_si128();
-            <span class="kw">let </span>special = x86::_mm_cmpgt_epi8(<a href="../../../src/hashbrown/raw/sse2.rs.html#138">zero</a>, <a class="self" href="../../../src/hashbrown/raw/sse2.rs.html#126">self</a>.<span class="number">0</span>);
-            <a href="../../../src/hashbrown/raw/sse2.rs.html#19">Group</a>(x86::_mm_or_si128(
-                <a href="../../../src/hashbrown/raw/sse2.rs.html#139">special</a>,
+            <span class="kw">let </span>special = x86::_mm_cmpgt_epi8(<a href="#138">zero</a>, <a class="self" href="#126">self</a>.<span class="number">0</span>);
+            <a href="#19">Group</a>(x86::_mm_or_si128(
+                <a href="#139">special</a>,
                 x86::_mm_set1_epi8(<span class="number">0x80_u8 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>),
             ))
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

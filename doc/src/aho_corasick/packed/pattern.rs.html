@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/packed/pattern.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pattern.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/packed/pattern.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pattern.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -322,7 +322,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/u16/index.html">std::u16</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/usize/index.html">std::usize</a>;
 
-<span class="kw">use </span><a href="../../../src/aho_corasick/packed/api.rs.html#29"><span class="kw">crate</span>::packed::api::MatchKind</a>;
+<span class="kw">use </span><a href="api.rs.html#29"><span class="kw">crate</span>::packed::api::MatchKind</a>;
 
 <span class="doccomment">/// The type used for representing a pattern identifier.
 ///
@@ -348,25 +348,25 @@
     /// provided by the caller. For leftmost-longest, patterns are provided in
     /// descending order of length, with ties broken by the order in which they
     /// were provided by the caller.
-    </span>kind: <a href="../../../src/aho_corasick/packed/api.rs.html#29">MatchKind</a>,
+    </span>kind: <a href="api.rs.html#29">MatchKind</a>,
     <span class="doccomment">/// The collection of patterns, indexed by their identifier.
     </span>by_id: Vec&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
     <span class="doccomment">/// The order of patterns defined for iteration, given by pattern
     /// identifiers. The order of `by_id` and `order` is always the same for
     /// leftmost-first semantics, but may be different for leftmost-longest
     /// semantics.
-    </span>order: Vec&lt;<a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>&gt;,
+    </span>order: Vec&lt;<a href="#13">PatternID</a>&gt;,
     <span class="doccomment">/// The length of the smallest pattern, in bytes.
     </span>minimum_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// The largest pattern identifier. This should always be equivalent to
     /// the number of patterns minus one in this collection.
-    </span>max_pattern_id: <a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>,
+    </span>max_pattern_id: <a href="#13">PatternID</a>,
     <span class="doccomment">/// The total number of pattern bytes across the entire collection. This
     /// is used for reporting total heap usage in constant time.
     </span>total_pattern_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/aho_corasick/packed/pattern.rs.html#25">Patterns</a> {
+<span class="kw">impl </span><a href="#25">Patterns</a> {
     <span class="doccomment">/// Create a new collection of patterns for the given match semantics. The
     /// ID of each pattern is the index of the pattern at which it occurs in
     /// the `by_id` slice.
@@ -374,8 +374,8 @@
     /// If any of the patterns in the slice given are empty, then this panics.
     /// Similarly, if the number of patterns given is zero, then this also
     /// panics.
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/aho_corasick/packed/pattern.rs.html#25">Patterns</a> {
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#25">Patterns</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#25">Patterns</a> {
+        <a href="#25">Patterns</a> {
             kind: MatchKind::default(),
             by_id: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             order: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
@@ -392,32 +392,32 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!bytes.is_empty());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.by_id.len() &lt;= u16::MAX <span class="kw">as </span>usize);
 
-        <span class="kw">let </span>id = <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.by_id.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.max_pattern_id = <a href="../../../src/aho_corasick/packed/pattern.rs.html#77">id</a>;
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.order.push(<a href="../../../src/aho_corasick/packed/pattern.rs.html#77">id</a>);
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.by_id.push(<a href="../../../src/aho_corasick/packed/pattern.rs.html#73">bytes</a>.to_vec());
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.minimum_len = cmp::min(<a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.minimum_len, <a href="../../../src/aho_corasick/packed/pattern.rs.html#73">bytes</a>.len());
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#73">self</a>.total_pattern_bytes += <a href="../../../src/aho_corasick/packed/pattern.rs.html#73">bytes</a>.len();
+        <span class="kw">let </span>id = <a class="self" href="#73">self</a>.by_id.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+        <a class="self" href="#73">self</a>.max_pattern_id = <a href="#77">id</a>;
+        <a class="self" href="#73">self</a>.order.push(<a href="#77">id</a>);
+        <a class="self" href="#73">self</a>.by_id.push(<a href="#73">bytes</a>.to_vec());
+        <a class="self" href="#73">self</a>.minimum_len = cmp::min(<a class="self" href="#73">self</a>.minimum_len, <a href="#73">bytes</a>.len());
+        <a class="self" href="#73">self</a>.total_pattern_bytes += <a href="#73">bytes</a>.len();
     }
 
     <span class="doccomment">/// Set the match kind semantics for this collection of patterns.
     ///
     /// If the kind is not set, then the default is leftmost-first.
-    </span><span class="kw">pub fn </span>set_match_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="../../../src/aho_corasick/packed/api.rs.html#29">MatchKind</a>) {
-        <span class="kw">match </span><a href="../../../src/aho_corasick/packed/pattern.rs.html#88">kind</a> {
-            <a href="../../../src/aho_corasick/packed/api.rs.html#36">MatchKind::LeftmostFirst</a> =&gt; {
-                <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#88">self</a>.order.sort();
+    </span><span class="kw">pub fn </span>set_match_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="api.rs.html#29">MatchKind</a>) {
+        <span class="kw">match </span><a href="#88">kind</a> {
+            <a href="api.rs.html#36">MatchKind::LeftmostFirst</a> =&gt; {
+                <a class="self" href="#88">self</a>.order.sort();
             }
-            <a href="../../../src/aho_corasick/packed/api.rs.html#40">MatchKind::LeftmostLongest</a> =&gt; {
-                <span class="kw">let </span>(order, by_id) = (<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#88">self</a>.order, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#88">self</a>.by_id);
-                <a href="../../../src/aho_corasick/packed/pattern.rs.html#94">order</a>.sort_by(|<span class="kw-2">&amp;</span>id1, <span class="kw-2">&amp;</span>id2| {
-                    <a href="../../../src/aho_corasick/packed/pattern.rs.html#94">by_id</a>[<a href="../../../src/aho_corasick/packed/pattern.rs.html#95">id1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+            <a href="api.rs.html#40">MatchKind::LeftmostLongest</a> =&gt; {
+                <span class="kw">let </span>(order, by_id) = (<span class="kw-2">&amp;mut </span><a class="self" href="#88">self</a>.order, <span class="kw-2">&amp;mut </span><a class="self" href="#88">self</a>.by_id);
+                <a href="#94">order</a>.sort_by(|<span class="kw-2">&amp;</span>id1, <span class="kw-2">&amp;</span>id2| {
+                    <a href="#94">by_id</a>[<a href="#95">id1</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
                         .len()
-                        .<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="../../../src/aho_corasick/packed/pattern.rs.html#94">by_id</a>[<a href="../../../src/aho_corasick/packed/pattern.rs.html#95">id2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].len())
+                        .<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a href="#94">by_id</a>[<a href="#95">id2</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>].len())
                         .reverse()
                 });
             }
-            <a href="../../../src/aho_corasick/packed/api.rs.html#47">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <a href="api.rs.html#47">MatchKind::__Nonexhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
@@ -425,56 +425,56 @@
     ///
     /// This is guaranteed to be greater than zero.
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#109">self</a>.by_id.len()
+        <a class="self" href="#109">self</a>.by_id.len()
     }
 
     <span class="doccomment">/// Returns true if and only if this collection of patterns is empty.
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#114">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#109">len</a>() == <span class="number">0
+        <a class="self" href="#114">self</a>.<a href="#109">len</a>() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by these patterns, in
     /// units of bytes.
     </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#120">self</a>.order.len() * mem::size_of::&lt;<a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>&gt;()
-            + <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#120">self</a>.by_id.len() * mem::size_of::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;()
-            + <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#120">self</a>.total_pattern_bytes
+        <a class="self" href="#120">self</a>.order.len() * mem::size_of::&lt;<a href="#13">PatternID</a>&gt;()
+            + <a class="self" href="#120">self</a>.by_id.len() * mem::size_of::&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;()
+            + <a class="self" href="#120">self</a>.total_pattern_bytes
     }
 
     <span class="doccomment">/// Clears all heap memory associated with this collection of patterns and
     /// resets all state such that it is a valid empty collection.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#128">self</a>.kind = MatchKind::default();
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#128">self</a>.by_id.clear();
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#128">self</a>.order.clear();
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#128">self</a>.minimum_len = usize::MAX;
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#128">self</a>.max_pattern_id = <span class="number">0</span>;
+        <a class="self" href="#128">self</a>.kind = MatchKind::default();
+        <a class="self" href="#128">self</a>.by_id.clear();
+        <a class="self" href="#128">self</a>.order.clear();
+        <a class="self" href="#128">self</a>.minimum_len = usize::MAX;
+        <a class="self" href="#128">self</a>.max_pattern_id = <span class="number">0</span>;
     }
 
     <span class="doccomment">/// Return the maximum pattern identifier in this collection. This can be
     /// useful in searchers for ensuring that the collection of patterns they
     /// are provided at search time and at build time have the same size.
-    </span><span class="kw">pub fn </span>max_pattern_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a> {
+    </span><span class="kw">pub fn </span>max_pattern_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#13">PatternID</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>((<span class="self">self</span>.max_pattern_id + <span class="number">1</span>) <span class="kw">as </span>usize, <span class="self">self</span>.len());
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#139">self</a>.max_pattern_id
+        <a class="self" href="#139">self</a>.max_pattern_id
     }
 
     <span class="doccomment">/// Returns the length, in bytes, of the smallest pattern.
     ///
     /// This is guaranteed to be at least one.
     </span><span class="kw">pub fn </span>minimum_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#147">self</a>.minimum_len
+        <a class="self" href="#147">self</a>.minimum_len
     }
 
     <span class="doccomment">/// Returns the match semantics used by these patterns.
-    </span><span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/aho_corasick/packed/api.rs.html#29">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#152">self</a>.kind
+    </span><span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="api.rs.html#29">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#152">self</a>.kind
     }
 
     <span class="doccomment">/// Return the pattern with the given identifier. If such a pattern does
     /// not exist, then this panics.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>) -&gt; Pattern&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#226">Pattern</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#158">self</a>.by_id[<a href="../../../src/aho_corasick/packed/pattern.rs.html#158">id</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#13">PatternID</a>) -&gt; Pattern&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="#226">Pattern</a>(<span class="kw-2">&amp;</span><a class="self" href="#158">self</a>.by_id[<a href="#158">id</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>])
     }
 
     <span class="doccomment">/// Return the pattern with the given identifier without performing bounds
@@ -485,8 +485,8 @@
     /// Callers must ensure that a pattern with the given identifier exists
     /// before using this method.
     </span><span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
-    </span><span class="kw">pub unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>) -&gt; Pattern&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#226">Pattern</a>(<a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#170">self</a>.by_id.get_unchecked(<a href="../../../src/aho_corasick/packed/pattern.rs.html#170">id</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+    </span><span class="kw">pub unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#13">PatternID</a>) -&gt; Pattern&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="#226">Pattern</a>(<a class="self" href="#170">self</a>.by_id.get_unchecked(<a href="#170">id</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
     }
 
     <span class="doccomment">/// Return an iterator over all the patterns in this collection, in the
@@ -508,7 +508,7 @@
     /// to satisfy the correct match semantics. (Either leftmost-first or
     /// leftmost-longest.)
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PatternIter&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#205">PatternIter</a> { patterns: <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#192">self</a>, i: <span class="number">0 </span>}
+        <a href="#205">PatternIter</a> { patterns: <a class="self" href="#192">self</a>, i: <span class="number">0 </span>}
     }
 }
 
@@ -521,21 +521,21 @@
 /// this is iterating over.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>PatternIter&lt;<span class="lifetime">&#39;p</span>&gt; {
-    patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="../../../src/aho_corasick/packed/pattern.rs.html#25">Patterns</a>,
+    patterns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><a href="#25">Patterns</a>,
     i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PatternIter&lt;<span class="lifetime">&#39;p</span>&gt; {
-    <span class="kw">type </span>Item = (<a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>, Pattern&lt;<span class="lifetime">&#39;p</span>&gt;);
+    <span class="kw">type </span>Item = (<a href="#13">PatternID</a>, Pattern&lt;<span class="lifetime">&#39;p</span>&gt;);
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../../src/aho_corasick/packed/pattern.rs.html#13">PatternID</a>, Pattern&lt;<span class="lifetime">&#39;p</span>&gt;)&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="#13">PatternID</a>, Pattern&lt;<span class="lifetime">&#39;p</span>&gt;)&gt; {
         <span class="kw">if </span><span class="self">self</span>.i &gt;= <span class="self">self</span>.patterns.len() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let </span>id = <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#213">self</a>.patterns.order[<a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#213">self</a>.i];
-        <span class="kw">let </span>p = <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#213">self</a>.patterns.<a href="../../../src/aho_corasick/packed/pattern.rs.html#158">get</a>(<a href="../../../src/aho_corasick/packed/pattern.rs.html#217">id</a>);
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#213">self</a>.i += <span class="number">1</span>;
-        <span class="prelude-val">Some</span>((<a href="../../../src/aho_corasick/packed/pattern.rs.html#217">id</a>, <a href="../../../src/aho_corasick/packed/pattern.rs.html#218">p</a>))
+        <span class="kw">let </span>id = <a class="self" href="#213">self</a>.patterns.order[<a class="self" href="#213">self</a>.i];
+        <span class="kw">let </span>p = <a class="self" href="#213">self</a>.patterns.<a href="#158">get</a>(<a href="#217">id</a>);
+        <a class="self" href="#213">self</a>.i += <span class="number">1</span>;
+        <span class="prelude-val">Some</span>((<a href="#217">id</a>, <a href="#218">p</a>))
     }
 }
 
@@ -545,8 +545,8 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pattern&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#229">f</a>.debug_struct(<span class="string">&quot;Pattern&quot;</span>)
-            .field(<span class="string">&quot;lit&quot;</span>, <span class="kw-2">&amp;</span>String::from_utf8_lossy(<span class="kw-2">&amp;</span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#229">self</a>.<span class="number">0</span>))
+        <a href="#229">f</a>.debug_struct(<span class="string">&quot;Pattern&quot;</span>)
+            .field(<span class="string">&quot;lit&quot;</span>, <span class="kw-2">&amp;</span>String::from_utf8_lossy(<span class="kw-2">&amp;</span><a class="self" href="#229">self</a>.<span class="number">0</span>))
             .finish()
     }
 }
@@ -554,12 +554,12 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>&gt; Pattern&lt;<span class="lifetime">&#39;p</span>&gt; {
     <span class="doccomment">/// Returns the length of this pattern, in bytes.
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#238">self</a>.<span class="number">0</span>.len()
+        <a class="self" href="#238">self</a>.<span class="number">0</span>.len()
     }
 
     <span class="doccomment">/// Returns the bytes of this pattern.
     </span><span class="kw">pub fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#243">self</a>.<span class="number">0
+        <span class="kw-2">&amp;</span><a class="self" href="#243">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns the first `len` low nybbles from this pattern. If this pattern
@@ -570,13 +570,13 @@
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span><span class="self">self</span>.bytes().iter().take(len) {
             nybs.push(b &amp; <span class="number">0xF</span>);
         }
-        <a href="../../../src/aho_corasick/packed/pattern.rs.html#251">nybs</a>
+        <a href="#251">nybs</a>
     }
 
     <span class="doccomment">/// Returns true if this pattern is a prefix of the given bytes.
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">pub fn </span>is_prefix(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#260">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#238">len</a>() &lt;= <a href="../../../src/aho_corasick/packed/pattern.rs.html#260">bytes</a>.len() &amp;&amp; <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#260">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#266">equals</a>(<span class="kw-2">&amp;</span><a href="../../../src/aho_corasick/packed/pattern.rs.html#260">bytes</a>[..<a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#260">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#238">len</a>()])
+        <a class="self" href="#260">self</a>.<a href="#238">len</a>() &lt;= <a href="#260">bytes</a>.len() &amp;&amp; <a class="self" href="#260">self</a>.<a href="#266">equals</a>(<span class="kw-2">&amp;</span><a href="#260">bytes</a>[..<a class="self" href="#260">self</a>.<a href="#238">len</a>()])
     }
 
     <span class="doccomment">/// Returns true if and only if this pattern equals the given bytes.
@@ -604,10 +604,10 @@
         }
         <span class="comment">// When we have 8 or more bytes to compare, then proceed in chunks of
         // 8 at a time using unaligned loads.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>p1 = <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#266">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#243">bytes</a>().as_ptr();
-        <span class="kw">let </span><span class="kw-2">mut </span>p2 = <a href="../../../src/aho_corasick/packed/pattern.rs.html#266">bytes</a>.as_ptr();
-        <span class="kw">let </span>p1end = <a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#266">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#243">bytes</a>()[<a class="self" href="../../../src/aho_corasick/packed/pattern.rs.html#266">self</a>.<a href="../../../src/aho_corasick/packed/pattern.rs.html#238">len</a>() - <span class="number">8</span>..].as_ptr();
-        <span class="kw">let </span>p2end = <a href="../../../src/aho_corasick/packed/pattern.rs.html#266">bytes</a>[<a href="../../../src/aho_corasick/packed/pattern.rs.html#266">bytes</a>.len() - <span class="number">8</span>..].as_ptr();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>p1 = <a class="self" href="#266">self</a>.<a href="#243">bytes</a>().as_ptr();
+        <span class="kw">let </span><span class="kw-2">mut </span>p2 = <a href="#266">bytes</a>.as_ptr();
+        <span class="kw">let </span>p1end = <a class="self" href="#266">self</a>.<a href="#243">bytes</a>()[<a class="self" href="#266">self</a>.<a href="#238">len</a>() - <span class="number">8</span>..].as_ptr();
+        <span class="kw">let </span>p2end = <a href="#266">bytes</a>[<a href="#266">bytes</a>.len() - <span class="number">8</span>..].as_ptr();
         <span class="comment">// SAFETY: Via the conditional above, we know that both `p1` and `p2`
         // have the same length, so `p1 &lt; p1end` implies that `p2 &lt; p2end`.
         // Thus, derefencing both `p1` and `p2` in the loop below is safe.
@@ -628,11 +628,11 @@
                 p1 = p1.add(<span class="number">8</span>);
                 p2 = p2.add(<span class="number">8</span>);
             }
-            <span class="kw">let </span>v1 = (<a href="../../../src/aho_corasick/packed/pattern.rs.html#291">p1end</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).read_unaligned();
-            <span class="kw">let </span>v2 = (<a href="../../../src/aho_corasick/packed/pattern.rs.html#292">p2end</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).read_unaligned();
-            <a href="../../../src/aho_corasick/packed/pattern.rs.html#313">v1</a> == <a href="../../../src/aho_corasick/packed/pattern.rs.html#314">v2</a>
+            <span class="kw">let </span>v1 = (<a href="#291">p1end</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).read_unaligned();
+            <span class="kw">let </span>v2 = (<a href="#292">p2end</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).read_unaligned();
+            <a href="#313">v1</a> == <a href="#314">v2</a>
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

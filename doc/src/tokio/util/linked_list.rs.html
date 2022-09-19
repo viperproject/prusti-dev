@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/util/linked_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linked_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/util/linked_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linked_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -691,6 +691,7 @@
 <span id="691">691</span>
 <span id="692">692</span>
 <span id="693">693</span>
+<span id="694">694</span>
 </pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;full&quot;</span>), allow(dead_code))]
 
 </span><span class="doccomment">//! An intrusive double linked list of data.
@@ -720,8 +721,8 @@
     </span>_marker: PhantomData&lt;<span class="kw-2">*const </span>L&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; <span class="kw">where </span>L::Target: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
-<span class="kw">unsafe impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; <span class="kw">where </span>L::Target: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;L: <a href="#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; <span class="kw">where </span>L::Target: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
+<span class="kw">unsafe impl</span>&lt;L: <a href="#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; <span class="kw">where </span>L::Target: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
 
 <span class="doccomment">/// Defines how a type is tracked within a linked list.
 ///
@@ -806,7 +807,7 @@
 </span><span class="kw">impl</span>&lt;L, T&gt; LinkedList&lt;L, T&gt; {
     <span class="doccomment">/// Creates an empty linked list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; LinkedList&lt;L, T&gt; {
-        <a href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a> {
+        <a href="#19">LinkedList</a> {
             head: <span class="prelude-val">None</span>,
             tail: <span class="prelude-val">None</span>,
             _marker: PhantomData,
@@ -814,25 +815,25 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; LinkedList&lt;L, L::Target&gt; {
+<span class="kw">impl</span>&lt;L: <a href="#43">Link</a>&gt; LinkedList&lt;L, L::Target&gt; {
     <span class="doccomment">/// Adds an element first in the list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_front(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: L::Handle) {
         <span class="comment">// The value should not be dropped, it is being inserted into the list
-        </span><span class="kw">let </span>val = ManuallyDrop::new(<a href="../../../src/tokio/util/linked_list.rs.html#126">val</a>);
-        <span class="kw">let </span>ptr = L::as_raw(<span class="kw-2">&amp;*</span><a href="../../../src/tokio/util/linked_list.rs.html#128">val</a>);
+        </span><span class="kw">let </span>val = ManuallyDrop::new(<a href="#126">val</a>);
+        <span class="kw">let </span>ptr = L::as_raw(<span class="kw-2">&amp;*</span><a href="#128">val</a>);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(<span class="self">self</span>.head, <span class="prelude-val">Some</span>(ptr));
         <span class="kw">unsafe </span>{
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#129">ptr</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#333">set_next</a>(<a class="self" href="../../../src/tokio/util/linked_list.rs.html#126">self</a>.head);
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#129">ptr</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#325">set_prev</a>(<span class="prelude-val">None</span>);
+            L::pointers(<a href="#129">ptr</a>).as_mut().<a href="#333">set_next</a>(<a class="self" href="#126">self</a>.head);
+            L::pointers(<a href="#129">ptr</a>).as_mut().<a href="#325">set_prev</a>(<span class="prelude-val">None</span>);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(head) = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#126">self</a>.head {
-                L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#135">head</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#325">set_prev</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/util/linked_list.rs.html#129">ptr</a>));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(head) = <a class="self" href="#126">self</a>.head {
+                L::pointers(<a href="#135">head</a>).as_mut().<a href="#325">set_prev</a>(<span class="prelude-val">Some</span>(<a href="#129">ptr</a>));
             }
 
-            <a class="self" href="../../../src/tokio/util/linked_list.rs.html#126">self</a>.head = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/util/linked_list.rs.html#129">ptr</a>);
+            <a class="self" href="#126">self</a>.head = <span class="prelude-val">Some</span>(<a href="#129">ptr</a>);
 
             <span class="kw">if </span><span class="self">self</span>.tail.is_none() {
-                <a class="self" href="../../../src/tokio/util/linked_list.rs.html#126">self</a>.tail = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/util/linked_list.rs.html#129">ptr</a>);
+                <a class="self" href="#126">self</a>.tail = <span class="prelude-val">Some</span>(<a href="#129">ptr</a>);
             }
         }
     }
@@ -842,18 +843,18 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;L::Handle&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>last = <span class="self">self</span>.tail<span class="question-mark">?</span>;
-            <a class="self" href="../../../src/tokio/util/linked_list.rs.html#149">self</a>.tail = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#151">last</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>();
+            <a class="self" href="#149">self</a>.tail = L::pointers(<a href="#151">last</a>).as_ref().<a href="#307">get_prev</a>();
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#151">last</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>() {
-                L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#154">prev</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#333">set_next</a>(<span class="prelude-val">None</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = L::pointers(<a href="#151">last</a>).as_ref().<a href="#307">get_prev</a>() {
+                L::pointers(<a href="#154">prev</a>).as_mut().<a href="#333">set_next</a>(<span class="prelude-val">None</span>);
             } <span class="kw">else </span>{
-                <a class="self" href="../../../src/tokio/util/linked_list.rs.html#149">self</a>.head = <span class="prelude-val">None
+                <a class="self" href="#149">self</a>.head = <span class="prelude-val">None
             </span>}
 
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#151">last</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#325">set_prev</a>(<span class="prelude-val">None</span>);
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#151">last</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#333">set_next</a>(<span class="prelude-val">None</span>);
+            L::pointers(<a href="#151">last</a>).as_mut().<a href="#325">set_prev</a>(<span class="prelude-val">None</span>);
+            L::pointers(<a href="#151">last</a>).as_mut().<a href="#333">set_next</a>(<span class="prelude-val">None</span>);
 
-            <span class="prelude-val">Some</span>(L::from_raw(<a href="../../../src/tokio/util/linked_list.rs.html#151">last</a>))
+            <span class="prelude-val">Some</span>(L::from_raw(<a href="#151">last</a>))
         }
     }
 
@@ -874,45 +875,45 @@
     /// The caller **must** ensure that `node` is currently contained by
     /// `self` or not contained by any other list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: NonNull&lt;L::Target&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;L::Handle&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = L::pointers(<a href="#183">node</a>).as_ref().<a href="#307">get_prev</a>() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(L::pointers(prev).as_ref().get_next(), <span class="prelude-val">Some</span>(node));
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#184">prev</a>)
+            L::pointers(<a href="#184">prev</a>)
                 .as_mut()
-                .<a href="../../../src/tokio/util/linked_list.rs.html#333">set_next</a>(L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#315">get_next</a>());
+                .<a href="#333">set_next</a>(L::pointers(<a href="#183">node</a>).as_ref().<a href="#315">get_next</a>());
         } <span class="kw">else </span>{
             <span class="kw">if </span><span class="self">self</span>.head != <span class="prelude-val">Some</span>(node) {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <a class="self" href="../../../src/tokio/util/linked_list.rs.html#183">self</a>.head = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#315">get_next</a>();
+            <a class="self" href="#183">self</a>.head = L::pointers(<a href="#183">node</a>).as_ref().<a href="#315">get_next</a>();
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#315">get_next</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = L::pointers(<a href="#183">node</a>).as_ref().<a href="#315">get_next</a>() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(L::pointers(next).as_ref().get_prev(), <span class="prelude-val">Some</span>(node));
-            L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#197">next</a>)
+            L::pointers(<a href="#197">next</a>)
                 .as_mut()
-                .<a href="../../../src/tokio/util/linked_list.rs.html#325">set_prev</a>(L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>());
+                .<a href="#325">set_prev</a>(L::pointers(<a href="#183">node</a>).as_ref().<a href="#307">get_prev</a>());
         } <span class="kw">else </span>{
             <span class="comment">// This might be the last item in the list
             </span><span class="kw">if </span><span class="self">self</span>.tail != <span class="prelude-val">Some</span>(node) {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <a class="self" href="../../../src/tokio/util/linked_list.rs.html#183">self</a>.tail = L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_ref().<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>();
+            <a class="self" href="#183">self</a>.tail = L::pointers(<a href="#183">node</a>).as_ref().<a href="#307">get_prev</a>();
         }
 
-        L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#333">set_next</a>(<span class="prelude-val">None</span>);
-        L::pointers(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>).as_mut().<a href="../../../src/tokio/util/linked_list.rs.html#325">set_prev</a>(<span class="prelude-val">None</span>);
+        L::pointers(<a href="#183">node</a>).as_mut().<a href="#333">set_next</a>(<span class="prelude-val">None</span>);
+        L::pointers(<a href="#183">node</a>).as_mut().<a href="#325">set_prev</a>(<span class="prelude-val">None</span>);
 
-        <span class="prelude-val">Some</span>(L::from_raw(<a href="../../../src/tokio/util/linked_list.rs.html#183">node</a>))
+        <span class="prelude-val">Some</span>(L::from_raw(<a href="#183">node</a>))
     }
 }
 
-<span class="kw">impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; {
+<span class="kw">impl</span>&lt;L: <a href="#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/tokio/util/linked_list.rs.html#219">f</a>.debug_struct(<span class="string">&quot;LinkedList&quot;</span>)
-            .field(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/linked_list.rs.html#219">self</a>.head)
-            .field(<span class="string">&quot;tail&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/linked_list.rs.html#219">self</a>.tail)
+        <a href="#219">f</a>.debug_struct(<span class="string">&quot;LinkedList&quot;</span>)
+            .field(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#219">self</a>.head)
+            .field(<span class="string">&quot;tail&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#219">self</a>.tail)
             .finish()
     }
 }
@@ -924,14 +925,14 @@
     feature = <span class="string">&quot;signal&quot;</span>,
     feature = <span class="string">&quot;sync&quot;</span>,
 ))]
-</span><span class="kw">impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; LinkedList&lt;L, L::Target&gt; {
+</span><span class="kw">impl</span>&lt;L: <a href="#43">Link</a>&gt; LinkedList&lt;L, L::Target&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>last(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>L::Target&gt; {
         <span class="kw">let </span>tail = <span class="self">self</span>.tail.as_ref()<span class="question-mark">?</span>;
-        <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span><a href="../../../src/tokio/util/linked_list.rs.html#236">tail</a>.as_ptr()) }
+        <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span><a href="#236">tail</a>.as_ptr()) }
     }
 }
 
-<span class="kw">impl</span>&lt;L: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; {
+<span class="kw">impl</span>&lt;L: <a href="#43">Link</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>LinkedList&lt;L, L::Target&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -940,29 +941,29 @@
 <span class="comment">// ===== impl DrainFilter =====
 
 </span><span class="macro">cfg_io_readiness! </span>{
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, T: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>, F&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, T: <a href="#43">Link</a>, F&gt; {
         list: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>LinkedList&lt;T, T::Target&gt;,
         filter: F,
         curr: <span class="prelude-ty">Option</span>&lt;NonNull&lt;T::Target&gt;&gt;,
     }
 
-    <span class="kw">impl</span>&lt;T: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>&gt; LinkedList&lt;T, T::Target&gt; {
+    <span class="kw">impl</span>&lt;T: <a href="#43">Link</a>&gt; LinkedList&lt;T, T::Target&gt; {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_filter&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filter: F) -&gt; DrainFilter&lt;<span class="lifetime">&#39;_</span>, T, F&gt;
         <span class="kw">where
             </span>F: FnMut(<span class="kw-2">&amp;mut </span>T::Target) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         {
-            <span class="kw">let </span>curr = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#257">self</a>.head;
-            <a href="../../../src/tokio/util/linked_list.rs.html#250">DrainFilter</a> {
-                <a href="../../../src/tokio/util/linked_list.rs.html#261">curr</a>,
-                <a href="../../../src/tokio/util/linked_list.rs.html#257">filter</a>,
-                list: <a class="self" href="../../../src/tokio/util/linked_list.rs.html#257">self</a>,
+            <span class="kw">let </span>curr = <a class="self" href="#257">self</a>.head;
+            <a href="#250">DrainFilter</a> {
+                <a href="#261">curr</a>,
+                <a href="#257">filter</a>,
+                list: <a class="self" href="#257">self</a>,
             }
         }
     }
 
     <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, F&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, T, F&gt;
     <span class="kw">where
-        </span>T: <a href="../../../src/tokio/util/linked_list.rs.html#43">Link</a>,
+        </span>T: <a href="#43">Link</a>,
         F: FnMut(<span class="kw-2">&amp;mut </span>T::Target) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <span class="kw">type </span>Item = T::Handle;
@@ -988,8 +989,8 @@
 </span><span class="kw">impl</span>&lt;T&gt; Pointers&lt;T&gt; {
     <span class="doccomment">/// Create a new set of empty pointers
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; Pointers&lt;T&gt; {
-        <a href="../../../src/tokio/util/linked_list.rs.html#71">Pointers</a> {
-            inner: UnsafeCell::new(<a href="../../../src/tokio/util/linked_list.rs.html#90">PointersInner</a> {
+        <a href="#71">Pointers</a> {
+            inner: UnsafeCell::new(<a href="#90">PointersInner</a> {
                 prev: <span class="prelude-val">None</span>,
                 next: <span class="prelude-val">None</span>,
                 _pin: PhantomPinned,
@@ -1000,47 +1001,47 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_prev(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt; {
         <span class="comment">// SAFETY: prev is the first field in PointersInner, which is #[repr(C)].
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#307">self</a>.inner.get();
-            <span class="kw">let </span>prev = <a href="../../../src/tokio/util/linked_list.rs.html#310">inner</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
-            ptr::read(<a href="../../../src/tokio/util/linked_list.rs.html#311">prev</a>)
+            <span class="kw">let </span>inner = <a class="self" href="#307">self</a>.inner.get();
+            <span class="kw">let </span>prev = <a href="#310">inner</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
+            ptr::read(<a href="#311">prev</a>)
         }
     }
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt; {
         <span class="comment">// SAFETY: next is the second field in PointersInner, which is #[repr(C)].
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#315">self</a>.inner.get();
-            <span class="kw">let </span>prev = <a href="../../../src/tokio/util/linked_list.rs.html#318">inner</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
-            <span class="kw">let </span>next = <a href="../../../src/tokio/util/linked_list.rs.html#319">prev</a>.add(<span class="number">1</span>);
-            ptr::read(<a href="../../../src/tokio/util/linked_list.rs.html#320">next</a>)
+            <span class="kw">let </span>inner = <a class="self" href="#315">self</a>.inner.get();
+            <span class="kw">let </span>prev = <a href="#318">inner</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
+            <span class="kw">let </span>next = <a href="#319">prev</a>.add(<span class="number">1</span>);
+            ptr::read(<a href="#320">next</a>)
         }
     }
 
     <span class="kw">fn </span>set_prev(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;) {
         <span class="comment">// SAFETY: prev is the first field in PointersInner, which is #[repr(C)].
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#325">self</a>.inner.get();
-            <span class="kw">let </span>prev = <a href="../../../src/tokio/util/linked_list.rs.html#328">inner</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
-            ptr::write(<a href="../../../src/tokio/util/linked_list.rs.html#329">prev</a>, <a href="../../../src/tokio/util/linked_list.rs.html#325">value</a>);
+            <span class="kw">let </span>inner = <a class="self" href="#325">self</a>.inner.get();
+            <span class="kw">let </span>prev = <a href="#328">inner</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
+            ptr::write(<a href="#329">prev</a>, <a href="#325">value</a>);
         }
     }
     <span class="kw">fn </span>set_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;) {
         <span class="comment">// SAFETY: next is the second field in PointersInner, which is #[repr(C)].
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#333">self</a>.inner.get();
-            <span class="kw">let </span>prev = <a href="../../../src/tokio/util/linked_list.rs.html#336">inner</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
-            <span class="kw">let </span>next = <a href="../../../src/tokio/util/linked_list.rs.html#337">prev</a>.add(<span class="number">1</span>);
-            ptr::write(<a href="../../../src/tokio/util/linked_list.rs.html#338">next</a>, <a href="../../../src/tokio/util/linked_list.rs.html#333">value</a>);
+            <span class="kw">let </span>inner = <a class="self" href="#333">self</a>.inner.get();
+            <span class="kw">let </span>prev = <a href="#336">inner</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;;
+            <span class="kw">let </span>next = <a href="#337">prev</a>.add(<span class="number">1</span>);
+            ptr::write(<a href="#338">next</a>, <a href="#333">value</a>);
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Pointers&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span>prev = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#345">self</a>.<a href="../../../src/tokio/util/linked_list.rs.html#307">get_prev</a>();
-        <span class="kw">let </span>next = <a class="self" href="../../../src/tokio/util/linked_list.rs.html#345">self</a>.<a href="../../../src/tokio/util/linked_list.rs.html#315">get_next</a>();
-        <a href="../../../src/tokio/util/linked_list.rs.html#345">f</a>.debug_struct(<span class="string">&quot;Pointers&quot;</span>)
-            .field(<span class="string">&quot;prev&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/tokio/util/linked_list.rs.html#346">prev</a>)
-            .field(<span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/tokio/util/linked_list.rs.html#347">next</a>)
+        <span class="kw">let </span>prev = <a class="self" href="#345">self</a>.<a href="#307">get_prev</a>();
+        <span class="kw">let </span>next = <a class="self" href="#345">self</a>.<a href="#315">get_next</a>();
+        <a href="#345">f</a>.debug_struct(<span class="string">&quot;Pointers&quot;</span>)
+            .field(<span class="string">&quot;prev&quot;</span>, <span class="kw-2">&amp;</span><a href="#346">prev</a>)
+            .field(<span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span><a href="#347">next</a>)
             .finish()
     }
 }
@@ -1316,7 +1317,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+    <span class="attribute">#[cfg(not(tokio_wasm))]
     </span><span class="macro">proptest::proptest! </span>{
         <span class="attribute">#[test]
         </span><span class="kw">fn </span>fuzz_linked_list(ops: Vec&lt;usize&gt;) {
@@ -1324,7 +1325,8 @@
         }
     }
 
-    <span class="kw">fn </span>run_fuzz(ops: Vec&lt;usize&gt;) {
+    <span class="attribute">#[cfg(not(tokio_wasm))]
+    </span><span class="kw">fn </span>run_fuzz(ops: Vec&lt;usize&gt;) {
         <span class="kw">use </span>std::collections::VecDeque;
 
         <span class="attribute">#[derive(Debug)]
@@ -1385,4 +1387,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -168,7 +168,7 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/ryu/lib.rs.html#121"><span class="kw">crate</span>::raw</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../lib.rs.html#121"><span class="kw">crate</span>::raw</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">core::mem::MaybeUninit</a>;
 <span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;no-panic&quot;</span>)]
@@ -191,14 +191,14 @@
     bytes: [MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;; <span class="number">24</span>],
 }
 
-<span class="kw">impl </span><a href="../../../src/ryu/buffer/mod.rs.html#20">Buffer</a> {
+<span class="kw">impl </span><a href="#20">Buffer</a> {
     <span class="doccomment">/// This is a cheap operation; you don&#39;t need to worry about reusing buffers
     /// for efficiency.
     </span><span class="attribute">#[inline]
     #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>bytes = [MaybeUninit::&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt;::uninit(); <span class="number">24</span>];
-        <a href="../../../src/ryu/buffer/mod.rs.html#20">Buffer</a> { <a href="../../../src/ryu/buffer/mod.rs.html#30">bytes</a> }
+        <a href="#20">Buffer</a> { <a href="#30">bytes</a> }
     }
 
     <span class="doccomment">/// Print a floating point number into this buffer and return a reference to
@@ -214,11 +214,11 @@
     /// checks for special cases.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, inline)]
     #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
-    </span><span class="kw">pub fn </span>format&lt;F: <a href="../../../src/ryu/buffer/mod.rs.html#104">Float</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
+    </span><span class="kw">pub fn </span>format&lt;F: <a href="#104">Float</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
         <span class="kw">if </span>f.is_nonfinite() {
-            <a href="../../../src/ryu/buffer/mod.rs.html#47">f</a>.<a href="../../../src/ryu/buffer/mod.rs.html#110">format_nonfinite</a>()
+            <a href="#47">f</a>.<a href="#110">format_nonfinite</a>()
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/ryu/buffer/mod.rs.html#47">self</a>.<a href="../../../src/ryu/buffer/mod.rs.html#72">format_finite</a>(<a href="../../../src/ryu/buffer/mod.rs.html#47">f</a>)
+            <a class="self" href="#47">self</a>.<a href="#72">format_finite</a>(<a href="#47">f</a>)
         }
     }
 
@@ -239,26 +239,26 @@
     /// [`is_infinite`]: https://doc.rust-lang.org/std/primitive.f64.html#method.is_infinite
     </span><span class="attribute">#[inline]
     #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
-    </span><span class="kw">pub fn </span>format_finite&lt;F: <a href="../../../src/ryu/buffer/mod.rs.html#104">Float</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
+    </span><span class="kw">pub fn </span>format_finite&lt;F: <a href="#104">Float</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>n = <a href="../../../src/ryu/buffer/mod.rs.html#72">f</a>.<a href="../../../src/ryu/buffer/mod.rs.html#111">write_to_ryu_buffer</a>(<a class="self" href="../../../src/ryu/buffer/mod.rs.html#72">self</a>.bytes.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
+            <span class="kw">let </span>n = <a href="#72">f</a>.<a href="#111">write_to_ryu_buffer</a>(<a class="self" href="#72">self</a>.bytes.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>);
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(n &lt;= <span class="self">self</span>.bytes.len());
-            <span class="kw">let </span>slice = slice::from_raw_parts(<a class="self" href="../../../src/ryu/buffer/mod.rs.html#72">self</a>.bytes.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="../../../src/ryu/buffer/mod.rs.html#74">n</a>);
-            str::from_utf8_unchecked(<a href="../../../src/ryu/buffer/mod.rs.html#76">slice</a>)
+            <span class="kw">let </span>slice = slice::from_raw_parts(<a class="self" href="#72">self</a>.bytes.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a href="#74">n</a>);
+            str::from_utf8_unchecked(<a href="#76">slice</a>)
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="kw">for </span><a href="../../../src/ryu/buffer/mod.rs.html#20">Buffer</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="kw">for </span><a href="#20">Buffer</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../../src/ryu/buffer/mod.rs.html#20">Buffer</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="#20">Buffer</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Buffer::new()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/ryu/buffer/mod.rs.html#20">Buffer</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#20">Buffer</a> {
     <span class="attribute">#[inline]
     #[cfg_attr(feature = <span class="string">&quot;no-panic&quot;</span>, no_panic)]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -271,9 +271,9 @@
 ///
 /// This trait is sealed and cannot be implemented for types outside of the
 /// `ryu` crate.
-</span><span class="kw">pub trait </span>Float: <a href="../../../src/ryu/buffer/mod.rs.html#108">Sealed</a> {}
-<span class="kw">impl </span><a href="../../../src/ryu/buffer/mod.rs.html#104">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a> {}
-<span class="kw">impl </span><a href="../../../src/ryu/buffer/mod.rs.html#104">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a> {}
+</span><span class="kw">pub trait </span>Float: <a href="#108">Sealed</a> {}
+<span class="kw">impl </span><a href="#104">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a> {}
+<span class="kw">impl </span><a href="#104">Float</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a> {}
 
 <span class="kw">pub trait </span>Sealed: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <span class="kw">fn </span>is_nonfinite(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
@@ -281,12 +281,12 @@
     <span class="kw">unsafe fn </span>write_to_ryu_buffer(<span class="self">self</span>, result: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
 }
 
-<span class="kw">impl </span><a href="../../../src/ryu/buffer/mod.rs.html#108">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a> {
+<span class="kw">impl </span><a href="#108">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_nonfinite(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <span class="kw">const </span>EXP_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">0x7f800000</span>;
-        <span class="kw">let </span>bits = <a class="self" href="../../../src/ryu/buffer/mod.rs.html#116">self</a>.to_bits();
-        <a href="../../../src/ryu/buffer/mod.rs.html#118">bits</a> &amp; <a href="../../../src/ryu/buffer/mod.rs.html#117">EXP_MASK</a> == <a href="../../../src/ryu/buffer/mod.rs.html#117">EXP_MASK</a>
+        <span class="kw">let </span>bits = <a class="self" href="#116">self</a>.to_bits();
+        <a href="#118">bits</a> &amp; <a href="#117">EXP_MASK</a> == <a href="#117">EXP_MASK</a>
     }
 
     <span class="attribute">#[cold]
@@ -294,28 +294,28 @@
     </span><span class="kw">fn </span>format_nonfinite(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
         <span class="kw">const </span>MANTISSA_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">0x007fffff</span>;
         <span class="kw">const </span>SIGN_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> = <span class="number">0x80000000</span>;
-        <span class="kw">let </span>bits = <a class="self" href="../../../src/ryu/buffer/mod.rs.html#124">self</a>.to_bits();
+        <span class="kw">let </span>bits = <a class="self" href="#124">self</a>.to_bits();
         <span class="kw">if </span>bits &amp; MANTISSA_MASK != <span class="number">0 </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#7">NAN</a>
+            <a href="#7">NAN</a>
         } <span class="kw">else if </span>bits &amp; SIGN_MASK != <span class="number">0 </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#9">NEG_INFINITY</a>
+            <a href="#9">NEG_INFINITY</a>
         } <span class="kw">else </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#8">INFINITY</a>
+            <a href="#8">INFINITY</a>
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>write_to_ryu_buffer(<span class="self">self</span>, result: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a href="../../../src/ryu/pretty/mod.rs.html#159">raw::format32</a>(<a class="self" href="../../../src/ryu/buffer/mod.rs.html#138">self</a>, <a href="../../../src/ryu/buffer/mod.rs.html#138">result</a>)
+        <a href="../pretty/mod.rs.html#159">raw::format32</a>(<a class="self" href="#138">self</a>, <a href="#138">result</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../../src/ryu/buffer/mod.rs.html#108">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a> {
+<span class="kw">impl </span><a href="#108">Sealed</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a> {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_nonfinite(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <span class="kw">const </span>EXP_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> = <span class="number">0x7ff0000000000000</span>;
-        <span class="kw">let </span>bits = <a class="self" href="../../../src/ryu/buffer/mod.rs.html#145">self</a>.to_bits();
-        <a href="../../../src/ryu/buffer/mod.rs.html#147">bits</a> &amp; <a href="../../../src/ryu/buffer/mod.rs.html#146">EXP_MASK</a> == <a href="../../../src/ryu/buffer/mod.rs.html#146">EXP_MASK</a>
+        <span class="kw">let </span>bits = <a class="self" href="#145">self</a>.to_bits();
+        <a href="#147">bits</a> &amp; <a href="#146">EXP_MASK</a> == <a href="#146">EXP_MASK</a>
     }
 
     <span class="attribute">#[cold]
@@ -323,20 +323,20 @@
     </span><span class="kw">fn </span>format_nonfinite(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a> {
         <span class="kw">const </span>MANTISSA_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> = <span class="number">0x000fffffffffffff</span>;
         <span class="kw">const </span>SIGN_MASK: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> = <span class="number">0x8000000000000000</span>;
-        <span class="kw">let </span>bits = <a class="self" href="../../../src/ryu/buffer/mod.rs.html#153">self</a>.to_bits();
+        <span class="kw">let </span>bits = <a class="self" href="#153">self</a>.to_bits();
         <span class="kw">if </span>bits &amp; MANTISSA_MASK != <span class="number">0 </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#7">NAN</a>
+            <a href="#7">NAN</a>
         } <span class="kw">else if </span>bits &amp; SIGN_MASK != <span class="number">0 </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#9">NEG_INFINITY</a>
+            <a href="#9">NEG_INFINITY</a>
         } <span class="kw">else </span>{
-            <a href="../../../src/ryu/buffer/mod.rs.html#8">INFINITY</a>
+            <a href="#8">INFINITY</a>
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>write_to_ryu_buffer(<span class="self">self</span>, result: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-        <a href="../../../src/ryu/pretty/mod.rs.html#52">raw::format64</a>(<a class="self" href="../../../src/ryu/buffer/mod.rs.html#167">self</a>, <a href="../../../src/ryu/buffer/mod.rs.html#167">result</a>)
+        <a href="../pretty/mod.rs.html#52">raw::format64</a>(<a class="self" href="#167">self</a>, <a href="#167">result</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ryu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

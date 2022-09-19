@@ -148,13 +148,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use crate</span>::{
-    abstract_interpretation::{<a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
+    abstract_interpretation::{<a href="../../abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a href="../../abstract_interpretation/fixpoint_engine.rs.html#18">FixpointEngine</a>},
     domains::{
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#22">DefinitelyAccessibleState</a>, <a href="../../../../src/analysis/domains/definitely_initialized/analysis.rs.html#17">DefinitelyInitializedAnalysis</a>, <a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#22">DefinitelyInitializedState</a>,
-        <a href="../../../../src/analysis/domains/maybe_borrowed/analysis.rs.html#18">MaybeBorrowedAnalysis</a>, <a href="../../../../src/analysis/domains/maybe_borrowed/state.rs.html#12">MaybeBorrowedState</a>,
+        <a href="state.rs.html#22">DefinitelyAccessibleState</a>, <a href="../definitely_initialized/analysis.rs.html#17">DefinitelyInitializedAnalysis</a>, <a href="../definitely_initialized/state.rs.html#22">DefinitelyInitializedState</a>,
+        <a href="../maybe_borrowed/analysis.rs.html#18">MaybeBorrowedAnalysis</a>, <a href="../maybe_borrowed/state.rs.html#12">MaybeBorrowedState</a>,
     },
-    <a href="../../../../src/analysis/mir_utils.rs.html#299-304">mir_utils::remove_place_from_set</a>,
-    <a href="../../../../src/analysis/pointwise_state.rs.html#12">PointwiseState</a>,
+    <a href="../../mir_utils.rs.html#299-304">mir_utils::remove_place_from_set</a>,
+    <a href="../../pointwise_state.rs.html#12">PointwiseState</a>,
 };
 <span class="kw">use </span>prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
@@ -175,31 +175,31 @@
         def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
         body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#23">DefinitelyAccessibleAnalysis</a> {
-            <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#31">tcx</a>,
-            <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#32">def_id</a>,
-            <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#33">body_with_facts</a>,
+        <a href="#23">DefinitelyAccessibleAnalysis</a> {
+            <a href="#31">tcx</a>,
+            <a href="#32">def_id</a>,
+            <a href="#33">body_with_facts</a>,
         }
     }
 
     <span class="kw">pub fn </span>run_analysis(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; AnalysisResult&lt;PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt; {
-        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.body_with_facts.body;
+        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="#43">self</a>.body_with_facts.body;
         <span class="kw">let </span>def_init_analysis =
-            DefinitelyInitializedAnalysis::new_relaxed(<a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.tcx, <a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.def_id, <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#45">body</a>);
-        <span class="kw">let </span>borrowed_analysis = MaybeBorrowedAnalysis::new(<a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.tcx, <a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.body_with_facts);
+            DefinitelyInitializedAnalysis::new_relaxed(<a class="self" href="#43">self</a>.tcx, <a class="self" href="#43">self</a>.def_id, <a href="#45">body</a>);
+        <span class="kw">let </span>borrowed_analysis = MaybeBorrowedAnalysis::new(<a class="self" href="#43">self</a>.tcx, <a class="self" href="#43">self</a>.body_with_facts);
         <span class="kw">let </span>def_init = def_init_analysis.run_fwd_analysis()<span class="question-mark">?</span>;
         <span class="kw">let </span>borrowed = borrowed_analysis.run_analysis()<span class="question-mark">?</span>;
-        <span class="kw">let </span>location_table = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.body_with_facts.location_table;
-        <span class="kw">let </span>borrowck_out_facts = <a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#43">self</a>.body_with_facts.output_facts.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <span class="kw">let </span>var_live_on_entry: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#52">borrowck_out_facts</a>
+        <span class="kw">let </span>location_table = <span class="kw-2">&amp;</span><a class="self" href="#43">self</a>.body_with_facts.location_table;
+        <span class="kw">let </span>borrowck_out_facts = <a class="self" href="#43">self</a>.body_with_facts.output_facts.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">let </span>var_live_on_entry: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="#52">borrowck_out_facts</a>
             .var_live_on_entry
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw-2">&amp;</span>point, live_vars)| (<a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#56">point</a>, FxHashSet::from_iter(<a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#56">live_vars</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>())))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw-2">&amp;</span>point, live_vars)| (<a href="#56">point</a>, FxHashSet::from_iter(<a href="#56">live_vars</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>())))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">let </span>empty_locals_set: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>&gt; = FxHashSet::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state = PointwiseState::default(<a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#45">body</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>analysis_state = PointwiseState::default(<a href="#45">body</a>);
 
         <span class="kw">for </span>(block, block_data) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
             <span class="comment">// Initialize the state before each statement
@@ -251,7 +251,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#59">analysis_state</a>)
+        <span class="prelude-val">Ok</span>(<a href="#59">analysis_state</a>)
     }
 
     <span class="doccomment">/// Compute the `definitely_available` state by subtracting the `maybe_borrowed` state from
@@ -262,8 +262,8 @@
         borrowed: <span class="kw-2">&amp;</span>MaybeBorrowedState&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         live_vars: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>&gt;,
     ) -&gt; DefinitelyAccessibleState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#117">self</a>.body_with_facts.body;
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#118">def_init</a>.<a href="../../../../src/analysis/domains/definitely_initialized/state.rs.html#79">get_def_init_places</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a class="self" href="#117">self</a>.body_with_facts.body;
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="#118">def_init</a>.<a href="../definitely_initialized/state.rs.html#79">get_def_init_places</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">for </span>(local, local_decl) <span class="kw">in </span>body.local_decls.iter_enumerated() {
             <span class="kw">let </span>has_lifetimes = <span class="self">self</span>.tcx.any_free_region_meets(<span class="kw-2">&amp;</span>local_decl.ty, |<span class="kw">_</span>| <span class="bool-val">true</span>);
             <span class="kw">let </span>maybe_expired = !live_vars.contains(<span class="kw-2">&amp;</span>local);
@@ -274,15 +274,15 @@
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>borrowed.get_maybe_mut_borrowed().iter() {
             remove_place_from_set(body, <span class="self">self</span>.tcx, place, <span class="kw-2">&amp;mut </span>definitely_accessible);
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned = <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#123">definitely_accessible</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned = <a href="#123">definitely_accessible</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>borrowed.get_maybe_shared_borrowed().iter() {
             remove_place_from_set(body, <span class="self">self</span>.tcx, place, <span class="kw-2">&amp;mut </span>definitely_owned);
         }
-        <a href="../../../../src/analysis/domains/definitely_accessible/state.rs.html#22">DefinitelyAccessibleState</a> {
-            <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#123">definitely_accessible</a>,
-            <a href="../../../../src/analysis/domains/definitely_accessible/analysis.rs.html#134">definitely_owned</a>,
+        <a href="state.rs.html#22">DefinitelyAccessibleState</a> {
+            <a href="#123">definitely_accessible</a>,
+            <a href="#134">definitely_owned</a>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

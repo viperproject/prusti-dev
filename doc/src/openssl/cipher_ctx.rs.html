@@ -715,10 +715,10 @@
 //! ```
 </span><span class="attribute">#![warn(missing_docs)]
 
-</span><span class="kw">use </span><a href="../../src/openssl/cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKey</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+</span><span class="kw">use </span><a href="cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#126">HasPrivate</a>, <a href="pkey.rs.html#119">HasPublic</a>, <a href="pkey.rs.html#130-138">PKey</a>, <a href="pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#185">cvt_p</a>};
 <span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
 <span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uchar.html">c_uchar</a>};
@@ -734,7 +734,7 @@
     }
 }
 
-<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
     <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER_CTX.html">ffi::EVP_CIPHER_CTX</a>;
     <span class="kw">fn </span>drop = ffi::EVP_CIPHER_CTX_free;
 
@@ -744,20 +744,20 @@
     </span><span class="kw">pub struct </span>CipherCtxRef;
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtx</a> {
+<span class="kw">impl </span><a href="#72-80">CipherCtx</a> {
     <span class="doccomment">/// Creates a new context.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_new)]
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::EVP_CIPHER_CTX_new())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(CipherCtx::from_ptr(<a href="../../src/openssl/cipher_ctx.rs.html#89">ptr</a>))
+            <span class="prelude-val">Ok</span>(CipherCtx::from_ptr(<a href="#89">ptr</a>))
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/openssl/cipher_ctx.rs.html#72-80">CipherCtxRef</a> {
+<span class="kw">impl </span><a href="#72-80">CipherCtxRef</a> {
     <span class="doccomment">/// Initializes the context for encryption.
     ///
     /// Normally this is called once to set all of the cipher, key, and IV. However, this process can be split up
@@ -771,11 +771,11 @@
     </span><span class="attribute">#[corresponds(EVP_EncryptInit_ex)]
     </span><span class="kw">pub fn </span>encrypt_init(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/cipher.rs.html#371">CipherRef</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="cipher.rs.html#371">CipherRef</a>&gt;,
         key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#108">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#136-148">cipher_init</a>(<a href="../../src/openssl/cipher_ctx.rs.html#109">type_</a>, <a href="../../src/openssl/cipher_ctx.rs.html#110">key</a>, <a href="../../src/openssl/cipher_ctx.rs.html#111">iv</a>, ffi::EVP_EncryptInit_ex)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#108">self</a>.<a href="#136-148">cipher_init</a>(<a href="#109">type_</a>, <a href="#110">key</a>, <a href="#111">iv</a>, ffi::EVP_EncryptInit_ex)
     }
 
     <span class="doccomment">/// Initializes the context for decryption.
@@ -791,16 +791,16 @@
     </span><span class="attribute">#[corresponds(EVP_DecryptInit_ex)]
     </span><span class="kw">pub fn </span>decrypt_init(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/cipher.rs.html#371">CipherRef</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="cipher.rs.html#371">CipherRef</a>&gt;,
         key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#128">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#136-148">cipher_init</a>(<a href="../../src/openssl/cipher_ctx.rs.html#129">type_</a>, <a href="../../src/openssl/cipher_ctx.rs.html#130">key</a>, <a href="../../src/openssl/cipher_ctx.rs.html#131">iv</a>, ffi::EVP_DecryptInit_ex)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#128">self</a>.<a href="#136-148">cipher_init</a>(<a href="#129">type_</a>, <a href="#130">key</a>, <a href="#131">iv</a>, ffi::EVP_DecryptInit_ex)
     }
 
     <span class="kw">fn </span>cipher_init(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/cipher.rs.html#371">CipherRef</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="cipher.rs.html#371">CipherRef</a>&gt;,
         key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         f: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
@@ -810,14 +810,14 @@
             <span class="kw-2">*const </span><a href="../../libc/unix/type.c_uchar.html">c_uchar</a>,
             <span class="kw-2">*const </span><a href="../../libc/unix/type.c_uchar.html">c_uchar</a>,
         ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <a href="../../src/openssl/cipher_ctx.rs.html#139">key</a> {
-            <span class="kw">let </span>key_len = <a href="../../src/openssl/cipher_ctx.rs.html#138">type_</a>.map_or_else(|| <a class="self" href="../../src/openssl/cipher_ctx.rs.html#137">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#297">key_length</a>(), |c| <a href="../../src/openssl/cipher_ctx.rs.html#150">c</a>.<a href="../../src/openssl/cipher.rs.html#390">key_length</a>());
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <a href="#139">key</a> {
+            <span class="kw">let </span>key_len = <a href="#138">type_</a>.map_or_else(|| <a class="self" href="#137">self</a>.<a href="#297">key_length</a>(), |c| <a href="#150">c</a>.<a href="cipher.rs.html#390">key_length</a>());
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key_len &lt;= key.len());
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(iv) = <a href="../../src/openssl/cipher_ctx.rs.html#140">iv</a> {
-            <span class="kw">let </span>iv_len = <a href="../../src/openssl/cipher_ctx.rs.html#138">type_</a>.map_or_else(|| <a class="self" href="../../src/openssl/cipher_ctx.rs.html#137">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#355">iv_length</a>(), |c| <a href="../../src/openssl/cipher_ctx.rs.html#155">c</a>.<a href="../../src/openssl/cipher.rs.html#400">iv_length</a>());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(iv) = <a href="#140">iv</a> {
+            <span class="kw">let </span>iv_len = <a href="#138">type_</a>.map_or_else(|| <a class="self" href="#137">self</a>.<a href="#355">iv_length</a>(), |c| <a href="#155">c</a>.<a href="cipher.rs.html#400">iv_length</a>());
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(iv_len &lt;= iv.len());
         }
 
@@ -849,17 +849,17 @@
     </span><span class="attribute">#[corresponds(EVP_SealInit)]
     </span><span class="kw">pub fn </span>seal_init&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/cipher.rs.html#371">CipherRef</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="cipher.rs.html#371">CipherRef</a>&gt;,
         pub_keys: <span class="kw-2">&amp;</span>[PKey&lt;T&gt;],
         encrypted_keys: <span class="kw-2">&amp;mut </span>[Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;],
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+        </span>T: <a href="pkey.rs.html#119">HasPublic</a>,
     {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(pub_keys.len(), encrypted_keys.len());
         <span class="kw">if </span>!pub_keys.is_empty() {
-            <span class="kw">let </span>iv_len = <a href="../../src/openssl/cipher_ctx.rs.html#187">type_</a>.map_or_else(|| <a class="self" href="../../src/openssl/cipher_ctx.rs.html#186">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#355">iv_length</a>(), |c| <a href="../../src/openssl/cipher_ctx.rs.html#197">c</a>.<a href="../../src/openssl/cipher.rs.html#400">iv_length</a>());
+            <span class="kw">let </span>iv_len = <a href="#187">type_</a>.map_or_else(|| <a class="self" href="#186">self</a>.<a href="#355">iv_length</a>(), |c| <a href="#197">c</a>.<a href="cipher.rs.html#400">iv_length</a>());
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(iv.as_ref().map_or(<span class="number">0</span>, |b| b.len()) &gt;= iv_len);
         }
 
@@ -867,12 +867,12 @@
             buf.resize(pub_key.size(), <span class="number">0</span>);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>keys = <a href="../../src/openssl/cipher_ctx.rs.html#189">encrypted_keys</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>keys = <a href="#189">encrypted_keys</a>
             .iter_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../src/openssl/cipher_ctx.rs.html#207">b</a>.as_mut_ptr())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#207">b</a>.as_mut_ptr())
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>key_lengths = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; pub_keys.len()];
-        <span class="kw">let </span>pub_keys_len = i32::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#188">pub_keys</a>.len()).unwrap();
+        <span class="kw">let </span>pub_keys_len = i32::try_from(<a href="#188">pub_keys</a>.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_SealInit(
@@ -905,20 +905,20 @@
     </span><span class="attribute">#[corresponds(EVP_OpenInit)]
     </span><span class="kw">pub fn </span>open_init&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/cipher.rs.html#371">CipherRef</a>&gt;,
+        type_: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="cipher.rs.html#371">CipherRef</a>&gt;,
         encrypted_key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         iv: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         priv_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+        </span>T: <a href="pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">if </span>priv_key.is_some() {
-            <span class="kw">let </span>iv_len = <a href="../../src/openssl/cipher_ctx.rs.html#243">type_</a>.map_or_else(|| <a class="self" href="../../src/openssl/cipher_ctx.rs.html#242">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#355">iv_length</a>(), |c| <a href="../../src/openssl/cipher_ctx.rs.html#252">c</a>.<a href="../../src/openssl/cipher.rs.html#400">iv_length</a>());
+            <span class="kw">let </span>iv_len = <a href="#243">type_</a>.map_or_else(|| <a class="self" href="#242">self</a>.<a href="#355">iv_length</a>(), |c| <a href="#252">c</a>.<a href="cipher.rs.html#400">iv_length</a>());
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(iv.map_or(<span class="number">0</span>, |b| b.len()) &gt;= iv_len);
         }
 
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#244">encrypted_key</a>.len()).unwrap();
+        <span class="kw">let </span>len = c_int::try_from(<a href="#244">encrypted_key</a>.len()).unwrap();
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_OpenInit(
                 <span class="self">self</span>.as_ptr(),
@@ -948,9 +948,9 @@
     /// Panics if the context has not been initialized with a cipher.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_block_size)]
     </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#285">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#271">assert_cipher</a>();
+        <a class="self" href="#285">self</a>.<a href="#271">assert_cipher</a>();
 
-        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_block_size(<a class="self" href="../../src/openssl/cipher_ctx.rs.html#285">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_block_size(<a class="self" href="#285">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Returns the key length of the context&#39;s cipher.
@@ -960,9 +960,9 @@
     /// Panics if the context has not been initialized with a cipher.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_key_length)]
     </span><span class="kw">pub fn </span>key_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#297">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#271">assert_cipher</a>();
+        <a class="self" href="#297">self</a>.<a href="#271">assert_cipher</a>();
 
-        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_key_length(<a class="self" href="../../src/openssl/cipher_ctx.rs.html#297">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_key_length(<a class="self" href="#297">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Generates a random key based on the configured cipher.
@@ -976,7 +976,7 @@
     ///
     /// [`EVP_CIPHER_CTX_rand_key`]: https://www.openssl.org/docs/manmaster/man3/EVP_CIPHER_CTX_rand_key.html
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_rand_key)]
-    </span><span class="kw">pub fn </span>rand_key(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>rand_key(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.len() &gt;= <span class="self">self</span>.key_length());
 
         <span class="kw">unsafe </span>{
@@ -997,10 +997,10 @@
     ///
     /// Panics if the context has not been initialized with a cipher.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_set_key_length)]
-    </span><span class="kw">pub fn </span>set_key_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#335">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#271">assert_cipher</a>();
+    </span><span class="kw">pub fn </span>set_key_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#335">self</a>.<a href="#271">assert_cipher</a>();
 
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#335">len</a>).unwrap();
+        <span class="kw">let </span>len = c_int::try_from(<a href="#335">len</a>).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CIPHER_CTX_set_key_length(<span class="self">self</span>.as_ptr(), len))<span class="question-mark">?</span>;
@@ -1018,9 +1018,9 @@
     /// Panics if the context has not been initialized with a cipher.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_iv_length)]
     </span><span class="kw">pub fn </span>iv_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#355">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#271">assert_cipher</a>();
+        <a class="self" href="#355">self</a>.<a href="#271">assert_cipher</a>();
 
-        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_iv_length(<a class="self" href="../../src/openssl/cipher_ctx.rs.html#355">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe </span>{ ffi::EVP_CIPHER_CTX_iv_length(<a class="self" href="#355">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Sets the length of the IV expected by this context.
@@ -1031,10 +1031,10 @@
     ///
     /// Panics if the context has not been initialized with a cipher.
     </span><span class="attribute">#[corresponds(EVP_CIHPER_CTX_ctrl)]
-    </span><span class="kw">pub fn </span>set_iv_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <a class="self" href="../../src/openssl/cipher_ctx.rs.html#369">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#271">assert_cipher</a>();
+    </span><span class="kw">pub fn </span>set_iv_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="#369">self</a>.<a href="#271">assert_cipher</a>();
 
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#369">len</a>).unwrap();
+        <span class="kw">let </span>len = c_int::try_from(<a href="#369">len</a>).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CIPHER_CTX_ctrl(
@@ -1072,8 +1072,8 @@
     /// The size of the buffer indicates the size of the tag. While some ciphers support a range of tag sizes, it is
     /// recommended to pick the maximum size.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_ctrl)]
-    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#410">tag</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>len = c_int::try_from(<a href="#410">tag</a>.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CIPHER_CTX_ctrl(
@@ -1091,8 +1091,8 @@
     ///
     /// This must be called when encrypting with a cipher in CCM mode to use a tag size other than the default.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_ctrl)]
-    </span><span class="kw">pub fn </span>set_tag_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#429">len</a>).unwrap();
+    </span><span class="kw">pub fn </span>set_tag_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>len = c_int::try_from(<a href="#429">len</a>).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CIPHER_CTX_ctrl(
@@ -1108,8 +1108,8 @@
 
     <span class="doccomment">/// Sets the authentication tag for verification during decryption.
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_ctrl)]
-    </span><span class="kw">pub fn </span>set_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#446">tag</a>.len()).unwrap();
+    </span><span class="kw">pub fn </span>set_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>len = c_int::try_from(<a href="#446">tag</a>.len()).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CIPHER_CTX_ctrl(
@@ -1129,7 +1129,7 @@
     </span><span class="attribute">#[corresponds(EVP_CIPHER_CTX_set_padding)]
     </span><span class="kw">pub fn </span>set_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
         <span class="kw">unsafe </span>{
-            ffi::EVP_CIPHER_CTX_set_padding(<a class="self" href="../../src/openssl/cipher_ctx.rs.html#465">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../src/openssl/cipher_ctx.rs.html#465">padding</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>);
+            ffi::EVP_CIPHER_CTX_set_padding(<a class="self" href="#465">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#465">padding</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>);
         }
     }
 
@@ -1137,8 +1137,8 @@
     ///
     /// This is required for ciphers operating in CCM mode.
     </span><span class="attribute">#[corresponds(EVP_CipherUpdate)]
-    </span><span class="kw">pub fn </span>set_data_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>len = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#475">len</a>).unwrap();
+    </span><span class="kw">pub fn </span>set_data_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>len = c_int::try_from(<a href="#475">len</a>).unwrap();
 
         <span class="kw">unsafe </span>{
             cvt(ffi::EVP_CipherUpdate(
@@ -1167,13 +1167,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         output: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>inlen = c_int::try_from(<a href="../../src/openssl/cipher_ctx.rs.html#503">input</a>.len()).unwrap();
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>inlen = c_int::try_from(<a href="#503">input</a>.len()).unwrap();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(output) = <span class="kw-2">&amp;</span><a href="../../src/openssl/cipher_ctx.rs.html#504">output</a> {
-            <span class="kw">let </span><span class="kw-2">mut </span>block_size = <a class="self" href="../../src/openssl/cipher_ctx.rs.html#502">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#285">block_size</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(output) = <span class="kw-2">&amp;</span><a href="#504">output</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>block_size = <a class="self" href="#502">self</a>.<a href="#285">block_size</a>();
             <span class="kw">if </span>block_size == <span class="number">1 </span>{
-                <a href="../../src/openssl/cipher_ctx.rs.html#509">block_size</a> = <span class="number">0</span>;
+                <a href="#509">block_size</a> = <span class="number">0</span>;
             }
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(output.len() &gt;= input.len() + block_size);
         }
@@ -1189,7 +1189,7 @@
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cipher_ctx.rs.html#516">outlen</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="prelude-val">Ok</span>(<a href="#516">outlen</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
     <span class="doccomment">/// Like [`Self::cipher_update`] except that it appends output to a [`Vec`].
@@ -1197,13 +1197,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="../../src/openssl/cipher_ctx.rs.html#534">output</a>.len();
-        <a href="../../src/openssl/cipher_ctx.rs.html#534">output</a>.resize(<a href="../../src/openssl/cipher_ctx.rs.html#536">base</a> + <a href="../../src/openssl/cipher_ctx.rs.html#533">input</a>.len() + <a class="self" href="../../src/openssl/cipher_ctx.rs.html#532">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#285">block_size</a>(), <span class="number">0</span>);
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>base = <a href="#534">output</a>.len();
+        <a href="#534">output</a>.resize(<a href="#536">base</a> + <a href="#533">input</a>.len() + <a class="self" href="#532">self</a>.<a href="#285">block_size</a>(), <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.cipher_update(input, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>output[base..]))<span class="question-mark">?</span>;
-        <a href="../../src/openssl/cipher_ctx.rs.html#534">output</a>.truncate(<a href="../../src/openssl/cipher_ctx.rs.html#536">base</a> + <a href="../../src/openssl/cipher_ctx.rs.html#538">len</a>);
+        <a href="#534">output</a>.truncate(<a href="#536">base</a> + <a href="#538">len</a>);
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cipher_ctx.rs.html#538">len</a>)
+        <span class="prelude-val">Ok</span>(<a href="#538">len</a>)
     }
 
     <span class="doccomment">/// Finalizes the encryption or decryption process.
@@ -1216,8 +1216,8 @@
     ///
     /// Panics if `output` is smaller than the cipher&#39;s block size.
     </span><span class="attribute">#[corresponds(EVP_CipherFinal)]
-    </span><span class="kw">pub fn </span>cipher_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>block_size = <a class="self" href="../../src/openssl/cipher_ctx.rs.html#554">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#285">block_size</a>();
+    </span><span class="kw">pub fn </span>cipher_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>block_size = <a class="self" href="#554">self</a>.<a href="#285">block_size</a>();
         <span class="kw">if </span>block_size &gt; <span class="number">1 </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(output.len() &gt;= block_size);
         }
@@ -1231,17 +1231,17 @@
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cipher_ctx.rs.html#560">outl</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="prelude-val">Ok</span>(<a href="#560">outl</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
     <span class="doccomment">/// Like [`Self::cipher_final`] except that it appends output to a [`Vec`].
-    </span><span class="kw">pub fn </span>cipher_final_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span>base = <a href="../../src/openssl/cipher_ctx.rs.html#573">output</a>.len();
-        <a href="../../src/openssl/cipher_ctx.rs.html#573">output</a>.resize(<a href="../../src/openssl/cipher_ctx.rs.html#574">base</a> + <a class="self" href="../../src/openssl/cipher_ctx.rs.html#573">self</a>.<a href="../../src/openssl/cipher_ctx.rs.html#285">block_size</a>(), <span class="number">0</span>);
+    </span><span class="kw">pub fn </span>cipher_final_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>base = <a href="#573">output</a>.len();
+        <a href="#573">output</a>.resize(<a href="#574">base</a> + <a class="self" href="#573">self</a>.<a href="#285">block_size</a>(), <span class="number">0</span>);
         <span class="kw">let </span>len = <span class="self">self</span>.cipher_final(<span class="kw-2">&amp;mut </span>output[base..])<span class="question-mark">?</span>;
-        <a href="../../src/openssl/cipher_ctx.rs.html#573">output</a>.truncate(<a href="../../src/openssl/cipher_ctx.rs.html#574">base</a> + <a href="../../src/openssl/cipher_ctx.rs.html#576">len</a>);
+        <a href="#573">output</a>.truncate(<a href="#574">base</a> + <a href="#576">len</a>);
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cipher_ctx.rs.html#576">len</a>)
+        <span class="prelude-val">Ok</span>(<a href="#576">len</a>)
     }
 }
 
@@ -1329,4 +1329,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

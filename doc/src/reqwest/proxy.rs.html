@@ -1755,7 +1755,7 @@
 </span><span class="kw">use </span>std::net::SocketAddr;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::into_url::{<a href="../../src/reqwest/into_url.rs.html#7">IntoUrl</a>, <a href="../../src/reqwest/into_url.rs.html#14">IntoUrlSealed</a>};
+<span class="kw">use </span><span class="kw">crate</span>::into_url::{<a href="into_url.rs.html#7">IntoUrl</a>, <a href="into_url.rs.html#14">IntoUrlSealed</a>};
 <span class="kw">use </span><a href="../../reqwest/struct.Url.html"><span class="kw">crate</span>::Url</a>;
 <span class="kw">use </span>http::{<a href="../../reqwest/header/struct.HeaderValue.html">header::HeaderValue</a>, <a href="../../http/uri/struct.Uri.html">Uri</a>};
 <span class="kw">use </span><a href="../../ipnet/ipnet/enum.IpNet.html">ipnet::IpNet</a>;
@@ -1763,7 +1763,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">std::net::IpAddr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">std::net::IpAddr</a>;
 <span class="attribute">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
 </span><span class="kw">use </span>winreg::enums::HKEY_CURRENT_USER;
 <span class="attribute">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
@@ -1803,21 +1803,21 @@
 /// ```
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Proxy {
-    intercept: <a href="../../src/reqwest/proxy.rs.html#672">Intercept</a>,
-    no_proxy: <span class="prelude-ty">Option</span>&lt;<a href="../../src/reqwest/proxy.rs.html#77">NoProxy</a>&gt;,
+    intercept: <a href="#672">Intercept</a>,
+    no_proxy: <span class="prelude-ty">Option</span>&lt;<a href="#77">NoProxy</a>&gt;,
 }
 
 <span class="doccomment">/// Represents a possible matching entry for an IP address
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>Ip {
-    Address(<a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>),
+    Address(<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">IpAddr</a>),
     Network(<a href="../../ipnet/ipnet/enum.IpNet.html">IpNet</a>),
 }
 
 <span class="doccomment">/// A wrapper around a list of IP cidr blocks or addresses with a [IpMatcher::contains] method for
 /// checking if an IP address is contained within the matcher
 </span><span class="attribute">#[derive(Clone, Debug, Default)]
-</span><span class="kw">struct </span>IpMatcher(Vec&lt;<a href="../../src/reqwest/proxy.rs.html#60">Ip</a>&gt;);
+</span><span class="kw">struct </span>IpMatcher(Vec&lt;<a href="#60">Ip</a>&gt;);
 
 <span class="doccomment">/// A wrapper around a list of domains with a [DomainMatcher::contains] method for checking if a
 /// domain is contained within the matcher
@@ -1827,8 +1827,8 @@
 <span class="doccomment">/// A configuration for filtering out requests that shouldn&#39;t be proxied
 </span><span class="attribute">#[derive(Clone, Debug, Default)]
 </span><span class="kw">struct </span>NoProxy {
-    ips: <a href="../../src/reqwest/proxy.rs.html#68">IpMatcher</a>,
-    domains: <a href="../../src/reqwest/proxy.rs.html#73">DomainMatcher</a>,
+    ips: <a href="#68">IpMatcher</a>,
+    domains: <a href="#73">DomainMatcher</a>,
 }
 
 <span class="doccomment">/// A particular scheme used for proxying requests.
@@ -1852,10 +1852,10 @@
     },
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a> {
+<span class="kw">impl </span><a href="#86">ProxyScheme</a> {
     <span class="kw">fn </span>maybe_http_auth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../src/reqwest/proxy.rs.html#104">self</a> </span>{
-            <a href="../../src/reqwest/proxy.rs.html#87">ProxyScheme::Http</a> { auth, .. } | <a href="../../src/reqwest/proxy.rs.html#91">ProxyScheme::Https</a> { auth, .. } =&gt; <a href="../../src/reqwest/proxy.rs.html#106">auth</a>.as_ref(),
+        <span class="kw">match </span><span class="self"><a href="#104">self</a> </span>{
+            <a href="#87">ProxyScheme::Http</a> { auth, .. } | <a href="#91">ProxyScheme::Https</a> { auth, .. } =&gt; <a href="#106">auth</a>.as_ref(),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -1866,17 +1866,17 @@
 /// parsing from a URL-like type, whilst also supporting proxy schemes
 /// built directly using the factory methods.
 </span><span class="kw">pub trait </span>IntoProxyScheme {
-    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt;;
+    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#86">ProxyScheme</a>&gt;;
 }
 
-<span class="kw">impl</span>&lt;S: <a href="../../src/reqwest/into_url.rs.html#7">IntoUrl</a>&gt; <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a> <span class="kw">for </span>S {
-    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt; {
+<span class="kw">impl</span>&lt;S: <a href="into_url.rs.html#7">IntoUrl</a>&gt; <a href="#116">IntoProxyScheme</a> <span class="kw">for </span>S {
+    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#86">ProxyScheme</a>&gt; {
         <span class="comment">// validate the URL
-        </span><span class="kw">let </span>url = <span class="kw">match </span><a class="self" href="../../src/reqwest/proxy.rs.html#121">self</a>.<a href="../../src/reqwest/into_url.rs.html#19">as_str</a>().<a href="../../src/reqwest/into_url.rs.html#17">into_url</a>() {
-            <span class="prelude-val">Ok</span>(ok) =&gt; <a href="../../src/reqwest/proxy.rs.html#124">ok</a>,
+        </span><span class="kw">let </span>url = <span class="kw">match </span><a class="self" href="#121">self</a>.<a href="into_url.rs.html#19">as_str</a>().<a href="into_url.rs.html#17">into_url</a>() {
+            <span class="prelude-val">Ok</span>(ok) =&gt; <a href="#124">ok</a>,
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>presumed_to_have_scheme = <span class="bool-val">true</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>source = <a href="../../src/reqwest/proxy.rs.html#125">e</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
+                <span class="kw">let </span><span class="kw-2">mut </span>source = <a href="#125">e</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>();
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(err) = source {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(parse_error) = err.downcast_ref::&lt;url::ParseError&gt;() {
                         <span class="kw">match </span>parse_error {
@@ -1900,11 +1900,11 @@
                         </span><span class="kw">crate</span>::error::builder(e)
                     })<span class="question-mark">?
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../src/reqwest/proxy.rs.html#125">e</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="#125">e</a>));
                 }
             }
         };
-        ProxyScheme::parse(<a href="../../src/reqwest/proxy.rs.html#123">url</a>)
+        ProxyScheme::parse(<a href="#123">url</a>)
     }
 }
 
@@ -1912,20 +1912,20 @@
 // for all types that implement IntoUrl. So, this function exists to detect
 // if we were to break those bounds for a user.
 </span><span class="kw">fn </span>_implied_bounds() {
-    <span class="kw">fn </span>prox&lt;T: <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a>&gt;(_t: T) {}
+    <span class="kw">fn </span>prox&lt;T: <a href="#116">IntoProxyScheme</a>&gt;(_t: T) {}
 
-    <span class="kw">fn </span>url&lt;T: <a href="../../src/reqwest/into_url.rs.html#7">IntoUrl</a>&gt;(t: T) {
-        <a href="../../src/reqwest/proxy.rs.html#163">prox</a>(<a href="../../src/reqwest/proxy.rs.html#165">t</a>);
+    <span class="kw">fn </span>url&lt;T: <a href="into_url.rs.html#7">IntoUrl</a>&gt;(t: T) {
+        <a href="#163">prox</a>(<a href="#165">t</a>);
     }
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a> <span class="kw">for </span><a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a> {
-    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/reqwest/proxy.rs.html#171">self</a>)
+<span class="kw">impl </span><a href="#116">IntoProxyScheme</a> <span class="kw">for </span><a href="#86">ProxyScheme</a> {
+    <span class="kw">fn </span>into_proxy_scheme(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#86">ProxyScheme</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a class="self" href="#171">self</a>)
     }
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
+<span class="kw">impl </span><a href="#53">Proxy</a> {
     <span class="doccomment">/// Proxy all HTTP traffic to the passed URL.
     ///
     /// # Example
@@ -1940,8 +1940,8 @@
     /// # }
     /// # fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>http&lt;U: <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#53">Proxy</a>&gt; {
-        <span class="prelude-val">Ok</span>(Proxy::new(<a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(
+    </span><span class="kw">pub fn </span>http&lt;U: <a href="#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#53">Proxy</a>&gt; {
+        <span class="prelude-val">Ok</span>(Proxy::new(<a href="#674">Intercept::Http</a>(
             proxy_scheme.into_proxy_scheme()<span class="question-mark">?</span>,
         )))
     }
@@ -1960,8 +1960,8 @@
     /// # }
     /// # fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>https&lt;U: <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#53">Proxy</a>&gt; {
-        <span class="prelude-val">Ok</span>(Proxy::new(<a href="../../src/reqwest/proxy.rs.html#675">Intercept::Https</a>(
+    </span><span class="kw">pub fn </span>https&lt;U: <a href="#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#53">Proxy</a>&gt; {
+        <span class="prelude-val">Ok</span>(Proxy::new(<a href="#675">Intercept::Https</a>(
             proxy_scheme.into_proxy_scheme()<span class="question-mark">?</span>,
         )))
     }
@@ -1980,8 +1980,8 @@
     /// # }
     /// # fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>all&lt;U: <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#53">Proxy</a>&gt; {
-        <span class="prelude-val">Ok</span>(Proxy::new(<a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(
+    </span><span class="kw">pub fn </span>all&lt;U: <a href="#116">IntoProxyScheme</a>&gt;(proxy_scheme: U) -&gt; <span class="kw">crate</span>::Result&lt;<a href="#53">Proxy</a>&gt; {
+        <span class="prelude-val">Ok</span>(Proxy::new(<a href="#673">Intercept::All</a>(
             proxy_scheme.into_proxy_scheme()<span class="question-mark">?</span>,
         )))
     }
@@ -2006,31 +2006,31 @@
     /// # Ok(())
     /// # }
     /// # fn main() {}
-    </span><span class="kw">pub fn </span>custom&lt;F, U: <a href="../../src/reqwest/proxy.rs.html#116">IntoProxyScheme</a>&gt;(fun: F) -&gt; <a href="../../src/reqwest/proxy.rs.html#53">Proxy</a>
+    </span><span class="kw">pub fn </span>custom&lt;F, U: <a href="#116">IntoProxyScheme</a>&gt;(fun: F) -&gt; <a href="#53">Proxy</a>
     <span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        Proxy::new(<a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(<a href="../../src/reqwest/proxy.rs.html#696">Custom</a> {
+        Proxy::new(<a href="#677">Intercept::Custom</a>(<a href="#696">Custom</a> {
             auth: <span class="prelude-val">None</span>,
-            func: Arc::new(<span class="kw">move </span>|url| <a href="../../src/reqwest/proxy.rs.html#257">fun</a>(<a href="../../src/reqwest/proxy.rs.html#263">url</a>).map(<a href="../../src/reqwest/proxy.rs.html#117">IntoProxyScheme::into_proxy_scheme</a>)),
+            func: Arc::new(<span class="kw">move </span>|url| <a href="#257">fun</a>(<a href="#263">url</a>).map(<a href="#117">IntoProxyScheme::into_proxy_scheme</a>)),
         }))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>system() -&gt; <a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>system() -&gt; <a href="#53">Proxy</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>proxy = <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(feature = <span class="string">&quot;__internal_proxy_sys_no_cache&quot;</span>) {
-            Proxy::new(<a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(Arc::new(<a href="../../src/reqwest/proxy.rs.html#771-775">get_sys_proxies</a>(
-                <a href="../../src/reqwest/proxy.rs.html#855">get_from_registry</a>(),
+            Proxy::new(<a href="#676">Intercept::System</a>(Arc::new(<a href="#771-775">get_sys_proxies</a>(
+                <a href="#855">get_from_registry</a>(),
             ))))
         } <span class="kw">else </span>{
-            Proxy::new(<a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(<a href="../../src/reqwest/proxy.rs.html#758-760">SYS_PROXIES</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+            Proxy::new(<a href="#676">Intercept::System</a>(<a href="#758-760">SYS_PROXIES</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
         };
-        <a href="../../src/reqwest/proxy.rs.html#268">proxy</a>.no_proxy = NoProxy::new();
-        <a href="../../src/reqwest/proxy.rs.html#268">proxy</a>
+        <a href="#268">proxy</a>.no_proxy = NoProxy::new();
+        <a href="#268">proxy</a>
     }
 
-    <span class="kw">fn </span>new(intercept: <a href="../../src/reqwest/proxy.rs.html#672">Intercept</a>) -&gt; <a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
-        <a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
-            <a href="../../src/reqwest/proxy.rs.html#279">intercept</a>,
+    <span class="kw">fn </span>new(intercept: <a href="#672">Intercept</a>) -&gt; <a href="#53">Proxy</a> {
+        <a href="#53">Proxy</a> {
+            <a href="#279">intercept</a>,
             no_proxy: <span class="prelude-val">None</span>,
         }
     }
@@ -2048,90 +2048,90 @@
     /// # }
     /// # fn main() {}
     /// ```
-    </span><span class="kw">pub fn </span>basic_auth(<span class="kw-2">mut </span><span class="self">self</span>, username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
-        <a class="self" href="../../src/reqwest/proxy.rs.html#299">self</a>.intercept.<a href="../../src/reqwest/proxy.rs.html#681">set_basic_auth</a>(<a href="../../src/reqwest/proxy.rs.html#299">username</a>, <a href="../../src/reqwest/proxy.rs.html#299">password</a>);
-        <span class="self"><a href="../../src/reqwest/proxy.rs.html#299">self</a>
+    </span><span class="kw">pub fn </span>basic_auth(<span class="kw-2">mut </span><span class="self">self</span>, username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#53">Proxy</a> {
+        <a class="self" href="#299">self</a>.intercept.<a href="#681">set_basic_auth</a>(<a href="#299">username</a>, <a href="#299">password</a>);
+        <span class="self"><a href="#299">self</a>
     </span>}
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>maybe_has_http_auth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/proxy.rs.html#304">self</a>.intercept {
-            <a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(p) | <a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(p) =&gt; <a href="../../src/reqwest/proxy.rs.html#306">p</a>.<a href="../../src/reqwest/proxy.rs.html#104">maybe_http_auth</a>().is_some(),
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#304">self</a>.intercept {
+            <a href="#673">Intercept::All</a>(p) | <a href="#674">Intercept::Http</a>(p) =&gt; <a href="#306">p</a>.<a href="#104">maybe_http_auth</a>().is_some(),
             <span class="comment">// Custom *may* match &#39;http&#39;, so assume so.
-            </span><a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(system) =&gt; <a href="../../src/reqwest/proxy.rs.html#309">system</a>
+            </span><a href="#677">Intercept::Custom</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#676">Intercept::System</a>(system) =&gt; <a href="#309">system</a>
                 .get(<span class="string">&quot;http&quot;</span>)
-                .and_then(|s| <a href="../../src/reqwest/proxy.rs.html#311">s</a>.<a href="../../src/reqwest/proxy.rs.html#104">maybe_http_auth</a>())
+                .and_then(|s| <a href="#311">s</a>.<a href="#104">maybe_http_auth</a>())
                 .is_some(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>http_basic_auth&lt;D: <a href="../../src/reqwest/proxy.rs.html#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/proxy.rs.html#317">self</a>.intercept {
-            <a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(p) | <a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(p) =&gt; <a href="../../src/reqwest/proxy.rs.html#319">p</a>.<a href="../../src/reqwest/proxy.rs.html#104">maybe_http_auth</a>().cloned(),
-            <a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(system) =&gt; <a href="../../src/reqwest/proxy.rs.html#320">system</a>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>http_basic_auth&lt;D: <a href="#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#317">self</a>.intercept {
+            <a href="#673">Intercept::All</a>(p) | <a href="#674">Intercept::Http</a>(p) =&gt; <a href="#319">p</a>.<a href="#104">maybe_http_auth</a>().cloned(),
+            <a href="#676">Intercept::System</a>(system) =&gt; <a href="#320">system</a>
                 .get(<span class="string">&quot;http&quot;</span>)
-                .and_then(|s| <a href="../../src/reqwest/proxy.rs.html#322">s</a>.<a href="../../src/reqwest/proxy.rs.html#104">maybe_http_auth</a>().cloned()),
-            <a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(custom) =&gt; {
-                <a href="../../src/reqwest/proxy.rs.html#323">custom</a>.<a href="../../src/reqwest/proxy.rs.html#703">call</a>(<a href="../../src/reqwest/proxy.rs.html#317">uri</a>).and_then(|s| <a href="../../src/reqwest/proxy.rs.html#324">s</a>.<a href="../../src/reqwest/proxy.rs.html#104">maybe_http_auth</a>().cloned())
+                .and_then(|s| <a href="#322">s</a>.<a href="#104">maybe_http_auth</a>().cloned()),
+            <a href="#677">Intercept::Custom</a>(custom) =&gt; {
+                <a href="#323">custom</a>.<a href="#703">call</a>(<a href="#317">uri</a>).and_then(|s| <a href="#324">s</a>.<a href="#104">maybe_http_auth</a>().cloned())
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>intercept&lt;D: <a href="../../src/reqwest/proxy.rs.html#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../src/reqwest/proxy.rs.html#330">self</a>.intercept {
-            <a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(<span class="kw-2">ref </span>u) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#332">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(<span class="kw-2">ref </span>u) =&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>intercept&lt;D: <a href="#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#86">ProxyScheme</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#330">self</a>.intercept {
+            <a href="#673">Intercept::All</a>(<span class="kw-2">ref </span>u) =&gt; <span class="prelude-val">Some</span>(<a href="#332">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <a href="#674">Intercept::Http</a>(<span class="kw-2">ref </span>u) =&gt; {
                 <span class="kw">if </span>uri.scheme() == <span class="string">&quot;http&quot; </span>{
-                    <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#333">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                    <span class="prelude-val">Some</span>(<a href="#333">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
-            <a href="../../src/reqwest/proxy.rs.html#675">Intercept::Https</a>(<span class="kw-2">ref </span>u) =&gt; {
+            <a href="#675">Intercept::Https</a>(<span class="kw-2">ref </span>u) =&gt; {
                 <span class="kw">if </span>uri.scheme() == <span class="string">&quot;https&quot; </span>{
-                    <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#340">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                    <span class="prelude-val">Some</span>(<a href="#340">u</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
-            <a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(<span class="kw-2">ref </span>map) =&gt; {
-                <span class="kw">let </span>in_no_proxy = <span class="self"><a href="../../src/reqwest/proxy.rs.html#330">self</a>
+            <a href="#676">Intercept::System</a>(<span class="kw-2">ref </span>map) =&gt; {
+                <span class="kw">let </span>in_no_proxy = <span class="self"><a href="#330">self</a>
                     </span>.no_proxy
                     .as_ref()
-                    .map_or(<span class="bool-val">false</span>, |np| <a href="../../src/reqwest/proxy.rs.html#351">np</a>.<a href="../../src/reqwest/proxy.rs.html#429">contains</a>(<a href="../../src/reqwest/proxy.rs.html#330">uri</a>.<a href="../../src/reqwest/proxy.rs.html#739">host</a>()));
+                    .map_or(<span class="bool-val">false</span>, |np| <a href="#351">np</a>.<a href="#429">contains</a>(<a href="#330">uri</a>.<a href="#739">host</a>()));
                 <span class="kw">if </span>in_no_proxy {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
-                    <a href="../../src/reqwest/proxy.rs.html#347">map</a>.get(<a href="../../src/reqwest/proxy.rs.html#330">uri</a>.<a href="../../src/reqwest/proxy.rs.html#738">scheme</a>()).cloned()
+                    <a href="#347">map</a>.get(<a href="#330">uri</a>.<a href="#738">scheme</a>()).cloned()
                 }
             }
-            <a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(<span class="kw-2">ref </span>custom) =&gt; <a href="../../src/reqwest/proxy.rs.html#358">custom</a>.<a href="../../src/reqwest/proxy.rs.html#703">call</a>(<a href="../../src/reqwest/proxy.rs.html#330">uri</a>),
+            <a href="#677">Intercept::Custom</a>(<span class="kw-2">ref </span>custom) =&gt; <a href="#358">custom</a>.<a href="#703">call</a>(<a href="#330">uri</a>),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_match&lt;D: <a href="../../src/reqwest/proxy.rs.html#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match </span><a class="self" href="../../src/reqwest/proxy.rs.html#362">self</a>.intercept {
-            <a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(<span class="kw">_</span>) =&gt; <a href="../../src/reqwest/proxy.rs.html#362">uri</a>.<a href="../../src/reqwest/proxy.rs.html#738">scheme</a>() == <span class="string">&quot;http&quot;</span>,
-            <a href="../../src/reqwest/proxy.rs.html#675">Intercept::Https</a>(<span class="kw">_</span>) =&gt; <a href="../../src/reqwest/proxy.rs.html#362">uri</a>.<a href="../../src/reqwest/proxy.rs.html#738">scheme</a>() == <span class="string">&quot;https&quot;</span>,
-            <a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(<span class="kw-2">ref </span>map) =&gt; <a href="../../src/reqwest/proxy.rs.html#367">map</a>.contains_key(<a href="../../src/reqwest/proxy.rs.html#362">uri</a>.<a href="../../src/reqwest/proxy.rs.html#738">scheme</a>()),
-            <a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(<span class="kw-2">ref </span>custom) =&gt; <a href="../../src/reqwest/proxy.rs.html#368">custom</a>.<a href="../../src/reqwest/proxy.rs.html#703">call</a>(<a href="../../src/reqwest/proxy.rs.html#362">uri</a>).is_some(),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_match&lt;D: <a href="#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><a class="self" href="#362">self</a>.intercept {
+            <a href="#673">Intercept::All</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="#674">Intercept::Http</a>(<span class="kw">_</span>) =&gt; <a href="#362">uri</a>.<a href="#738">scheme</a>() == <span class="string">&quot;http&quot;</span>,
+            <a href="#675">Intercept::Https</a>(<span class="kw">_</span>) =&gt; <a href="#362">uri</a>.<a href="#738">scheme</a>() == <span class="string">&quot;https&quot;</span>,
+            <a href="#676">Intercept::System</a>(<span class="kw-2">ref </span>map) =&gt; <a href="#367">map</a>.contains_key(<a href="#362">uri</a>.<a href="#738">scheme</a>()),
+            <a href="#677">Intercept::Custom</a>(<span class="kw-2">ref </span>custom) =&gt; <a href="#368">custom</a>.<a href="#703">call</a>(<a href="#362">uri</a>).is_some(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/proxy.rs.html#53">Proxy</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#53">Proxy</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/reqwest/proxy.rs.html#374">f</a>.debug_tuple(<span class="string">&quot;Proxy&quot;</span>)
-            .field(<span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/proxy.rs.html#374">self</a>.intercept)
-            .field(<span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/proxy.rs.html#374">self</a>.no_proxy)
+        <a href="#374">f</a>.debug_tuple(<span class="string">&quot;Proxy&quot;</span>)
+            .field(<span class="kw-2">&amp;</span><a class="self" href="#374">self</a>.intercept)
+            .field(<span class="kw-2">&amp;</span><a class="self" href="#374">self</a>.no_proxy)
             .finish()
     }
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#77">NoProxy</a> {
+<span class="kw">impl </span><a href="#77">NoProxy</a> {
     <span class="doccomment">/// Returns a new no-proxy configuration based on environment variables (or `None` if no variables are set)
     ///
     /// The rules are as follows:
@@ -2161,7 +2161,7 @@
         }
         <span class="kw">let </span><span class="kw-2">mut </span>ips = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>domains = Vec::new();
-        <span class="kw">let </span>parts = <a href="../../src/reqwest/proxy.rs.html#404">raw</a>.split(<span class="string">&#39;,&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(str::trim);
+        <span class="kw">let </span>parts = <a href="#404">raw</a>.split(<span class="string">&#39;,&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(str::trim);
         <span class="kw">for </span>part <span class="kw">in </span>parts {
             <span class="kw">match </span>part.parse::&lt;IpNet&gt;() {
                 <span class="comment">// If we can parse an IP net or address, then use it, otherwise, assume it is a domain
@@ -2172,9 +2172,9 @@
                 },
             }
         }
-        <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#77">NoProxy</a> {
-            ips: <a href="../../src/reqwest/proxy.rs.html#68">IpMatcher</a>(<a href="../../src/reqwest/proxy.rs.html#410">ips</a>),
-            domains: <a href="../../src/reqwest/proxy.rs.html#73">DomainMatcher</a>(<a href="../../src/reqwest/proxy.rs.html#411">domains</a>),
+        <span class="prelude-val">Some</span>(<a href="#77">NoProxy</a> {
+            ips: <a href="#68">IpMatcher</a>(<a href="#410">ips</a>),
+            domains: <a href="#73">DomainMatcher</a>(<a href="#411">domains</a>),
         })
     }
 
@@ -2183,20 +2183,20 @@
         // the end in order to parse correctly
         </span><span class="kw">let </span>host = <span class="kw">if </span>host.starts_with(<span class="string">&#39;[&#39;</span>) {
             <span class="kw">let </span>x: <span class="kw-2">&amp;</span>[<span class="kw">_</span>] = <span class="kw-2">&amp;</span>[<span class="string">&#39;[&#39;</span>, <span class="string">&#39;]&#39;</span>];
-            <a href="../../src/reqwest/proxy.rs.html#429">host</a>.trim_matches(<a href="../../src/reqwest/proxy.rs.html#433">x</a>)
+            <a href="#429">host</a>.trim_matches(<a href="#433">x</a>)
         } <span class="kw">else </span>{
-            <a href="../../src/reqwest/proxy.rs.html#429">host</a>
+            <a href="#429">host</a>
         };
-        <span class="kw">match </span><a href="../../src/reqwest/proxy.rs.html#432">host</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>&gt;() {
+        <span class="kw">match </span><a href="#432">host</a>.parse::&lt;<a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">IpAddr</a>&gt;() {
             <span class="comment">// If we can parse an IP addr, then use it, otherwise, assume it is a domain
-            </span><span class="prelude-val">Ok</span>(ip) =&gt; <a class="self" href="../../src/reqwest/proxy.rs.html#429">self</a>.ips.<a href="../../src/reqwest/proxy.rs.html#447">contains</a>(<a href="../../src/reqwest/proxy.rs.html#440">ip</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="../../src/reqwest/proxy.rs.html#429">self</a>.domains.<a href="../../src/reqwest/proxy.rs.html#470">contains</a>(<a href="../../src/reqwest/proxy.rs.html#432">host</a>),
+            </span><span class="prelude-val">Ok</span>(ip) =&gt; <a class="self" href="#429">self</a>.ips.<a href="#447">contains</a>(<a href="#440">ip</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="self" href="#429">self</a>.domains.<a href="#470">contains</a>(<a href="#432">host</a>),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#68">IpMatcher</a> {
-    <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl </span><a href="#68">IpMatcher</a> {
+    <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">IpAddr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">for </span>ip <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter() {
             <span class="kw">match </span>ip {
                 Ip::Address(address) =&gt; {
@@ -2215,12 +2215,12 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#73">DomainMatcher</a> {
+<span class="kw">impl </span><a href="#73">DomainMatcher</a> {
     <span class="comment">// The following links may be useful to understand the origin of these rules:
     // * https://curl.se/libcurl/c/CURLOPT_NOPROXY.html
     // * https://github.com/curl/curl/issues/1208
     </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>domain_len = <a href="../../src/reqwest/proxy.rs.html#470">domain</a>.len();
+        <span class="kw">let </span>domain_len = <a href="#470">domain</a>.len();
         <span class="kw">for </span>d <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter() {
             <span class="kw">if </span>d == domain || (d.starts_with(<span class="string">&#39;.&#39;</span>) &amp;&amp; <span class="kw-2">&amp;</span>d[<span class="number">1</span>..] == domain) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
@@ -2242,12 +2242,12 @@
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a> {
+<span class="kw">impl </span><a href="#86">ProxyScheme</a> {
     <span class="comment">// To start conservative, keep builders private for now.
 
     </span><span class="doccomment">/// Proxy traffic via the specified URL over HTTP
     </span><span class="kw">fn </span>http(host: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/reqwest/proxy.rs.html#87">ProxyScheme::Http</a> {
+        <span class="prelude-val">Ok</span>(<a href="#87">ProxyScheme::Http</a> {
             auth: <span class="prelude-val">None</span>,
             host: host.parse().map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
         })
@@ -2255,7 +2255,7 @@
 
     <span class="doccomment">/// Proxy traffic via the specified URL over HTTPS
     </span><span class="kw">fn </span>https(host: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../src/reqwest/proxy.rs.html#91">ProxyScheme::Https</a> {
+        <span class="prelude-val">Ok</span>(<a href="#91">ProxyScheme::Https</a> {
             auth: <span class="prelude-val">None</span>,
             host: host.parse().map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
         })
@@ -2297,19 +2297,19 @@
         username: T,
         password: U,
     ) -&gt; <span class="self">Self </span>{
-        <a class="self" href="../../src/reqwest/proxy.rs.html#544">self</a>.<a href="../../src/reqwest/proxy.rs.html#552">set_basic_auth</a>(<a href="../../src/reqwest/proxy.rs.html#545">username</a>, <a href="../../src/reqwest/proxy.rs.html#546">password</a>);
-        <span class="self"><a href="../../src/reqwest/proxy.rs.html#544">self</a>
+        <a class="self" href="#544">self</a>.<a href="#552">set_basic_auth</a>(<a href="#545">username</a>, <a href="#546">password</a>);
+        <span class="self"><a href="#544">self</a>
     </span>}
 
     <span class="kw">fn </span>set_basic_auth&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, U: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, username: T, password: U) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/reqwest/proxy.rs.html#552">self</a> </span>{
-            <a href="../../src/reqwest/proxy.rs.html#87">ProxyScheme::Http</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
-                <span class="kw">let </span>header = <a href="../../src/reqwest/proxy.rs.html#726">encode_basic_auth</a>(<span class="kw-2">&amp;</span><a href="../../src/reqwest/proxy.rs.html#552">username</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">&amp;</span><a href="../../src/reqwest/proxy.rs.html#552">password</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <span class="kw-2">*</span><a href="../../src/reqwest/proxy.rs.html#554">auth</a> = <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#555">header</a>);
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#552">self</a> </span>{
+            <a href="#87">ProxyScheme::Http</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
+                <span class="kw">let </span>header = <a href="#726">encode_basic_auth</a>(<span class="kw-2">&amp;</span><a href="#552">username</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">&amp;</span><a href="#552">password</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <span class="kw-2">*</span><a href="#554">auth</a> = <span class="prelude-val">Some</span>(<a href="#555">header</a>);
             }
-            <a href="../../src/reqwest/proxy.rs.html#91">ProxyScheme::Https</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
-                <span class="kw">let </span>header = <a href="../../src/reqwest/proxy.rs.html#726">encode_basic_auth</a>(<span class="kw-2">&amp;</span><a href="../../src/reqwest/proxy.rs.html#552">username</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">&amp;</span><a href="../../src/reqwest/proxy.rs.html#552">password</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <span class="kw-2">*</span><a href="../../src/reqwest/proxy.rs.html#558">auth</a> = <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#559">header</a>);
+            <a href="#91">ProxyScheme::Https</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
+                <span class="kw">let </span>header = <a href="#726">encode_basic_auth</a>(<span class="kw-2">&amp;</span><a href="#552">username</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">&amp;</span><a href="#552">password</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <span class="kw-2">*</span><a href="#558">auth</a> = <span class="prelude-val">Some</span>(<a href="#559">header</a>);
             }
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span>ProxyScheme::Socks5 { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
@@ -2319,22 +2319,22 @@
     }
 
     <span class="kw">fn </span>if_no_auth(<span class="kw-2">mut </span><span class="self">self</span>, update: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="../../src/reqwest/proxy.rs.html#569">self</a> </span>{
-            <a href="../../src/reqwest/proxy.rs.html#87">ProxyScheme::Http</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
+        <span class="kw">match </span><span class="self"><a href="#569">self</a> </span>{
+            <a href="#87">ProxyScheme::Http</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
                 <span class="kw">if </span>auth.is_none() {
-                    <span class="kw-2">*</span><a href="../../src/reqwest/proxy.rs.html#571">auth</a> = <a href="../../src/reqwest/proxy.rs.html#569">update</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw-2">*</span><a href="#571">auth</a> = <a href="#569">update</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 }
             }
-            <a href="../../src/reqwest/proxy.rs.html#91">ProxyScheme::Https</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
+            <a href="#91">ProxyScheme::Https</a> { <span class="kw-2">ref mut </span>auth, .. } =&gt; {
                 <span class="kw">if </span>auth.is_none() {
-                    <span class="kw-2">*</span><a href="../../src/reqwest/proxy.rs.html#576">auth</a> = <a href="../../src/reqwest/proxy.rs.html#569">update</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw-2">*</span><a href="#576">auth</a> = <a href="#569">update</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 }
             }
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span>ProxyScheme::Socks5 { .. } =&gt; {}
         }
 
-        <span class="self"><a href="../../src/reqwest/proxy.rs.html#569">self</a>
+        <span class="self"><a href="#569">self</a>
     </span>}
 
     <span class="doccomment">/// Convert a URL into a proxy scheme
@@ -2359,23 +2359,23 @@
                 .ok_or_else(|| <span class="kw">crate</span>::error::builder(<span class="string">&quot;unknown proxy scheme&quot;</span>))
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>scheme = <span class="kw">match </span><a href="../../src/reqwest/proxy.rs.html#592">url</a>.scheme() {
+        <span class="kw">let </span><span class="kw-2">mut </span>scheme = <span class="kw">match </span><a href="#592">url</a>.scheme() {
             <span class="string">&quot;http&quot; </span>=&gt; <span class="self">Self</span>::http(<span class="kw-2">&amp;</span>url[Position::BeforeHost..Position::AfterPort])<span class="question-mark">?</span>,
             <span class="string">&quot;https&quot; </span>=&gt; <span class="self">Self</span>::https(<span class="kw-2">&amp;</span>url[Position::BeforeHost..Position::AfterPort])<span class="question-mark">?</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span><span class="string">&quot;socks5&quot; </span>=&gt; <span class="self">Self</span>::socks5(to_addr()<span class="question-mark">?</span>)<span class="question-mark">?</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span><span class="string">&quot;socks5h&quot; </span>=&gt; <span class="self">Self</span>::socks5h(to_addr()<span class="question-mark">?</span>)<span class="question-mark">?</span>,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<span class="string">&quot;unknown proxy scheme&quot;</span>)),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<span class="string">&quot;unknown proxy scheme&quot;</span>)),
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pwd) = <a href="../../src/reqwest/proxy.rs.html#592">url</a>.password() {
-            <span class="kw">let </span>decoded_username = <a href="../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a href="../../src/reqwest/proxy.rs.html#592">url</a>.username().as_bytes()).decode_utf8_lossy();
-            <span class="kw">let </span>decoded_password = <a href="../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a href="../../src/reqwest/proxy.rs.html#620">pwd</a>.as_bytes()).decode_utf8_lossy();
-            <a href="../../src/reqwest/proxy.rs.html#610">scheme</a> = <a href="../../src/reqwest/proxy.rs.html#610">scheme</a>.<a href="../../src/reqwest/proxy.rs.html#543-547">with_basic_auth</a>(<a href="../../src/reqwest/proxy.rs.html#621">decoded_username</a>, <a href="../../src/reqwest/proxy.rs.html#622">decoded_password</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pwd) = <a href="#592">url</a>.password() {
+            <span class="kw">let </span>decoded_username = <a href="../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a href="#592">url</a>.username().as_bytes()).decode_utf8_lossy();
+            <span class="kw">let </span>decoded_password = <a href="../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a href="#620">pwd</a>.as_bytes()).decode_utf8_lossy();
+            <a href="#610">scheme</a> = <a href="#610">scheme</a>.<a href="#543-547">with_basic_auth</a>(<a href="#621">decoded_username</a>, <a href="#622">decoded_password</a>);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/reqwest/proxy.rs.html#610">scheme</a>)
+        <span class="prelude-val">Ok</span>(<a href="#610">scheme</a>)
     }
 
     <span class="attribute">#[cfg(test)]
@@ -2399,11 +2399,11 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#86">ProxyScheme</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="../../src/reqwest/proxy.rs.html#651">self</a> </span>{
-            <a href="../../src/reqwest/proxy.rs.html#87">ProxyScheme::Http</a> { auth: _auth, host } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/reqwest/proxy.rs.html#651">f</a>, <span class="string">&quot;http://{}&quot;</span>, host),
-            <a href="../../src/reqwest/proxy.rs.html#91">ProxyScheme::Https</a> { auth: _auth, host } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/reqwest/proxy.rs.html#651">f</a>, <span class="string">&quot;https://{}&quot;</span>, host),
+        <span class="kw">match </span><span class="self"><a href="#651">self</a> </span>{
+            <a href="#87">ProxyScheme::Http</a> { auth: _auth, host } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#651">f</a>, <span class="string">&quot;http://{}&quot;</span>, host),
+            <a href="#91">ProxyScheme::Https</a> { auth: _auth, host } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#651">f</a>, <span class="string">&quot;https://{}&quot;</span>, host),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
             </span>ProxyScheme::Socks5 {
                 addr,
@@ -2417,28 +2417,28 @@
     }
 }
 
-<span class="kw">type </span>SystemProxyMap = HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt;;
+<span class="kw">type </span>SystemProxyMap = HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#86">ProxyScheme</a>&gt;;
 <span class="kw">type </span>RegistryProxyValues = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
 
 <span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>Intercept {
-    All(<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>),
-    Http(<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>),
-    Https(<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>),
-    System(Arc&lt;<a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a>&gt;),
-    Custom(<a href="../../src/reqwest/proxy.rs.html#696">Custom</a>),
+    All(<a href="#86">ProxyScheme</a>),
+    Http(<a href="#86">ProxyScheme</a>),
+    Https(<a href="#86">ProxyScheme</a>),
+    System(Arc&lt;<a href="#668">SystemProxyMap</a>&gt;),
+    Custom(<a href="#696">Custom</a>),
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#672">Intercept</a> {
+<span class="kw">impl </span><a href="#672">Intercept</a> {
     <span class="kw">fn </span>set_basic_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, username: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, password: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <span class="kw">match </span><span class="self"><a href="../../src/reqwest/proxy.rs.html#681">self</a> </span>{
-            <a href="../../src/reqwest/proxy.rs.html#673">Intercept::All</a>(<span class="kw-2">ref mut </span>s)
-            | <a href="../../src/reqwest/proxy.rs.html#674">Intercept::Http</a>(<span class="kw-2">ref mut </span>s)
-            | <a href="../../src/reqwest/proxy.rs.html#675">Intercept::Https</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/reqwest/proxy.rs.html#683">s</a>.<a href="../../src/reqwest/proxy.rs.html#552">set_basic_auth</a>(<a href="../../src/reqwest/proxy.rs.html#681">username</a>, <a href="../../src/reqwest/proxy.rs.html#681">password</a>),
-            <a href="../../src/reqwest/proxy.rs.html#676">Intercept::System</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-            <a href="../../src/reqwest/proxy.rs.html#677">Intercept::Custom</a>(<span class="kw-2">ref mut </span>custom) =&gt; {
-                <span class="kw">let </span>header = <a href="../../src/reqwest/proxy.rs.html#726">encode_basic_auth</a>(<a href="../../src/reqwest/proxy.rs.html#681">username</a>, <a href="../../src/reqwest/proxy.rs.html#681">password</a>);
-                <a href="../../src/reqwest/proxy.rs.html#687">custom</a>.auth = <span class="prelude-val">Some</span>(<a href="../../src/reqwest/proxy.rs.html#688">header</a>);
+        <span class="kw">match </span><span class="self"><a href="#681">self</a> </span>{
+            <a href="#673">Intercept::All</a>(<span class="kw-2">ref mut </span>s)
+            | <a href="#674">Intercept::Http</a>(<span class="kw-2">ref mut </span>s)
+            | <a href="#675">Intercept::Https</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#683">s</a>.<a href="#552">set_basic_auth</a>(<a href="#681">username</a>, <a href="#681">password</a>),
+            <a href="#676">Intercept::System</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
+            <a href="#677">Intercept::Custom</a>(<span class="kw-2">ref mut </span>custom) =&gt; {
+                <span class="kw">let </span>header = <a href="#726">encode_basic_auth</a>(<a href="#681">username</a>, <a href="#681">password</a>);
+                <a href="#687">custom</a>.auth = <span class="prelude-val">Some</span>(<a href="#688">header</a>);
             }
         }
     }
@@ -2448,11 +2448,11 @@
 </span><span class="kw">struct </span>Custom {
     <span class="comment">// This auth only applies if the returned ProxyScheme doesn&#39;t have an auth...
     </span>auth: <span class="prelude-ty">Option</span>&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
-    func: Arc&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;,
+    func: Arc&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="#86">ProxyScheme</a>&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#696">Custom</a> {
-    <span class="kw">fn </span>call&lt;D: <a href="../../src/reqwest/proxy.rs.html#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/reqwest/proxy.rs.html#86">ProxyScheme</a>&gt; {
+<span class="kw">impl </span><a href="#696">Custom</a> {
+    <span class="kw">fn </span>call&lt;D: <a href="#737">Dst</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#86">ProxyScheme</a>&gt; {
         <span class="kw">let </span>url = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
             <span class="string">&quot;{}://{}{}{}&quot;</span>,
             uri.scheme(),
@@ -2463,15 +2463,15 @@
         .parse()
         .expect(<span class="string">&quot;should be valid Url&quot;</span>);
 
-        (<a class="self" href="../../src/reqwest/proxy.rs.html#703">self</a>.func)(<span class="kw-2">&amp;</span><a href="../../src/reqwest/proxy.rs.html#704">url</a>)
-            .and_then(|result| <a href="../../src/reqwest/proxy.rs.html#715">result</a>.ok())
-            .map(|scheme| <a href="../../src/reqwest/proxy.rs.html#716">scheme</a>.<a href="../../src/reqwest/proxy.rs.html#569">if_no_auth</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/proxy.rs.html#703">self</a>.auth))
+        (<a class="self" href="#703">self</a>.func)(<span class="kw-2">&amp;</span><a href="#704">url</a>)
+            .and_then(|result| <a href="#715">result</a>.ok())
+            .map(|scheme| <a href="#716">scheme</a>.<a href="#569">if_no_auth</a>(<span class="kw-2">&amp;</span><a class="self" href="#703">self</a>.auth))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/proxy.rs.html#696">Custom</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#696">Custom</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../src/reqwest/proxy.rs.html#721">f</a>.write_str(<span class="string">&quot;_&quot;</span>)
+        <a href="#721">f</a>.write_str(<span class="string">&quot;_&quot;</span>)
     }
 }
 
@@ -2480,8 +2480,8 @@
     <span class="kw">let </span><span class="kw-2">mut </span>header = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Basic {}&quot;</span>, base64::encode(<span class="kw-2">&amp;</span>val))
         .parse::&lt;<a href="../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>&gt;()
         .expect(<span class="string">&quot;base64 is always valid HeaderValue&quot;</span>);
-    <a href="../../src/reqwest/proxy.rs.html#728">header</a>.set_sensitive(<span class="bool-val">true</span>);
-    <a href="../../src/reqwest/proxy.rs.html#728">header</a>
+    <a href="#728">header</a>.set_sensitive(<span class="bool-val">true</span>);
+    <a href="#728">header</a>
 }
 
 <span class="doccomment">/// A helper trait to allow testing `Proxy::intercept` without having to
@@ -2493,22 +2493,22 @@
 }
 
 <span class="attribute">#[doc(hidden)]
-</span><span class="kw">impl </span><a href="../../src/reqwest/proxy.rs.html#737">Dst</a> <span class="kw">for </span><a href="../../http/uri/struct.Uri.html">Uri</a> {
+</span><span class="kw">impl </span><a href="#737">Dst</a> <span class="kw">for </span><a href="../../http/uri/struct.Uri.html">Uri</a> {
     <span class="kw">fn </span>scheme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/reqwest/proxy.rs.html#745">self</a>.scheme().expect(<span class="string">&quot;Uri should have a scheme&quot;</span>).as_str()
+        <a class="self" href="#745">self</a>.scheme().expect(<span class="string">&quot;Uri should have a scheme&quot;</span>).as_str()
     }
 
     <span class="kw">fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        Uri::host(<a class="self" href="../../src/reqwest/proxy.rs.html#749">self</a>).expect(<span class="string">&quot;&lt;Uri as Dst&gt;::host should have a str&quot;</span>)
+        Uri::host(<a class="self" href="#749">self</a>).expect(<span class="string">&quot;&lt;Uri as Dst&gt;::host should have a str&quot;</span>)
     }
 
     <span class="kw">fn </span>port(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
-        <a class="self" href="../../src/reqwest/proxy.rs.html#753">self</a>.port().map(|p| <a href="../../src/reqwest/proxy.rs.html#754">p</a>.as_u16())
+        <a class="self" href="#753">self</a>.port().map(|p| <a href="#754">p</a>.as_u16())
     }
 }
 
 <a class="macro" href="../../lazy_static/lazy_static/macro.lazy_static.html">lazy_static! </a>{
-    <span class="kw">static </span><span class="kw-2">ref </span>SYS_PROXIES: Arc&lt;<a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a>&gt; = Arc::new(get_sys_proxies(get_from_registry()));
+    <span class="kw">static </span><span class="kw-2">ref </span>SYS_PROXIES: Arc&lt;<a href="#668">SystemProxyMap</a>&gt; = Arc::new(get_sys_proxies(get_from_registry()));
 }
 
 <span class="doccomment">/// Get system proxies information.
@@ -2522,10 +2522,10 @@
 ///     {&quot;http&quot;: Url::parse(&quot;http://127.0.0.1:80&quot;), &quot;https&quot;: Url::parse(&quot;https://127.0.0.1:80&quot;)}
 </span><span class="kw">fn </span>get_sys_proxies(
     <span class="attribute">#[cfg_attr(not(target_os = <span class="string">&quot;windows&quot;</span>), allow(unused_variables))] </span>registry_values: <span class="prelude-ty">Option</span>&lt;
-        <a href="../../src/reqwest/proxy.rs.html#669">RegistryProxyValues</a>,
+        <a href="#669">RegistryProxyValues</a>,
     &gt;,
-) -&gt; <a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a> {
-    <span class="kw">let </span>proxies = <a href="../../src/reqwest/proxy.rs.html#803">get_from_environment</a>();
+) -&gt; <a href="#668">SystemProxyMap</a> {
+    <span class="kw">let </span>proxies = <a href="#803">get_from_environment</a>();
 
     <span class="comment">// TODO: move the following #[cfg] to `if expression` when attributes on `if` expressions allowed
     </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
@@ -2537,22 +2537,22 @@
             }
         }
     }
-    <a href="../../src/reqwest/proxy.rs.html#776">proxies</a>
+    <a href="#776">proxies</a>
 }
 
-<span class="kw">fn </span>insert_proxy(proxies: <span class="kw-2">&amp;mut </span><a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a>, scheme: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, addr: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn </span>insert_proxy(proxies: <span class="kw-2">&amp;mut </span><a href="#668">SystemProxyMap</a>, scheme: <span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, addr: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">if </span>addr.trim().is_empty() {
         <span class="comment">// do not accept empty or whitespace proxy address
         </span><span class="bool-val">false
-    </span>} <span class="kw">else if let </span><span class="prelude-val">Ok</span>(valid_addr) = <a href="../../src/reqwest/proxy.rs.html#791">addr</a>.<a href="../../src/reqwest/proxy.rs.html#117">into_proxy_scheme</a>() {
-        <a href="../../src/reqwest/proxy.rs.html#791">proxies</a>.insert(<a href="../../src/reqwest/proxy.rs.html#791">scheme</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../src/reqwest/proxy.rs.html#795">valid_addr</a>);
+    </span>} <span class="kw">else if let </span><span class="prelude-val">Ok</span>(valid_addr) = <a href="#791">addr</a>.<a href="#117">into_proxy_scheme</a>() {
+        <a href="#791">proxies</a>.insert(<a href="#791">scheme</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#795">valid_addr</a>);
         <span class="bool-val">true
     </span>} <span class="kw">else </span>{
         <span class="bool-val">false
     </span>}
 }
 
-<span class="kw">fn </span>get_from_environment() -&gt; <a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a> {
+<span class="kw">fn </span>get_from_environment() -&gt; <a href="#668">SystemProxyMap</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>proxies = HashMap::new();
 
     <span class="kw">if </span>is_cgi() {
@@ -2560,19 +2560,19 @@
             <a class="macro" href="../../log/log/macro.warn.html">log::warn!</a>(<span class="string">&quot;HTTP_PROXY environment variable ignored in CGI&quot;</span>);
         }
     } <span class="kw">else if </span>!insert_from_env(<span class="kw-2">&amp;mut </span>proxies, <span class="string">&quot;http&quot;</span>, <span class="string">&quot;HTTP_PROXY&quot;</span>) {
-        <a href="../../src/reqwest/proxy.rs.html#821">insert_from_env</a>(<span class="kw-2">&amp;mut </span><a href="../../src/reqwest/proxy.rs.html#804">proxies</a>, <span class="string">&quot;http&quot;</span>, <span class="string">&quot;http_proxy&quot;</span>);
+        <a href="#821">insert_from_env</a>(<span class="kw-2">&amp;mut </span><a href="#804">proxies</a>, <span class="string">&quot;http&quot;</span>, <span class="string">&quot;http_proxy&quot;</span>);
     }
 
     <span class="kw">if </span>!insert_from_env(<span class="kw-2">&amp;mut </span>proxies, <span class="string">&quot;https&quot;</span>, <span class="string">&quot;HTTPS_PROXY&quot;</span>) {
-        <a href="../../src/reqwest/proxy.rs.html#821">insert_from_env</a>(<span class="kw-2">&amp;mut </span><a href="../../src/reqwest/proxy.rs.html#804">proxies</a>, <span class="string">&quot;https&quot;</span>, <span class="string">&quot;https_proxy&quot;</span>);
+        <a href="#821">insert_from_env</a>(<span class="kw-2">&amp;mut </span><a href="#804">proxies</a>, <span class="string">&quot;https&quot;</span>, <span class="string">&quot;https_proxy&quot;</span>);
     }
 
-    <a href="../../src/reqwest/proxy.rs.html#804">proxies</a>
+    <a href="#804">proxies</a>
 }
 
-<span class="kw">fn </span>insert_from_env(proxies: <span class="kw-2">&amp;mut </span><a href="../../src/reqwest/proxy.rs.html#668">SystemProxyMap</a>, scheme: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, var: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(val) = env::var(<a href="../../src/reqwest/proxy.rs.html#821">var</a>) {
-        <a href="../../src/reqwest/proxy.rs.html#791">insert_proxy</a>(<a href="../../src/reqwest/proxy.rs.html#821">proxies</a>, <a href="../../src/reqwest/proxy.rs.html#821">scheme</a>, <a href="../../src/reqwest/proxy.rs.html#822">val</a>)
+<span class="kw">fn </span>insert_from_env(proxies: <span class="kw-2">&amp;mut </span><a href="#668">SystemProxyMap</a>, scheme: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, var: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(val) = env::var(<a href="#821">var</a>) {
+        <a href="#791">insert_proxy</a>(<a href="#821">proxies</a>, <a href="#821">scheme</a>, <a href="#822">val</a>)
     } <span class="kw">else </span>{
         <span class="bool-val">false
     </span>}
@@ -2604,7 +2604,7 @@
 }
 
 <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;windows&quot;</span>))]
-</span><span class="kw">fn </span>get_from_registry() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/reqwest/proxy.rs.html#669">RegistryProxyValues</a>&gt; {
+</span><span class="kw">fn </span>get_from_registry() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#669">RegistryProxyValues</a>&gt; {
     <span class="prelude-val">None
 </span>}
 
@@ -3503,4 +3503,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

@@ -97,7 +97,7 @@
 <span id="97">97</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Helper functions for working with lifetimes.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>};
 <span class="kw">use </span><a href="../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">prusti_interface::environment::debug_utils::to_text::ToText</a>;
 <span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">ty::SubstsRef</a>};
 <span class="kw">use </span><a href="../../../../../vir/high/index.html">vir_crate::high</a> <span class="kw">as </span>vir_high;
@@ -127,7 +127,7 @@
     ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     lifetimes: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>&gt;,
 ) -&gt; SpannedEncodingResult&lt;()&gt; {
-    <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#30">ty</a>.kind() {
+    <span class="kw">match </span><a href="#30">ty</a>.kind() {
         ty::TyKind::Bool
         | ty::TyKind::Char
         | ty::TyKind::Int(<span class="kw">_</span>)
@@ -146,12 +146,12 @@
         ty::TyKind::Array(ty, <span class="kw">_</span>) | ty::TyKind::Slice(ty) =&gt; {
             extract_lifetimes_from_type(type_encoder, <span class="kw-2">*</span>ty, lifetimes)<span class="question-mark">?
         </span>}
-        ty::TyKind::Dynamic(<span class="kw">_</span>, region) =&gt; <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#31">lifetimes</a>.push(<a href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
-            name: <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#52">region</a>.<a href="../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(),
+        ty::TyKind::Dynamic(<span class="kw">_</span>, region, <span class="kw">_</span>) =&gt; <a href="#31">lifetimes</a>.push(<a href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
+            name: <a href="#52">region</a>.<a href="../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(),
         }),
         ty::TyKind::Ref(region, target_ty, <span class="kw">_</span>) =&gt; {
-            <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#31">lifetimes</a>.push(<a href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
-                name: <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#55">region</a>.<a href="../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(),
+            <a href="#31">lifetimes</a>.push(<a href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
+                name: <a href="#55">region</a>.<a href="../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(),
             });
             extract_lifetimes_from_type(type_encoder, <span class="kw-2">*</span>target_ty, lifetimes)<span class="question-mark">?</span>;
         }
@@ -164,7 +164,7 @@
             extract_lifetimes_from_type(type_encoder, type_and_mut.ty, lifetimes)<span class="question-mark">?
         </span>}
         ty::TyKind::FnPtr(poly_fn_sig) =&gt; {
-            <span class="kw">let </span>ty_list = <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#69">poly_fn_sig</a>.inputs_and_output().bound_vars();
+            <span class="kw">let </span>ty_list = <a href="#69">poly_fn_sig</a>.inputs_and_output().bound_vars();
             <span class="kw">for </span>bound_variable_kind <span class="kw">in </span>ty_list.iter() {
                 <span class="kw">if let </span>ty::BoundVariableKind::Region(bound_region_kind) = bound_variable_kind {
                     lifetimes.push(vir_high::ty::LifetimeConst {
@@ -186,11 +186,11 @@
         | ty::TyKind::GeneratorWitness(<span class="kw">_</span>) =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(SpannedEncodingError::unsupported(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unsupported type to extract lifetimes: {:?}&quot;</span>, ty.kind()),
-                <a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#29">type_encoder</a>.<a href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#24">get_type_definition_span</a>(<a href="../../../../../src/prusti_viper/encoder/mir/types/lifetimes.rs.html#30">ty</a>),
+                <a href="#29">type_encoder</a>.<a href="interface.rs.html#24">get_type_definition_span</a>(<a href="#30">ty</a>),
             ));
         }
     };
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

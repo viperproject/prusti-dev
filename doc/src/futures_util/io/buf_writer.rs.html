@@ -222,7 +222,7 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/io/mod.rs.html#35"><span class="kw">super</span>::DEFAULT_BUF_SIZE</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#35"><span class="kw">super</span>::DEFAULT_BUF_SIZE</a>;
 <span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 <span class="kw">use </span>futures_io::{<a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>, <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
@@ -266,18 +266,18 @@
     <span class="doccomment">/// Creates a new `BufWriter` with a default buffer capacity. The default is currently 8 KB,
     /// but may change in the future.
     </span><span class="kw">pub fn </span>new(inner: W) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_capacity(<a href="../../../src/futures_util/io/mod.rs.html#35">DEFAULT_BUF_SIZE</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#44">inner</a>)
+        <span class="self">Self</span>::with_capacity(<a href="mod.rs.html#35">DEFAULT_BUF_SIZE</a>, <a href="#44">inner</a>)
     }
 
     <span class="doccomment">/// Creates a new `BufWriter` with the specified buffer capacity.
     </span><span class="kw">pub fn </span>with_capacity(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, inner: W) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="../../../src/futures_util/io/buf_writer.rs.html#49">inner</a>, buf: Vec::with_capacity(<a href="../../../src/futures_util/io/buf_writer.rs.html#49">cap</a>), written: <span class="number">0 </span>}
+        <span class="self">Self </span>{ <a href="#49">inner</a>, buf: Vec::with_capacity(<a href="#49">cap</a>), written: <span class="number">0 </span>}
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>flush_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#53">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#53">self</a>.<a href="#11-39">project</a>();
 
-        <span class="kw">let </span>len = <a href="../../../src/futures_util/io/buf_writer.rs.html#54">this</a>.buf.len();
+        <span class="kw">let </span>len = <a href="#54">this</a>.buf.len();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="prelude-val">Ok</span>(());
         <span class="kw">while </span><span class="kw-2">*</span>this.written &lt; len {
             <span class="kw">match </span><span class="macro">ready!</span>(this.inner.as_mut().poll_write(cx, <span class="kw-2">&amp;</span>this.buf[<span class="kw-2">*</span>this.written..])) {
@@ -296,28 +296,28 @@
             }
         }
         <span class="kw">if </span><span class="kw-2">*</span>this.written &gt; <span class="number">0 </span>{
-            <a href="../../../src/futures_util/io/buf_writer.rs.html#54">this</a>.buf.drain(..<span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_writer.rs.html#54">this</a>.written);
+            <a href="#54">this</a>.buf.drain(..<span class="kw-2">*</span><a href="#54">this</a>.written);
         }
-        <span class="kw-2">*</span><a href="../../../src/futures_util/io/buf_writer.rs.html#54">this</a>.written = <span class="number">0</span>;
-        Poll::Ready(<a href="../../../src/futures_util/io/buf_writer.rs.html#57">ret</a>)
+        <span class="kw-2">*</span><a href="#54">this</a>.written = <span class="number">0</span>;
+        Poll::Ready(<a href="#57">ret</a>)
     }
 
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(inner, W, ());
+    <a class="macro" href="../lib.rs.html#182-216">delegate_access_inner!</a>(inner, W, ());
 
     <span class="doccomment">/// Returns a reference to the internally buffered data.
     </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#84">self</a>.buf
+        <span class="kw-2">&amp;</span><a class="self" href="#84">self</a>.buf
     }
 
     <span class="doccomment">/// Capacity of `buf`. how many chars can be held in buffer
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#89">self</a>.buf.capacity()
+        <a class="self" href="#89">self</a>.buf.capacity()
     }
 
     <span class="doccomment">/// Remaining number of bytes to reach `buf` &#39;s capacity
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>spare_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#95">self</a>.buf.capacity() - <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#95">self</a>.buf.len()
+        <a class="self" href="#95">self</a>.buf.capacity() - <a class="self" href="#95">self</a>.buf.len()
     }
 
     <span class="doccomment">/// Write a byte slice directly into buffer
@@ -327,15 +327,15 @@
     ///
     /// Based on `std::io::BufWriter`
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>write_to_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let </span>available = <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#105">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#95">spare_capacity</a>();
-        <span class="kw">let </span>amt_to_buffer = <a href="../../../src/futures_util/io/buf_writer.rs.html#106">available</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#105">buf</a>.len());
+        <span class="kw">let </span>available = <a class="self" href="#105">self</a>.<a href="#95">spare_capacity</a>();
+        <span class="kw">let </span>amt_to_buffer = <a href="#106">available</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#105">buf</a>.len());
 
         <span class="comment">// SAFETY: `amt_to_buffer` is &lt;= buffer&#39;s spare capacity by construction.
         </span><span class="kw">unsafe </span>{
-            <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#105">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#121">write_to_buffer_unchecked</a>(<span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/buf_writer.rs.html#105">buf</a>[..<a href="../../../src/futures_util/io/buf_writer.rs.html#107">amt_to_buffer</a>]);
+            <a class="self" href="#105">self</a>.<a href="#121">write_to_buffer_unchecked</a>(<span class="kw-2">&amp;</span><a href="#105">buf</a>[..<a href="#107">amt_to_buffer</a>]);
         }
 
-        <a href="../../../src/futures_util/io/buf_writer.rs.html#107">amt_to_buffer</a>
+        <a href="#107">amt_to_buffer</a>
     }
 
     <span class="doccomment">/// Write byte slice directly into `self.buf`
@@ -344,13 +344,13 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>write_to_buffer_unchecked(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() &lt;= <span class="self">self</span>.spare_capacity());
-        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#121">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>();
-        <span class="kw">let </span>old_len = <a href="../../../src/futures_util/io/buf_writer.rs.html#123">this</a>.buf.len();
-        <span class="kw">let </span>buf_len = <a href="../../../src/futures_util/io/buf_writer.rs.html#121">buf</a>.len();
-        <span class="kw">let </span>src = <a href="../../../src/futures_util/io/buf_writer.rs.html#121">buf</a>.as_ptr();
-        <span class="kw">let </span>dst = <a href="../../../src/futures_util/io/buf_writer.rs.html#123">this</a>.buf.as_mut_ptr().add(<a href="../../../src/futures_util/io/buf_writer.rs.html#124">old_len</a>);
-        ptr::copy_nonoverlapping(<a href="../../../src/futures_util/io/buf_writer.rs.html#126">src</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#127">dst</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#125">buf_len</a>);
-        <a href="../../../src/futures_util/io/buf_writer.rs.html#123">this</a>.buf.set_len(<a href="../../../src/futures_util/io/buf_writer.rs.html#124">old_len</a> + <a href="../../../src/futures_util/io/buf_writer.rs.html#125">buf_len</a>);
+        <span class="kw">let </span>this = <a class="self" href="#121">self</a>.<a href="#11-39">project</a>();
+        <span class="kw">let </span>old_len = <a href="#123">this</a>.buf.len();
+        <span class="kw">let </span>buf_len = <a href="#121">buf</a>.len();
+        <span class="kw">let </span>src = <a href="#121">buf</a>.as_ptr();
+        <span class="kw">let </span>dst = <a href="#123">this</a>.buf.as_mut_ptr().add(<a href="#124">old_len</a>);
+        ptr::copy_nonoverlapping(<a href="#126">src</a>, <a href="#127">dst</a>, <a href="#125">buf_len</a>);
+        <a href="#123">this</a>.buf.set_len(<a href="#124">old_len</a> + <a href="#125">buf_len</a>);
     }
 
     <span class="doccomment">/// Write directly using `inner`, bypassing buffering
@@ -359,7 +359,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#134">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#135">cx</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#136">buf</a>)
+        <a class="self" href="#134">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="#135">cx</a>, <a href="#136">buf</a>)
     }
 
     <span class="doccomment">/// Write directly using `inner`, bypassing buffering
@@ -368,7 +368,7 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#143">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#144">cx</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#145">bufs</a>)
+        <a class="self" href="#143">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="#144">cx</a>, <a href="#145">bufs</a>)
     }
 }
 
@@ -382,9 +382,9 @@
             <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().flush_buf(cx))<span class="question-mark">?</span>;
         }
         <span class="kw">if </span>buf.len() &gt;= <span class="self">self</span>.buf.capacity() {
-            <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#153">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#154">cx</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#155">buf</a>)
+            <a class="self" href="#153">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="#154">cx</a>, <a href="#155">buf</a>)
         } <span class="kw">else </span>{
-            Poll::Ready(<a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#153">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#155">buf</a>))
+            Poll::Ready(<a class="self" href="#153">self</a>.<a href="#11-39">project</a>().buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#155">buf</a>))
         }
     }
 
@@ -393,42 +393,42 @@
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
-        <span class="kw">let </span>total_len = <a href="../../../src/futures_util/io/buf_writer.rs.html#170">bufs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="../../../src/futures_util/io/buf_writer.rs.html#172">b</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;();
+        <span class="kw">let </span>total_len = <a href="#170">bufs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|b| <a href="#172">b</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;();
         <span class="kw">if </span><span class="self">self</span>.buf.len() + total_len &gt; <span class="self">self</span>.buf.capacity() {
             <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().flush_buf(cx))<span class="question-mark">?</span>;
         }
         <span class="kw">if </span>total_len &gt;= <span class="self">self</span>.buf.capacity() {
-            <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#168">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#169">cx</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#170">bufs</a>)
+            <a class="self" href="#168">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="#169">cx</a>, <a href="#170">bufs</a>)
         } <span class="kw">else </span>{
-            Poll::Ready(<a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#168">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#170">bufs</a>))
+            Poll::Ready(<a class="self" href="#168">self</a>.<a href="#11-39">project</a>().buf.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_vectored</a>(<a href="#170">bufs</a>))
         }
     }
 
     <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#183">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#183">cx</a>)
+        <a class="self" href="#183">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="#183">cx</a>)
     }
 
     <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#188">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#188">cx</a>)
+        <a class="self" href="#188">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="#188">cx</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;W: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>&gt; <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#145-163">delegate_async_read!</a>(inner);
+    <a class="macro" href="../lib.rs.html#145-163">delegate_async_read!</a>(inner);
 }
 
 <span class="kw">impl</span>&lt;W: <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>&gt; <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#167-180">delegate_async_buf_read!</a>(inner);
+    <a class="macro" href="../lib.rs.html#167-180">delegate_async_buf_read!</a>(inner);
 }
 
 <span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>BufWriter&lt;W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/futures_util/io/buf_writer.rs.html#203">f</a>.debug_struct(<span class="string">&quot;BufWriter&quot;</span>)
-            .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#203">self</a>.inner)
+        <a href="#203">f</a>.debug_struct(<span class="string">&quot;BufWriter&quot;</span>)
+            .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#203">self</a>.inner)
             .field(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{}/{}&quot;</span>, <span class="self">self</span>.buf.len(), <span class="self">self</span>.buf.capacity()))
-            .field(<span class="string">&quot;written&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#203">self</a>.written)
+            .field(<span class="string">&quot;written&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#203">self</a>.written)
             .finish()
     }
 }
@@ -443,8 +443,8 @@
         pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
     ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().flush_buf(cx))<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/futures_util/io/buf_writer.rs.html#217">self</a>.<a href="../../../src/futures_util/io/buf_writer.rs.html#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="../../../src/futures_util/io/buf_writer.rs.html#218">cx</a>, <a href="../../../src/futures_util/io/buf_writer.rs.html#219">pos</a>)
+        <a class="self" href="#217">self</a>.<a href="#11-39">project</a>().inner.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="#218">cx</a>, <a href="#219">pos</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

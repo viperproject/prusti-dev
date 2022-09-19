@@ -654,10 +654,10 @@
     </span><span class="kw">fn </span>optimize(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a> {
+<span class="kw">impl </span><a href="#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a> {
     <span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = ast::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>optimizer = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#76">StmtOptimizer</a> {};
+        <span class="kw">let </span><span class="kw-2">mut </span>optimizer = <a href="#76">StmtOptimizer</a> {};
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.basic_blocks {
             <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;mut </span>block.stmts {
                 mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
@@ -665,55 +665,55 @@
                 mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
             }
         }
-        <span class="self"><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#33">self</a>
+        <span class="self"><a href="#33">self</a>
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
+<span class="kw">impl </span><a href="#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
     <span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] FoldingOptimizer function_name={}&quot;</span>, <span class="self">self</span>.name);
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#48">self</a>.body = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#48">self</a>.body.map(|e| <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#50">e</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">optimize</a>());
+        <a class="self" href="#48">self</a>.body = <a class="self" href="#48">self</a>.body.map(|e| <a href="#50">e</a>.<a href="#29">optimize</a>());
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] FoldingOptimizer function_name={}&quot;</span>, <span class="self">self</span>.name);
-        <span class="self"><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#48">self</a>
+        <span class="self"><a href="#48">self</a>
     </span>}
 }
 
-<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+<span class="kw">impl </span><a href="#27">FoldingOptimizer</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
     <span class="kw">fn </span>optimize(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] FoldingOptimizer::optimize = \n{}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>optimizer = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#99">ExprOptimizer</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>optimizer = <a href="#99">ExprOptimizer</a> {
             unfoldings: HashMap::new(),
             requirements: HashSet::new(),
         };
-        <span class="kw">let </span>original_expr = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#57">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(new_expr) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#59">optimizer</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.FallibleExprFolder.html">fallible_fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#57">self</a>) {
-            <span class="kw">let </span>r = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#120">restore_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#59">optimizer</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>(), <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#64">new_expr</a>);
+        <span class="kw">let </span>original_expr = <a class="self" href="#57">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(new_expr) = <a href="#59">optimizer</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.FallibleExprFolder.html">fallible_fold</a>(<a class="self" href="#57">self</a>) {
+            <span class="kw">let </span>r = <a href="#120">restore_unfoldings</a>(<a href="#59">optimizer</a>.<a href="#107">get_unfoldings</a>(), <a href="#64">new_expr</a>);
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] FoldingOptimizer::optimize = \n{}&quot;</span>, r);
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#65">r</a>
+            <a href="#65">r</a>
         } <span class="kw">else </span>{
             <span class="comment">// The optimizer encountered unsupported expressions
             </span><a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] FoldingOptimizer::optimize encountered unsupported expressions&quot;</span>);
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#63">original_expr</a>
+            <a href="#63">original_expr</a>
         }
     }
 }
 
 <span class="kw">struct </span>StmtOptimizer {}
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#76">StmtOptimizer</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span><a href="#76">StmtOptimizer</a> {
     <span class="kw">fn </span>fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">ast::Inhale</a> { expr }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">ast::Inhale</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">ast::Stmt</a> {
-        ast::Stmt::inhale(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#79">expr</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">optimize</a>())
+        ast::Stmt::inhale(<a href="#79">expr</a>.<a href="#29">optimize</a>())
     }
     <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">ast::Assert</a> { expr, position }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">ast::Assert</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">ast::Stmt</a> {
         ast::Stmt::Assert(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">ast::Assert</a> {
-            expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#82">expr</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">optimize</a>(),
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#82">position</a>,
+            expr: <a href="#82">expr</a>.<a href="#29">optimize</a>(),
+            <a href="#82">position</a>,
         })
     }
     <span class="kw">fn </span>fold_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Exhale.html">ast::Exhale</a> { expr, position }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Exhale.html">ast::Exhale</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">ast::Stmt</a> {
         ast::Stmt::Exhale(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Exhale.html">ast::Exhale</a> {
-            expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#88">expr</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#29">optimize</a>(),
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#88">position</a>,
+            expr: <a href="#88">expr</a>.<a href="#29">optimize</a>(),
+            <a href="#88">position</a>,
         })
     }
 }
@@ -723,33 +723,33 @@
 
 <span class="kw">struct </span>ExprOptimizer {
     <span class="doccomment">/// Predicate argument → (predicate name, amount, enum index).
-    </span>unfoldings: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
+    </span>unfoldings: <a href="#96">UnfoldingMap</a>,
     <span class="doccomment">/// Unfolding requirements: how deeply a specific place should be unfolded.
-    </span>requirements: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
+    </span>requirements: <a href="#97">RequirementSet</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#99">ExprOptimizer</a> {
-    <span class="kw">fn </span>get_unfoldings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a> {
-        mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">self</a>.unfoldings)
+<span class="kw">impl </span><a href="#99">ExprOptimizer</a> {
+    <span class="kw">fn </span>get_unfoldings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#96">UnfoldingMap</a> {
+        mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#107">self</a>.unfoldings)
     }
-    <span class="kw">fn </span>get_requirements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a> {
-        mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">self</a>.requirements)
+    <span class="kw">fn </span>get_requirements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#97">RequirementSet</a> {
+        mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#110">self</a>.requirements)
     }
 }
 
-<span class="kw">fn </span>restore_unfoldings_boxed(unfolding_map: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, expr: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) -&gt; Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt; {
-    <span class="kw">box </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#120">restore_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">unfolding_map</a>, <span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">expr</a>)
+<span class="kw">fn </span>restore_unfoldings_boxed(unfolding_map: <a href="#96">UnfoldingMap</a>, expr: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) -&gt; Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt; {
+    <span class="kw">box </span><a href="#120">restore_unfoldings</a>(<a href="#115">unfolding_map</a>, <span class="kw-2">*</span><a href="#115">expr</a>)
 }
 
 <span class="doccomment">/// Restore unfoldings on a given expression.
-</span><span class="kw">fn </span>restore_unfoldings(unfolding_map: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <span class="kw-2">mut </span>expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>unfoldings: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#120">unfolding_map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#121">unfoldings</a>.sort_by(|(k1, <span class="kw">_</span>), (k2, <span class="kw">_</span>)| {
+</span><span class="kw">fn </span>restore_unfoldings(unfolding_map: <a href="#96">UnfoldingMap</a>, <span class="kw-2">mut </span>expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>unfoldings: Vec&lt;<span class="kw">_</span>&gt; = <a href="#120">unfolding_map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a href="#121">unfoldings</a>.sort_by(|(k1, <span class="kw">_</span>), (k2, <span class="kw">_</span>)| {
         <span class="kw">if </span>k1 == k2 {
             Ordering::Equal
         } <span class="kw">else </span>{
-            <span class="kw">let </span>base_k1 = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#122">k1</a>.get_base().name;
-            <span class="kw">let </span>base_k2 = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#122">k2</a>.get_base().name;
+            <span class="kw">let </span>base_k1 = <a href="#122">k1</a>.get_base().name;
+            <span class="kw">let </span>base_k2 = <a href="#122">k2</a>.get_base().name;
             <span class="kw">if </span>base_k1 &lt; base_k2 || k1.has_prefix(k2) {
                 Ordering::Less
             } <span class="kw">else if </span>base_k1 &gt; base_k2 || k2.has_prefix(k1) {
@@ -763,15 +763,15 @@
         <span class="kw">let </span>position = expr.pos();
         expr = ast::Expr::unfolding_with_pos(name, <span class="macro">vec!</span>[arg], expr, perm_amount, variant, position);
     }
-    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#120">expr</a>
+    <a href="#120">expr</a>
 }
 
 <span class="doccomment">/// Check whether the requirements are conflicting.
 ///
 /// Returns a set of conflicting bases. The empty set means no conflicts.
 </span><span class="kw">fn </span>check_requirements_conflict(
-    reqs1: <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
-    reqs2: <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
+    reqs1: <span class="kw-2">&amp;</span><a href="#97">RequirementSet</a>,
+    reqs2: <span class="kw-2">&amp;</span><a href="#97">RequirementSet</a>,
 ) -&gt; HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>conflict_set = HashSet::new();
     <span class="kw">for </span>place1 <span class="kw">in </span>reqs1 {
@@ -826,14 +826,14 @@
             }
         }
     }
-    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#151">conflict_set</a>
+    <a href="#151">conflict_set</a>
 }
 
 <span class="doccomment">/// Split the unfoldings map into two: to restore and to keep.
 </span><span class="kw">fn </span>split_unfoldings(
-    unfoldings: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
+    unfoldings: <a href="#96">UnfoldingMap</a>,
     conflicts: <span class="kw-2">&amp;</span>HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
-) -&gt; (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>) {
+) -&gt; (<a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>) {
     <span class="kw">let </span><span class="kw-2">mut </span>to_restore = HashMap::new();
     <span class="kw">let </span><span class="kw-2">mut </span>to_keep = HashMap::new();
     <span class="kw">for </span>(place, data) <span class="kw">in </span>unfoldings {
@@ -843,14 +843,14 @@
             to_keep.insert(place, data);
         }
     }
-    (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#212">to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#213">to_keep</a>)
+    (<a href="#212">to_restore</a>, <a href="#213">to_keep</a>)
 }
 
 <span class="doccomment">/// Find unfoldings that are in both sets.
 </span><span class="kw">fn </span>find_common_unfoldings2(
-    first: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    <span class="kw-2">mut </span>second: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-) -&gt; (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>) {
+    first: <a href="#96">UnfoldingMap</a>,
+    <span class="kw-2">mut </span>second: <a href="#96">UnfoldingMap</a>,
+) -&gt; (<a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>) {
     <span class="kw">let </span><span class="kw-2">mut </span>common = HashMap::new();
     <span class="kw">let </span><span class="kw-2">mut </span>new_first = HashMap::new();
     <span class="kw">for </span>(place, data) <span class="kw">in </span>first {
@@ -861,18 +861,18 @@
             new_first.insert(place, data);
         }
     }
-    (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#229">common</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#230">new_first</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#227">second</a>)
+    (<a href="#229">common</a>, <a href="#230">new_first</a>, <a href="#227">second</a>)
 }
 
 <span class="doccomment">/// Find unfoldings that are in all three sets.
 </span><span class="kw">fn </span>find_common_unfoldings3&lt;<span class="lifetime">&#39;a</span>&gt;(
-    first: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    <span class="kw-2">mut </span>_first_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
-    <span class="kw-2">mut </span>second: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    second_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
-    <span class="kw-2">mut </span>third: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    third_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
-) -&gt; (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>) {
+    first: <a href="#96">UnfoldingMap</a>,
+    <span class="kw-2">mut </span>_first_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#97">RequirementSet</a>,
+    <span class="kw-2">mut </span>second: <a href="#96">UnfoldingMap</a>,
+    second_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#97">RequirementSet</a>,
+    <span class="kw-2">mut </span>third: <a href="#96">UnfoldingMap</a>,
+    third_reqs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#97">RequirementSet</a>,
+) -&gt; (<a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>, <a href="#96">UnfoldingMap</a>) {
     <span class="kw">let </span><span class="kw-2">mut </span>common = HashMap::new();
     <span class="kw">let </span><span class="kw-2">mut </span>new_first = HashMap::new();
     <span class="kw">for </span>(place, data) <span class="kw">in </span>first {
@@ -888,11 +888,11 @@
             new_first.insert(place, data);
         }
     }
-    (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#251">common</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#252">new_first</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#246">second</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#248">third</a>)
+    (<a href="#251">common</a>, <a href="#252">new_first</a>, <a href="#246">second</a>, <a href="#248">third</a>)
 }
 
-<span class="kw">fn </span>update_requirements(requirements: <span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>, <span class="kw-2">mut </span>new_requirements: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) {
-    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">new_requirements</a>.sort_by_cached_key(|place| -(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#270">place</a>.place_depth() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>));
+<span class="kw">fn </span>update_requirements(requirements: <span class="kw-2">&amp;mut </span><a href="#97">RequirementSet</a>, <span class="kw-2">mut </span>new_requirements: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) {
+    <a href="#269">new_requirements</a>.sort_by_cached_key(|place| -(<a href="#270">place</a>.place_depth() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>));
     <span class="kw">for </span>place <span class="kw">in </span>new_requirements {
         requirements.retain(|p| !p.has_prefix(<span class="kw-2">&amp;</span>place));
         requirements.insert(place);
@@ -901,14 +901,14 @@
 
 <span class="kw">fn </span>merge_requirements_and_unfoldings2(
     first: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
-    <span class="kw-2">mut </span>first_unfoldings: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    <span class="kw-2">mut </span>first_requirements: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
+    <span class="kw-2">mut </span>first_unfoldings: <a href="#96">UnfoldingMap</a>,
+    <span class="kw-2">mut </span>first_requirements: <a href="#97">RequirementSet</a>,
     second: Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
-    second_unfoldings: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>,
-    second_requirements: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>,
-) -&gt; (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#97">RequirementSet</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#96">UnfoldingMap</a>, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) {
+    second_unfoldings: <a href="#96">UnfoldingMap</a>,
+    second_requirements: <a href="#97">RequirementSet</a>,
+) -&gt; (<a href="#97">RequirementSet</a>, <a href="#96">UnfoldingMap</a>, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;, Box&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;) {
     <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] merge_requirements_and_unfoldings&quot;</span>);
-    <span class="kw">use </span><a href="../../../../../src/prusti_common/utils/to_string.rs.html#9"><span class="kw">crate</span>::utils::to_string::ToString</a>;
+    <span class="kw">use </span><a href="../../../utils/to_string.rs.html#9"><span class="kw">crate</span>::utils::to_string::ToString</a>;
     <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
         <span class="string">&quot;reqs: {}&quot;</span>,
         first_requirements.iter().to_sorted_multiline_string()
@@ -926,64 +926,64 @@
         second_unfoldings.keys().to_sorted_multiline_string()
     );
 
-    <span class="kw">let </span>conflicts = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#280">first_requirements</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#283">second_requirements</a>);
+    <span class="kw">let </span>conflicts = <a href="#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="#280">first_requirements</a>, <span class="kw-2">&amp;</span><a href="#283">second_requirements</a>);
     <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
         <span class="string">&quot;conflicts: {}&quot;</span>,
         conflicts.iter().to_sorted_multiline_string()
     );
 
     <span class="kw">if </span>conflicts.is_empty() {
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#280">first_requirements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#283">second_requirements</a>);
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#279">first_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#282">second_unfoldings</a>);
-        (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#280">first_requirements</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#279">first_unfoldings</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#278">first</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#281">second</a>)
+        <a href="#280">first_requirements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#283">second_requirements</a>);
+        <a href="#279">first_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#282">second_unfoldings</a>);
+        (<a href="#280">first_requirements</a>, <a href="#279">first_unfoldings</a>, <a href="#278">first</a>, <a href="#281">second</a>)
     } <span class="kw">else </span>{
         <span class="kw">let </span>(common, first_unfoldings, second_unfoldings) =
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#225-228">find_common_unfoldings2</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#279">first_unfoldings</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#282">second_unfoldings</a>);
+            <a href="#225-228">find_common_unfoldings2</a>(<a href="#279">first_unfoldings</a>, <a href="#282">second_unfoldings</a>);
 
-        <span class="kw">let </span>(first_to_restore, first_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#315">first_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#304">conflicts</a>);
-        <span class="kw">let </span>(second_to_restore, second_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#315">second_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#304">conflicts</a>);
+        <span class="kw">let </span>(first_to_restore, first_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#315">first_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#304">conflicts</a>);
+        <span class="kw">let </span>(second_to_restore, second_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#315">second_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#304">conflicts</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>new_requirements = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#280">first_requirements</a>;
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#321">new_requirements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#283">second_requirements</a>);
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-            <span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#321">new_requirements</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#318">first_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>new_requirements = <a href="#280">first_requirements</a>;
+        <a href="#321">new_requirements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#283">second_requirements</a>);
+        <a href="#269">update_requirements</a>(
+            <span class="kw-2">&amp;mut </span><a href="#321">new_requirements</a>,
+            <a href="#318">first_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         );
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-            <span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#321">new_requirements</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#319">second_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        <a href="#269">update_requirements</a>(
+            <span class="kw-2">&amp;mut </span><a href="#321">new_requirements</a>,
+            <a href="#319">second_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         );
 
-        <span class="kw">let </span>first_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#318">first_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#278">first</a>);
-        <span class="kw">let </span>second_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#319">second_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#281">second</a>);
+        <span class="kw">let </span>first_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#318">first_to_restore</a>, <a href="#278">first</a>);
+        <span class="kw">let </span>second_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#319">second_to_restore</a>, <a href="#281">second</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>new_unfoldings = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#315">common</a>;
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#335">new_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#318">first_to_keep</a>);
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#335">new_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#319">second_to_keep</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>new_unfoldings = <a href="#315">common</a>;
+        <a href="#335">new_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#318">first_to_keep</a>);
+        <a href="#335">new_unfoldings</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#319">second_to_keep</a>);
 
         (
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#321">new_requirements</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#335">new_unfoldings</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#332">first_restored</a>,
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#333">second_restored</a>,
+            <a href="#321">new_requirements</a>,
+            <a href="#335">new_unfoldings</a>,
+            <a href="#332">first_restored</a>,
+            <a href="#333">second_restored</a>,
         )
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.FallibleExprFolder.html">ast::FallibleExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#99">ExprOptimizer</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.FallibleExprFolder.html">ast::FallibleExprFolder</a> <span class="kw">for </span><a href="#99">ExprOptimizer</a> {
     <span class="kw">type </span>Error = ();
 
     <span class="kw">fn </span>fallible_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>, ()&gt; {
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">expr</a> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#351">expr</a> {
             ast::Expr::LabelledOld(..) =&gt; {
                 <span class="kw">if </span>expr.is_place() {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self
                         </span>.requirements
                         .iter()
                         .all(|p| !p.has_proper_prefix(<span class="kw-2">&amp;</span>expr) &amp;&amp; !expr.has_proper_prefix(p)));
-                    <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">self</a>.requirements.insert(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <a class="self" href="#351">self</a>.requirements.insert(<a href="#351">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 }
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">expr</a>
+                <a href="#351">expr</a>
             }
             ast::Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
                 predicate: name,
@@ -995,9 +995,9 @@
             }) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(args.len() == <span class="number">1</span>);
                 <span class="kw">let </span>new_expr = <span class="self">self</span>.fallible_fold(body)<span class="question-mark">?</span>;
-                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">self</a>.unfoldings
-                    .insert(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#365">args</a>.pop().unwrap(), (<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#364">name</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#367">perm</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#368">variant</a>));
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#372">new_expr</a>
+                <a class="self" href="#351">self</a>.unfoldings
+                    .insert(<a href="#365">args</a>.pop().unwrap(), (<a href="#364">name</a>, <a href="#367">perm</a>, <a href="#368">variant</a>));
+                <a href="#372">new_expr</a>
             }
             ast::Expr::Downcast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.DowncastExpr.html">ast::DowncastExpr</a> {
                 base,
@@ -1005,8 +1005,8 @@
                 field,
             }) =&gt; ast::Expr::Downcast(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.DowncastExpr.html">ast::DowncastExpr</a> {
                 base: <span class="self">self</span>.fallible_fold_boxed(base)<span class="question-mark">?</span>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#379">enum_place</a>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#380">field</a>,
+                <a href="#379">enum_place</a>,
+                <a href="#380">field</a>,
             }),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">if </span>expr.is_place() {
@@ -1014,8 +1014,8 @@
                     //     .requirements
                     //     .iter()
                     //     .all(|p| !p.has_proper_prefix(&amp;expr) &amp;&amp; !expr.has_proper_prefix(p)));
-                    </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">self</a>.requirements.insert(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#351">expr</a>
+                    </span><a class="self" href="#351">self</a>.requirements.insert(<a href="#351">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <a href="#351">expr</a>
                 } <span class="kw">else </span>{
                     ast::default_fallible_fold_expr(<span class="self">self</span>, expr)<span class="question-mark">?
                 </span>}
@@ -1080,69 +1080,69 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>, ()&gt; {
-        <span class="kw">let </span>f = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#453">left</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>s = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#454">right</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>f = <a href="#453">left</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>s = <a href="#454">right</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span>first_folded = <span class="self">self</span>.fallible_fold_boxed(left)<span class="question-mark">?</span>;
-        <span class="kw">let </span>first_unfoldings = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>();
-        <span class="kw">let </span>first_requirements = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">get_requirements</a>();
+        <span class="kw">let </span>first_unfoldings = <a class="self" href="#450">self</a>.<a href="#107">get_unfoldings</a>();
+        <span class="kw">let </span>first_requirements = <a class="self" href="#450">self</a>.<a href="#110">get_requirements</a>();
 
         <span class="kw">let </span>second_folded = <span class="self">self</span>.fallible_fold_boxed(right)<span class="question-mark">?</span>;
-        <span class="kw">let </span>second_unfoldings = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>();
-        <span class="kw">let </span>second_requirements = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">get_requirements</a>();
+        <span class="kw">let </span>second_unfoldings = <a class="self" href="#450">self</a>.<a href="#107">get_unfoldings</a>();
+        <span class="kw">let </span>second_requirements = <a class="self" href="#450">self</a>.<a href="#110">get_requirements</a>();
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;fold_bin_op: {} {} {}&quot;</span>, op_kind, f, s);
-        <span class="kw">let </span>conflicts = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#462">first_requirements</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#466">second_requirements</a>);
+        <span class="kw">let </span>conflicts = <a href="#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="#462">first_requirements</a>, <span class="kw-2">&amp;</span><a href="#466">second_requirements</a>);
 
         <span class="kw">if </span>conflicts.is_empty() {
             <span class="kw">let </span>(new_reqs, new_unfoldings, new_first, new_second) =
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#277-284">merge_requirements_and_unfoldings2</a>(
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#460">first_folded</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#461">first_unfoldings</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#462">first_requirements</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#464">second_folded</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#465">second_unfoldings</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#466">second_requirements</a>,
+                <a href="#277-284">merge_requirements_and_unfoldings2</a>(
+                    <a href="#460">first_folded</a>,
+                    <a href="#461">first_unfoldings</a>,
+                    <a href="#462">first_requirements</a>,
+                    <a href="#464">second_folded</a>,
+                    <a href="#465">second_unfoldings</a>,
+                    <a href="#466">second_requirements</a>,
                 );
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.requirements = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#472">new_reqs</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.unfoldings = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#472">new_unfoldings</a>;
+            <a class="self" href="#450">self</a>.requirements = <a href="#472">new_reqs</a>;
+            <a class="self" href="#450">self</a>.unfoldings = <a href="#472">new_unfoldings</a>;
             <span class="prelude-val">Ok</span>(ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#452">op_kind</a>,
-                left: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#472">new_first</a>,
-                right: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#472">new_second</a>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#455">position</a>,
+                <a href="#452">op_kind</a>,
+                left: <a href="#472">new_first</a>,
+                right: <a href="#472">new_second</a>,
+                <a href="#455">position</a>,
             }))
         } <span class="kw">else </span>{
             <span class="kw">let </span>(common, first_unfoldings, second_unfoldings) =
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#225-228">find_common_unfoldings2</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#461">first_unfoldings</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#465">second_unfoldings</a>);
+                <a href="#225-228">find_common_unfoldings2</a>(<a href="#461">first_unfoldings</a>, <a href="#465">second_unfoldings</a>);
 
-            <span class="kw">let </span>(first_to_restore, first_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#491">first_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#469">conflicts</a>);
+            <span class="kw">let </span>(first_to_restore, first_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#491">first_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#469">conflicts</a>);
             <span class="kw">let </span>(second_to_restore, second_to_keep) =
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#491">second_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#469">conflicts</a>);
+                <a href="#208-211">split_unfoldings</a>(<a href="#491">second_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#469">conflicts</a>);
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.requirements = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#462">first_requirements</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#466">second_requirements</a>);
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.requirements,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#494">first_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a class="self" href="#450">self</a>.requirements = <a href="#462">first_requirements</a>;
+            <a class="self" href="#450">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#466">second_requirements</a>);
+            <a href="#269">update_requirements</a>(
+                <span class="kw-2">&amp;mut </span><a class="self" href="#450">self</a>.requirements,
+                <a href="#494">first_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             );
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.requirements,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#495">second_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#269">update_requirements</a>(
+                <span class="kw-2">&amp;mut </span><a class="self" href="#450">self</a>.requirements,
+                <a href="#495">second_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             );
 
-            <span class="kw">let </span>first_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#494">first_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#460">first_folded</a>);
-            <span class="kw">let </span>second_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#495">second_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#464">second_folded</a>);
+            <span class="kw">let </span>first_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#494">first_to_restore</a>, <a href="#460">first_folded</a>);
+            <span class="kw">let </span>second_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#495">second_to_restore</a>, <a href="#464">second_folded</a>);
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.unfoldings = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#491">common</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#494">first_to_keep</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#450">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#495">second_to_keep</a>);
+            <a class="self" href="#450">self</a>.unfoldings = <a href="#491">common</a>;
+            <a class="self" href="#450">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#494">first_to_keep</a>);
+            <a class="self" href="#450">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#495">second_to_keep</a>);
 
             <span class="prelude-val">Ok</span>(ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#452">op_kind</a>,
-                left: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#509">first_restored</a>,
-                right: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#510">second_restored</a>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#455">position</a>,
+                <a href="#452">op_kind</a>,
+                left: <a href="#509">first_restored</a>,
+                right: <a href="#510">second_restored</a>,
+                <a href="#455">position</a>,
             }))
         }
     }
@@ -1156,97 +1156,97 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>, ()&gt; {
-        <span class="kw">let </span>g = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#528">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>f = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#529">then_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span>s = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#530">else_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>g = <a href="#528">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>f = <a href="#529">then_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>s = <a href="#530">else_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
         <span class="kw">let </span>guard_folded = <span class="self">self</span>.fallible_fold_boxed(guard)<span class="question-mark">?</span>;
-        <span class="kw">let </span>guard_unfoldings = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>();
-        <span class="kw">let </span>guard_requirements = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">get_requirements</a>();
+        <span class="kw">let </span>guard_unfoldings = <a class="self" href="#526">self</a>.<a href="#107">get_unfoldings</a>();
+        <span class="kw">let </span>guard_requirements = <a class="self" href="#526">self</a>.<a href="#110">get_requirements</a>();
 
         <span class="kw">let </span>then_folded = <span class="self">self</span>.fallible_fold_boxed(then_expr)<span class="question-mark">?</span>;
-        <span class="kw">let </span>then_unfoldings = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>();
-        <span class="kw">let </span>then_requirements = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">get_requirements</a>();
+        <span class="kw">let </span>then_unfoldings = <a class="self" href="#526">self</a>.<a href="#107">get_unfoldings</a>();
+        <span class="kw">let </span>then_requirements = <a class="self" href="#526">self</a>.<a href="#110">get_requirements</a>();
 
         <span class="kw">let </span>else_folded = <span class="self">self</span>.fallible_fold_boxed(else_expr)<span class="question-mark">?</span>;
-        <span class="kw">let </span>else_unfoldings = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#107">get_unfoldings</a>();
-        <span class="kw">let </span>else_requirements = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#110">get_requirements</a>();
+        <span class="kw">let </span>else_unfoldings = <a class="self" href="#526">self</a>.<a href="#107">get_unfoldings</a>();
+        <span class="kw">let </span>else_requirements = <a class="self" href="#526">self</a>.<a href="#110">get_requirements</a>();
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;\n\nfold_cond:\ng = {}\nt = {}\ne = {}&quot;</span>, g, f, s);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>conflicts = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#540">guard_requirements</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#544">then_requirements</a>);
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#552">conflicts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#147-150">check_requirements_conflict</a>(
-            <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#540">guard_requirements</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#548">else_requirements</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>conflicts = <a href="#147-150">check_requirements_conflict</a>(<span class="kw-2">&amp;</span><a href="#540">guard_requirements</a>, <span class="kw-2">&amp;</span><a href="#544">then_requirements</a>);
+        <a href="#552">conflicts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#147-150">check_requirements_conflict</a>(
+            <span class="kw-2">&amp;</span><a href="#540">guard_requirements</a>,
+            <span class="kw-2">&amp;</span><a href="#548">else_requirements</a>,
         ));
-        <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#552">conflicts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#147-150">check_requirements_conflict</a>(
-            <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#544">then_requirements</a>,
-            <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#548">else_requirements</a>,
+        <a href="#552">conflicts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#147-150">check_requirements_conflict</a>(
+            <span class="kw-2">&amp;</span><a href="#544">then_requirements</a>,
+            <span class="kw-2">&amp;</span><a href="#548">else_requirements</a>,
         ));
 
         <span class="kw">if </span>conflicts.is_empty() {
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#540">guard_requirements</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#544">then_requirements</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#548">else_requirements</a>);
+            <a class="self" href="#526">self</a>.requirements = <a href="#540">guard_requirements</a>;
+            <a class="self" href="#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#544">then_requirements</a>);
+            <a class="self" href="#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#548">else_requirements</a>);
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#539">guard_unfoldings</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#543">then_unfoldings</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#547">else_unfoldings</a>);
+            <a class="self" href="#526">self</a>.unfoldings = <a href="#539">guard_unfoldings</a>;
+            <a class="self" href="#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#543">then_unfoldings</a>);
+            <a class="self" href="#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#547">else_unfoldings</a>);
 
             <span class="prelude-val">Ok</span>(ast::Expr::Cond(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
-                guard: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#538">guard_folded</a>,
-                then_expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#542">then_folded</a>,
-                else_expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#546">else_folded</a>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#531">position</a>,
+                guard: <a href="#538">guard_folded</a>,
+                then_expr: <a href="#542">then_folded</a>,
+                else_expr: <a href="#546">else_folded</a>,
+                <a href="#531">position</a>,
             }))
         } <span class="kw">else </span>{
             <span class="kw">let </span>(common, guard_unfoldings, then_unfoldings, else_unfoldings) =
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#243-250">find_common_unfoldings3</a>(
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#539">guard_unfoldings</a>,
-                    <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#540">guard_requirements</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#543">then_unfoldings</a>,
-                    <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#544">then_requirements</a>,
-                    <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#547">else_unfoldings</a>,
-                    <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#548">else_requirements</a>,
+                <a href="#243-250">find_common_unfoldings3</a>(
+                    <a href="#539">guard_unfoldings</a>,
+                    <span class="kw-2">&amp;</span><a href="#540">guard_requirements</a>,
+                    <a href="#543">then_unfoldings</a>,
+                    <span class="kw-2">&amp;</span><a href="#544">then_requirements</a>,
+                    <a href="#547">else_unfoldings</a>,
+                    <span class="kw-2">&amp;</span><a href="#548">else_requirements</a>,
                 );
 
-            <span class="kw">let </span>(guard_to_restore, guard_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#578">guard_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#552">conflicts</a>);
-            <span class="kw">let </span>(then_to_restore, then_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#578">then_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#552">conflicts</a>);
-            <span class="kw">let </span>(else_to_restore, else_to_keep) = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#208-211">split_unfoldings</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#578">else_unfoldings</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#552">conflicts</a>);
+            <span class="kw">let </span>(guard_to_restore, guard_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#578">guard_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#552">conflicts</a>);
+            <span class="kw">let </span>(then_to_restore, then_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#578">then_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#552">conflicts</a>);
+            <span class="kw">let </span>(else_to_restore, else_to_keep) = <a href="#208-211">split_unfoldings</a>(<a href="#578">else_unfoldings</a>, <span class="kw-2">&amp;</span><a href="#552">conflicts</a>);
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#540">guard_requirements</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#544">then_requirements</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#548">else_requirements</a>);
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#588">guard_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a class="self" href="#526">self</a>.requirements = <a href="#540">guard_requirements</a>;
+            <a class="self" href="#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#544">then_requirements</a>);
+            <a class="self" href="#526">self</a>.requirements.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#548">else_requirements</a>);
+            <a href="#269">update_requirements</a>(
+                <span class="kw-2">&amp;mut </span><a class="self" href="#526">self</a>.requirements,
+                <a href="#588">guard_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             );
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#589">then_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#269">update_requirements</a>(
+                <span class="kw-2">&amp;mut </span><a class="self" href="#526">self</a>.requirements,
+                <a href="#589">then_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             );
-            <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#269">update_requirements</a>(
-                <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.requirements,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#590">else_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#269">update_requirements</a>(
+                <span class="kw-2">&amp;mut </span><a class="self" href="#526">self</a>.requirements,
+                <a href="#590">else_to_restore</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             );
 
-            <span class="kw">let </span>guard_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#588">guard_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#538">guard_folded</a>);
-            <span class="kw">let </span>then_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#589">then_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#542">then_folded</a>);
-            <span class="kw">let </span>else_restored = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#115">restore_unfoldings_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#590">else_to_restore</a>, <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#546">else_folded</a>);
+            <span class="kw">let </span>guard_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#588">guard_to_restore</a>, <a href="#538">guard_folded</a>);
+            <span class="kw">let </span>then_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#589">then_to_restore</a>, <a href="#542">then_folded</a>);
+            <span class="kw">let </span>else_restored = <a href="#115">restore_unfoldings_boxed</a>(<a href="#590">else_to_restore</a>, <a href="#546">else_folded</a>);
 
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings = <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#578">common</a>;
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#588">guard_to_keep</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#589">then_to_keep</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#590">else_to_keep</a>);
+            <a class="self" href="#526">self</a>.unfoldings = <a href="#578">common</a>;
+            <a class="self" href="#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#588">guard_to_keep</a>);
+            <a class="self" href="#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#589">then_to_keep</a>);
+            <a class="self" href="#526">self</a>.unfoldings.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#590">else_to_keep</a>);
 
             <span class="prelude-val">Ok</span>(ast::Expr::Cond(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
-                guard: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#608">guard_restored</a>,
-                then_expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#609">then_restored</a>,
-                else_expr: <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#610">else_restored</a>,
-                <a href="../../../../../src/prusti_common/vir/optimizations/folding/expressions.rs.html#531">position</a>,
+                guard: <a href="#608">guard_restored</a>,
+                then_expr: <a href="#609">then_restored</a>,
+                else_expr: <a href="#610">else_restored</a>,
+                <a href="#531">position</a>,
             }))
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

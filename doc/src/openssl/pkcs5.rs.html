@@ -307,10 +307,10 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use </span><a href="../../src/openssl/lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
-<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><a href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use </span><a href="lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
+<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
+<span class="kw">use </span><a href="symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
 <span class="attribute">#[derive(Clone, Eq, PartialEq, Hash, Debug)]
@@ -332,28 +332,28 @@
 </span><span class="attribute">#[corresponds(EVP_BytesToKey)]
 #[allow(clippy::useless_conversion)]
 </span><span class="kw">pub fn </span>bytes_to_key(
-    cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-    digest: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
+    cipher: <a href="symm.rs.html#73">Cipher</a>,
+    digest: <a href="hash.rs.html#22">MessageDigest</a>,
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     salt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     count: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/pkcs5.rs.html#11">KeyIvPair</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">KeyIvPair</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(data.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
-        <span class="kw">let </span>salt_ptr = <span class="kw">match </span><a href="../../src/openssl/pkcs5.rs.html#32">salt</a> {
+        <span class="kw">let </span>salt_ptr = <span class="kw">match </span><a href="#32">salt</a> {
             <span class="prelude-val">Some</span>(salt) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(salt.len(), ffi::PKCS5_SALT_LEN <span class="kw">as </span>usize);
-                <a href="../../src/openssl/pkcs5.rs.html#38">salt</a>.as_ptr()
+                <a href="#38">salt</a>.as_ptr()
             }
             <span class="prelude-val">None </span>=&gt; ptr::null(),
         };
 
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="../../src/openssl/pkcs5.rs.html#29">cipher</a>.<a href="../../src/openssl/symm.rs.html#358">iv_len</a>().map(|l| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; l]);
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="#29">cipher</a>.<a href="symm.rs.html#358">iv_len</a>().map(|l| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; l]);
 
-        <span class="kw">let </span>cipher = <a href="../../src/openssl/pkcs5.rs.html#29">cipher</a>.<a href="../../src/openssl/symm.rs.html#345">as_ptr</a>();
-        <span class="kw">let </span>digest = <a href="../../src/openssl/pkcs5.rs.html#30">digest</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>();
+        <span class="kw">let </span>cipher = <a href="#29">cipher</a>.<a href="symm.rs.html#345">as_ptr</a>();
+        <span class="kw">let </span>digest = <a href="#30">digest</a>.<a href="hash.rs.html#137">as_ptr</a>();
 
         <span class="kw">let </span>len = cvt(ffi::EVP_BytesToKey(
             cipher,
@@ -367,9 +367,9 @@
         ))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>key = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; len <span class="kw">as </span>usize];
-        <span class="kw">let </span>iv_ptr = <a href="../../src/openssl/pkcs5.rs.html#47">iv</a>
+        <span class="kw">let </span>iv_ptr = <a href="#47">iv</a>
             .as_mut()
-            .map(|v| <a href="../../src/openssl/pkcs5.rs.html#66">v</a>.as_mut_ptr())
+            .map(|v| <a href="#66">v</a>.as_mut_ptr())
             .unwrap_or(ptr::null_mut());
 
         cvt(ffi::EVP_BytesToKey(
@@ -383,7 +383,7 @@
             iv_ptr,
         ))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkcs5.rs.html#11">KeyIvPair</a> { <a href="../../src/openssl/pkcs5.rs.html#63">key</a>, <a href="../../src/openssl/pkcs5.rs.html#47">iv</a> })
+        <span class="prelude-val">Ok</span>(<a href="#11">KeyIvPair</a> { <a href="#63">key</a>, <a href="#47">iv</a> })
     }
 }
 
@@ -393,24 +393,24 @@
     pass: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     salt: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     iter: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    hash: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
+    hash: <a href="hash.rs.html#22">MessageDigest</a>,
     key: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(pass.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(salt.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
 
         <a href="../../openssl/fn.init.html">ffi::init</a>();
-        <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::PKCS5_PBKDF2_HMAC(
-            <a href="../../src/openssl/pkcs5.rs.html#87">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="../../src/openssl/pkcs5.rs.html#87">pass</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#88">salt</a>.as_ptr(),
-            <a href="../../src/openssl/pkcs5.rs.html#88">salt</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#89">iter</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#90">hash</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
-            <a href="../../src/openssl/pkcs5.rs.html#91">key</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#91">key</a>.as_mut_ptr(),
+        <a href="lib.rs.html#194">cvt</a>(ffi::PKCS5_PBKDF2_HMAC(
+            <a href="#87">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="#87">pass</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="#88">salt</a>.as_ptr(),
+            <a href="#88">salt</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="#89">iter</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="#90">hash</a>.<a href="hash.rs.html#137">as_ptr</a>(),
+            <a href="#91">key</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="#91">key</a>.as_mut_ptr(),
         ))
         .map(|<span class="kw">_</span>| ())
     }
@@ -429,20 +429,20 @@
     p: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     maxmem: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     key: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a href="../../openssl/fn.init.html">ffi::init</a>();
-        <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PBE_scrypt(
-            <a href="../../src/openssl/pkcs5.rs.html#119">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="../../src/openssl/pkcs5.rs.html#119">pass</a>.len(),
-            <a href="../../src/openssl/pkcs5.rs.html#120">salt</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
-            <a href="../../src/openssl/pkcs5.rs.html#120">salt</a>.len(),
-            <a href="../../src/openssl/pkcs5.rs.html#121">n</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#122">r</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#123">p</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#124">maxmem</a>,
-            <a href="../../src/openssl/pkcs5.rs.html#125">key</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
-            <a href="../../src/openssl/pkcs5.rs.html#125">key</a>.len(),
+        <a href="lib.rs.html#194">cvt</a>(ffi::EVP_PBE_scrypt(
+            <a href="#119">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="#119">pass</a>.len(),
+            <a href="#120">salt</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="#120">salt</a>.len(),
+            <a href="#121">n</a>,
+            <a href="#122">r</a>,
+            <a href="#123">p</a>,
+            <a href="#124">maxmem</a>,
+            <a href="#125">key</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            <a href="#125">key</a>.len(),
         ))
         .map(|<span class="kw">_</span>| ())
     }
@@ -611,4 +611,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

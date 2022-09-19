@@ -281,17 +281,17 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Logger Filters
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 <span class="kw">use </span>std::time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>};
 
 <span class="kw">use </span>http::{<a class="self" href="../../../http/index.html">self</a>, <a href="../../../http/header/index.html">header</a>, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
 
-<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use </span><a href="../../../src/warp/reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
-<span class="kw">use </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
-<span class="kw">use </span><a href="../../../src/warp/route.rs.html#31"><span class="kw">crate</span>::route::Route</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/wrap.rs.html#3">WrapSealed</a>};
+<span class="kw">use </span><a href="../reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
+<span class="kw">use </span><a href="../reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use </span><a href="../route.rs.html#31"><span class="kw">crate</span>::route::Route</a>;
 
-<span class="kw">use </span><a href="../../../src/warp/filters/log.rs.html#211"><span class="self">self</span>::internal::WithLog</a>;
+<span class="kw">use </span><a href="#211"><span class="self">self</span>::internal::WithLog</a>;
 
 <span class="doccomment">/// Create a wrapping filter with the specified `name` as the `target`.
 ///
@@ -327,7 +327,7 @@
             info.elapsed(),
         );
     };
-    <a href="../../../src/warp/filters/log.rs.html#82">Log</a> { <a href="../../../src/warp/filters/log.rs.html#34">func</a> }
+    <a href="#82">Log</a> { <a href="#34">func</a> }
 }
 
 <span class="doccomment">/// Create a wrapping filter that receives `warp::log::Info`.
@@ -354,7 +354,7 @@
 <span class="kw">where
     </span>F: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;),
 {
-    <a href="../../../src/warp/filters/log.rs.html#82">Log</a> { <a href="../../../src/warp/filters/log.rs.html#73">func</a> }
+    <a href="#82">Log</a> { <a href="#73">func</a> }
 }
 
 <span class="doccomment">/// Decorates a [`Filter`](crate::Filter) to log requests and responses.
@@ -366,7 +366,7 @@
 <span class="doccomment">/// Information about the request/response that can be used to prepare log lines.
 </span><span class="attribute">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Info&lt;<span class="lifetime">&#39;a</span>&gt; {
-    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/warp/route.rs.html#31">Route</a>,
+    route: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../route.rs.html#31">Route</a>,
     start: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>,
     status: <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>,
 }
@@ -374,78 +374,78 @@
 <span class="kw">impl</span>&lt;FN, F&gt; WrapSealed&lt;F&gt; <span class="kw">for </span>Log&lt;FN&gt;
 <span class="kw">where
     </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
-    F::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+    F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    F::Extract: <a href="../reply.rs.html#228">Reply</a>,
+    F::Error: <a href="../reject.rs.html#613">IsReject</a>,
 {
     <span class="kw">type </span>Wrapped = WithLog&lt;FN, F&gt;;
 
     <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
-        <a href="../../../src/warp/filters/log.rs.html#211">WithLog</a> {
-            <a href="../../../src/warp/filters/log.rs.html#103">filter</a>,
-            log: <a class="self" href="../../../src/warp/filters/log.rs.html#103">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="#211">WithLog</a> {
+            <a href="#103">filter</a>,
+            log: <a class="self" href="#103">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Info&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// View the remote `SocketAddr` of the request.
-    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#113">self</a>.route.<a href="../../../src/warp/route.rs.html#126">remote_addr</a>()
+    </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="#113">self</a>.route.<a href="../route.rs.html#126">remote_addr</a>()
     }
 
     <span class="doccomment">/// View the `http::Method` of the request.
     </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/method/struct.Method.html">http::Method</a> {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#118">self</a>.route.<a href="../../../src/warp/route.rs.html#61">method</a>()
+        <a class="self" href="#118">self</a>.route.<a href="../route.rs.html#61">method</a>()
     }
 
     <span class="doccomment">/// View the URI path of the request.
     </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#123">self</a>.route.<a href="../../../src/warp/route.rs.html#90">full_path</a>()
+        <a class="self" href="#123">self</a>.route.<a href="../route.rs.html#90">full_path</a>()
     }
 
     <span class="doccomment">/// View the `http::Version` of the request.
     </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http/version/struct.Version.html">http::Version</a> {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#128">self</a>.route.<a href="../../../src/warp/route.rs.html#69">version</a>()
+        <a class="self" href="#128">self</a>.route.<a href="../route.rs.html#69">version</a>()
     }
 
     <span class="doccomment">/// View the `http::StatusCode` of the response.
     </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../http/status/struct.StatusCode.html">http::StatusCode</a> {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#133">self</a>.status
+        <a class="self" href="#133">self</a>.status
     }
 
     <span class="doccomment">/// View the referer of the request.
     </span><span class="kw">pub fn </span>referer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#138">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#138">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::REFERER)
-            .and_then(|v| <a href="../../../src/warp/filters/log.rs.html#142">v</a>.to_str().ok())
+            .and_then(|v| <a href="#142">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// View the user agent of the request.
     </span><span class="kw">pub fn </span>user_agent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#146">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#146">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::USER_AGENT)
-            .and_then(|v| <a href="../../../src/warp/filters/log.rs.html#150">v</a>.to_str().ok())
+            .and_then(|v| <a href="#150">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// View the `Duration` that elapsed for the request.
     </span><span class="kw">pub fn </span>elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        tokio::time::Instant::now().into_std() - <a class="self" href="../../../src/warp/filters/log.rs.html#154">self</a>.start
+        tokio::time::Instant::now().into_std() - <a class="self" href="#154">self</a>.start
     }
 
     <span class="doccomment">/// View the host of the request
     </span><span class="kw">pub fn </span>host(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#159">self</a>.route
-            .<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#159">self</a>.route
+            .<a href="../route.rs.html#65">headers</a>()
             .get(header::HOST)
-            .and_then(|v| <a href="../../../src/warp/filters/log.rs.html#163">v</a>.to_str().ok())
+            .and_then(|v| <a href="#163">v</a>.to_str().ok())
     }
 
     <span class="doccomment">/// Access the full headers of the request
     </span><span class="kw">pub fn </span>request_headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a> {
-        <a class="self" href="../../../src/warp/filters/log.rs.html#167">self</a>.route.<a href="../../../src/warp/route.rs.html#65">headers</a>()
+        <a class="self" href="#167">self</a>.route.<a href="../route.rs.html#65">headers</a>()
     }
 }
 
@@ -453,10 +453,10 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>OptFmt&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) = <a class="self" href="../../../src/warp/filters/log.rs.html#175">self</a>.<span class="number">0 </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a href="../../../src/warp/filters/log.rs.html#176">t</a>, <a href="../../../src/warp/filters/log.rs.html#175">f</a>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) = <a class="self" href="#175">self</a>.<span class="number">0 </span>{
+            <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a href="#176">t</a>, <a href="#175">f</a>)
         } <span class="kw">else </span>{
-            <a href="../../../src/warp/filters/log.rs.html#175">f</a>.write_str(<span class="string">&quot;-&quot;</span>)
+            <a href="#175">f</a>.write_str(<span class="string">&quot;-&quot;</span>)
         }
     }
 }
@@ -470,19 +470,19 @@
     <span class="kw">use </span>futures_util::{<a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
     <span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
 
-    <span class="kw">use super</span>::{<a href="../../../src/warp/filters/log.rs.html#88">Info</a>, <a href="../../../src/warp/filters/log.rs.html#82">Log</a>};
-    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>};
-    <span class="kw">use </span><a href="../../../src/warp/reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
-    <span class="kw">use </span><span class="kw">crate</span>::reply::{<a href="../../../src/warp/reply.rs.html#228">Reply</a>, <a href="../../../src/warp/reply.rs.html#55">Response</a>};
-    <span class="kw">use </span><a href="../../../src/warp/lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+    <span class="kw">use super</span>::{<a href="#88">Info</a>, <a href="#82">Log</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/mod.rs.html#39">FilterBase</a>, <a href="../filter/mod.rs.html#70">Internal</a>};
+    <span class="kw">use </span><a href="../reject.rs.html#613"><span class="kw">crate</span>::reject::IsReject</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::reply::{<a href="../reply.rs.html#228">Reply</a>, <a href="../reply.rs.html#55">Response</a>};
+    <span class="kw">use </span><a href="../lib.rs.html#97"><span class="kw">crate</span>::route</a>;
 
     <span class="attribute">#[allow(missing_debug_implementations)]
-    </span><span class="kw">pub struct </span>Logged(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="../../../src/warp/reply.rs.html#55">Response</a>);
+    </span><span class="kw">pub struct </span>Logged(<span class="kw">pub</span>(<span class="kw">super</span>) <a href="../reply.rs.html#55">Response</a>);
 
-    <span class="kw">impl </span><a href="../../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="../../../src/warp/filters/log.rs.html#200">Logged</a> {
+    <span class="kw">impl </span><a href="../reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="#200">Logged</a> {
         <span class="attribute">#[inline]
-        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../../src/warp/reply.rs.html#55">Response</a> {
-            <a class="self" href="../../../src/warp/filters/log.rs.html#204">self</a>.<span class="number">0
+        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../reply.rs.html#55">Response</a> {
+            <a class="self" href="#204">self</a>.<span class="number">0
         </span>}
     }
 
@@ -493,23 +493,23 @@
         <span class="kw">pub</span>(<span class="kw">super</span>) log: Log&lt;FN&gt;,
     }
 
-    <span class="kw">impl</span>&lt;FN, F&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>WithLog&lt;FN, F&gt;
+    <span class="kw">impl</span>&lt;FN, F&gt; <a href="../filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>WithLog&lt;FN, F&gt;
     <span class="kw">where
         </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;) + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
-        F::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+        F: <a href="../filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        F::Extract: <a href="../reply.rs.html#228">Reply</a>,
+        F::Error: <a href="../reject.rs.html#613">IsReject</a>,
     {
-        <span class="kw">type </span>Extract = (<a href="../../../src/warp/filters/log.rs.html#200">Logged</a>,);
+        <span class="kw">type </span>Extract = (<a href="#200">Logged</a>,);
         <span class="kw">type </span>Error = F::Error;
         <span class="kw">type </span>Future = WithLogFuture&lt;FN, F::Future&gt;;
 
-        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
             <span class="kw">let </span>started = tokio::time::Instant::now().into_std();
-            <a href="../../../src/warp/filters/log.rs.html#239">WithLogFuture</a> {
-                log: <a class="self" href="../../../src/warp/filters/log.rs.html#227">self</a>.log.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                future: <a class="self" href="../../../src/warp/filters/log.rs.html#227">self</a>.filter.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>),
-                <a href="../../../src/warp/filters/log.rs.html#228">started</a>,
+            <a href="#239">WithLogFuture</a> {
+                log: <a class="self" href="#227">self</a>.log.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                future: <a class="self" href="#227">self</a>.filter.<a href="../filter/mod.rs.html#44">filter</a>(<a href="../filter/mod.rs.html#70">Internal</a>),
+                <a href="#228">started</a>,
             }
         }
     }
@@ -527,36 +527,36 @@
     <span class="kw">where
         </span>FN: Fn(Info&lt;<span class="lifetime">&#39;_</span>&gt;),
         F: <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>,
-        F::Ok: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
-        F::Error: <a href="../../../src/warp/reject.rs.html#613">IsReject</a>,
+        F::Ok: <a href="../reply.rs.html#228">Reply</a>,
+        F::Error: <a href="../reject.rs.html#613">IsReject</a>,
     {
-        <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(<a href="../../../src/warp/filters/log.rs.html#200">Logged</a>,), F::Error&gt;;
+        <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(<a href="#200">Logged</a>,), F::Error&gt;;
 
         <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-            <span class="kw">let </span>pin = <a class="self" href="../../../src/warp/filters/log.rs.html#255">self</a>.as_mut().<a href="../../../src/warp/filters/log.rs.html#239">project</a>();
+            <span class="kw">let </span>pin = <a class="self" href="#255">self</a>.as_mut().<a href="#239">project</a>();
             <span class="kw">let </span>(result, status) = <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(pin.future.try_poll(cx)) {
                 <span class="prelude-val">Ok</span>(reply) =&gt; {
-                    <span class="kw">let </span>resp = <a href="../../../src/warp/filters/log.rs.html#258">reply</a>.<a href="../../../src/warp/reply.rs.html#232">into_response</a>();
-                    <span class="kw">let </span>status = <a href="../../../src/warp/filters/log.rs.html#259">resp</a>.status();
-                    (Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../../../src/warp/filters/log.rs.html#200">Logged</a>(<a href="../../../src/warp/filters/log.rs.html#259">resp</a>),))), <a href="../../../src/warp/filters/log.rs.html#260">status</a>)
+                    <span class="kw">let </span>resp = <a href="#258">reply</a>.<a href="../reply.rs.html#232">into_response</a>();
+                    <span class="kw">let </span>status = <a href="#259">resp</a>.status();
+                    (Poll::Ready(<span class="prelude-val">Ok</span>((<a href="#200">Logged</a>(<a href="#259">resp</a>),))), <a href="#260">status</a>)
                 }
                 <span class="prelude-val">Err</span>(reject) =&gt; {
-                    <span class="kw">let </span>status = <a href="../../../src/warp/filters/log.rs.html#263">reject</a>.<a href="../../../src/warp/reject.rs.html#614">status</a>();
-                    (Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/log.rs.html#263">reject</a>)), <a href="../../../src/warp/filters/log.rs.html#264">status</a>)
+                    <span class="kw">let </span>status = <a href="#263">reject</a>.<a href="../reject.rs.html#614">status</a>();
+                    (Poll::Ready(<span class="prelude-val">Err</span>(<a href="#263">reject</a>)), <a href="#264">status</a>)
                 }
             };
 
-            <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| {
-                (<a class="self" href="../../../src/warp/filters/log.rs.html#255">self</a>.log.func)(<a href="../../../src/warp/filters/log.rs.html#88">Info</a> {
-                    <a href="../../../src/warp/filters/log.rs.html#269">route</a>,
-                    start: <a class="self" href="../../../src/warp/filters/log.rs.html#255">self</a>.started,
-                    <a href="../../../src/warp/filters/log.rs.html#257">status</a>,
+            <a href="../route.rs.html#23-25">route::with</a>(|route| {
+                (<a class="self" href="#255">self</a>.log.func)(<a href="#88">Info</a> {
+                    <a href="#269">route</a>,
+                    start: <a class="self" href="#255">self</a>.started,
+                    <a href="#257">status</a>,
                 });
             });
 
-            <a href="../../../src/warp/filters/log.rs.html#257">result</a>
+            <a href="#257">result</a>
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

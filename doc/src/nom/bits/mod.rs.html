@@ -180,13 +180,13 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Bit level parsers
 //!
 
-</span><span class="kw">pub mod </span><a href="../../../src/nom/bits/complete.rs.html#1-150">complete</a>;
-<span class="kw">pub mod </span><a href="../../../src/nom/bits/streaming.rs.html#1-129">streaming</a>;
+</span><span class="kw">pub mod </span><a href="complete.rs.html#1-150">complete</a>;
+<span class="kw">pub mod </span><a href="streaming.rs.html#1-129">streaming</a>;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/nom/error.rs.html#366">ErrorKind</a>, <a href="../../../src/nom/error.rs.html#16">ParseError</a>};
-<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../../../src/nom/internal.rs.html#18">IResult</a>, <a href="../../../src/nom/internal.rs.html#50">Needed</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error.rs.html#366">ErrorKind</a>, <a href="../error.rs.html#16">ParseError</a>};
+<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../internal.rs.html#18">IResult</a>, <a href="../internal.rs.html#50">Needed</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html"><span class="kw">crate</span>::lib::std::ops::RangeFrom</a>;
-<span class="kw">use </span><span class="kw">crate</span>::traits::{<a href="../../../src/nom/traits.rs.html#1277">ErrorConvert</a>, <a href="../../../src/nom/traits.rs.html#1006">Slice</a>};
+<span class="kw">use </span><span class="kw">crate</span>::traits::{<a href="../traits.rs.html#1277">ErrorConvert</a>, <a href="../traits.rs.html#1006">Slice</a>};
 
 <span class="doccomment">/// Converts a byte-level input to a bit-level input, for consumption by a parser that uses bits.
 ///
@@ -223,17 +223,17 @@
   I: Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
   P: FnMut((I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; IResult&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), O, E1&gt;,
 {
-  <span class="kw">move </span>|input: I| <span class="kw">match </span><a href="../../../src/nom/bits/mod.rs.html#40">parser</a>((<a href="../../../src/nom/bits/mod.rs.html#47">input</a>, <span class="number">0</span>)) {
+  <span class="kw">move </span>|input: I| <span class="kw">match </span><a href="#40">parser</a>((<a href="#47">input</a>, <span class="number">0</span>)) {
     <span class="prelude-val">Ok</span>(((rest, offset), result)) =&gt; {
       <span class="comment">// If the next byte has been partially read, it will be sliced away as well.
       // The parser functions might already slice away all fully read bytes.
       // That&#39;s why `offset / 8` isn&#39;t necessarily needed at all times.
-      </span><span class="kw">let </span>remaining_bytes_index = <a href="../../../src/nom/bits/mod.rs.html#48">offset</a> / <span class="number">8 </span>+ <span class="kw">if </span>offset % <span class="number">8 </span>== <span class="number">0 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
-      <span class="prelude-val">Ok</span>((<a href="../../../src/nom/bits/mod.rs.html#48">rest</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>(<a href="../../../src/nom/bits/mod.rs.html#52">remaining_bytes_index</a>..), <a href="../../../src/nom/bits/mod.rs.html#48">result</a>))
+      </span><span class="kw">let </span>remaining_bytes_index = <a href="#48">offset</a> / <span class="number">8 </span>+ <span class="kw">if </span>offset % <span class="number">8 </span>== <span class="number">0 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
+      <span class="prelude-val">Ok</span>((<a href="#48">rest</a>.<a href="../traits.rs.html#1008">slice</a>(<a href="#52">remaining_bytes_index</a>..), <a href="#48">result</a>))
     }
-    <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(n)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/bits/mod.rs.html#55">n</a>.<a href="../../../src/nom/internal.rs.html#73">map</a>(|u| <a href="../../../src/nom/bits/mod.rs.html#55">u</a>.get() / <span class="number">8 </span>+ <span class="number">1</span>))),
-    <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<a href="../../../src/nom/bits/mod.rs.html#56">e</a>.<a href="../../../src/nom/traits.rs.html#1279">convert</a>())),
-    <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#105">Err::Failure</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#105">Err::Failure</a>(<a href="../../../src/nom/bits/mod.rs.html#57">e</a>.<a href="../../../src/nom/traits.rs.html#1279">convert</a>())),
+    <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(n)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(<a href="#55">n</a>.<a href="../internal.rs.html#73">map</a>(|u| <a href="#55">u</a>.get() / <span class="number">8 </span>+ <span class="number">1</span>))),
+    <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(<a href="#56">e</a>.<a href="../traits.rs.html#1279">convert</a>())),
+    <span class="prelude-val">Err</span>(<a href="../internal.rs.html#105">Err::Failure</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#105">Err::Failure</a>(<a href="#57">e</a>.<a href="../traits.rs.html#1279">convert</a>())),
   }
 }
 
@@ -271,20 +271,20 @@
 {
   <span class="kw">move </span>|(input, offset): (I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)| {
     <span class="kw">let </span>inner = <span class="kw">if </span>offset % <span class="number">8 </span>!= <span class="number">0 </span>{
-      <a href="../../../src/nom/bits/mod.rs.html#93">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>((<span class="number">1 </span>+ <a href="../../../src/nom/bits/mod.rs.html#93">offset</a> / <span class="number">8</span>)..)
+      <a href="#93">input</a>.<a href="../traits.rs.html#1008">slice</a>((<span class="number">1 </span>+ <a href="#93">offset</a> / <span class="number">8</span>)..)
     } <span class="kw">else </span>{
-      <a href="../../../src/nom/bits/mod.rs.html#93">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>((<a href="../../../src/nom/bits/mod.rs.html#93">offset</a> / <span class="number">8</span>)..)
+      <a href="#93">input</a>.<a href="../traits.rs.html#1008">slice</a>((<a href="#93">offset</a> / <span class="number">8</span>)..)
     };
-    <span class="kw">let </span>i = (<a href="../../../src/nom/bits/mod.rs.html#93">input</a>, <a href="../../../src/nom/bits/mod.rs.html#93">offset</a>);
-    <span class="kw">match </span><a href="../../../src/nom/bits/mod.rs.html#86">parser</a>(<a href="../../../src/nom/bits/mod.rs.html#94">inner</a>) {
-      <span class="prelude-val">Ok</span>((rest, res)) =&gt; <span class="prelude-val">Ok</span>(((<a href="../../../src/nom/bits/mod.rs.html#101">rest</a>, <span class="number">0</span>), <a href="../../../src/nom/bits/mod.rs.html#101">res</a>)),
-      <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)),
-      <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#54">Needed::Size</a>(sz))) =&gt; <span class="prelude-val">Err</span>(<span class="kw">match </span><a href="../../../src/nom/bits/mod.rs.html#103">sz</a>.get().checked_mul(<span class="number">8</span>) {
-        <span class="prelude-val">Some</span>(v) =&gt; <a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="../../../src/nom/bits/mod.rs.html#104">v</a>)),
-        <span class="prelude-val">None </span>=&gt; <a href="../../../src/nom/internal.rs.html#105">Err::Failure</a>(E2::from_error_kind(<a href="../../../src/nom/bits/mod.rs.html#99">i</a>, <a href="../../../src/nom/error.rs.html#414">ErrorKind::TooLarge</a>)),
+    <span class="kw">let </span>i = (<a href="#93">input</a>, <a href="#93">offset</a>);
+    <span class="kw">match </span><a href="#86">parser</a>(<a href="#94">inner</a>) {
+      <span class="prelude-val">Ok</span>((rest, res)) =&gt; <span class="prelude-val">Ok</span>(((<a href="#101">rest</a>, <span class="number">0</span>), <a href="#101">res</a>)),
+      <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(<a href="../internal.rs.html#52">Needed::Unknown</a>)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(<a href="../internal.rs.html#52">Needed::Unknown</a>)),
+      <span class="prelude-val">Err</span>(<a href="../internal.rs.html#99">Err::Incomplete</a>(<a href="../internal.rs.html#54">Needed::Size</a>(sz))) =&gt; <span class="prelude-val">Err</span>(<span class="kw">match </span><a href="#103">sz</a>.get().checked_mul(<span class="number">8</span>) {
+        <span class="prelude-val">Some</span>(v) =&gt; <a href="../internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="#104">v</a>)),
+        <span class="prelude-val">None </span>=&gt; <a href="../internal.rs.html#105">Err::Failure</a>(E2::from_error_kind(<a href="#99">i</a>, <a href="../error.rs.html#414">ErrorKind::TooLarge</a>)),
       }),
-      <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<a href="../../../src/nom/bits/mod.rs.html#107">e</a>.<a href="../../../src/nom/traits.rs.html#1279">convert</a>())),
-      <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#105">Err::Failure</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#105">Err::Failure</a>(<a href="../../../src/nom/bits/mod.rs.html#108">e</a>.<a href="../../../src/nom/traits.rs.html#1279">convert</a>())),
+      <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#101">Err::Error</a>(<a href="#107">e</a>.<a href="../traits.rs.html#1279">convert</a>())),
+      <span class="prelude-val">Err</span>(<a href="../internal.rs.html#105">Err::Failure</a>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../internal.rs.html#105">Err::Failure</a>(<a href="#108">e</a>.<a href="../traits.rs.html#1279">convert</a>())),
     }
   }
 }
@@ -357,4 +357,4 @@
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

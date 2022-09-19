@@ -94,14 +94,14 @@
 </span><span class="doccomment">/// Returns true if and only if needle is a prefix of haystack.
 </span><span class="attribute">#[inline(always)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_prefix(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/memchr/memmem/util.rs.html#8">needle</a>.len() &lt;= <a href="../../../src/memchr/memmem/util.rs.html#8">haystack</a>.len() &amp;&amp; <a href="../../../src/memchr/memmem/util.rs.html#32">memcmp</a>(<span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/util.rs.html#8">haystack</a>[..<a href="../../../src/memchr/memmem/util.rs.html#8">needle</a>.len()], <a href="../../../src/memchr/memmem/util.rs.html#8">needle</a>)
+    <a href="#8">needle</a>.len() &lt;= <a href="#8">haystack</a>.len() &amp;&amp; <a href="#32">memcmp</a>(<span class="kw-2">&amp;</span><a href="#8">haystack</a>[..<a href="#8">needle</a>.len()], <a href="#8">needle</a>)
 }
 
 <span class="doccomment">/// Returns true if and only if needle is a suffix of haystack.
 </span><span class="attribute">#[inline(always)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_suffix(haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="../../../src/memchr/memmem/util.rs.html#14">needle</a>.len() &lt;= <a href="../../../src/memchr/memmem/util.rs.html#14">haystack</a>.len()
-        &amp;&amp; <a href="../../../src/memchr/memmem/util.rs.html#32">memcmp</a>(<span class="kw-2">&amp;</span><a href="../../../src/memchr/memmem/util.rs.html#14">haystack</a>[<a href="../../../src/memchr/memmem/util.rs.html#14">haystack</a>.len() - <a href="../../../src/memchr/memmem/util.rs.html#14">needle</a>.len()..], <a href="../../../src/memchr/memmem/util.rs.html#14">needle</a>)
+    <a href="#14">needle</a>.len() &lt;= <a href="#14">haystack</a>.len()
+        &amp;&amp; <a href="#32">memcmp</a>(<span class="kw-2">&amp;</span><a href="#14">haystack</a>[<a href="#14">haystack</a>.len() - <a href="#14">needle</a>.len()..], <a href="#14">needle</a>)
 }
 
 <span class="doccomment">/// Return true if and only if x.len() == y.len() &amp;&amp; x[i] == y[i] for all
@@ -158,8 +158,8 @@
     // Finally, we needn&#39;t worry about alignment here, since we do unaligned
     // loads.
     </span><span class="kw">unsafe </span>{
-        <span class="kw">let </span>(<span class="kw-2">mut </span>px, <span class="kw-2">mut </span>py) = (<a href="../../../src/memchr/memmem/util.rs.html#32">x</a>.as_ptr(), <a href="../../../src/memchr/memmem/util.rs.html#32">y</a>.as_ptr());
-        <span class="kw">let </span>(pxend, pyend) = (<a href="../../../src/memchr/memmem/util.rs.html#73">px</a>.add(<a href="../../../src/memchr/memmem/util.rs.html#32">x</a>.len() - <span class="number">4</span>), <a href="../../../src/memchr/memmem/util.rs.html#73">py</a>.add(<a href="../../../src/memchr/memmem/util.rs.html#32">y</a>.len() - <span class="number">4</span>));
+        <span class="kw">let </span>(<span class="kw-2">mut </span>px, <span class="kw-2">mut </span>py) = (<a href="#32">x</a>.as_ptr(), <a href="#32">y</a>.as_ptr());
+        <span class="kw">let </span>(pxend, pyend) = (<a href="#73">px</a>.add(<a href="#32">x</a>.len() - <span class="number">4</span>), <a href="#73">py</a>.add(<a href="#32">y</a>.len() - <span class="number">4</span>));
         <span class="kw">while </span>px &lt; pxend {
             <span class="kw">let </span>vx = (px <span class="kw">as </span><span class="kw-2">*const </span>u32).read_unaligned();
             <span class="kw">let </span>vy = (py <span class="kw">as </span><span class="kw-2">*const </span>u32).read_unaligned();
@@ -169,10 +169,10 @@
             px = px.add(<span class="number">4</span>);
             py = py.add(<span class="number">4</span>);
         }
-        <span class="kw">let </span>vx = (<a href="../../../src/memchr/memmem/util.rs.html#74">pxend</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).read_unaligned();
-        <span class="kw">let </span>vy = (<a href="../../../src/memchr/memmem/util.rs.html#74">pyend</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).read_unaligned();
-        <a href="../../../src/memchr/memmem/util.rs.html#84">vx</a> == <a href="../../../src/memchr/memmem/util.rs.html#85">vy</a>
+        <span class="kw">let </span>vx = (<a href="#74">pxend</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).read_unaligned();
+        <span class="kw">let </span>vy = (<a href="#74">pyend</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).read_unaligned();
+        <a href="#84">vx</a> == <a href="#85">vy</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

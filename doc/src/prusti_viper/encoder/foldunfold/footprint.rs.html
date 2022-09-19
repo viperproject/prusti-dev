@@ -282,10 +282,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use super</span>::{
-    places_utils::{<a href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#92-96">union3</a>},
-    <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+    places_utils::{<a href="places_utils.rs.html#87">union</a>, <a href="places_utils.rs.html#92-96">union3</a>},
+    <a href="mod.rs.html#40">Predicates</a>,
 };
-<span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::perm::{<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::perm::{<a href="perm.rs.html#14">Perm</a>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 <span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
 <span class="kw">use </span>rustc_hash::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 
@@ -294,13 +294,13 @@
 <span class="kw">pub trait </span>ExprFootprintGetter {
     <span class="doccomment">/// Returns the precise footprint of an expression, that is the permissions that must be
     /// added/removed when executing an `inhale/exhale expr` statement.
-    </span><span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span><a href="mod.rs.html#40">Predicates</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#17">ExprFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-    <span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
+<span class="kw">impl </span><a href="#17">ExprFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+    <span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span><a href="mod.rs.html#40">Predicates</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;get_footprint {}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let </span>res = <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">self</a> </span>{
+        <span class="kw">let </span>res = <span class="kw">match </span><span class="self"><a href="#24">self</a> </span>{
             vir::Expr::Local(<span class="kw">_</span>)
             | vir::Expr::Field(<span class="kw">_</span>)
             | vir::Expr::Variant(<span class="kw">_</span>)
@@ -319,64 +319,64 @@
                 ..
             }) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(arguments.len(), <span class="number">1</span>);
-                <span class="kw">let </span>place = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#38">arguments</a>[<span class="number">0</span>];
+                <span class="kw">let </span>place = <span class="kw-2">&amp;</span><a href="#38">arguments</a>[<span class="number">0</span>];
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(place.is_place());
 
                 <span class="comment">// We want to temporarly unfold place
-                </span><span class="kw">let </span>predicate_type = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#45">place</a>.get_type();
-                <span class="kw">let </span>predicate = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>.get(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#49">predicate_type</a>).unwrap();
+                </span><span class="kw">let </span>predicate_type = <a href="#45">place</a>.get_type();
+                <span class="kw">let </span>predicate = <a href="#24">predicates</a>.get(<a href="#49">predicate_type</a>).unwrap();
 
-                <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#50">predicate</a>.self_place();
-                <span class="kw">let </span>places_in_pred: FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#50">predicate</a>
-                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#41">variant</a>)
+                <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="#50">predicate</a>.self_place();
+                <span class="kw">let </span>places_in_pred: FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; = <a href="#50">predicate</a>
+                    .<a href="#191">get_body_footprint</a>(<a href="#41">variant</a>)
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|aop| {
-                        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#56">aop</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#57">p</a>.replace_place(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#52">pred_self_place</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#45">place</a>))
-                            .<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#79">init_perm_amount</a>(<span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#40">permission</a>)
+                        <a href="#56">aop</a>.<a href="perm.rs.html#65-67">map_place</a>(|p| <a href="#57">p</a>.replace_place(<span class="kw-2">&amp;</span><a href="#52">pred_self_place</a>, <a href="#45">place</a>))
+                            .<a href="perm.rs.html#79">init_perm_amount</a>(<span class="kw-2">*</span><a href="#40">permission</a>)
                     })
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
                 <span class="comment">// Simulate temporary unfolding of `place`
-                </span><span class="kw">let </span>expr_access_places = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#39">base</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>);
+                </span><span class="kw">let </span>expr_access_places = <a href="#39">base</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>);
 
                 <span class="comment">// inhaled = inhaled in body - unfolding
-                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#226">perm_difference</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#63">expr_access_places</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#53">places_in_pred</a>)
+                </span><a href="perm.rs.html#226">perm_difference</a>(<a href="#63">expr_access_places</a>, <a href="#53">places_in_pred</a>)
             }
 
-            vir::Expr::UnaryOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.UnaryOp.html">vir::UnaryOp</a> { argument, .. }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#69">argument</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            vir::Expr::UnaryOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.UnaryOp.html">vir::UnaryOp</a> { argument, .. }) =&gt; <a href="#69">argument</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
 
             vir::Expr::BinOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.BinOp.html">vir::BinOp</a> {
                 <span class="kw">box </span>left,
                 <span class="kw">box </span>right,
                 ..
-            }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>(
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#72">left</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#73">right</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            }) =&gt; <a href="places_utils.rs.html#87">union</a>(
+                <span class="kw-2">&amp;</span><a href="#72">left</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a href="#73">right</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
             ),
 
             vir::Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                 <span class="kw">box </span>left,
                 <span class="kw">box </span>right,
                 ..
-            }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>(
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#81">left</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#82">right</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            }) =&gt; <a href="places_utils.rs.html#87">union</a>(
+                <span class="kw-2">&amp;</span><a href="#81">left</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a href="#82">right</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
             ),
 
-            vir::Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> { elements, .. }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#89">elements</a>
+            vir::Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> { elements, .. }) =&gt; <a href="#89">elements</a>
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#91">e</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="#91">e</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(FxHashSet::default(), |<span class="kw-2">mut </span>hs, fp| {
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">hs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">fp</a>);
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">hs</a>
+                    <a href="#92">hs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#92">fp</a>);
+                    <a href="#92">hs</a>
                 }),
 
-            vir::Expr::Map(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Map.html">vir::Map</a> { elements, .. }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#97">elements</a>
+            vir::Expr::Map(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Map.html">vir::Map</a> { elements, .. }) =&gt; <a href="#97">elements</a>
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#99">e</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="#99">e</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(FxHashSet::default(), |<span class="kw-2">mut </span>hs, fp| {
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">hs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">fp</a>);
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">hs</a>
+                    <a href="#100">hs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#100">fp</a>);
+                    <a href="#100">hs</a>
                 }),
 
             vir::Expr::Cond(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Cond.html">vir::Cond</a> {
@@ -384,10 +384,10 @@
                 <span class="kw">box </span>then_expr,
                 <span class="kw">box </span>else_expr,
                 ..
-            }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#92-96">union3</a>(
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#106">guard</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#107">then_expr</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
-                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#108">else_expr</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            }) =&gt; <a href="places_utils.rs.html#92-96">union3</a>(
+                <span class="kw-2">&amp;</span><a href="#106">guard</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a href="#107">then_expr</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a href="#108">else_expr</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
             ),
 
             vir::Expr::ForAll(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {
@@ -400,11 +400,11 @@
                 <span class="kw">box </span>body,
                 ..
             }) =&gt; {
-                <span class="kw">let </span>vars_places: FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#117">variables</a>
+                <span class="kw">let </span>vars_places: FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; = <a href="#117">variables</a>
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Acc</a>(vir::Expr::local(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#128">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), PermAmount::Write))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="perm.rs.html#15">Acc</a>(vir::Expr::local(<a href="#128">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), PermAmount::Write))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#226">perm_difference</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#118">body</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>), <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#126">vars_places</a>)
+                <a href="perm.rs.html#226">perm_difference</a>(<a href="#118">body</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>), <a href="#126">vars_places</a>)
             }
 
             vir::Expr::PredicateAccessPredicate(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> {
@@ -413,15 +413,15 @@
                 ..
             }) =&gt; {
                 <span class="kw">let </span>opt_perm = <span class="kw">if </span>argument.is_place() {
-                    <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.get_label() {
-                        <span class="prelude-val">None </span>=&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#135">permission</a>),
-                        <span class="prelude-val">Some</span>(label) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().old(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#141">label</a>), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#135">permission</a>),
+                    <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#134">argument</a>.get_label() {
+                        <span class="prelude-val">None </span>=&gt; <a href="perm.rs.html#16">Perm::Pred</a>(<a href="#134">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="#135">permission</a>),
+                        <span class="prelude-val">Some</span>(label) =&gt; <a href="perm.rs.html#16">Perm::Pred</a>(<a href="#134">argument</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().old(<a href="#141">label</a>), <span class="kw-2">*</span><a href="#135">permission</a>),
                     })
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
 
-                <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#138">opt_perm</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+                <a href="#138">opt_perm</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
             }
 
             vir::Expr::FieldAccessPredicate(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldAccessPredicate.html">vir::FieldAccessPredicate</a> {
@@ -433,9 +433,9 @@
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(base.is_place());
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(base.is_curr());
 
-                <span class="kw">let </span>perm = <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Acc</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#151">base</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#152">permission</a>);
+                <span class="kw">let </span>perm = <a href="perm.rs.html#15">Acc</a>(<a href="#151">base</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a href="#152">permission</a>);
 
-                <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#159">perm</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+                <span class="prelude-val">Some</span>(<a href="#159">perm</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
             }
 
             vir::Expr::MagicWand(<span class="kw">_</span>) =&gt; {
@@ -448,15 +448,15 @@
             }
 
             vir::Expr::Downcast(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> { <span class="kw-2">ref </span>base, .. }) =&gt; {
-                <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#173">base</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>)
+                <a href="#173">base</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>)
             }
 
-            vir::Expr::SnapApp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a> { <span class="kw-2">ref </span>base, .. }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#177">base</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            vir::Expr::SnapApp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a> { <span class="kw-2">ref </span>base, .. }) =&gt; <a href="#177">base</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
 
-            vir::Expr::Cast(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Cast.html">vir::Cast</a> { <span class="kw-2">ref </span>base, .. }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#179">base</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            vir::Expr::Cast(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Cast.html">vir::Cast</a> { <span class="kw-2">ref </span>base, .. }) =&gt; <a href="#179">base</a>.<a href="#20">get_footprint</a>(<a href="#24">predicates</a>),
         };
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;get_footprint {} = {:?}&quot;</span>, <span class="self">self</span>, res);
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#26">res</a>
+        <a href="#26">res</a>
     }
 }
 
@@ -465,19 +465,19 @@
     /// added/removed when executing a `fold/unfold pred` statement.
     /// When the method is called on a predicate encoding an enumeration and `maybe_variant` is
     /// `None` then the result is an under-approximation. The result is precise in all other cases.
-    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, maybe_variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, maybe_variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#186">PredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir::Predicate</a> {
-    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, maybe_variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#195">self</a> </span>{
+<span class="kw">impl </span><a href="#186">PredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir::Predicate</a> {
+    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, maybe_variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="#195">self</a> </span>{
             vir::Predicate::Struct(p) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(maybe_variant.is_none());
-                <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#197">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#222">get_body_footprint</a>()
+                <a href="#197">p</a>.<a href="#222">get_body_footprint</a>()
             }
             vir::Predicate::Enum(p) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#195">maybe_variant</a> {
-                    <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#201">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#241">get_body_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#202">variant</a>)
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="#195">maybe_variant</a> {
+                    <a href="#201">p</a>.<a href="#241">get_body_footprint</a>(<a href="#202">variant</a>)
                 } <span class="kw">else </span>{
                     <span class="comment">// This case happens when Prusti unfolds an enumeration without statically
                     // knowing the variant. For example, when encoding the lookup of a
@@ -485,7 +485,7 @@
                     // Under-approximating is better than over-approximating because it preserves
                     // the invariant that permissions in the fold-unfold state are an
                     // under-approximation of the permissions actually available in Viper.
-                    </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#201">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#247">get_underapproximated_body_footprint</a>()
+                    </span><a href="#201">p</a>.<a href="#247">get_underapproximated_body_footprint</a>()
                 }
             }
             vir::Predicate::Bodyless(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; FxHashSet::default(),
@@ -496,16 +496,16 @@
 <span class="kw">pub trait </span>StructPredicateFootprintGetter {
     <span class="doccomment">/// Returns the footprint of the body of a predicate encoding a structure, that is the
     /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
-    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#219">StructPredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.StructPredicate.html">vir::StructPredicate</a> {
-    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
-        <span class="kw">match </span><a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#226">self</a>.body {
+<span class="kw">impl </span><a href="#219">StructPredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.StructPredicate.html">vir::StructPredicate</a> {
+    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
+        <span class="kw">match </span><a class="self" href="#226">self</a>.body {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body) =&gt; {
                 <span class="comment">// A predicate body should not contain unfolding expression
                 </span><span class="kw">let </span>predicates = FxHashMap::default();
-                <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#228">body</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#230">predicates</a>)
+                <a href="#228">body</a>.<a href="#20">get_footprint</a>(<span class="kw-2">&amp;</span><a href="#230">predicates</a>)
             }
             <span class="prelude-val">None </span>=&gt; FxHashSet::default(),
         }
@@ -515,42 +515,42 @@
 <span class="kw">pub trait </span>EnumPredicateFootprintGetter {
     <span class="doccomment">/// Returns the footprint of the body of a predicate encoding an enumeration, that is the
     /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
-    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 
     <span class="doccomment">/// Returns the footprint coontribution of a given variant of an enumeration.
-    </span><span class="kw">fn </span>get_variant_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_variant_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 
     <span class="doccomment">/// Returns the intersection of `get_body_footprint` called on each possible variant.
-    </span><span class="kw">fn </span>get_underapproximated_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt;;
+    </span><span class="kw">fn </span>get_underapproximated_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt;;
 }
 
-<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#238">EnumPredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumPredicate.html">vir::EnumPredicate</a> {
-    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>perms = <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">self</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#247">get_underapproximated_body_footprint</a>();
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#252">perms</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">self</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#244">get_variant_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">variant</a>));
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#252">perms</a>
+<span class="kw">impl </span><a href="#238">EnumPredicateFootprintGetter</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumPredicate.html">vir::EnumPredicate</a> {
+    <span class="kw">fn </span>get_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>perms = <a class="self" href="#251">self</a>.<a href="#247">get_underapproximated_body_footprint</a>();
+        <a href="#252">perms</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#251">self</a>.<a href="#244">get_variant_footprint</a>(<a href="#251">variant</a>));
+        <a href="#252">perms</a>
     }
 
-    <span class="kw">fn </span>get_variant_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
+    <span class="kw">fn </span>get_variant_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>perms = FxHashSet::default();
-        <span class="kw">let </span>this: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#257">self</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>variant_name = <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#257">variant</a>.get_variant_name();
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>.insert(<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Perm::Acc</a>(
-            <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#259">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().variant(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#260">variant_name</a>),
+        <span class="kw">let </span>this: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a class="self" href="#257">self</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>variant_name = <a href="#257">variant</a>.get_variant_name();
+        <a href="#258">perms</a>.insert(<a href="perm.rs.html#15">Perm::Acc</a>(
+            <a href="#259">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().variant(<a href="#260">variant_name</a>),
             PermAmount::Write,
         ));
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>.insert(<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#259">this</a>.variant(<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#260">variant_name</a>), PermAmount::Write));
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>
+        <a href="#258">perms</a>.insert(<a href="perm.rs.html#16">Perm::Pred</a>(<a href="#259">this</a>.variant(<a href="#260">variant_name</a>), PermAmount::Write));
+        <a href="#258">perms</a>
     }
 
-    <span class="kw">fn </span>get_underapproximated_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; {
+    <span class="kw">fn </span>get_underapproximated_body_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;<a href="perm.rs.html#14">Perm</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>perms = FxHashSet::default();
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#270">perms</a>.insert(<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Perm::Acc</a>(
-            vir::Expr::from(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#269">self</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).field(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#269">self</a>.discriminant_field.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <a href="#270">perms</a>.insert(<a href="perm.rs.html#15">Perm::Acc</a>(
+            vir::Expr::from(<a class="self" href="#269">self</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).field(<a class="self" href="#269">self</a>.discriminant_field.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             PermAmount::Write,
         ));
-        <a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#270">perms</a>
+        <a href="#270">perms</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

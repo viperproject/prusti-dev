@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/sync/notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -955,6 +955,13 @@
 <span id="955">955</span>
 <span id="956">956</span>
 <span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
 </pre><pre class="rust"><code><span class="comment">// Allow `unreachable_pub` warnings when sync is not enabled
 // due to the usage of `Notify` within the `rt` feature set.
 // When this module is compiled with `sync` enabled we will warn on
@@ -962,10 +969,10 @@
 // triggers this warning but it is safe to ignore in this case.
 </span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(unreachable_pub, dead_code))]
 
-</span><span class="kw">use </span><a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use </span><a href="../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
-<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
-<span class="kw">use </span><a href="../../../src/tokio/util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
+</span><span class="kw">use </span><a href="../loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use </span><a href="../loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a class="self" href="../util/mod.rs.html#41">self</a>, <a href="../util/linked_list.rs.html#19">LinkedList</a>};
+<span class="kw">use </span><a href="../util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -975,7 +982,7 @@
 <span class="kw">use </span>std::sync::atomic::Ordering::SeqCst;
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">type </span>WaitList = LinkedList&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>, &lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> <span class="kw">as </span>linked_list::Link&gt;::Target&gt;;
+<span class="kw">type </span>WaitList = LinkedList&lt;<a href="#217">Waiter</a>, &lt;<a href="#217">Waiter</a> <span class="kw">as </span>linked_list::Link&gt;::Target&gt;;
 
 <span class="doccomment">/// Notifies a single task to wake up.
 ///
@@ -1158,8 +1165,8 @@
     // `WAITING` or `NOTIFIED`. The rest of the bits
     // are used to store the number of times `notify_waiters`
     // was called.
-    </span>state: <a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
-    waiters: Mutex&lt;<a href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a>&gt;,
+    </span>state: <a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    waiters: Mutex&lt;<a href="#21">WaitList</a>&gt;,
 }
 
 <span class="attribute">#[derive(Debug, Clone, Copy)]
@@ -1171,19 +1178,26 @@
 }
 
 <span class="attribute">#[derive(Debug)]
-#[repr(C)] </span><span class="comment">// required by `linked_list::Link` impl
 </span><span class="kw">struct </span>Waiter {
     <span class="doccomment">/// Intrusive linked-list pointers.
-    </span>pointers: linked_list::Pointers&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;,
+    </span>pointers: linked_list::Pointers&lt;<a href="#217">Waiter</a>&gt;,
 
     <span class="doccomment">/// Waiting task&#39;s waker.
     </span>waker: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
 
     <span class="doccomment">/// `true` if the notification has been assigned to this waiter.
-    </span>notified: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/sync/notify.rs.html#209">NotificationType</a>&gt;,
+    </span>notified: <span class="prelude-ty">Option</span>&lt;<a href="#209">NotificationType</a>&gt;,
 
     <span class="doccomment">/// Should not be `Unpin`.
     </span>_p: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+}
+
+<a class="macro" href="../macros/addr_of.rs.html#5-23">generate_addr_of_methods! </a>{
+    <span class="kw">impl</span>&lt;&gt; <a href="#217">Waiter</a> {
+        <span class="kw">unsafe fn </span>addr_of_pointers(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Waiter&gt;&gt; {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.pointers
+        }
+    }
 }
 
 <span class="doccomment">/// Future returned from [`Notify::notified()`].
@@ -1193,13 +1207,13 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Notified&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The `Notify` being received on.
-    </span>notify: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a>,
+    </span>notify: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#199">Notify</a>,
 
     <span class="doccomment">/// The current state of the receiving process.
-    </span>state: <a href="../../../src/tokio/sync/notify.rs.html#252">State</a>,
+    </span>state: <a href="#259">State</a>,
 
     <span class="doccomment">/// Entry in the waiter `LinkedList`.
-    </span>waiter: UnsafeCell&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;,
+    </span>waiter: UnsafeCell&lt;<a href="#217">Waiter</a>&gt;,
 }
 
 <span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Notified&lt;<span class="lifetime">&#39;a</span>&gt; {}
@@ -1213,8 +1227,8 @@
 }
 
 <span class="kw">const </span>NOTIFY_WAITERS_SHIFT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
-<span class="kw">const </span>STATE_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = (<span class="number">1 </span>&lt;&lt; <a href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>) - <span class="number">1</span>;
-<span class="kw">const </span>NOTIFY_WAITERS_CALLS_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = !<a href="../../../src/tokio/sync/notify.rs.html#259">STATE_MASK</a>;
+<span class="kw">const </span>STATE_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = (<span class="number">1 </span>&lt;&lt; <a href="#265">NOTIFY_WAITERS_SHIFT</a>) - <span class="number">1</span>;
+<span class="kw">const </span>NOTIFY_WAITERS_CALLS_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = !<a href="#266">STATE_MASK</a>;
 
 <span class="doccomment">/// Initial &quot;idle&quot; state.
 </span><span class="kw">const </span>EMPTY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
@@ -1226,26 +1240,26 @@
 </span><span class="kw">const </span>NOTIFIED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
 
 <span class="kw">fn </span>set_state(data: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, state: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/tokio/sync/notify.rs.html#271">data</a> &amp; <a href="../../../src/tokio/sync/notify.rs.html#260">NOTIFY_WAITERS_CALLS_MASK</a>) | (<a href="../../../src/tokio/sync/notify.rs.html#271">state</a> &amp; <a href="../../../src/tokio/sync/notify.rs.html#259">STATE_MASK</a>)
+    (<a href="#278">data</a> &amp; <a href="#267">NOTIFY_WAITERS_CALLS_MASK</a>) | (<a href="#278">state</a> &amp; <a href="#266">STATE_MASK</a>)
 }
 
 <span class="kw">fn </span>get_state(data: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/tokio/sync/notify.rs.html#275">data</a> &amp; <a href="../../../src/tokio/sync/notify.rs.html#259">STATE_MASK</a>
+    <a href="#282">data</a> &amp; <a href="#266">STATE_MASK</a>
 }
 
 <span class="kw">fn </span>get_num_notify_waiters_calls(data: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a href="../../../src/tokio/sync/notify.rs.html#279">data</a> &amp; <a href="../../../src/tokio/sync/notify.rs.html#260">NOTIFY_WAITERS_CALLS_MASK</a>) &gt;&gt; <a href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>
+    (<a href="#286">data</a> &amp; <a href="#267">NOTIFY_WAITERS_CALLS_MASK</a>) &gt;&gt; <a href="#265">NOTIFY_WAITERS_SHIFT</a>
 }
 
 <span class="kw">fn </span>inc_num_notify_waiters_calls(data: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="../../../src/tokio/sync/notify.rs.html#283">data</a> + (<span class="number">1 </span>&lt;&lt; <a href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>)
+    <a href="#290">data</a> + (<span class="number">1 </span>&lt;&lt; <a href="#265">NOTIFY_WAITERS_SHIFT</a>)
 }
 
-<span class="kw">fn </span>atomic_inc_num_notify_waiters_calls(data: <span class="kw-2">&amp;</span><a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) {
-    <a href="../../../src/tokio/sync/notify.rs.html#287">data</a>.fetch_add(<span class="number">1 </span>&lt;&lt; <a href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>, SeqCst);
+<span class="kw">fn </span>atomic_inc_num_notify_waiters_calls(data: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) {
+    <a href="#294">data</a>.fetch_add(<span class="number">1 </span>&lt;&lt; <a href="#265">NOTIFY_WAITERS_SHIFT</a>, SeqCst);
 }
 
-<span class="kw">impl </span><a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
+<span class="kw">impl </span><a href="#199">Notify</a> {
     <span class="doccomment">/// Create a new `Notify`, initialized without a permit.
     ///
     /// # Examples
@@ -1255,8 +1269,8 @@
     ///
     /// let notify = Notify::new();
     /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
-        <a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#199">Notify</a> {
+        <a href="#199">Notify</a> {
             state: AtomicUsize::new(<span class="number">0</span>),
             waiters: Mutex::new(LinkedList::new()),
         }
@@ -1333,11 +1347,11 @@
     </span><span class="kw">pub fn </span>notified(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Notified&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="comment">// we load the number of times notify_waiters
         // was called and store that in our initial state
-        </span><span class="kw">let </span>state = <a class="self" href="../../../src/tokio/sync/notify.rs.html#376">self</a>.state.load(SeqCst);
-        <a href="../../../src/tokio/sync/notify.rs.html#237">Notified</a> {
-            notify: <a class="self" href="../../../src/tokio/sync/notify.rs.html#376">self</a>,
-            state: <a href="../../../src/tokio/sync/notify.rs.html#253">State::Init</a>(<a href="../../../src/tokio/sync/notify.rs.html#379">state</a> &gt;&gt; <a href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>),
-            waiter: UnsafeCell::new(<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> {
+        </span><span class="kw">let </span>state = <a class="self" href="#383">self</a>.state.load(SeqCst);
+        <a href="#244">Notified</a> {
+            notify: <a class="self" href="#383">self</a>,
+            state: <a href="#260">State::Init</a>(<a href="#386">state</a> &gt;&gt; <a href="#265">NOTIFY_WAITERS_SHIFT</a>),
+            waiter: UnsafeCell::new(<a href="#217">Waiter</a> {
                 pointers: linked_list::Pointers::new(),
                 waker: <span class="prelude-val">None</span>,
                 notified: <span class="prelude-val">None</span>,
@@ -1384,7 +1398,7 @@
     </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;notify&quot;</span>))]
     </span><span class="kw">pub fn </span>notify_one(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Load the current state
-        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/tokio/sync/notify.rs.html#428">self</a>.state.load(SeqCst);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="#435">self</a>.state.load(SeqCst);
 
         <span class="comment">// If the state is `EMPTY`, transition to `NOTIFIED` and return.
         </span><span class="kw">while let </span>EMPTY | NOTIFIED = get_state(curr) {
@@ -1404,15 +1418,15 @@
         }
 
         <span class="comment">// There are waiters, the lock must be acquired to notify.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="../../../src/tokio/sync/notify.rs.html#428">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="#435">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// The state must be reloaded while the lock is held. The state may only
         // transition out of WAITING while the lock is held.
-        </span><a href="../../../src/tokio/sync/notify.rs.html#430">curr</a> = <a class="self" href="../../../src/tokio/sync/notify.rs.html#428">self</a>.state.load(SeqCst);
+        </span><a href="#437">curr</a> = <a class="self" href="#435">self</a>.state.load(SeqCst);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="../../../src/tokio/sync/notify.rs.html#562">notify_locked</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/notify.rs.html#450">waiters</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#428">self</a>.state, <a href="../../../src/tokio/sync/notify.rs.html#430">curr</a>) {
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/sync/notify.rs.html#450">waiters</a>);
-            <a href="../../../src/tokio/sync/notify.rs.html#456">waker</a>.wake();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="#569">notify_locked</a>(<span class="kw-2">&amp;mut </span><a href="#457">waiters</a>, <span class="kw-2">&amp;</span><a class="self" href="#435">self</a>.state, <a href="#437">curr</a>) {
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#457">waiters</a>);
+            <a href="#463">waker</a>.wake();
         }
     }
 
@@ -1452,16 +1466,16 @@
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = WakeList::new();
 
         <span class="comment">// There are waiters, the lock must be acquired to notify.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="../../../src/tokio/sync/notify.rs.html#494">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="#501">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// The state must be reloaded while the lock is held. The state may only
         // transition out of WAITING while the lock is held.
-        </span><span class="kw">let </span>curr = <a class="self" href="../../../src/tokio/sync/notify.rs.html#494">self</a>.state.load(SeqCst);
+        </span><span class="kw">let </span>curr = <a class="self" href="#501">self</a>.state.load(SeqCst);
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(get_state(curr), EMPTY | NOTIFIED) {
             <span class="comment">// There are no waiting tasks. All we need to do is increment the
             // number of times this method was called.
-            </span><a href="../../../src/tokio/sync/notify.rs.html#287">atomic_inc_num_notify_waiters_calls</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#494">self</a>.state);
+            </span><a href="#294">atomic_inc_num_notify_waiters_calls</a>(<span class="kw-2">&amp;</span><a class="self" href="#501">self</a>.state);
             <span class="kw">return</span>;
         }
 
@@ -1489,74 +1503,74 @@
                 }
             }
 
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/sync/notify.rs.html#498">waiters</a>);
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#505">waiters</a>);
 
-            <a href="../../../src/tokio/sync/notify.rs.html#495">wakers</a>.<a href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
+            <a href="#502">wakers</a>.<a href="../util/wake_list.rs.html#38">wake_all</a>();
 
             <span class="comment">// Acquire the lock again.
-            </span><a href="../../../src/tokio/sync/notify.rs.html#498">waiters</a> = <a class="self" href="../../../src/tokio/sync/notify.rs.html#494">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+            </span><a href="#505">waiters</a> = <a class="self" href="#501">self</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
         }
 
         <span class="comment">// All waiters will be notified, the state must be transitioned to
         // `EMPTY`. As transitioning **from** `WAITING` requires the lock to be
         // held, a `store` is sufficient.
-        </span><span class="kw">let </span>new = <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#283">inc_num_notify_waiters_calls</a>(<a href="../../../src/tokio/sync/notify.rs.html#502">curr</a>), <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>);
-        <a class="self" href="../../../src/tokio/sync/notify.rs.html#494">self</a>.state.store(<a href="../../../src/tokio/sync/notify.rs.html#546">new</a>, SeqCst);
+        </span><span class="kw">let </span>new = <a href="#278">set_state</a>(<a href="#290">inc_num_notify_waiters_calls</a>(<a href="#509">curr</a>), <a href="#270">EMPTY</a>);
+        <a class="self" href="#501">self</a>.state.store(<a href="#553">new</a>, SeqCst);
 
         <span class="comment">// Release the lock before notifying
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/sync/notify.rs.html#498">waiters</a>);
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#505">waiters</a>);
 
-        <a href="../../../src/tokio/sync/notify.rs.html#495">wakers</a>.<a href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
+        <a href="#502">wakers</a>.<a href="../util/wake_list.rs.html#38">wake_all</a>();
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
-    <span class="kw">fn </span>default() -&gt; <a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#199">Notify</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="#199">Notify</a> {
         Notify::new()
     }
 }
 
-<span class="kw">fn </span>notify_locked(waiters: <span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a>, state: <span class="kw-2">&amp;</span><a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>, curr: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
+<span class="kw">fn </span>notify_locked(waiters: <span class="kw-2">&amp;mut </span><a href="#21">WaitList</a>, state: <span class="kw-2">&amp;</span><a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>, curr: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
     <span class="kw">loop </span>{
-        <span class="kw">match </span><a href="../../../src/tokio/sync/notify.rs.html#275">get_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#562">curr</a>) {
-            <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a> | <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a> =&gt; {
-                <span class="kw">let </span>res = <a href="../../../src/tokio/sync/notify.rs.html#562">state</a>.compare_exchange(<a href="../../../src/tokio/sync/notify.rs.html#562">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#562">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a>), SeqCst, SeqCst);
+        <span class="kw">match </span><a href="#282">get_state</a>(<a href="#569">curr</a>) {
+            <a href="#270">EMPTY</a> | <a href="#276">NOTIFIED</a> =&gt; {
+                <span class="kw">let </span>res = <a href="#569">state</a>.compare_exchange(<a href="#569">curr</a>, <a href="#278">set_state</a>(<a href="#569">curr</a>, <a href="#276">NOTIFIED</a>), SeqCst, SeqCst);
 
-                <span class="kw">match </span><a href="../../../src/tokio/sync/notify.rs.html#566">res</a> {
+                <span class="kw">match </span><a href="#573">res</a> {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                     <span class="prelude-val">Err</span>(actual) =&gt; {
-                        <span class="kw">let </span>actual_state = <a href="../../../src/tokio/sync/notify.rs.html#275">get_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#570">actual</a>);
+                        <span class="kw">let </span>actual_state = <a href="#282">get_state</a>(<a href="#577">actual</a>);
                         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(actual_state == EMPTY || actual_state == NOTIFIED);
-                        <a href="../../../src/tokio/sync/notify.rs.html#562">state</a>.store(<a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#570">actual</a>, <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a>), SeqCst);
+                        <a href="#569">state</a>.store(<a href="#278">set_state</a>(<a href="#577">actual</a>, <a href="#276">NOTIFIED</a>), SeqCst);
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     }
                 }
             }
-            <a href="../../../src/tokio/sync/notify.rs.html#266">WAITING</a> =&gt; {
+            <a href="#273">WAITING</a> =&gt; {
                 <span class="comment">// At this point, it is guaranteed that the state will not
                 // concurrently change as holding the lock is required to
                 // transition **out** of `WAITING`.
                 //
                 // Get a pending waiter
-                </span><span class="kw">let </span><span class="kw-2">mut </span>waiter = <a href="../../../src/tokio/sync/notify.rs.html#562">waiters</a>.<a href="../../../src/tokio/util/linked_list.rs.html#149">pop_back</a>().unwrap();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>waiter = <a href="#569">waiters</a>.<a href="../util/linked_list.rs.html#149">pop_back</a>().unwrap();
 
                 <span class="comment">// Safety: `waiters` lock is still held.
-                </span><span class="kw">let </span>waiter = <span class="kw">unsafe </span>{ <a href="../../../src/tokio/sync/notify.rs.html#584">waiter</a>.as_mut() };
+                </span><span class="kw">let </span>waiter = <span class="kw">unsafe </span>{ <a href="#591">waiter</a>.as_mut() };
 
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(waiter.notified.is_none());
 
-                <a href="../../../src/tokio/sync/notify.rs.html#587">waiter</a>.notified = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/sync/notify.rs.html#213">NotificationType::OneWaiter</a>);
-                <span class="kw">let </span>waker = <a href="../../../src/tokio/sync/notify.rs.html#587">waiter</a>.waker.take();
+                <a href="#594">waiter</a>.notified = <span class="prelude-val">Some</span>(<a href="#213">NotificationType::OneWaiter</a>);
+                <span class="kw">let </span>waker = <a href="#594">waiter</a>.waker.take();
 
                 <span class="kw">if </span>waiters.is_empty() {
                     <span class="comment">// As this the **final** waiter in the list, the state
                     // must be transitioned to `EMPTY`. As transitioning
                     // **from** `WAITING` requires the lock to be held, a
                     // `store` is sufficient.
-                    </span><a href="../../../src/tokio/sync/notify.rs.html#562">state</a>.store(<a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#562">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>), SeqCst);
+                    </span><a href="#569">state</a>.store(<a href="#278">set_state</a>(<a href="#569">curr</a>, <a href="#270">EMPTY</a>), SeqCst);
                 }
 
-                <span class="kw">return </span><a href="../../../src/tokio/sync/notify.rs.html#592">waker</a>;
+                <span class="kw">return </span><a href="#599">waker</a>;
             }
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
@@ -1671,103 +1685,103 @@
     /// [`notify_one`]: Notify::notify_one()
     /// [`notify_waiters`]: Notify::notify_waiters()
     </span><span class="kw">pub fn </span>enable(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/notify.rs.html#716">self</a>.<a href="../../../src/tokio/sync/notify.rs.html#734">poll_notified</a>(<span class="prelude-val">None</span>).is_ready()
+        <a class="self" href="#723">self</a>.<a href="#741">poll_notified</a>(<span class="prelude-val">None</span>).is_ready()
     }
 
     <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`
     /// as a custom drop implementation is needed.
-    </span><span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (<span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/notify.rs.html#252">State</a>, <span class="kw-2">&amp;</span>UnsafeCell&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;) {
+    </span><span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (<span class="kw-2">&amp;</span><a href="#199">Notify</a>, <span class="kw-2">&amp;mut </span><a href="#259">State</a>, <span class="kw-2">&amp;</span>UnsafeCell&lt;<a href="#217">Waiter</a>&gt;) {
         <span class="kw">unsafe </span>{
             <span class="comment">// Safety: both `notify` and `state` are `Unpin`.
 
-            </span>is_unpin::&lt;<span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/notify.rs.html#199">Notify</a>&gt;();
-            is_unpin::&lt;<a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>&gt;();
+            </span>is_unpin::&lt;<span class="kw-2">&amp;</span><a href="#199">Notify</a>&gt;();
+            is_unpin::&lt;<a href="../loom/std/atomic_usize.rs.html#6">AtomicUsize</a>&gt;();
 
-            <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/sync/notify.rs.html#722">self</a>.get_unchecked_mut();
-            (<a href="../../../src/tokio/sync/notify.rs.html#729">me</a>.notify, <span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/notify.rs.html#729">me</a>.state, <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/notify.rs.html#729">me</a>.waiter)
+            <span class="kw">let </span>me = <a class="self" href="#729">self</a>.get_unchecked_mut();
+            (<a href="#736">me</a>.notify, <span class="kw-2">&amp;mut </span><a href="#736">me</a>.state, <span class="kw-2">&amp;</span><a href="#736">me</a>.waiter)
         }
     }
 
     <span class="kw">fn </span>poll_notified(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, waker: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) -&gt; Poll&lt;()&gt; {
-        <span class="kw">use </span><a href="../../../src/tokio/sync/notify.rs.html#252">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="#259">State</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>(notify, state, waiter) = <a class="self" href="../../../src/tokio/sync/notify.rs.html#734">self</a>.<a href="../../../src/tokio/sync/notify.rs.html#722">project</a>();
+        <span class="kw">let </span>(notify, state, waiter) = <a class="self" href="#741">self</a>.<a href="#729">project</a>();
 
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> {
-                <a href="../../../src/tokio/sync/notify.rs.html#253">Init</a>(initial_notify_waiters_calls) =&gt; {
-                    <span class="kw">let </span>curr = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.state.load(SeqCst);
+            <span class="kw">match </span><span class="kw-2">*</span><a href="#744">state</a> {
+                <a href="#260">Init</a>(initial_notify_waiters_calls) =&gt; {
+                    <span class="kw">let </span>curr = <a href="#744">notify</a>.state.load(SeqCst);
 
                     <span class="comment">// Optimistically try acquiring a pending notification
-                    </span><span class="kw">let </span>res = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.state.compare_exchange(
-                        <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#742">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a>),
-                        <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#742">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>),
+                    </span><span class="kw">let </span>res = <a href="#744">notify</a>.state.compare_exchange(
+                        <a href="#278">set_state</a>(<a href="#749">curr</a>, <a href="#276">NOTIFIED</a>),
+                        <a href="#278">set_state</a>(<a href="#749">curr</a>, <a href="#270">EMPTY</a>),
                         SeqCst,
                         SeqCst,
                     );
 
                     <span class="kw">if </span>res.is_ok() {
                         <span class="comment">// Acquired the notification
-                        </span><span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> = <a href="../../../src/tokio/sync/notify.rs.html#255">Done</a>;
+                        </span><span class="kw-2">*</span><a href="#744">state</a> = <a href="#262">Done</a>;
                         <span class="kw">return </span>Poll::Ready(());
                     }
 
                     <span class="comment">// Clone the waker before locking, a waker clone can be
                     // triggering arbitrary code.
-                    </span><span class="kw">let </span>waker = <a href="../../../src/tokio/sync/notify.rs.html#734">waker</a>.cloned();
+                    </span><span class="kw">let </span>waker = <a href="#741">waker</a>.cloned();
 
                     <span class="comment">// Acquire the lock and attempt to transition to the waiting
                     // state.
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a href="#744">notify</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
 
                     <span class="comment">// Reload the state with the lock held
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.state.load(SeqCst);
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a href="#744">notify</a>.state.load(SeqCst);
 
                     <span class="comment">// if notify_waiters has been called after the future
                     // was created, then we are done
                     </span><span class="kw">if </span>get_num_notify_waiters_calls(curr) != initial_notify_waiters_calls {
-                        <span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> = <a href="../../../src/tokio/sync/notify.rs.html#255">Done</a>;
+                        <span class="kw-2">*</span><a href="#744">state</a> = <a href="#262">Done</a>;
                         <span class="kw">return </span>Poll::Ready(());
                     }
 
                     <span class="comment">// Transition the state to WAITING.
                     </span><span class="kw">loop </span>{
-                        <span class="kw">match </span><a href="../../../src/tokio/sync/notify.rs.html#275">get_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#767">curr</a>) {
-                            <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a> =&gt; {
+                        <span class="kw">match </span><a href="#282">get_state</a>(<a href="#774">curr</a>) {
+                            <a href="#270">EMPTY</a> =&gt; {
                                 <span class="comment">// Transition to WAITING
-                                </span><span class="kw">let </span>res = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.state.compare_exchange(
-                                    <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#767">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>),
-                                    <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#767">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#266">WAITING</a>),
+                                </span><span class="kw">let </span>res = <a href="#744">notify</a>.state.compare_exchange(
+                                    <a href="#278">set_state</a>(<a href="#774">curr</a>, <a href="#270">EMPTY</a>),
+                                    <a href="#278">set_state</a>(<a href="#774">curr</a>, <a href="#273">WAITING</a>),
                                     SeqCst,
                                     SeqCst,
                                 );
 
-                                <span class="kw">if let </span><span class="prelude-val">Err</span>(actual) = <a href="../../../src/tokio/sync/notify.rs.html#781">res</a> {
+                                <span class="kw">if let </span><span class="prelude-val">Err</span>(actual) = <a href="#788">res</a> {
                                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(get_state(actual), NOTIFIED);
-                                    <a href="../../../src/tokio/sync/notify.rs.html#767">curr</a> = <a href="../../../src/tokio/sync/notify.rs.html#788">actual</a>;
+                                    <a href="#774">curr</a> = <a href="#795">actual</a>;
                                 } <span class="kw">else </span>{
                                     <span class="kw">break</span>;
                                 }
                             }
-                            <a href="../../../src/tokio/sync/notify.rs.html#266">WAITING</a> =&gt; <span class="kw">break</span>,
-                            <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a> =&gt; {
+                            <a href="#273">WAITING</a> =&gt; <span class="kw">break</span>,
+                            <a href="#276">NOTIFIED</a> =&gt; {
                                 <span class="comment">// Try consuming the notification
-                                </span><span class="kw">let </span>res = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.state.compare_exchange(
-                                    <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#767">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a>),
-                                    <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#767">curr</a>, <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>),
+                                </span><span class="kw">let </span>res = <a href="#744">notify</a>.state.compare_exchange(
+                                    <a href="#278">set_state</a>(<a href="#774">curr</a>, <a href="#276">NOTIFIED</a>),
+                                    <a href="#278">set_state</a>(<a href="#774">curr</a>, <a href="#270">EMPTY</a>),
                                     SeqCst,
                                     SeqCst,
                                 );
 
-                                <span class="kw">match </span><a href="../../../src/tokio/sync/notify.rs.html#798">res</a> {
+                                <span class="kw">match </span><a href="#805">res</a> {
                                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                                         <span class="comment">// Acquired the notification
-                                        </span><span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> = <a href="../../../src/tokio/sync/notify.rs.html#255">Done</a>;
+                                        </span><span class="kw-2">*</span><a href="#744">state</a> = <a href="#262">Done</a>;
                                         <span class="kw">return </span>Poll::Ready(());
                                     }
                                     <span class="prelude-val">Err</span>(actual) =&gt; {
                                         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(get_state(actual), EMPTY);
-                                        <a href="../../../src/tokio/sync/notify.rs.html#767">curr</a> = <a href="../../../src/tokio/sync/notify.rs.html#811">actual</a>;
+                                        <a href="#774">curr</a> = <a href="#818">actual</a>;
                                     }
                                 }
                             }
@@ -1778,46 +1792,46 @@
                     <span class="kw">if </span>waker.is_some() {
                         <span class="comment">// Safety: called while locked.
                         </span><span class="kw">unsafe </span>{
-                            (<span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">waiter</a>.get()).waker = <a href="../../../src/tokio/sync/notify.rs.html#760">waker</a>;
+                            (<span class="kw-2">*</span><a href="#744">waiter</a>.get()).waker = <a href="#767">waker</a>;
                         }
                     }
 
                     <span class="comment">// Insert the waiter into the linked list
                     //
                     // safety: pointers from `UnsafeCell` are never null.
-                    </span><a href="../../../src/tokio/sync/notify.rs.html#764">waiters</a>.<a href="../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="../../../src/tokio/sync/notify.rs.html#737">waiter</a>.get()) });
+                    </span><a href="#771">waiters</a>.<a href="../util/linked_list.rs.html#126">push_front</a>(<span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="#744">waiter</a>.get()) });
 
-                    <span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> = <a href="../../../src/tokio/sync/notify.rs.html#254">Waiting</a>;
+                    <span class="kw-2">*</span><a href="#744">state</a> = <a href="#261">Waiting</a>;
 
                     <span class="kw">return </span>Poll::Pending;
                 }
-                <a href="../../../src/tokio/sync/notify.rs.html#254">Waiting</a> =&gt; {
+                <a href="#261">Waiting</a> =&gt; {
                     <span class="comment">// Currently in the &quot;Waiting&quot; state, implying the caller has
                     // a waiter stored in the waiter list (guarded by
                     // `notify.waiters`). In order to access the waker fields,
                     // we must hold the lock.
 
-                    </span><span class="kw">let </span>waiters = <a href="../../../src/tokio/sync/notify.rs.html#737">notify</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                    </span><span class="kw">let </span>waiters = <a href="#744">notify</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
 
                     <span class="comment">// Safety: called while locked
-                    </span><span class="kw">let </span>w = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/notify.rs.html#737">waiter</a>.get() };
+                    </span><span class="kw">let </span>w = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="#744">waiter</a>.get() };
 
                     <span class="kw">if </span>w.notified.is_some() {
                         <span class="comment">// Our waker has been notified. Reset the fields and
                         // remove it from the list.
-                        </span><a href="../../../src/tokio/sync/notify.rs.html#846">w</a>.waker = <span class="prelude-val">None</span>;
-                        <a href="../../../src/tokio/sync/notify.rs.html#846">w</a>.notified = <span class="prelude-val">None</span>;
+                        </span><a href="#853">w</a>.waker = <span class="prelude-val">None</span>;
+                        <a href="#853">w</a>.notified = <span class="prelude-val">None</span>;
 
-                        <span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#737">state</a> = <a href="../../../src/tokio/sync/notify.rs.html#255">Done</a>;
+                        <span class="kw-2">*</span><a href="#744">state</a> = <a href="#262">Done</a>;
                     } <span class="kw">else </span>{
                         <span class="comment">// Update the waker, if necessary.
-                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="../../../src/tokio/sync/notify.rs.html#734">waker</a> {
-                            <span class="kw">let </span>should_update = <span class="kw">match </span><a href="../../../src/tokio/sync/notify.rs.html#846">w</a>.waker.as_ref() {
-                                <span class="prelude-val">Some</span>(current_waker) =&gt; !<a href="../../../src/tokio/sync/notify.rs.html#859">current_waker</a>.will_wake(<a href="../../../src/tokio/sync/notify.rs.html#857">waker</a>),
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="#741">waker</a> {
+                            <span class="kw">let </span>should_update = <span class="kw">match </span><a href="#853">w</a>.waker.as_ref() {
+                                <span class="prelude-val">Some</span>(current_waker) =&gt; !<a href="#866">current_waker</a>.will_wake(<a href="#864">waker</a>),
                                 <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
                             };
                             <span class="kw">if </span>should_update {
-                                <a href="../../../src/tokio/sync/notify.rs.html#846">w</a>.waker = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/sync/notify.rs.html#857">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                                <a href="#853">w</a>.waker = <span class="prelude-val">Some</span>(<a href="#864">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                             }
                         }
 
@@ -1829,9 +1843,9 @@
                     // ensure safe access to fields not held within the lock, it
                     // is helpful to visualize the scope of the critical
                     // section.
-                    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/sync/notify.rs.html#843">waiters</a>);
+                    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#850">waiters</a>);
                 }
-                <a href="../../../src/tokio/sync/notify.rs.html#255">Done</a> =&gt; {
+                <a href="#262">Done</a> =&gt; {
                     <span class="kw">return </span>Poll::Ready(());
                 }
             }
@@ -1843,33 +1857,33 @@
     <span class="kw">type </span>Output = ();
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
-        <a class="self" href="../../../src/tokio/sync/notify.rs.html#888">self</a>.<a href="../../../src/tokio/sync/notify.rs.html#734">poll_notified</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/sync/notify.rs.html#888">cx</a>.waker()))
+        <a class="self" href="#895">self</a>.<a href="#741">poll_notified</a>(<span class="prelude-val">Some</span>(<a href="#895">cx</a>.waker()))
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Notified&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">use </span><a href="../../../src/tokio/sync/notify.rs.html#252">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="#259">State</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Safety: The type only transitions to a &quot;Waiting&quot; state when pinned.
-        </span><span class="kw">let </span>(notify, state, waiter) = <span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="../../../src/tokio/sync/notify.rs.html#894">self</a>).<a href="../../../src/tokio/sync/notify.rs.html#722">project</a>() };
+        </span><span class="kw">let </span>(notify, state, waiter) = <span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="#901">self</a>).<a href="#729">project</a>() };
 
         <span class="comment">// This is where we ensure safety. The `Notified` value is being
         // dropped, which means we must ensure that the waiter entry is no
         // longer stored in the linked list.
         </span><span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span>state, Waiting) {
-            <span class="kw">let </span><span class="kw-2">mut </span>waiters = <a href="../../../src/tokio/sync/notify.rs.html#898">notify</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>notify_state = <a href="../../../src/tokio/sync/notify.rs.html#898">notify</a>.state.load(SeqCst);
+            <span class="kw">let </span><span class="kw-2">mut </span>waiters = <a href="#905">notify</a>.waiters.<a href="../loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>notify_state = <a href="#905">notify</a>.state.load(SeqCst);
 
             <span class="comment">// remove the entry from the list (if not already removed)
             //
             // safety: the waiter is only added to `waiters` by virtue of it
             // being the only `LinkedList` available to the type.
-            </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/sync/notify.rs.html#904">waiters</a>.<a href="../../../src/tokio/util/linked_list.rs.html#183">remove</a>(NonNull::new_unchecked(<a href="../../../src/tokio/sync/notify.rs.html#898">waiter</a>.get())) };
+            </span><span class="kw">unsafe </span>{ <a href="#911">waiters</a>.<a href="../util/linked_list.rs.html#183">remove</a>(NonNull::new_unchecked(<a href="#905">waiter</a>.get())) };
 
             <span class="kw">if </span>waiters.is_empty() &amp;&amp; get_state(notify_state) == WAITING {
-                <a href="../../../src/tokio/sync/notify.rs.html#905">notify_state</a> = <a href="../../../src/tokio/sync/notify.rs.html#271">set_state</a>(<a href="../../../src/tokio/sync/notify.rs.html#905">notify_state</a>, <a href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a>);
-                <a href="../../../src/tokio/sync/notify.rs.html#898">notify</a>.state.store(<a href="../../../src/tokio/sync/notify.rs.html#905">notify_state</a>, SeqCst);
+                <a href="#912">notify_state</a> = <a href="#278">set_state</a>(<a href="#912">notify_state</a>, <a href="#270">EMPTY</a>);
+                <a href="#905">notify</a>.state.store(<a href="#912">notify_state</a>, SeqCst);
             }
 
             <span class="comment">// See if the node was notified but not received. In this case, if
@@ -1882,9 +1896,9 @@
                 <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>waiter.get()).notified },
                 <span class="prelude-val">Some</span>(NotificationType::OneWaiter)
             ) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="../../../src/tokio/sync/notify.rs.html#562">notify_locked</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/notify.rs.html#904">waiters</a>, <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/notify.rs.html#898">notify</a>.state, <a href="../../../src/tokio/sync/notify.rs.html#905">notify_state</a>) {
-                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/sync/notify.rs.html#904">waiters</a>);
-                    <a href="../../../src/tokio/sync/notify.rs.html#928">waker</a>.wake();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="#569">notify_locked</a>(<span class="kw-2">&amp;mut </span><a href="#911">waiters</a>, <span class="kw-2">&amp;</span><a href="#905">notify</a>.state, <a href="#912">notify_state</a>) {
+                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#911">waiters</a>);
+                    <a href="#935">waker</a>.wake();
                 }
             }
         }
@@ -1894,23 +1908,23 @@
 <span class="doccomment">/// # Safety
 ///
 /// `Waiter` is forced to be !Unpin.
-</span><span class="kw">unsafe impl </span><a href="../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> {
-    <span class="kw">type </span>Handle = NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;;
-    <span class="kw">type </span>Target = <a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>;
+</span><span class="kw">unsafe impl </span><a href="../util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="#217">Waiter</a> {
+    <span class="kw">type </span>Handle = NonNull&lt;<a href="#217">Waiter</a>&gt;;
+    <span class="kw">type </span>Target = <a href="#217">Waiter</a>;
 
-    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt; {
-        <span class="kw-2">*</span><a href="../../../src/tokio/sync/notify.rs.html#944">handle</a>
+    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>NonNull&lt;<a href="#217">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="#217">Waiter</a>&gt; {
+        <span class="kw-2">*</span><a href="#951">handle</a>
     }
 
-    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt; {
-        <a href="../../../src/tokio/sync/notify.rs.html#948">ptr</a>
+    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="#217">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="#217">Waiter</a>&gt; {
+        <a href="#955">ptr</a>
     }
 
-    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;<a href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>&gt;&gt; {
-        <a href="../../../src/tokio/sync/notify.rs.html#952">target</a>.cast()
+    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;<a href="#217">Waiter</a>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;<a href="#217">Waiter</a>&gt;&gt; {
+        Waiter::addr_of_pointers(<a href="#959">target</a>)
     }
 }
 
 <span class="kw">fn </span>is_unpin&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;() {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

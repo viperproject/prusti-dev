@@ -93,20 +93,20 @@
     </span>bytes: <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>,
 }
 
-<span class="kw">impl </span><a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+<span class="kw">impl </span><a href="#6">ByteStr</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
-        <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="#6">ByteStr</a> {
+        <a href="#6">ByteStr</a> {
             <span class="comment">// Invariant: the empty slice is trivially valid UTF-8.
             </span>bytes: Bytes::new(),
         }
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">pub const fn </span>from_static(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
-        <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+    </span><span class="kw">pub const fn </span>from_static(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#6">ByteStr</a> {
+        <a href="#6">ByteStr</a> {
             <span class="comment">// Invariant: val is a str so contains vaid UTF-8.
-            </span>bytes: Bytes::from_static(<a href="../../src/http/byte_str.rs.html#21">val</a>.as_bytes()),
+            </span>bytes: Bytes::from_static(<a href="#21">val</a>.as_bytes()),
         }
     }
 
@@ -117,9 +117,9 @@
     /// ## Safety
     /// `bytes` must contain valid UTF-8. In a release build it is undefined
     /// behaviour to call this with `bytes` that is not valid UTF-8.
-    </span><span class="kw">pub unsafe fn </span>from_utf8_unchecked(bytes: <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+    </span><span class="kw">pub unsafe fn </span>from_utf8_unchecked(bytes: <a href="../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <a href="#6">ByteStr</a> {
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
-            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/http/byte_str.rs.html#35">bytes</a>) {
+            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="#35">bytes</a>) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (),
                 <span class="prelude-val">Err</span>(err) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                     <span class="string">&quot;ByteStr::from_utf8_unchecked() with invalid bytes; error = {}, bytes = {:?}&quot;</span>,
@@ -128,45 +128,45 @@
             }
         }
         <span class="comment">// Invariant: assumed by the safety requirements of this function.
-        </span><a href="../../src/http/byte_str.rs.html#6">ByteStr</a> { bytes: <a href="../../src/http/byte_str.rs.html#35">bytes</a> }
+        </span><a href="#6">ByteStr</a> { bytes: <a href="#35">bytes</a> }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span><a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span><a href="#6">ByteStr</a> {
     <span class="kw">type </span>Target = <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <a class="self" href="../../src/http/byte_str.rs.html#54">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <a class="self" href="#54">self</a>.bytes.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
         <span class="comment">// Safety: the invariant of `bytes` is that it contains valid UTF-8.
-        </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="../../src/http/byte_str.rs.html#55">b</a>) }
+        </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="#55">b</a>) }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#6">ByteStr</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(src: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
-        <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+    </span><span class="kw">fn </span>from(src: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="#6">ByteStr</a> {
+        <a href="#6">ByteStr</a> {
             <span class="comment">// Invariant: src is a String so contains valid UTF-8.
-            </span>bytes: Bytes::from(<a href="../../src/http/byte_str.rs.html#63">src</a>),
+            </span>bytes: Bytes::from(<a href="#63">src</a>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="#6">ByteStr</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
-        <a href="../../src/http/byte_str.rs.html#6">ByteStr</a> {
+    </span><span class="kw">fn </span>from(src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="#6">ByteStr</a> {
+        <a href="#6">ByteStr</a> {
             <span class="comment">// Invariant: src is a str so contains valid UTF-8.
-            </span>bytes: Bytes::copy_from_slice(<a href="../../src/http/byte_str.rs.html#73">src</a>.as_bytes()),
+            </span>bytes: Bytes::copy_from_slice(<a href="#73">src</a>.as_bytes()),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<a href="../../src/http/byte_str.rs.html#6">ByteStr</a>&gt; <span class="kw">for </span><a href="../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-    <span class="kw">fn </span>from(src: <a href="../../src/http/byte_str.rs.html#6">ByteStr</a>) -&gt; <span class="self">Self </span>{
-        <a href="../../src/http/byte_str.rs.html#82">src</a>.bytes
+<span class="kw">impl </span>From&lt;<a href="#6">ByteStr</a>&gt; <span class="kw">for </span><a href="../../bytes/bytes/struct.Bytes.html">Bytes</a> {
+    <span class="kw">fn </span>from(src: <a href="#6">ByteStr</a>) -&gt; <span class="self">Self </span>{
+        <a href="#82">src</a>.bytes
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

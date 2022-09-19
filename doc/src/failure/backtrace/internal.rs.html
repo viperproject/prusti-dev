@@ -144,7 +144,7 @@
 <span class="kw">const </span>FAILURE_BACKTRACE: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;RUST_FAILURE_BACKTRACE&quot;</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InternalBacktrace {
-    backtrace: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a>&gt;,
+    backtrace: <span class="prelude-ty">Option</span>&lt;<a href="#18">MaybeResolved</a>&gt;,
 }
 
 <span class="kw">struct </span>MaybeResolved {
@@ -152,72 +152,72 @@
     backtrace: UnsafeCell&lt;<a href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a>&gt;,
 }
 
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
-<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="#18">MaybeResolved</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="#18">MaybeResolved</a> {}
 
-<span class="kw">impl </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+<span class="kw">impl </span><a href="#14">InternalBacktrace</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <a href="#14">InternalBacktrace</a> {
         <span class="attribute">#[allow(deprecated)] </span><span class="comment">// to allow for older Rust versions (&lt;1.24)
         </span><span class="kw">static </span>ENABLED: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/constant.ATOMIC_USIZE_INIT.html">ATOMIC_USIZE_INIT</a>;
 
-        <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.load(Ordering::SeqCst) {
+        <span class="kw">match </span><a href="#29">ENABLED</a>.load(Ordering::SeqCst) {
             <span class="number">0 </span>=&gt; {
-                <span class="kw">let </span>enabled = <a href="../../../src/failure/backtrace/internal.rs.html#83">is_backtrace_enabled</a>(|var| env::var_os(<a href="../../../src/failure/backtrace/internal.rs.html#33">var</a>));
-                <a href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.store(<a href="../../../src/failure/backtrace/internal.rs.html#33">enabled</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>, Ordering::SeqCst);
+                <span class="kw">let </span>enabled = <a href="#83">is_backtrace_enabled</a>(|var| env::var_os(<a href="#33">var</a>));
+                <a href="#29">ENABLED</a>.store(<a href="#33">enabled</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>, Ordering::SeqCst);
                 <span class="kw">if </span>!enabled {
-                    <span class="kw">return </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
+                    <span class="kw">return </span><a href="#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
                 }
             }
-            <span class="number">1 </span>=&gt; <span class="kw">return </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>},
+            <span class="number">1 </span>=&gt; <span class="kw">return </span><a href="#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>},
             <span class="kw">_ </span>=&gt; {}
         }
 
-        <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-            backtrace: <span class="prelude-val">Some</span>(<a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {
+        <a href="#14">InternalBacktrace</a> {
+            backtrace: <span class="prelude-val">Some</span>(<a href="#18">MaybeResolved</a> {
                 resolved: Mutex::new(<span class="bool-val">false</span>),
                 backtrace: UnsafeCell::new(Backtrace::new_unresolved()),
             }),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>none() -&gt; <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-        <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>none() -&gt; <a href="#14">InternalBacktrace</a> {
+        <a href="#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_backtrace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a>&gt; {
-        <span class="kw">let </span>bt = <span class="kw">match </span><a class="self" href="../../../src/failure/backtrace/internal.rs.html#55">self</a>.backtrace {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>bt) =&gt; <a href="../../../src/failure/backtrace/internal.rs.html#57">bt</a>,
+        <span class="kw">let </span>bt = <span class="kw">match </span><a class="self" href="#55">self</a>.backtrace {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>bt) =&gt; <a href="#57">bt</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="kw">let </span><span class="kw-2">mut </span>resolved = <a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.resolved.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>resolved = <a href="#56">bt</a>.resolved.lock().unwrap();
         <span class="kw">unsafe </span>{
             <span class="kw">if </span>!<span class="kw-2">*</span>resolved {
-                (<span class="kw-2">*</span><a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.backtrace.get()).resolve();
-                <span class="kw-2">*</span><a href="../../../src/failure/backtrace/internal.rs.html#60">resolved</a> = <span class="bool-val">true</span>;
+                (<span class="kw-2">*</span><a href="#56">bt</a>.backtrace.get()).resolve();
+                <span class="kw-2">*</span><a href="#60">resolved</a> = <span class="bool-val">true</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span><a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.backtrace.get())
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span><a href="#56">bt</a>.backtrace.get())
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/failure/backtrace/internal.rs.html#70">self</a>.backtrace.is_none()
+        <a class="self" href="#70">self</a>.backtrace.is_none()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#14">InternalBacktrace</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="../../../src/failure/backtrace/internal.rs.html#76">f</a>.debug_struct(<span class="string">&quot;InternalBacktrace&quot;</span>)
-            .field(<span class="string">&quot;backtrace&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/backtrace/internal.rs.html#76">self</a>.<a href="../../../src/failure/backtrace/internal.rs.html#55">as_backtrace</a>())
+        <a href="#76">f</a>.debug_struct(<span class="string">&quot;InternalBacktrace&quot;</span>)
+            .field(<span class="string">&quot;backtrace&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#76">self</a>.<a href="#55">as_backtrace</a>())
             .finish()
     }
 }
 
 <span class="kw">fn </span>is_backtrace_enabled&lt;F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt;&gt;(get_var: F) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a href="../../../src/failure/backtrace/internal.rs.html#12">FAILURE_BACKTRACE</a>) {
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#85">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#86">val</a> == <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">false</span>,
-        <span class="kw">_ </span>=&gt; <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a href="../../../src/failure/backtrace/internal.rs.html#11">GENERAL_BACKTRACE</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#88">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
+    <span class="kw">match </span><a href="#83">get_var</a>(<a href="#12">FAILURE_BACKTRACE</a>) {
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="#85">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="#86">val</a> == <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">false</span>,
+        <span class="kw">_ </span>=&gt; <span class="kw">match </span><a href="#83">get_var</a>(<a href="#11">GENERAL_BACKTRACE</a>) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="#88">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_                           </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -263,4 +263,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

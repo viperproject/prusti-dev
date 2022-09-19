@@ -438,19 +438,19 @@
 // Note that this demangler isn&#39;t quite as fancy as it could be. We have lots
 // of other information in our symbols like hashes, version, type information,
 // etc. Additionally, this doesn&#39;t handle glue symbols at all.
-</span><span class="kw">pub fn </span>demangle(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../src/rustc_demangle/legacy.rs.html#5">Demangle</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>), ()&gt; {
+</span><span class="kw">pub fn </span>demangle(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#5">Demangle</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>), ()&gt; {
     <span class="comment">// First validate the symbol. If it doesn&#39;t look like anything we&#39;re
     // expecting, we just print it literally. Note that we must handle non-Rust
     // symbols because we could have any function in the backtrace.
     </span><span class="kw">let </span>inner = <span class="kw">if </span>s.starts_with(<span class="string">&quot;_ZN&quot;</span>) {
-        <span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/legacy.rs.html#49">s</a>[<span class="number">3</span>..]
+        <span class="kw-2">&amp;</span><a href="#49">s</a>[<span class="number">3</span>..]
     } <span class="kw">else if </span>s.starts_with(<span class="string">&quot;ZN&quot;</span>) {
         <span class="comment">// On Windows, dbghelp strips leading underscores, so we accept &quot;ZN...E&quot;
         // form too.
-        </span><span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/legacy.rs.html#49">s</a>[<span class="number">2</span>..]
+        </span><span class="kw-2">&amp;</span><a href="#49">s</a>[<span class="number">2</span>..]
     } <span class="kw">else if </span>s.starts_with(<span class="string">&quot;__ZN&quot;</span>) {
         <span class="comment">// On OSX, symbols are prefixed with an extra _
-        </span><span class="kw-2">&amp;</span><a href="../../src/rustc_demangle/legacy.rs.html#49">s</a>[<span class="number">4</span>..]
+        </span><span class="kw-2">&amp;</span><a href="#49">s</a>[<span class="number">4</span>..]
     } <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(());
     };
@@ -461,7 +461,7 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="../../src/rustc_demangle/legacy.rs.html#53">inner</a>.chars();
+    <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="#53">inner</a>.chars();
     <span class="kw">let </span><span class="kw-2">mut </span>c = chars.next().ok_or(())<span class="question-mark">?</span>;
     <span class="kw">while </span>c != <span class="string">&#39;E&#39; </span>{
         <span class="comment">// Decode an identifier element&#39;s length.
@@ -486,18 +486,18 @@
         elements += <span class="number">1</span>;
     }
 
-    <span class="prelude-val">Ok</span>((<a href="../../src/rustc_demangle/legacy.rs.html#5">Demangle</a> { <a href="../../src/rustc_demangle/legacy.rs.html#53">inner</a>, <a href="../../src/rustc_demangle/legacy.rs.html#71">elements</a> }, <a href="../../src/rustc_demangle/legacy.rs.html#72">chars</a>.as_str()))
+    <span class="prelude-val">Ok</span>((<a href="#5">Demangle</a> { <a href="#53">inner</a>, <a href="#71">elements</a> }, <a href="#72">chars</a>.as_str()))
 }
 
 <span class="comment">// Rust hashes are hex digits with an `h` prepended.
 </span><span class="kw">fn </span>is_rust_hash(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-    <a href="../../src/rustc_demangle/legacy.rs.html#101">s</a>.starts_with(<span class="string">&#39;h&#39;</span>) &amp;&amp; <a href="../../src/rustc_demangle/legacy.rs.html#101">s</a>[<span class="number">1</span>..].chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|c| <a href="../../src/rustc_demangle/legacy.rs.html#102">c</a>.is_digit(<span class="number">16</span>))
+    <a href="#101">s</a>.starts_with(<span class="string">&#39;h&#39;</span>) &amp;&amp; <a href="#101">s</a>[<span class="number">1</span>..].chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|c| <a href="#102">c</a>.is_digit(<span class="number">16</span>))
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Demangle&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="comment">// Alright, let&#39;s do this.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="../../src/rustc_demangle/legacy.rs.html#106">self</a>.inner;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="self" href="#106">self</a>.inner;
         <span class="kw">for </span>element <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.elements {
             <span class="kw">let </span><span class="kw-2">mut </span>rest = inner;
             <span class="kw">while </span>rest.chars().next().unwrap().is_digit(<span class="number">10</span>) {
@@ -783,4 +783,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustc_demangle" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustc_demangle" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

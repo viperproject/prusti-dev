@@ -129,7 +129,7 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#9-18">Fuse</a>, <a href="../../../../src/futures_util/stream/try_stream/into_stream.rs.html#8-16">IntoStream</a>, <a href="../../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../stream/fuse.rs.html#9-18">Fuse</a>, <a href="into_stream.rs.html#8-16">IntoStream</a>, <a href="../stream/mod.rs.html#249">StreamExt</a>};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
@@ -158,18 +158,18 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(capacity &gt; <span class="number">0</span>);
 
         <span class="self">Self </span>{
-            stream: IntoStream::new(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#26">stream</a>).<a href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(),
-            items: Vec::with_capacity(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#26">capacity</a>),
-            cap: <a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#26">capacity</a>,
+            stream: IntoStream::new(<a href="#26">stream</a>).<a href="../stream/mod.rs.html#1232-1234">fuse</a>(),
+            items: Vec::with_capacity(<a href="#26">capacity</a>),
+            cap: <a href="#26">capacity</a>,
         }
     }
 
     <span class="kw">fn </span>take(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Vec&lt;St::Ok&gt; {
-        <span class="kw">let </span>cap = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#36">self</a>.cap;
-        mem::replace(<a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#36">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#13-23">project</a>().items, Vec::with_capacity(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#37">cap</a>))
+        <span class="kw">let </span>cap = <a class="self" href="#36">self</a>.cap;
+        mem::replace(<a class="self" href="#36">self</a>.<a href="#13-23">project</a>().items, Vec::with_capacity(<a href="#37">cap</a>))
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (. .));
+    <a class="macro" href="../../lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, (. .));
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.TryStream.html">TryStream</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>TryChunks&lt;St&gt; {
@@ -177,21 +177,21 @@
     </span><span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Vec&lt;St::Ok&gt;, TryChunksError&lt;St::Ok, St::Error&gt;&gt;;
 
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#48">self</a>.as_mut().<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#13-23">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#48">self</a>.as_mut().<a href="#13-23">project</a>();
         <span class="kw">loop </span>{
             <span class="kw">match </span><a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().try_poll_next(cx)) {
                 <span class="comment">// Push the item into the buffer and check whether it is full.
                 // If so, replace our buffer with a new and empty one and return
                 // the full one.
-                </span><span class="prelude-val">Some</span>(item) =&gt; <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#55">item</a> {
+                </span><span class="prelude-val">Some</span>(item) =&gt; <span class="kw">match </span><a href="#55">item</a> {
                     <span class="prelude-val">Ok</span>(item) =&gt; {
-                        <a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#49">this</a>.items.push(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#56">item</a>);
+                        <a href="#49">this</a>.items.push(<a href="#56">item</a>);
                         <span class="kw">if </span>this.items.len() &gt;= <span class="kw-2">*</span>this.cap {
-                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#48">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#36">take</a>())));
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="#48">self</a>.<a href="#36">take</a>())));
                         }
                     }
                     <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#116">TryChunksError</a>(<a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#48">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#36">take</a>(), <a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#62">e</a>))));
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#116">TryChunksError</a>(<a class="self" href="#48">self</a>.<a href="#36">take</a>(), <a href="#62">e</a>))));
                     }
                 },
 
@@ -201,11 +201,11 @@
                     <span class="kw">let </span>last = <span class="kw">if </span>this.items.is_empty() {
                         <span class="prelude-val">None
                     </span>} <span class="kw">else </span>{
-                        <span class="kw">let </span>full_buf = mem::take(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#49">this</a>.items);
-                        <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#73">full_buf</a>)
+                        <span class="kw">let </span>full_buf = mem::take(<a href="#49">this</a>.items);
+                        <span class="prelude-val">Some</span>(<a href="#73">full_buf</a>)
                     };
 
-                    <span class="kw">return </span>Poll::Ready(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#70">last</a>.map(<span class="prelude-val">Ok</span>));
+                    <span class="kw">return </span>Poll::Ready(<a href="#70">last</a>.map(<span class="prelude-val">Ok</span>));
                 }
             }
         }
@@ -213,19 +213,19 @@
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
         <span class="kw">let </span>chunk_len = <span class="kw">if </span><span class="self">self</span>.items.is_empty() { <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
-        <span class="kw">let </span>(lower, upper) = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#83">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>lower = (<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#85">lower</a> / <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#83">self</a>.cap).saturating_add(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#84">chunk_len</a>);
-        <span class="kw">let </span>upper = <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#85">upper</a> {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#88">x</a>.checked_add(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#84">chunk_len</a>),
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="#83">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>lower = (<a href="#85">lower</a> / <a class="self" href="#83">self</a>.cap).saturating_add(<a href="#84">chunk_len</a>);
+        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#85">upper</a> {
+            <span class="prelude-val">Some</span>(x) =&gt; <a href="#88">x</a>.checked_add(<a href="#84">chunk_len</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        (<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#86">lower</a>, <a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#87">upper</a>)
+        (<a href="#86">lower</a>, <a href="#87">upper</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.TryStream.html">TryStream</a> + <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>TryChunks&lt;St&gt; {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#96">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#96">self</a>.items.is_empty()
+        <a class="self" href="#96">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#96">self</a>.items.is_empty()
     }
 }
 
@@ -237,7 +237,7 @@
 {
     <span class="kw">type </span>Error = &lt;S <span class="kw">as </span>Sink&lt;Item&gt;&gt;::Error;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
+    <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 
 <span class="doccomment">/// Error indicating, that while chunk was collected inner stream produced an error.
@@ -248,17 +248,17 @@
 
 <span class="kw">impl</span>&lt;T, E: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TryChunksError&lt;T, E&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#119">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#119">f</a>)
+        <a class="self" href="#119">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="#119">f</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;T, E: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>TryChunksError&lt;T, E&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#125">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../../src/futures_util/stream/try_stream/try_chunks.rs.html#125">f</a>)
+        <a class="self" href="#125">self</a>.<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="#125">f</a>)
     }
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T, E: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span>TryChunksError&lt;T, E&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
