@@ -1576,7 +1576,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ));
                 }
             }
-            mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) => {
+            mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) |
+            mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 )).with_span(span);

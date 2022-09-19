@@ -1,7 +1,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
-#![feature(generic_associated_types)]
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]

@@ -189,9 +189,6 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
             prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
                 unimplemented!("RePlaceholder: {}", format!("{}", self));
             }
-            prusti_rustc_interface::middle::ty::ReEmpty(_) => {
-                unimplemented!("ReEmpty: {}", format!("{}", self));
-            }
             prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
         }
     }
