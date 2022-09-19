@@ -97,7 +97,7 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
 }
 
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
@@ -105,10 +105,10 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
-            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(context, ast)),
+            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(_context, ast)),
             Type::Map(ref key_type, ref val_type) => ast.map_type(
-                key_type.to_viper(context, ast),
-                val_type.to_viper(context, ast),
+                key_type.to_viper(_context, ast),
+                val_type.to_viper(_context, ast),
             ),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
@@ -343,13 +343,13 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self {
             PermAmount::Write => ast.full_perm(),
             PermAmount::Read => ast.func_app("read$", &[], ast.perm_type(), ast.no_position()),
             PermAmount::Remaining => ast.perm_sub(
-                PermAmount::Write.to_viper(context, ast),
-                PermAmount::Read.to_viper(context, ast),
+                PermAmount::Write.to_viper(_context, ast),
+                PermAmount::Read.to_viper(_context, ast),
             ),
         }
     }

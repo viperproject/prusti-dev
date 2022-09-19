@@ -239,10 +239,7 @@ pub mod trait_bounds {
             let spec_span = env.query.get_def_span(spec_id);
             let attrs = env.query.get_attributes(*spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
-                param_envs
-                    .entry(param_env)
-                    .or_insert(vec![])
-                    .push(spec_span);
+                param_envs.entry(param_env).or_default().push(spec_span);
             }
         }
 

@@ -148,7 +148,7 @@ impl ToGraphViz for CfgMethod {
         lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
         lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
-        lines.push(format!("{} (cfg:{})", escape_html(&label), index));
+        lines.push(format!("{} (cfg:{})", escape_html(label), index));
         lines.push("</td></tr>".to_string());
 
         for row in header_rows {

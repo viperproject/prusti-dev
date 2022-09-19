@@ -8,7 +8,7 @@ fn main() {
     );
 
     if let Some(commit_hash) = Command::new("git")
-        .args(&["rev-parse", "--short", "HEAD"])
+        .args(["rev-parse", "--short", "HEAD"])
         .output()
         .ok()
         .and_then(|output| String::from_utf8(output.stdout).ok())
@@ -17,7 +17,7 @@ fn main() {
     }
 
     if let Some(commit_timestamp) = Command::new("git")
-        .args(&["show", "-s", "--format=%ct"])
+        .args(["show", "-s", "--format=%ct"])
         .output()
         .ok()
         .and_then(|output| String::from_utf8(output.stdout).ok())
