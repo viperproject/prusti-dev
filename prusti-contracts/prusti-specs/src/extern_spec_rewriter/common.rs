@@ -112,8 +112,7 @@ fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
 /// ```ignore
 /// // spec functions with "self" rewritten to "_self: SomeStruct"
 /// fn the_trait_method(_self: SomeStruct, arg: <SomeStruct as SomeTrait::AssocType> -> Bar {
-///     <SomeStruct as SomeTrait>::the_trait_method(_self, arg);
-///     unimplemented!()
+///     <SomeStruct as SomeTrait>::the_trait_method(_self, arg)
 /// }
 /// ```
 ///
@@ -150,8 +149,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
         #(#method_attrs)*
         #[allow(unused, dead_code)]
         #method_sig {
-            #method_path ( #method_args );
-            unimplemented!()
+            #method_path ( #method_args )
         }
     };
 
