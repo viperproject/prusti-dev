@@ -266,6 +266,14 @@ where
         .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
+fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
+    SETTINGS
+        .write()
+        .unwrap()
+        .set(key, value)
+        .unwrap_or_else(|e| panic!("Failed to write setting {} due to {}", key, e));
+}
+
 // The following methods are all convenience wrappers for the actual call to
 // `read_setting` (+ optionally some light sanitisation or processing). Please
 // keep the documentation on each method in sync with `flags.md` in the dev
@@ -485,15 +493,12 @@ pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
 }
 
-pub fn is_prusti_helper_crate() -> bool {
+pub fn is_prusti_crate() -> bool {
     env::var("CARGO_PKG_NAME")
-        .map(|name| PRUSTI_HELPERS.contains(&name.as_str()))
-        .unwrap_or(false)
-}
-
-pub fn is_prusti_lib_crate() -> bool {
-    env::var("CARGO_PKG_NAME")
-        .map(|name| PRUSTI_LIBS.contains(&name.as_str()))
+        .map(|name| {
+            let name = &name.as_str();
+            PRUSTI_HELPERS.contains(name) || PRUSTI_LIBS.contains(name)
+        })
         .unwrap_or(false)
 }
 
@@ -905,6 +910,9 @@ pub fn allow_unreachable_unsupported_code() -> bool {
 /// When enabled, verification is skipped altogether.
 pub fn no_verify() -> bool {
     read_setting("no_verify")
+}
+pub fn set_no_verify(value: bool) {
+    write_setting("no_verify", value);
 }
 
 /// When enabled, verification is skipped for dependencies.

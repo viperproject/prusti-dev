@@ -52,7 +52,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
-        if config::print_desugared_specs() && !config::is_prusti_lib_crate() {
+        if config::print_desugared_specs() && !config::no_verify() {
             prusti_rustc_interface::driver::pretty::print_after_parsing(
                 compiler.session(),
                 compiler.input(),
@@ -84,7 +84,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
             let mut def_spec = spec_collector.build_def_specs();
             // Do print_typeckd_specs prior to importing cross crate
-            if config::print_typeckd_specs() && !config::is_prusti_lib_crate() {
+            if config::print_typeckd_specs() && !config::no_verify() {
                 for value in def_spec.all_values_debug(config::hide_uuids()) {
                     println!("{}", value);
                 }
