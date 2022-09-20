@@ -25,28 +25,32 @@ where
         prusti_rustc_path.set_extension("exe");
     }
 
-    // Remove the "prusti" argument when `cargo-prusti` is invocated
-    // as `cargo --cflag prusti -flag` (note the space rather than `-`)
+    // Remove the "prusti" argument when `cargo-prusti` is invoked as
+    // `cargo --cflag prusti -- -Pflag` (note the space in `cargo prusti` rather than a `-`)
     let args = args.skip_while(|arg| arg == "prusti");
+    // Remove the "-- -Pflag" arguments since these won't apply to `cargo check`
+    let args = args.take_while(|arg| arg != "--");
 
-    let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
-
-    let mut cargo_target =
-        PathBuf::from(env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
-    cargo_target.push("verify");
-    let command = env::var("CARGO_PRUSTI_COMMAND").unwrap_or_else(|_| "check".to_string());
+    let cargo_path = config::cargo_path();
+    let command = config::cargo_command();
     let features = if launch::enable_prusti_feature(&cargo_path) && !config::be_rustc() {
         ["--features", "prusti-contracts/prusti"].iter()
     } else {
         [].iter()
     };
+    let cargo_target = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let cargo_target: PathBuf = [cargo_target, "verify".to_string()].into_iter().collect();
     let exit_status = Command::new(cargo_path)
         .arg(&command)
-        .args(args)
         .args(features)
+        .args(args)
         .env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
-        .env("DEFAULT_PRUSTI_BE_RUSTC", config::be_rustc().to_string())
+        .env("PRUSTI_BE_RUSTC", config::be_rustc().to_string())
+        .env(
+            "PRUSTI_NO_VERIFY_DEPS",
+            config::no_verify_deps().to_string(),
+        )
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
         .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))

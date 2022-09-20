@@ -30,7 +30,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             verification_task.procedures.len()
         ));
 
-        if config::print_collected_verification_items() && !config::no_verify() {
+        if config::print_collected_verification_items() {
             println!(
                 "Collected verification items {}:",
                 verification_task.procedures.len()

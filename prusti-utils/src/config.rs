@@ -8,7 +8,7 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
-use crate::launch::{find_viper_home, get_current_executable_dir, PRUSTI_HELPERS, PRUSTI_LIBS};
+use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
 use serde::Deserialize;
@@ -94,7 +94,6 @@ lazy_static::lazy_static! {
         settings.set_default("dump_borrowck_info", false).unwrap();
         settings.set_default("dump_viper_program", false).unwrap();
         settings.set_default("foldunfold_state_filter", "").unwrap();
-        settings.set_default("contracts_lib", "").unwrap();
         settings.set_default::<Vec<String>>("extra_jvm_args", vec![]).unwrap();
         settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
         settings.set_default("quiet", false).unwrap();
@@ -136,14 +135,17 @@ lazy_static::lazy_static! {
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
 
+        settings.set_default("cargo_path", "cargo").unwrap();
+        settings.set_default("cargo_command", "check").unwrap();
+
         // Flags for testing.
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
         settings.set_default("use_smt_wrapper", false).unwrap();
-        settings.set_default("smt_quantifier_instantiations_ignore_builtin", true).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default("smt_qi_ignore_builtin", true).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_global", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_global_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_trace", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_trace_kind", None).unwrap();
         settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
         settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
 
@@ -443,11 +445,6 @@ pub fn encode_bitvectors() -> bool {
     read_setting("encode_bitvectors")
 }
 
-/// Path to `libprusti_contracts*.rlib`.
-pub fn contracts_lib() -> String {
-    read_setting("contracts_lib")
-}
-
 /// Additional arguments to pass to the JVM when launching a verifier backend.
 pub fn extra_jvm_args() -> Vec<String> {
     read_setting("extra_jvm_args")
@@ -491,15 +488,6 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
-}
-
-pub fn is_prusti_crate() -> bool {
-    env::var("CARGO_PKG_NAME")
-        .map(|name| {
-            let name = &name.as_str();
-            PRUSTI_HELPERS.contains(name) || PRUSTI_LIBS.contains(name)
-        })
-        .unwrap_or(false)
 }
 
 /// When enabled, prints the items collected for verification.
@@ -685,7 +673,7 @@ pub fn verification_deadline() -> Option<u64> {
 
 /// Instead of using Z3 directly, use our SMT wrapper that tracks important
 /// statistics. This must be set to `true` to use any of the
-/// `smt_quantifier_instantiations_bound_*`.
+/// `smt_qi_bound_*`.
 pub fn use_smt_wrapper() -> bool {
     read_setting("use_smt_wrapper")
 }
@@ -715,8 +703,8 @@ fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
 }
 
 /// Whether the built-in quantifiers should be ignored when comparing bounds.
-pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
-    read_setting("smt_quantifier_instantiations_ignore_builtin")
+pub fn smt_qi_ignore_builtin() -> bool {
+    read_setting("smt_qi_ignore_builtin")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -726,8 +714,8 @@ pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global")
+pub fn smt_qi_bound_global() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_global")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -738,34 +726,34 @@ pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_global_kind() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global_kind")
+pub fn smt_qi_bound_global_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_global_kind")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
 /// program. This bound is for the total number of quantifier instantiations on
 /// a specific trace (in other words, it is a version of
-/// `smt_quantifier_instantiations_bound_global` that takes into account `push`
+/// `smt_qi_bound_global` that takes into account `push`
 /// and `pop`.)
 ///
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace")
+pub fn smt_qi_bound_trace() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_trace")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
 /// program. This bound is for the number of quantifier instantiations on a
 /// specific trace per quantifier (in other words, it is a version of
-/// `smt_quantifier_instantiations_bound_trace` that takes computes the
+/// `smt_qi_bound_trace` that takes computes the
 /// instantiations for each quantifier separately.)
 ///
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+pub fn smt_qi_bound_trace_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_trace_kind")
 }
 
 /// Limit how many unique triggers per quantifier Z3 can instantiate.
@@ -941,6 +929,18 @@ pub fn intern_names() -> bool {
 /// introduce unsound verification behavior.
 pub fn enable_ghost_constraints() -> bool {
     read_setting("enable_ghost_constraints")
+}
+
+/// Determines which cargo `cargo-prusti` should run (e.g. if "cargo" isn't in
+/// the path can point to it directly). Not relevant when only running as `prusti=rustc`.
+pub fn cargo_path() -> String {
+    read_setting("cargo_path")
+}
+
+/// Determines which command `cargo-prusti` should run (default is "check"
+/// for `cargo check`). Not relevant when only running as `prusti=rustc`.
+pub fn cargo_command() -> String {
+    read_setting("cargo_command")
 }
 
 /// When enabled, type invariants can be declared on types using the

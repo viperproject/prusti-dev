@@ -130,12 +130,9 @@ fn main() {
     let are_lints_disabled =
         arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
 
-    // Is this a prusti-internal crate; we never want to verify these
-    let is_prusti_crate = config::is_prusti_crate();
-
-    // We still want to run Prusti on the crate (e.g. to export any potential specs)
-    // but will skip verification
-    if is_no_verify_dep_crate || are_lints_disabled || is_prusti_crate {
+    // Remote dependencies (e.g. from git/crates.io), or any dependencies if `no_verify_deps`,
+    // are not verified. However, we still run Prusti on them to export potential specs.
+    if is_no_verify_dep_crate || are_lints_disabled {
         config::set_no_verify(true);
     }
 
