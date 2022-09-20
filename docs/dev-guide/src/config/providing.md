@@ -21,16 +21,20 @@ The environment persists throughout compilation, therefore any flags set through
 
 ### Prusti Config File
 
-A Prusti config file is loaded per crate compiled, if a relative path is specified (e.g. the default `./Prusti.toml`) then the file loaded depends on the current working directory when compiling the crate. Cargo sets the working directory for each crate as follows:
+A Prusti config file is loaded prior to running cargo from `PRUSTI_CONFIG` (see default above). This file is used to configure flags in Categories B and C only and these flags apply to the entire compilation.
+
+Then, as each individual crate is checked (from the roots of the dependency tree) a Prusti config file is loaded from the current working directory (i.e. `./Prusti.toml`). This file is used to configure flags in Category A only — it would not make sense to set e.g. [`NO_VERIFY_DEPS`](flags.md#no_verify_deps) in the `./Prusti.toml` of a dependency. Cargo sets the working directory for each crate as follows:
 
 1. If the current crate is the (final) root crate, then use the directory from which `cargo prusti` was launched. Note: this case will never apply for workspace projects.
 
 2. If the current crate is in a subdirectory of the root crate/workspace, then use the directory from which `cargo prusti` was launched. Note: this means that any `Prusti.toml` in this subdirectory will be ignored!
 
-3. Else (the crate lives in an unrelated directory or was downloaded from git/crates.io to such a directory) use the directory of this dependency crate. Therefore (with the default `PRUSTI_CONFIG=./Prusti.toml`) a `Prusti.toml` placed next to the `Cargo.toml` of such a crate will load flags as expected.
+3. Else (the crate lives in an unrelated directory or was downloaded from git/crates.io to such a directory) use the directory of this dependency crate. Therefore a `Prusti.toml` placed next to the `Cargo.toml` of such a crate will load flags as expected.
 
-However, this only applies to flags in Category A. All other flags (in Categories B and C) are loaded from the Prusti config file relative to the directory from which `cargo prusti` was launched and then apply to the entire compilation; it would not make sense to set e.g. [`NO_VERIFY_DEPS`](flags.md#no_verify_deps) in the `Prusti.toml` of a dependency (especially since crates are checked bottom up).
+When publishing a crate to git/crates.io one can configure Category A flags by including a `Prusti.toml` file in the root.
 
 ### Commandline Arguments
 
-Flags to cargo are provided in the regular way (e.g. `cargo prusti --features foo`). Prusti `-P` flags can be provided after a `--` (e.g. `cargo prusti -- -Pcargo_command=build`). Only flags in Categories B and C are currently supported; providing a flag in Category A this way will be ignored.
+ Prusti `-P` flags can be provided after a `--` (e.g. `cargo prusti -- -Pcargo_command=build`). Only flags in Categories B and C are currently supported; providing a flag in Category A this way will be ignored.
+
+Flags to cargo are provided in the regular way (e.g. `cargo prusti --features foo`).

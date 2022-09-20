@@ -139,7 +139,7 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         });
     project_builder = project_builder.symlink_dir(
         prusti_dev_path.join("prusti-contracts").as_path(),
-        Path::new("prusti-contracts"),
+        ["..", "prusti-contracts"].into_iter().collect::<PathBuf>().as_path(),
     );
 
     // Fetch dependencies using the same target folder of cargo-prusti

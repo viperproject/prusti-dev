@@ -46,6 +46,8 @@ where
         .args(args)
         .env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
+        // Disallow `PRUSTI_CONFIG` to be set for dependency crates
+        .env("PRUSTI_CONFIG", "./Prusti.toml")
         .env("PRUSTI_BE_RUSTC", config::be_rustc().to_string())
         .env(
             "PRUSTI_NO_VERIFY_DEPS",
