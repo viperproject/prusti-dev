@@ -120,13 +120,26 @@ pub fn collect_java_policies() -> Vec<PathBuf> {
 #[derive(Parser, Debug)]
 #[clap(version, about, long_about = None)]
 struct Args {
-    /// Do not check that the crates compile successfully without Prusti
+    /// Do not check whether the crates compile successfully without Prusti.
     #[clap(short, long)]
     skip_build_check: bool,
 
-    /// If specified, only test crates containing this string in their names
+    /// If specified, only test crates containing this string in their names.
     #[clap(value_name = "CRATENAME", default_value_t = String::from(""))]
     filter_crate_name: String,
+
+    /// If true, the process will terminate at the first failing crate instead of waiting until all
+    /// crates are tested.
+    #[clap(long, default_value_t = false)]
+    fail_fast: bool,
+
+    /// Number of shards into which to split the list of crates. Only one of them will be tested.
+    #[clap(long, value_parser, default_value_t = 1)]
+    num_shards: usize,
+
+    /// The index of the shard of crates that should be tested, in the range [0, num_shards).
+    #[clap(long, value_parser, default_value_t = 0)]
+    shard_index: usize,
 }
 
 fn attempt_fetch(krate: &Crate, workspace: &Workspace, num_retries: u8) -> Result<(), failure::Error> {
@@ -151,6 +164,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_logs();
 
     let args = Args::parse();
+
+    // Check consistency of the arguments
+    assert!(
+        args.shard_index < args.num_shards,
+        "The shard index ({}) must be less than the number of shards ({})",
+        args.shard_index,
+        args.num_shards,
+    );
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
     let host_prusti_home = if cfg!(debug_assertions) {
@@ -206,6 +227,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .filter(|record| record.name.contains(&args.filter_crate_name))
             .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
             .collect();
+    info!("There are {} crates in total.", crates_list.len());
 
     // List of crates that don't compile with the standard compiler.
     let mut skipped_crates = vec![];
@@ -214,8 +236,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     // List of crates on which Prusti succeed.
     let mut successful_crates = vec![];
 
-    info!("Iterate over all {} crates...", crates_list.len());
-    for (index, (krate, test_kind)) in crates_list.iter().enumerate() {
+    let shard_crates_list: Vec<&(Crate, TestKind)> = crates_list.iter().skip(args.shard_index)
+        .step_by(args.num_shards).collect();
+    info!(
+        "Iterate over the {} crates of the shard {}/{}...",
+        shard_crates_list.len(),
+        args.shard_index,
+        args.num_shards,
+    );
+    for (index, (krate, test_kind)) in shard_crates_list.into_iter().enumerate() {
         info!("Crate {}/{}: {}, test kind: {:?}", index, crates_list.len(), krate, test_kind);
 
         if let TestKind::Skip = test_kind {
@@ -311,6 +340,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Err(err) = verification_status {
                 error!("Error: {:?}", err);
                 error!("Output:\n{}", storage);
+
+                if args.fail_fast {
+                    panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
+                }
+
                 // Report the failure
                 failed_crates.push((krate, test_kind));
             } else {
