@@ -401,7 +401,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         span: Span,
         id: prusti_rustc_interface::hir::hir_id::HirId,
     ) {
-        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
+        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, id);
 
         let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();

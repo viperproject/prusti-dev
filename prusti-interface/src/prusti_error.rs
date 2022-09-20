@@ -29,7 +29,7 @@ pub struct PrustiError {
     /// field should be removed.
     is_disabled: bool,
     message: String,
-    span: MultiSpan,
+    span: Box<MultiSpan>,
     help: Option<String>,
     notes: Vec<(String, Option<MultiSpan>)>,
 }
@@ -63,7 +63,7 @@ impl PrustiError {
             kind: PrustiErrorKind::Error,
             is_disabled: false,
             message,
-            span,
+            span: Box::new(span),
             help: None,
             notes: vec![],
         }
@@ -186,19 +186,19 @@ impl PrustiError {
         assert!(!self.is_disabled);
         match self.kind {
             PrustiErrorKind::Error => env_diagnostic.span_err_with_help_and_notes(
-                self.span,
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
             PrustiErrorKind::Warning => env_diagnostic.span_warn_with_help_and_notes(
-                self.span,
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
             PrustiErrorKind::WarningOnError => env_diagnostic.span_warn_on_err_with_help_and_notes(
-                self.span,
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
@@ -230,8 +230,8 @@ impl PrustiError {
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
             self.notes
-                .push(("the error originates here".to_string(), Some(self.span)));
-            self.span = span.clone();
+                .push(("the error originates here".to_string(), Some(*self.span)));
+            *self.span = span.clone();
         }
         self
     }

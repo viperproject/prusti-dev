@@ -14,5 +14,4 @@ pub mod report;
 mod stopwatch;
 pub mod utils;
 
-pub use prusti_utils_small::*;
 pub use stopwatch::Stopwatch;

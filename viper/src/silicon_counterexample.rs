@@ -288,8 +288,8 @@ fn unwrap_model_entry<'a>(
     jni: JniUtils<'a>,
     entry: JObject<'a>,
     entries: &mut FxHashMap<String, ModelEntry>,
-    converter_obj: &JObject<'a>,
-    converter: &silicon::reporting::Converter<'a>,
+    _converter_obj: &JObject<'a>,
+    _converter: &silicon::reporting::Converter<'a>,
 ) -> Option<ModelEntry> {
     match jni.class_name(entry).as_str() {
         "viper.silicon.reporting.LitIntEntry" => {
@@ -329,8 +329,8 @@ fn unwrap_model_entry<'a>(
                             jni,
                             element_scala,
                             entries,
-                            converter_obj,
-                            converter,
+                            _converter_obj,
+                            _converter,
                         )?,
                     ))
                 })
@@ -367,7 +367,7 @@ fn unwrap_model_entry<'a>(
                 .vec_to_vec(list_scala)
                 .into_iter()
                 .filter_map(|el| {
-                    unwrap_model_entry(env, jni, el, entries, converter_obj, converter)
+                    unwrap_model_entry(env, jni, el, entries, _converter_obj, _converter)
                 })
                 .collect();
             Some(ModelEntry::Seq(name, res))

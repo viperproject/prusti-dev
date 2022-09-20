@@ -42,7 +42,7 @@ fn main() {
         let args = ["--release"];
         match Command::new(&exes[0])
             .current_dir(&prusti_contrats)
-            .args(&args)
+            .args(args)
             .env("CARGO_PRUSTI_COMMAND", "build")
             .output()
         {

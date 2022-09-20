@@ -76,7 +76,7 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
         fk: intravisit::FnKind<'tcx>,
         fd: &'tcx hir::FnDecl<'tcx>,
         b: hir::BodyId,
-        s: Span,
+        _s: Span,
         id: hir::HirId,
     ) {
         // Stop checking inside `prusti::spec_only` functions
@@ -85,6 +85,6 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
             return;
         }
 
-        intravisit::walk_fn(self, fk, fd, b, s, id);
+        intravisit::walk_fn(self, fk, fd, b, id);
     }
 }
