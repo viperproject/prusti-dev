@@ -21,7 +21,8 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
             if env.compare_prusti_version(&min_prusti_version).is_lt() {
                 check_version.errors.push(PrustiError::incorrect(
                     format!(
-                        "Running Prusti version '{}' when the min required version is '{min_prusti_version}'! \
+                        "Running Prusti version '{}' when the minimum version required by \
+                        `prusti-contracts`/`prusti-specs` is '{min_prusti_version}'! \
                         Please update Prusti to version '{min_prusti_version}' or newer.",
                         env.get_prusti_version(),
                     ),
