@@ -279,7 +279,7 @@ When enabled, verification is skipped altogether.
 
 ## `NO_VERIFY_DEPS`
 
-When enabled, verification is skipped for dependencies. This only works when dependencies do not contain Prusti annotations, otherwise a "use of undeclared crate or module `prusti`" error is thrown.
+When enabled, verification is skipped for dependencies.
 
 ## `ONLY_MEMORY_SAFETY`
 
