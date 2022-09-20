@@ -30,7 +30,7 @@ impl Context {
                 (None, None)
             };
         let quantifier_instantiations_bound_global =
-            read_integer("PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL");
+            read_integer("PRUSTI_SMT_QI_BOUND_GLOBAL");
         let log_file = {
             if let Ok(value) = std::env::var("PRUSTI_LOG_SMT_INTERACTION") {
                 if value == "true" {
