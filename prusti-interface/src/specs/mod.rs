@@ -296,18 +296,11 @@ fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
         .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
 }
 
-// Return the type of a procedure given a defid, used when figuring out if to run polonius on
-// a function when in `no_verify` mode. None means that this is a spec item.
-pub fn get_procedure_type(tcx: ty::TyCtxt, def_id: DefId) -> Option<ProcedureSpecificationKind> {
+/// Returns true iff def_id points to a spec function (i.e. a function for
+/// which we don't need polonius/borrowck facts)
+pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     let attrs = tcx.get_attrs_unchecked(def_id);
-    if read_prusti_attr("spec_id", attrs).is_some() {
-        return None;
-    }
-    if let Some(ref refs) = get_procedure_spec_ids(def_id, attrs) {
-        Some(refs.into())
-    } else {
-        Some(ProcedureSpecificationKind::Impure)
-    }
+    read_prusti_attr("spec_id", attrs).is_some()
 }
 
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {

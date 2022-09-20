@@ -201,10 +201,7 @@ fn new_viper_verifier<'v, 't: 'v>(
     let boogie_path = config::boogie_path();
     if let Some(bound) = config::smt_qi_bound_global() {
         // We need to set the environment variable to reach our Z3 wrapper.
-        std::env::set_var(
-            "PRUSTI_SMT_QI_BOUND_GLOBAL",
-            bound.to_string(),
-        );
+        std::env::set_var("PRUSTI_SMT_QI_BOUND_GLOBAL", bound.to_string());
     }
 
     verification_context.new_verifier(
