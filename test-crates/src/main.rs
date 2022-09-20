@@ -244,8 +244,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.shard_index,
         args.num_shards,
     );
-    for (index, (krate, test_kind)) in shard_crates_list.into_iter().enumerate() {
-        info!("Crate {}/{}: {}, test kind: {:?}", index, crates_list.len(), krate, test_kind);
+    for (index, (krate, test_kind)) in shard_crates_list.iter().enumerate() {
+        info!("Crate {}/{}: {}, test kind: {:?}", index, shard_crates_list.len(), krate, test_kind);
 
         if let TestKind::Skip = test_kind {
             info!("Skip crate");
