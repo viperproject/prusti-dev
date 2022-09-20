@@ -65,13 +65,6 @@ RUSTFMT_PATHS = [
     'prusti-common/src/vir/to_viper.rs',
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
-    'prusti-interface/src/environment/mir_dump/mod.rs',
-    'prusti-interface/src/environment/mir_analyses/mod.rs',
-    'prusti-interface/src/environment/mir_sets/mod.rs',
-    'prusti-interface/src/environment/mir_body/mod.rs',
-    'prusti-interface/src/environment/debug_utils/mod.rs',
-    'prusti-interface/src/environment/mir_utils/mod.rs',
-    'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
     'prusti-viper/src/encoder/high/mod.rs',
@@ -81,12 +74,6 @@ RUSTFMT_PATHS = [
     'prusti-viper/src/encoder/lifetimes/mod.rs',
     'prusti-viper/src/encoder/definition_collector.rs',
     'prusti-viper/src/encoder/counterexamples/mod.rs',
-    'vir/defs/high/mod.rs',
-    'vir/defs/middle/mod.rs',
-    'vir/defs/polymorphic/mod.rs',
-    'vir/defs/components/mod.rs',
-    'vir/defs/typed/mod.rs',
-    'vir/defs/low/mod.rs',
 ]
 
 
@@ -309,13 +296,6 @@ def main(argv):
             break
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
-            break
-        elif arg == 'build':
-            # First builds `prusti`
-            cargo(argv[i:])
-            # Second runs build script to build `prusti-contracts`
-            argv.extend(["--features", "prusti-contracts-dep"])
-            cargo(argv[i:])
             break
         else:
             cargo(argv[i:])
