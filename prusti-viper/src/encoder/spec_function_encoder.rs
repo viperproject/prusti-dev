@@ -106,7 +106,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                                                      SpecFunctionKind::Pre),
             type_arguments: Vec::new(), // FIXME: This is probably wrong.
             formal_args: encoded_args.into_iter()
-                                     .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
+                                     .skip(usize::from(self.is_closure)) // FIXME: "self" is skipped, see TypeEncoder
                                      .collect(),
             return_type: vir::Type::Bool,
             pres: Vec::new(),
@@ -154,7 +154,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                                                      SpecFunctionKind::Post),
             type_arguments: Vec::new(), // FIXME: This is probably wrong.
             formal_args: encoded_args.into_iter()
-                                     .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
+                                     .skip(usize::from(self.is_closure)) // FIXME: "self" is skipped, see TypeEncoder
                                      .chain(std::iter::once(encoded_return))
                                      .collect(),
             return_type: vir::Type::Bool,

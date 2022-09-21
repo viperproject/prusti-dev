@@ -32,7 +32,7 @@ pub(super) fn extract_const_parameters_from_type<'tcx>(
         | ty::TyKind::Str
         | ty::TyKind::Error(_)
         | ty::TyKind::Never
-        | ty::TyKind::Dynamic(_, _) => {}
+        | ty::TyKind::Dynamic(..) => {}
         ty::TyKind::Adt(_, substs)
         | ty::TyKind::Closure(_, substs)
         | ty::TyKind::Opaque(_, substs)

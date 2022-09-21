@@ -37,7 +37,6 @@ use crate::{
 };
 pub use extern_spec_rewriter::ExternSpecKind;
 use parse_closure_macro::ClosureWithSpec;
-use prusti_utils::force_matches;
 pub use spec_attribute_kind::SpecAttributeKind;
 use specifications::{common::SpecificationId, untyped};
 
@@ -71,9 +70,9 @@ fn extract_prusti_attributes(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
+                        let TokenTree::Group(group) = iter.next().unwrap() else { unreachable!() };
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
-                        tokens
+                        group.stream()
                     }
                     // Nothing to do for attributes without arguments.
                     SpecAttributeKind::Pure
@@ -553,11 +552,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 let parsed_predicate =
                     handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
 
-                let predicate = force_matches!(parsed_predicate, ParsedPredicate::Impl(p) => p);
+                let ParsedPredicate::Impl(predicate) = parsed_predicate else { unreachable!() };
 
                 // Patch spec function: Rewrite self with _self: <SpecStruct>
-                let spec_function = force_matches!(predicate.spec_function,
-                    syn::Item::Fn(item_fn) => item_fn);
+                let syn::Item::Fn(spec_function) = predicate.spec_function else { unreachable!() };
                 generated_spec_items.push(spec_function);
 
                 // Add patched predicate function to new items
@@ -813,8 +811,8 @@ fn extract_prusti_attributes_for_types(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
-                        tokens
+                        let TokenTree::Group(group) = iter.next().unwrap() else { unreachable!() };
+                        group.stream()
                     }
                 };
                 prusti_attributes.push((attr_kind, tokens));
