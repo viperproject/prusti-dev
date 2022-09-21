@@ -2,7 +2,6 @@ use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
 use log::debug;
-use prusti_utils::force_matches;
 use std::collections::{BTreeSet, HashSet};
 
 /// This purifies local variables in a method body
@@ -194,7 +193,8 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
         }) = &target
         {
             if self.targets.contains(&local.name) {
-                let source_name = force_matches!(source.get_type(), Type::TypedRef(..) => source.get_type().name());
+                assert!(matches!(source.get_type(), Type::TypedRef(..)));
+                let source_name = source.get_type().name();
                 match source_name.as_str() {
                     "bool" => {
                         source = source.field(Field {
@@ -463,7 +463,8 @@ impl<'a> ast::ExprFolder for Purifier<'a> {
 }
 
 fn generate_havoc(variable: LocalVar) -> Stmt {
-    let target_name = force_matches!(variable.typ, Type::TypedRef(..) => variable.typ.name());
+    assert!(matches!(variable.typ, Type::TypedRef(..)));
+    let target_name = variable.typ.name();
     match target_name.as_str() {
         "bool" => Stmt::MethodCall(ast::MethodCall {
             method_name: "builtin$havoc_bool".to_string(),

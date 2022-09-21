@@ -35,7 +35,7 @@ impl MirProcedureMapping {
                         vir_low::Statement::Inhale(inhale) => {
                             //all statements that could be relevant for pure function calls
                             if let Some(assume_stmt) =
-                                self.extract_domain_functions(&inhale.expression)
+                                Self::extract_domain_functions(&inhale.expression)
                             {
                                 stmts.push(assume_stmt);
                             }
@@ -58,15 +58,12 @@ impl MirProcedureMapping {
             })
             .collect::<Vec<BasicBlock>>()
     }
-    fn extract_domain_functions(
-        &self,
-        expression: &vir_low::Expression,
-    ) -> Option<vir_low::Statement> {
+    fn extract_domain_functions(expression: &vir_low::Expression) -> Option<vir_low::Statement> {
         // pure function all called in the following form in Viper:
         //inhale destructor_Bool(constructor_Bool_EqCmp_*(snapvar_1 caller_for$m_foo$(snapvar_2)))
         match &expression {
             vir_low::Expression::BinaryOp(binary_op) => {
-                self.extract_domain_functions(&binary_op.right)
+                Self::extract_domain_functions(&binary_op.right)
             }
             vir_low::Expression::DomainFuncApp(domain_function_call) => {
                 if domain_function_call.function_name.contains("valid$") {

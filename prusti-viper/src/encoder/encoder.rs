@@ -294,6 +294,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
+    /// Invoke const evaluation to extract scalar value.
+    fn uneval_eval_intlike(
+        &self,
+        ct: ty::Unevaluated<'tcx>,
+    ) -> Option<mir::interpret::Scalar> {
+        let tcx = self.env.tcx();
+        let param_env = tcx.param_env(ct.def.did);
+        tcx.const_eval_resolve(param_env, ct, None)
+            .ok()
+            .and_then(|const_value| const_value.try_to_scalar())
+    }
+
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
@@ -304,16 +316,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 ty::ConstKind::Value(ref const_value) => {
                     const_value.try_to_scalar()
                 }
-                ty::ConstKind::Unevaluated(ct) => {
-                    let tcx = self.env.tcx();
-                    let param_env = tcx.param_env(ct.def.did);
-                    tcx.const_eval_resolve(param_env, ct, None)
-                        .ok()
-                        .and_then(|const_value| const_value.try_to_scalar())
-                }
+                ty::ConstKind::Unevaluated(ct) =>
+                    self.uneval_eval_intlike(ty::Unevaluated { promoted: None, ..ct }),
                 _ => unimplemented!("{:?}", value),
             }
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
+            mir::ConstantKind::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
         };
         opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
     }

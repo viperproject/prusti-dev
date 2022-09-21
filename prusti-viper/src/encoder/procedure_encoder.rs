@@ -1576,7 +1576,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ));
                 }
             }
-            mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) => {
+            mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) |
+            mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 )).with_span(span);
@@ -4602,7 +4603,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.mir_encoder
                             .encode_deref(encoded_arg.into(), arg_ty)
                             .with_span(arg_span)?;
-                    let old_deref_place = deref_place.clone().old(&pre_label);
+                    let old_deref_place = deref_place.clone().old(pre_label);
                     package_stmts.extend(self.encode_transfer_permissions(
                         deref_place,
                         old_deref_place.clone(),
