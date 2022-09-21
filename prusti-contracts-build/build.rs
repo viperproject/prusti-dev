@@ -46,34 +46,18 @@ fn main() {
     let cargo_prusti = ["..", "target", dir, &cargo_prusti]
         .iter()
         .collect::<PathBuf>();
-    match Command::new(&cargo_prusti)
+    let arg = "--release";
+    // Not a warning but no other way to print to console
+    println!(
+        "cargo:warning=Building `prusti-contracts` with '{} {arg}', please wait.",
+        cargo_prusti.to_string_lossy()
+    );
+    let status = Command::new(&cargo_prusti)
         .current_dir(&prusti_contracts)
-        .arg("--release")
-        .output()
-    {
-        Ok(output) => {
-            if !output.status.success() {
-                let stdout = String::from_utf8(output.stdout).unwrap();
-                let stderr = String::from_utf8(output.stderr).unwrap();
-                println!("cargo:warning=Failed to build `prusti-contracts`!");
-                println!(
-                    "cargo:warning=`prusti-contracts-build` ran '{} --release'",
-                    cargo_prusti.to_string_lossy()
-                );
-                println!("cargo:warning=-------- stdout: --------");
-                for line in stdout.lines() {
-                    println!("cargo:warning={line}");
-                }
-                println!("cargo:warning=-------- stderr: --------");
-                for line in stderr.lines() {
-                    println!("cargo:warning={line}");
-                }
-            }
-        }
-        Err(e) => {
-            println!("cargo:warning=Failed to build `prusti-contracts`: {e}");
-        }
-    }
+        .arg(arg)
+        .status()
+        .expect("Failed to run cargo-prusti!");
+    assert!(status.success());
 }
 
 /// Cargo will rebuild prusti-contracts if any of those files changed, however we also want to

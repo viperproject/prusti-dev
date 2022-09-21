@@ -173,6 +173,15 @@ lazy_static::lazy_static! {
         allowed_keys.insert("rustc_log_env".to_string());
         allowed_keys.insert("original_smt_solver_path".to_string());
 
+        // TODO: reduce this to something more sensible:
+        static MAX_CONFIG_LEN: usize = 40;
+        debug_assert!(
+            allowed_keys.iter().all(|key| key.len() <= MAX_CONFIG_LEN),
+            "Hey Prusti dev, please reduce the length of these configs: {:?}. \
+            Long configs are a pain to work with and list out in the guide.",
+            allowed_keys.iter().filter(|key| key.len() > MAX_CONFIG_LEN).collect::<Vec<_>>()
+        );
+
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
             Environment::with_prefix("DEFAULT_PRUSTI").ignore_empty(true)
