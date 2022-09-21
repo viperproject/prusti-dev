@@ -121,7 +121,7 @@ pub fn collect_java_policies() -> Vec<PathBuf> {
 #[clap(version, about, long_about = None)]
 struct Args {
     /// Do not check whether the crates compile successfully without Prusti.
-    #[clap(short, long)]
+    #[clap(long)]
     skip_build_check: bool,
 
     /// If specified, only test crates containing this string in their names.
@@ -130,7 +130,7 @@ struct Args {
 
     /// If true, the process will terminate at the first failing crate instead of waiting until all
     /// crates are tested.
-    #[clap(long, default_value_t = false)]
+    #[clap(long)]
     fail_fast: bool,
 
     /// Number of shards into which to split the list of crates. Only one of them will be tested.
@@ -341,14 +341,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 error!("Error: {:?}", err);
                 error!("Output:\n{}", storage);
 
-                if args.fail_fast {
-                    panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
-                }
-
                 // Report the failure
                 failed_crates.push((krate, test_kind));
             } else {
                 successful_crates.push((krate, test_kind));
+            }
+        }
+
+        if args.fail_fast {
+            if let Some((krate, test_kind)) = failed_crates.first() {
+                panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
             }
         }
     }
