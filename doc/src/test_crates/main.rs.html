@@ -344,6 +344,42 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -466,13 +502,26 @@
 </span><span class="attribute">#[derive(Parser, Debug)]
 #[clap(version, about, long_about = <span class="prelude-val">None</span>)]
 </span><span class="kw">struct </span><a href="#122">Args</a> {
-    <span class="doccomment">/// Do not check that the crates compile successfully without Prusti
-    </span><span class="attribute">#[clap(short, long)]
+    <span class="doccomment">/// Do not check whether the crates compile successfully without Prusti.
+    </span><span class="attribute">#[clap(long)]
     </span>skip_build_check: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
-    <span class="doccomment">/// If specified, only test crates containing this string in their names
+    <span class="doccomment">/// If specified, only test crates containing this string in their names.
     </span><span class="attribute">#[clap(value_name = <span class="string">&quot;CRATENAME&quot;</span>, default_value_t = String::from(<span class="string">&quot;&quot;</span>))]
     </span>filter_crate_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+
+    <span class="doccomment">/// If true, the process will terminate at the first failing crate instead of waiting until all
+    /// crates are tested.
+    </span><span class="attribute">#[clap(long)]
+    </span>fail_fast: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+
+    <span class="doccomment">/// Number of shards into which to split the list of crates. Only one of them will be tested.
+    </span><span class="attribute">#[clap(long, value_parser, default_value_t = <span class="number">1</span>)]
+    </span>num_shards: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+
+    <span class="doccomment">/// The index of the shard of crates that should be tested, in the range [0, num_shards).
+    </span><span class="attribute">#[clap(long, value_parser, default_value_t = <span class="number">0</span>)]
+    </span>shard_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
 <span class="kw">fn </span>attempt_fetch(krate: <span class="kw-2">&amp;</span><a href="../../rustwide/crates/struct.Crate.html">Crate</a>, workspace: <span class="kw-2">&amp;</span><a href="../../rustwide/workspace/struct.Workspace.html">Workspace</a>, num_retries: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../failure/error/struct.Error.html">failure::Error</a>&gt; {
@@ -498,6 +547,14 @@
 
     <span class="kw">let </span>args = Args::parse();
 
+    <span class="comment">// Check consistency of the arguments
+    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+        args.shard_index &lt; args.num_shards,
+        <span class="string">&quot;The shard index ({}) must be less than the number of shards ({})&quot;</span>,
+        args.shard_index,
+        args.num_shards,
+    );
+
     <span class="kw">let </span>workspace_path = Path::new(<span class="string">&quot;../workspaces/test-crates-builder&quot;</span>);
     <span class="kw">let </span>host_prusti_home = <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
         Path::new(<span class="string">&quot;target/debug&quot;</span>)
@@ -508,7 +565,7 @@
     <span class="kw">let </span>host_z3_home = Path::new(<span class="string">&quot;viper_tools/z3/bin&quot;</span>);
     <span class="kw">let </span>host_java_home = env::var(<span class="string">&quot;JAVA_HOME&quot;</span>)
         .ok()
-        .map(|s| <a href="#165">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .map(|s| <a href="#186">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         .or_else(<a href="#91">find_java_home</a>)
         .expect(<span class="string">&quot;Please set JAVA_HOME&quot;</span>);
     <span class="kw">let </span>host_java_policies = <a href="#112">collect_java_policies</a>();
@@ -516,14 +573,14 @@
     <span class="kw">let </span>guest_viper_home = Path::new(<span class="string">&quot;/opt/rustwide/viper-home&quot;</span>);
     <span class="kw">let </span>guest_z3_home = Path::new(<span class="string">&quot;/opt/rustwide/z3-home&quot;</span>);
     <span class="comment">// Map JAVA at exactly the same location on the guest so that symlinks work.
-    </span><span class="kw">let </span>guest_java_home = <a href="#163">host_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    </span><span class="kw">let </span>guest_java_home = <a href="#184">host_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Using host&#39;s Java home {:?}&quot;</span>, host_java_home);
     <span class="kw">let </span>cargo_prusti = <a href="#47">CargoPrusti</a> {
-        prusti_home: <a href="#169">guest_prusti_home</a>.to_path_buf(),
-        viper_home: <a href="#170">guest_viper_home</a>.to_path_buf(),
-        z3_exe: <a href="#171">guest_z3_home</a>.to_path_buf(),
-        java_home: <span class="prelude-val">Some</span>(<a href="#173">guest_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        prusti_home: <a href="#190">guest_prusti_home</a>.to_path_buf(),
+        viper_home: <a href="#191">guest_viper_home</a>.to_path_buf(),
+        z3_exe: <a href="#192">guest_z3_home</a>.to_path_buf(),
+        java_home: <span class="prelude-val">Some</span>(<a href="#194">guest_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
     };
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Crate a new workspace...&quot;</span>);
@@ -534,7 +591,7 @@
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Install the toolchain...&quot;</span>);
     <span class="kw">let </span>rust_toolchain = <a href="#83">get_rust_toolchain</a>();
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;toolchain: {}&quot;</span>, rust_toolchain.channel);
-    <span class="kw">let </span>toolchain = Toolchain::dist(<span class="kw-2">&amp;</span><a href="#189">rust_toolchain</a>.channel);
+    <span class="kw">let </span>toolchain = Toolchain::dist(<span class="kw-2">&amp;</span><a href="#210">rust_toolchain</a>.channel);
     toolchain.install(<span class="kw-2">&amp;</span>workspace)<span class="question-mark">?</span>;
     <span class="kw">for </span>component <span class="kw">in </span>rust_toolchain.components.as_ref().unwrap_or(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).iter() {
         <span class="kw">if </span>component != <span class="string">&quot;rustfmt&quot; </span>{
@@ -549,9 +606,10 @@
             .deserialize()
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;CrateRecord&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?
             </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|record| <a href="#206">record</a>.name.contains(<span class="kw-2">&amp;</span><a href="#153">args</a>.filter_crate_name))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|record| (Crate::crates_io(<span class="kw-2">&amp;</span><a href="#207">record</a>.name, <span class="kw-2">&amp;</span><a href="#207">record</a>.version), <a href="#207">record</a>.test_kind))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|record| <a href="#227">record</a>.name.contains(<span class="kw-2">&amp;</span><a href="#166">args</a>.filter_crate_name))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|record| (Crate::crates_io(<span class="kw-2">&amp;</span><a href="#228">record</a>.name, <span class="kw-2">&amp;</span><a href="#228">record</a>.version), <a href="#228">record</a>.test_kind))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;There are {} crates in total.&quot;</span>, crates_list.len());
 
     <span class="comment">// List of crates that don&#39;t compile with the standard compiler.
     </span><span class="kw">let </span><span class="kw-2">mut </span>skipped_crates = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -560,9 +618,16 @@
     <span class="comment">// List of crates on which Prusti succeed.
     </span><span class="kw">let </span><span class="kw-2">mut </span>successful_crates = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-    <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Iterate over all {} crates...&quot;</span>, crates_list.len());
-    <span class="kw">for </span>(index, (krate, test_kind)) <span class="kw">in </span>crates_list.iter().enumerate() {
-        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}, test kind: {:?}&quot;</span>, index, crates_list.len(), krate, test_kind);
+    <span class="kw">let </span>shard_crates_list: Vec&lt;<span class="kw-2">&amp;</span>(<a href="../../rustwide/crates/struct.Crate.html">Crate</a>, <a href="#22">TestKind</a>)&gt; = <a href="#222">crates_list</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a href="#166">args</a>.shard_index)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">step_by</a>(<a href="#166">args</a>.num_shards).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a class="macro" href="../../log/macro.info.html">info!</a>(
+        <span class="string">&quot;Iterate over the {} crates of the shard {}/{}...&quot;</span>,
+        shard_crates_list.len(),
+        args.shard_index,
+        args.num_shards,
+    );
+    <span class="kw">for </span>(index, (krate, test_kind)) <span class="kw">in </span>shard_crates_list.iter().enumerate() {
+        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}, test kind: {:?}&quot;</span>, index, shard_crates_list.len(), krate, test_kind);
 
         <span class="kw">if let </span>TestKind::Skip = test_kind {
             <span class="macro">info!</span>(<span class="string">&quot;Skip crate&quot;</span>);
@@ -657,10 +722,17 @@
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = verification_status {
                 <span class="macro">error!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, err);
                 <span class="macro">error!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, storage);
+
                 <span class="comment">// Report the failure
                 </span>failed_crates.push((krate, test_kind));
             } <span class="kw">else </span>{
                 successful_crates.push((krate, test_kind));
+            }
+        }
+
+        <span class="kw">if </span>args.fail_fast {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((krate, test_kind)) = failed_crates.first() {
+                <span class="macro">panic!</span>(<span class="string">&quot;Failed to verify the crate {} ({:?})&quot;</span>, krate, test_kind);
             }
         }
     }
