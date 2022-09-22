@@ -10,6 +10,10 @@ jobs:
   # Test `cargo-prusti` on a collection of crates.
   test-crates:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        shard_index: [ 0, 1, 2, 3 ]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -27,4 +31,4 @@ jobs:
       - name: Build with cargo --release
         run: python x.py build --release --all
       - name: Test Prusti on a collection of crates
-        run: ./target/release/test-crates
+        run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
