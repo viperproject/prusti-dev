@@ -19,11 +19,13 @@ use prusti_rustc_interface::{
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
 
+// Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not
+// necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body
+
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not necessary:
-    // for crates which won't be verified or spec_fns it suffices to load just the fn body
-    if !config::no_verify() && !is_spec_fn(tcx, def_id.to_def_id()) {
+    // *Don't take MIR bodies with borrowck info if we won't need them*
+    if !is_spec_fn(tcx, def_id.to_def_id()) {
         let body_with_facts =
             prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
                 tcx,
@@ -47,8 +49,11 @@ fn override_queries(_session: &Session, local: &mut Providers, _external: &mut E
 
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
-        assert!(config.override_queries.is_none());
-        config.override_queries = Some(override_queries);
+        // *Don't take MIR bodies with borrowck info if we won't need them*
+        if !config::no_verify() {
+            assert!(config.override_queries.is_none());
+            config.override_queries = Some(override_queries);
+        }
     }
     fn after_expansion<'tcx>(
         &mut self,

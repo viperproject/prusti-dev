@@ -66,7 +66,7 @@ lazy_static::lazy_static! {
     static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();
 
-        // 1. Default values
+        // 0. Default values
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
         settings.set_default::<Option<String>>("smt_solver_path", env::var("Z3_EXE").ok()).unwrap();
@@ -182,20 +182,19 @@ lazy_static::lazy_static! {
             allowed_keys.iter().filter(|key| key.len() > MAX_CONFIG_LEN).collect::<Vec<_>>()
         );
 
-        // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
+        // 1. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
             Environment::with_prefix("DEFAULT_PRUSTI").ignore_empty(true)
         ).unwrap();
         check_keys(&settings, &allowed_keys, "default environment variables");
 
-        // 3. Override with an optional TOML file specified by the `PRUSTI_CONFIG` env variable
-        let file = env::var("PRUSTI_CONFIG").unwrap_or_else(|_| "./Prusti.toml".to_string());
-        // Since this file may explicitly be specified by the user, it would be
-        // nice to tell them if we cannot open it.
-        settings.merge(File::with_name(&file).required(false)).unwrap();
-        check_keys(&settings, &allowed_keys, &format!("{} file", file));
+        // 2. Override with an optional "Prusti.toml" file in manifest dir
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+        let file = PathBuf::from(manifest_dir).join("Prusti.toml");
+        settings.merge(File::from(file.as_path()).required(false)).unwrap();
+        check_keys(&settings, &allowed_keys, &format!("{} file", file.to_string_lossy()));
 
-        // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
+        // 3. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
             Environment::with_prefix("PRUSTI")
                 .ignore_empty(true)
@@ -208,7 +207,7 @@ lazy_static::lazy_static! {
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
 
-        // 5. Override with command-line arguments -P<arg>=<val>
+        // 4. Override with command-line arguments -P<arg>=<val>
         settings.merge(
             CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
@@ -233,9 +232,7 @@ fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
-            "{} contains unknown configuration flag: “{}”",
-            source,
-            key
+            "{source} contains unknown configuration flag: “{key}”",
         );
     }
 }

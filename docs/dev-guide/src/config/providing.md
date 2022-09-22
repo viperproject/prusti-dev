@@ -3,9 +3,12 @@
 Flags can be set in one of four ways, in increasing order of priority:
 
 1. Provided individually as environment variables with the prefix `DEFAULT_PRUSTI_` (for example, `DEFAULT_PRUSTI_CACHE_PATH` for the [`CACHE_PATH`](flags.md#cache_path) flag).
-> NOTE: One should only use this to change the default value of flags, such that this can be overridden by a config file
+> **Note:** One should only use this to change the default value of flags, such that this can be overridden by a config file
 
-2. Provided lowercase in a file ([allowed formats](https://docs.rs/config/latest/config/enum.FileFormat.html)) with the path in the environment variable `PRUSTI_CONFIG` (for example, `check_overflows` for the [`CHECK_OVERFLOWS`](flags.md#check_overflows) flag). This path defaults to `./Prusti.toml` if the environment variable is not set.<a name="flags-2"></a>
+2. Provided lowercase in a `Prusti.toml` file ([allowed formats](https://docs.rs/config/latest/config/enum.FileFormat.html), e.g. `check_overflows = true` for the [`CHECK_OVERFLOWS`](flags.md#check_overflows) flag). Prusti searches for a `Prusti.toml` depending on how it is run:<a name="flags-2"></a>
+
+    - As `cargo prusti` (on an entire crate): in the [`CARGO_MANIFEST_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-crates), i.e. next to the crate's `Cargo.toml`
+    - As `prusti-rustc` (on a single Rust file): in the current working directory
 
 3. Provided individually as environment variables with the prefix `PRUSTI_` (for example, `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](flags.md#assert_timeout) flag).
 
@@ -13,28 +16,24 @@ Flags can be set in one of four ways, in increasing order of priority:
 
 ## Multi-crate Cargo Prusti Projects
 
-Setting flags becomes slightly more complicated when Prusti is run on multiple crates as `cargo prusti` (e.g. which `Prusti.toml` file will be used). The three possible approaches to providing flags all behave differently.
+Setting flags becomes slightly more complicated when Prusti is run on multiple crates as `cargo prusti`; e.g. which `Prusti.toml` file will be used. Though overriding priority as above remains the same, the three possible approaches to providing flags all behave differently, in particular depending on flag [Category](flags.md#list-of-configuration-flags).
 
 ### Environment Variables
 
-The environment persists throughout compilation, therefore any flags set through the `DEFAULT_PRUSTI_` or `PRUSTI_` will apply to both the root crate and all dependencies. For example setting `CHECK_OVERFLOWS=false` will disable overflow checks in all dependencies, even if they try to override this with a `Prusti.toml` file.
+The environment persists throughout compilation, therefore all flags set through the `DEFAULT_PRUSTI_` or `PRUSTI_` will apply to all crates, and flags of both Category A and B. For example setting `PRUSTI_CHECK_OVERFLOWS=false` will disable overflow checks in all dependencies, even if they try to override this with a `Prusti.toml` file.
 
 ### Prusti Config File
 
-A Prusti config file is loaded prior to running cargo from `PRUSTI_CONFIG` (see default above). This file is used to configure flags in Categories B and C only and these flags apply to the entire compilation.
+A `Prusti.toml` is optionally loaded from the current working directory prior to compilation. This file is used to configure flags in Category B _only_ and these flags apply to the entire compilation.
 
-Then, as each individual crate is checked (from the roots of the dependency tree) a Prusti config file is loaded from the current working directory (i.e. `./Prusti.toml`). This file is used to configure flags in Category A only — it would not make sense to set e.g. [`NO_VERIFY_DEPS`](flags.md#no_verify_deps) in the `./Prusti.toml` of a dependency. Cargo sets the working directory for each crate as follows:
+Then, as each individual crate is checked (from the roots of the dependency tree) a `Prusti.toml` is optionally loaded from the directory where the crate's corresponding `Cargo.toml` is located. This file is used to configure flags in Category A _only_ — it would not make sense to set e.g. [`NO_VERIFY_DEPS`](flags.md#no_verify_deps) in a dependency since all of its dependencies have already been verified.
 
-1. If the current crate is the (final) root crate, then use the directory from which `cargo prusti` was launched. Note: this case will never apply for workspace projects.
+Therefore, when publishing a `lib` crate to git/crates.io one can configure Category A flags by including a `Prusti.toml` file next to their `Cargo.toml`.
 
-2. If the current crate is in a subdirectory of the root crate/workspace, then use the directory from which `cargo prusti` was launched. Note: this means that any `Prusti.toml` in this subdirectory will be ignored!
-
-3. Else (the crate lives in an unrelated directory or was downloaded from git/crates.io to such a directory) use the directory of this dependency crate. Therefore a `Prusti.toml` placed next to the `Cargo.toml` of such a crate will load flags as expected.
-
-When publishing a crate to git/crates.io one can configure Category A flags by including a `Prusti.toml` file in the root.
+> **Note:** The `Prusti.toml` used to load Category B flags at the start and the one used to load Category A flags at the end for the root crate will often be one and the same because `cargo prusti` is typically run from the root crate's directory. This can be changed by providing the [`--manifest-path` flag](https://doc.rust-lang.org/cargo/commands/cargo-check.html#manifest-options)
 
 ### Commandline Arguments
 
- Prusti `-P` flags can be provided after a `--` (e.g. `cargo prusti -- -Pcargo_command=build`). Only flags in Categories B and C are currently supported; providing a flag in Category A this way will be ignored.
+Prusti `-P` flags can be provided after a `--` (e.g. `cargo prusti -- -Pcargo_command=build`). Currently flags from Category B _only_ are supported; providing a flag in Category A this way will be ignored.
 
-Flags to cargo are provided in the regular way (e.g. `cargo prusti --features foo`).
+Flags to cargo are provided in the [regular way](https://doc.rust-lang.org/cargo/commands/cargo-check.html#options) (e.g. `cargo prusti --features foo`).

@@ -28,11 +28,14 @@ where
     // Remove the "prusti" argument when `cargo-prusti` is invoked as
     // `cargo --cflag prusti -- -Pflag` (note the space in `cargo prusti` rather than a `-`)
     let args = args.skip_while(|arg| arg == "prusti");
-    // Remove the "-- -Pflag" arguments since these won't apply to `cargo check`
+    // Remove the "-- -Pflag" arguments since these won't apply to `cargo check`.
+    // They have already been loaded (and the Category B flags are used below).
     let args = args.take_while(|arg| arg != "--");
 
+    // Category B flags (see dev-guide flags table):
     let cargo_path = config::cargo_path();
     let command = config::cargo_command();
+
     let features = if launch::enable_prusti_feature(&cargo_path) && !config::be_rustc() {
         ["--features", "prusti-contracts/prusti"].iter()
     } else {
@@ -46,18 +49,18 @@ where
         .args(args)
         .env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
-        // Disallow `PRUSTI_CONFIG` to be set for dependency crates
-        .env("PRUSTI_CONFIG", "./Prusti.toml")
+        .env("CARGO_TARGET_DIR", &cargo_target)
+        // Category B flags (update the docs if any more are added):
         .env("PRUSTI_BE_RUSTC", config::be_rustc().to_string())
         .env(
             "PRUSTI_NO_VERIFY_DEPS",
             config::no_verify_deps().to_string(),
         )
+        // Category A* flags:
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
         .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))
         .env("DEFAULT_PRUSTI_CACHE_PATH", cargo_target.join("cache.bin"))
-        .env("CARGO_TARGET_DIR", &cargo_target)
         .status()
         .expect("could not run cargo");
 

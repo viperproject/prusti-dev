@@ -16,11 +16,6 @@ fn main() {
         }
     }
 
-    // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
-    // but this is hard to find for linking. So instead build to the `prusti-contracts` dir.
-    let _out_dir = std::env::var("OUT_DIR").unwrap();
-    // println!("cargo:warning=out_dir: {}", _out_dir);
-
     let target = prusti_contracts.join("target").join("verify");
     force_reexport_specs(target.as_path());
 
@@ -52,9 +47,16 @@ fn main() {
         "cargo:warning=Building `prusti-contracts` with '{} {arg}', please wait.",
         cargo_prusti.to_string_lossy()
     );
+
+    // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
+    // but this is hard to find for linking. So instead build to the `prusti-contracts` dir.
+    // let out_dir = std::env::var("OUT_DIR").unwrap();
+    // println!("cargo:warning=out_dir: {}", out_dir);
+
     let status = Command::new(&cargo_prusti)
         .current_dir(&prusti_contracts)
         .arg(arg)
+        .env_remove("CARGO_MANIFEST_DIR")
         .status()
         .expect("Failed to run cargo-prusti!");
     assert!(status.success());

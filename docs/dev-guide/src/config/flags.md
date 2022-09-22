@@ -7,8 +7,8 @@
 | [`BE_RUSTC`](#be_rustc) | `bool` | `false` | B |
 | [`BOOGIE_PATH`](#boogie_path) | `Option<String>` | `env::var("BOOGIE_EXE")` | A |
 | [`CACHE_PATH`](#cache_path) | `String` | `""` | A* |
-| [`CARGO_COMMAND`](#cargo_command) | `String` | `"check"` | C |
-| [`CARGO_PATH`](#cargo_path) | `String` | `"cargo"` | C |
+| [`CARGO_COMMAND`](#cargo_command) | `String` | `"check"` | B |
+| [`CARGO_PATH`](#cargo_path) | `String` | `"cargo"` | B |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` | A |
 | [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` | A |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` | A |
@@ -92,31 +92,31 @@ Maximum time (in milliseconds) for the verifier to spend on a single assertion. 
 
 When enabled, Prusti will behave like `rustc`.
 
-**Note:** applied to all dependency crates when running with `cargo prusti`.
+> **Note:** applied to all dependency crates when running with `cargo prusti`.
 
 ## `BOOGIE_PATH`
 
 A path to Boogie.
 
-**Note:** `prusti-rustc` sets this option.
+> **Note:** `prusti-rustc` sets this option.
 
 ## `CACHE_PATH`
 
 Path to a cache file, where verification cache will be loaded from and saved to. The default empty string disables saving any cache to disk. A path to a file which does not yet exist will result in using an empty cache, but then creating and saving to that location on exit.
 
-**Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_CACHE_PATH=$CARGO_TARGET_DIR/cache.bin`.
+> **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_CACHE_PATH=$CARGO_TARGET_DIR/cache.bin`.
 
 ## `CARGO_COMMAND`
 
 The cargo command to run when checking a crate with `cargo prusti`. Change to `build` to export binaries, library files and specs.
 
-**Note:** Applicable only under `cargo prusti`.
+> **Note:** Applicable only under `cargo prusti`.
 
 ## `CARGO_PATH`
 
 The path to `cargo` when running `cargo prusti`. Useful if `cargo` is not available in the path.
 
-**Note:** Applicable only under `cargo prusti`.
+> **Note:** Applicable only under `cargo prusti`.
 
 ## `CHECK_FOLDUNFOLD_STATE`
 
@@ -149,7 +149,7 @@ The given basic blocks will be replaced with `assume false`.
 
 When enabled, Viper name mangling will be disabled.
 
-**Note:** This is very likely to result in invalid programs being generated because of name collisions.
+> **Note:** This is very likely to result in invalid programs being generated because of name collisions.
 
 ## `DUMP_BORROWCK_INFO`
 
@@ -192,7 +192,7 @@ on a generic type parameter) is satisfied.
 
 When enabled, impure methods are optimized using the purification optimization, which tries to convert heap operations to pure (snapshot-based) operations.
 
-**Note:** This option is highly experimental.
+> **Note:** This option is highly experimental.
 
 ## `ENABLE_TYPE_INVARIANTS`
 
@@ -202,13 +202,13 @@ When enabled, type invariants can be declared on types using the `#[invariant(..
 
 When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) will be verified.
 
-**Note:** This flag is only for debugging Prusti.
+> **Note:** This flag is only for debugging Prusti.
 
 ## `ENCODE_BITVECTORS`
 
 When enabled, bitwise integer operations are encoded using bitvectors.
 
-**Note:** This option is highly experimental.
+> **Note:** This option is highly experimental.
 
 ## `ENCODE_UNSIGNED_NUM_CONSTRAINT`
 
@@ -230,7 +230,7 @@ Filter for `fold`/`unfold` nodes when debug info is dumped.
 
 When enabled, compilation will continue and a binary will be generated after Prusti terminates.
 
-**Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_FULL_COMPILATION=true`.
+> **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_FULL_COMPILATION=true`.
 
 ## `HIDE_UUIDS`
 
@@ -255,7 +255,7 @@ When enabled, Viper identifiers are interned to shorten them when possible.
 
 The path the directory containing Java.
 
-**Note:** `prusti-rustc` sets this option.
+> **Note:** `prusti-rustc` sets this option.
 
 ## `JSON_COMMUNICATION`
 
@@ -269,7 +269,7 @@ Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logg
 
 Path to directory in which log files and dumped output will be stored.
 
-**Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_LOG_DIR=$CARGO_TARGET_DIR/log`.
+> **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_LOG_DIR=$CARGO_TARGET_DIR/log`.
 
 ## `LOG_STYLE`
 
@@ -279,7 +279,7 @@ Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env
 
 When enabled, logs all SMT wrapper interaction to a file.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `MAX_LOG_FILE_NAME_LENGTH`
 
@@ -297,13 +297,13 @@ When enabled, verification is skipped altogether, though specs are still exporte
 
 When enabled, verification is skipped for dependencies. Equivalent to enabling `NO_VERIFY` for all dependencies. Remote dependencies from e.g. git/crates.io are already automatically `NO_VERIFY`.
 
-**Note:** applied to all dependency crates when running with `cargo prusti`.
+> **Note:** applied to all dependency crates when running with `cargo prusti`.
 
 ## `ONLY_MEMORY_SAFETY`
 
 When enabled, only the core proof is verified.
 
-**Note:** This should be used only when `UNSAFE_CORE_PROOF` is enabled.
+> **Note:** This should be used only when `UNSAFE_CORE_PROOF` is enabled.
 
 ## `OPTIMIZATIONS`
 
@@ -324,7 +324,7 @@ Comma-separated list of optimizations to enable, or `"all"` to enable all. Possi
 
 When enabled, does not delete Z3 trace files.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `PRINT_COLLECTED_VERIFICATION_ITEMS`
 
@@ -350,7 +350,7 @@ When enabled, prints the type-checked specifications.
 
 When enabled, user messages are not printed. Otherwise, messages output into `stderr`.
 
-**Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_QUIET=true`.
+> **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_QUIET=true`.
 
 ## `SERVER_ADDRESS`
 
@@ -366,7 +366,7 @@ Maximum amount of verification requests the server will work on concurrently. If
 
 Maximum amount of instantiated Viper verifiers the server will keep around for reuse. If not set, defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`. It also doesn't make much sense to set this option to less than that, since then the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.
 
-**Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
+> **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
 
 ## `SIMPLIFY_ENCODING`
 
@@ -380,25 +380,25 @@ When enabled, features not supported by Prusti will be reported as warnings rath
 
 If not `None`, checks that the number of global quantifier instantiations reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `SMT_QI_BOUND_GLOBAL_KIND`
 
 If not `None`, checks that the number of global quantifier instantiations for each quantifier reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `SMT_QI_BOUND_TRACE`
 
 If not `None`, checks that the number of quantifier instantiations in each trace reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `SMT_QI_BOUND_TRACE_KIND`
 
 If not `None`, checks that the number of quantifier instantiations in each trace for each quantifier reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `SMT_QI_IGNORE_BUILTIN`
 
@@ -415,31 +415,31 @@ A threshold controlling how many times Z3 should instantiate a single quantifier
 
 Path to Z3.
 
-**Note:** `prusti-rustc` sets this option.
+> **Note:** `prusti-rustc` sets this option.
 
 ## `SMT_SOLVER_WRAPPER_PATH`
 
 A path to `prusti-smt-solver`.
 
-**Note:** `prusti-rustc` sets this option.
+> **Note:** `prusti-rustc` sets this option.
 
 ## `SMT_UNIQUE_TRIGGERS_BOUND`
 
 If not `None`, checks that the number of unique triggers used for each quantifier reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`
 
 If not `None`, checks that the total number of unique triggers reported by the SMT wrapper is smaller than the specified bound.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `UNSAFE_CORE_PROOF`
 
 When enabled, the new core proof is used, suitable for unsafe code
 
-**Note:** This option is currently very incomplete.
+> **Note:** This option is currently very incomplete.
 
 ## `USE_MORE_COMPLETE_EXHALE`
 
@@ -461,13 +461,13 @@ Prusti panics if it fails to meet this deadline. This flag is intended to be use
 
 Verify only the single execution path goes through the given basic blocks. All basic blocks not on this execution path are replaced with `assume false`. Must be enabled using the [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) flag.
 
-**Note:** This option is only for debugging Prusti.
+> **Note:** This option is only for debugging Prusti.
 
 ## `VERIFY_ONLY_PREAMBLE`
 
 When enabled, only the preamble will be verified: domains, functions, and predicates.
 
-**Note:** With this flag enabled, no methods are verified!
+> **Note:** With this flag enabled, no methods are verified!
 
 ## `VIPER_BACKEND`
 
@@ -480,10 +480,10 @@ Verification backend to use. Possible values:
 
 The path the directory containing the Viper JARs.
 
-**Note:** `prusti-rustc` sets this option.
+> **Note:** `prusti-rustc` sets this option.
 
 ## `WRITE_SMT_STATISTICS`
 
 When enabled, dumps the statistics collected by the SMT wrapper into files next to the Z3 trace files.
 
-**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+> **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
