@@ -656,9 +656,7 @@ impl Expr {
             | &Expr::AddrOf(AddrOf { ref base, .. })
             | &Expr::LabelledOld(LabelledOld { ref base, .. })
             | &Expr::Unfolding(Unfolding { ref base, .. }) => {
-                let result = base.is_place();
-                eprintln!("{} Depends on {} ({})", self,base, result);
-                result
+                base.is_place()
             },
             | &Expr::BuiltinFuncApp(BuiltinFuncApp {
                 function: BuiltinFunc::LookupSeq,
@@ -666,7 +664,6 @@ impl Expr {
                 ..
             }) if arguments.len() == 2 => arguments[0].is_place() && arguments[1].is_place(),
             _ => {
-                eprintln!("{:?} is not a place", self);
                 false
             },
         }
