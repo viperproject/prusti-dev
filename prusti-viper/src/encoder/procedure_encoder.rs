@@ -1163,19 +1163,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Final step: havoc Viper local variables assigned in the encoding of the loop body
         let vars = collect_assigned_vars(&self.cfg_method, end_body_block, inv_pre_block);
         for var in vars {
-            let builtin_method = match var.typ {
-                vir::Type::Int => BuiltinMethodKind::HavocInt,
-                vir::Type::Bool => BuiltinMethodKind::HavocBool,
-                vir::Type::Float(vir::Float::F32) => BuiltinMethodKind::HavocF32,
-                vir::Type::Float(vir::Float::F64) => BuiltinMethodKind::HavocF64,
-                vir::Type::BitVector(value) => BuiltinMethodKind::HavocBV(value),
-                vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
-            };
+            let builtin_method = Self::get_havoc_method(&var.typ);
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: self.encoder.encode_builtin_method_use(builtin_method),
                 arguments: vec![],
@@ -1186,6 +1174,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Done. Phew!
         Ok((start_block, still_unresolved_edges))
+    }
+
+    fn get_havoc_method(typ: &vir::Type) -> BuiltinMethodKind {
+        match typ {
+            vir::Type::Int => BuiltinMethodKind::HavocInt,
+            vir::Type::Bool => BuiltinMethodKind::HavocBool,
+            vir::Type::Float(vir::Float::F32) => BuiltinMethodKind::HavocF32,
+            vir::Type::Float(vir::Float::F64) => BuiltinMethodKind::HavocF64,
+            vir::Type::BitVector(value) => BuiltinMethodKind::HavocBV(*value),
+            vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
+            vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
+            vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
+            vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
+            vir::Type::Seq(ref st) => BuiltinMethodKind::HavocSeq(*st.typ.clone()),
+            vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
+        }
     }
 
     /// Encode a block.
@@ -6394,13 +6398,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
-        debug!("Encode havoc {:?}", dst);
-        let havoc_ref_method_name = self
+        let havoc_method_name = self
             .encoder
-            .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
+            .encode_builtin_method_use(Self::get_havoc_method(dst.get_type()));
         if let vir::Expr::Local( vir::Local {variable: ref dst_local_var, ..} ) = dst {
             vec![vir::Stmt::MethodCall( vir::MethodCall {
-                method_name: havoc_ref_method_name,
+                method_name: havoc_method_name,
                 arguments: vec![],
                 targets: vec![dst_local_var.clone()],
             })]
@@ -6408,7 +6411,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let tmp_var = self.get_auxiliary_local_var("havoc", dst.get_type().clone());
             vec![
                 vir::Stmt::MethodCall( vir::MethodCall {
-                    method_name: havoc_ref_method_name,
+                    method_name: havoc_method_name,
                     arguments: vec![],
                     targets: vec![tmp_var.clone()],
                 }),

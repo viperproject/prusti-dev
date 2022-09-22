@@ -28,4 +28,8 @@ fn seq_construction() {
     let seq: pc::Seq<pc::Seq<Int>> = pc::Seq::empty();
 }
 
+fn random_indexing_fails_usize(seq: Seq, idx: usize) {
+    prusti_assert!(seq[idx] == seq[idx]); //~ ERROR: the sequence index may be out of bounds
+}
+
 fn main() {}
