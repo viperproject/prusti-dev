@@ -1,8 +1,8 @@
 Prusti
 ======
 
-[![Test](https://github.com/viperproject/prusti-dev/workflows/Test/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Test"+branch%3Amaster)
-[![Deploy](https://github.com/viperproject/prusti-dev/workflows/Deploy/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Deploy"+branch%3Amaster)
+[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml)
+[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml)
 [![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
