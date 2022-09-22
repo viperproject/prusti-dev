@@ -35,7 +35,8 @@ lazy_static! {
 
 fn get_prusti_version_info() -> String {
     format!(
-        "commit {} {}, built on {}",
+        "{}, commit {} {}, built on {}",
+        env!("CARGO_PKG_VERSION"),
         option_env!("COMMIT_HASH").unwrap_or("<unknown>"),
         option_env!("COMMIT_TIME").unwrap_or("<unknown>"),
         option_env!("BUILD_TIME").unwrap_or("<unknown>"),
