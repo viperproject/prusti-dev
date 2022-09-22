@@ -602,14 +602,14 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     _ => unreachable!("illegal binary operation {} for type {:?}", op, typ),
                 },
             },
-            Expr::ContainerOp(op_kind, box ref left, box ref right, _pos) => match op_kind {
+            Expr::ContainerOp(op_kind, args, _pos) => match op_kind {
                 ContainerOpKind::SeqIndex => {
-                    ast.seq_index(left.to_viper(context, ast), right.to_viper(context, ast))
+                    ast.seq_index(args[0].to_viper(context, ast), args[1].to_viper(context, ast))
                 }
                 ContainerOpKind::SeqConcat => {
-                    ast.seq_append(left.to_viper(context, ast), right.to_viper(context, ast))
+                    ast.seq_append(args[0].to_viper(context, ast), args[1].to_viper(context, ast))
                 }
-                ContainerOpKind::SeqLen => ast.seq_length(left.to_viper(context, ast)),
+                ContainerOpKind::SeqLen => ast.seq_length(args[0].to_viper(context, ast)),
             },
             Expr::Seq(ty, elems, _pos) => {
                 let Type::Seq(box elem_ty) = ty else { unreachable!() };

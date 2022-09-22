@@ -245,8 +245,10 @@ impl From<polymorphic::Expr> for legacy::Expr {
             ),
             polymorphic::Expr::ContainerOp(container_op) => legacy::Expr::ContainerOp(
                 container_op.op_kind.into(),
-                Box::new((*container_op.left).into()),
-                Box::new((*container_op.right).into()),
+                vec![
+                    (*container_op.left).into(),
+                    (*container_op.right).into(),
+                ],
                 container_op.position.into(),
             ),
             polymorphic::Expr::Seq(seq) => legacy::Expr::Seq(
@@ -316,7 +318,41 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 Box::new((*let_expr.body).into()),
                 let_expr.position.into(),
             ),
-            polymorphic::Expr::BuiltinFuncApp(_) => unimplemented!(),
+            polymorphic::Expr::BuiltinFuncApp(builtin_func_app) => {
+                match builtin_func_app.function {
+                    polymorphic::BuiltinFunc::NewInt => return legacy::Expr::Const(
+                        match &builtin_func_app.arguments[0] {
+                            polymorphic::Expr::Const(c) => c.value.clone().into(),
+                            other => unimplemented!("Howto {:?}", other)
+                        },
+                        builtin_func_app.position.into()
+                    ),
+                    polymorphic::BuiltinFunc::EmptySeq => return legacy::Expr::Seq(
+                        builtin_func_app.return_type.into(),
+                        builtin_func_app
+                            .arguments
+                            .into_iter()
+                            .map(|argument| argument.into())
+                            .collect(),
+                        builtin_func_app.position.into()
+                    ),
+                    _ => {}
+                };
+                let op_kind = match builtin_func_app.function {
+                    polymorphic::BuiltinFunc::LookupSeq => legacy::ContainerOpKind::SeqIndex,
+                    polymorphic::BuiltinFunc::SeqLen => legacy::ContainerOpKind::SeqLen,
+                    _ => unimplemented!("Cannot handle builtin: {:?}", builtin_func_app)
+                };
+                legacy::Expr::ContainerOp(
+                    op_kind,
+                    builtin_func_app
+                        .arguments
+                        .into_iter()
+                        .map(|argument| argument.into())
+                        .collect(),
+                    builtin_func_app.position.into()
+                )
+            },
             polymorphic::Expr::FuncApp(func_app) => legacy::Expr::FuncApp(
                 polymorphic::compute_identifier(
                     &func_app.function_name,

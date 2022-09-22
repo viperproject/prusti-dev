@@ -57,9 +57,11 @@ impl Perm {
     }
 
     pub fn get_place(&self) -> &Expr {
-        match self {
+        let result = match self {
             &Perm::Acc(ref place, _) | &Perm::Pred(ref place, _) => place,
-        }
+        };
+        debug_assert!(result.is_place(), "{} is not a place", result);
+        result
     }
 
     pub fn map_place<F>(self, f: F) -> Self
