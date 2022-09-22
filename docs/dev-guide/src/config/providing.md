@@ -30,7 +30,9 @@ Then, as each individual crate is checked (from the roots of the dependency tree
 
 Therefore, when publishing a `lib` crate to git/crates.io one can configure Category A flags by including a `Prusti.toml` file next to their `Cargo.toml`.
 
-> **Note:** The `Prusti.toml` used to load Category B flags at the start and the one used to load Category A flags at the end for the root crate will often be one and the same because `cargo prusti` is typically run from the root crate's directory. This can be changed by providing the [`--manifest-path` flag](https://doc.rust-lang.org/cargo/commands/cargo-check.html#manifest-options)
+> **Note:** Currently cargo does not track `Prusti.toml` files as a [dependency](https://doc.rust-lang.org/cargo/guide/build-cache.html#dep-info-files), therefore if it's the only file that changed in a crate you may need to run `cargo clean -p <crate>` to force reverification
+
+The `Prusti.toml` used to load Category B flags at the start and the one used to load Category A flags at the end for the root crate will often be one and the same because `cargo prusti` is typically run from the root crate's directory. This can be changed by providing the [`--manifest-path` flag](https://doc.rust-lang.org/cargo/commands/cargo-check.html#manifest-options).
 
 ### Commandline Arguments
 
