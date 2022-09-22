@@ -349,6 +349,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             .borrow()
             .contains_key(ty)
         {
+            eprintln!("Encode type {:?}", ty);
             let encoded_type = match ty {
                 vir_high::Type::Enum(vir_high::ty::Enum {
                     variant: Some(variant),

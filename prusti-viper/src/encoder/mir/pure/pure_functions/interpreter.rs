@@ -27,7 +27,7 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir, MapType, SeqType};
+use vir_crate::polymorphic::{self as vir, MapType, SeqType, TypedRef};
 use prusti_common::vir::polymorphic_vir::BuiltinFunc::*;
 use prusti_common::vir::polymorphic_vir::Type;
 
@@ -171,6 +171,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                         "concat" => (ConcatSeq, seq_type),
                         _ => unreachable!("no further Seq functions"),
                     });
+                } else if let Some(proc_name) = full_func_proc_name.strip_prefix("prusti_contracts::Int::") {
+                    assert!(type_arguments.is_empty());
+                    return match proc_name {
+                        "new" => builtin((NewInt, Type::Int)),
+                        "new_usize" => builtin((NewInt, Type::Int)),
+                        _ => unreachable!("no further int functions"),
+                    }
                 } else {
                     match full_func_proc_name {
                         "prusti_contracts::old" => {
@@ -248,6 +255,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                             trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, encoded_lhs={:?})", args, encoded_args, ty, encoded_lhs);
 
                             let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                            match encoded_args[0].get_type(){
+                                Type::Seq(_) => {
+                                    let ref_type = encoded_lhs.get_type().clone();
+                                    return builtin((LookupSeq, ref_type))
+                                },
+                                typ => {
+                                }
+                            };
 
                             let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
                             let idx_ty_did = match idx_ty.ty_adt_def() {

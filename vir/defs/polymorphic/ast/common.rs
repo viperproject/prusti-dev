@@ -330,7 +330,7 @@ impl Type {
                 arguments: Vec::new(),
                 variant: String::from(""),
             }),
-            _ => unreachable!(),
+            _ => unreachable!("Cannot convert type {:?} to snapshot", self),
         }
     }
 
