@@ -611,6 +611,7 @@ impl SnapshotEncoder {
 
         // otherwise, encode
 
+        eprintln!("Predicate type: {:?}, {}", predicate_type, predicate_type.is_seq());
         // figure out resulting type
         let snapshot_type = match ty.kind() {
             ty::TyKind::Int(_) => Type::Int,
@@ -663,6 +664,7 @@ impl SnapshotEncoder {
             // never get a box or reference here
             _ if ty.is_box() => unreachable!(),
             _ if predicate_type.is_map() => Ok(Snapshot::Primitive(predicate_type.clone())),
+            _ if predicate_type.is_seq() => Ok(Snapshot::Primitive(predicate_type.clone())),
             ty::TyKind::Ref(_, _, _) => unreachable!(),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
