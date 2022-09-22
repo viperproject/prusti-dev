@@ -8,6 +8,11 @@ on:
     branches: [master]
     paths-ignore: 'docs/**'
 
+# Cancel previous runs in a PR when pushing new commits
+concurrency:
+  group: test-worflow-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
@@ -150,13 +155,6 @@ jobs:
           PRUSTI_INLINE_CALLER_FOR: true
         run: |
           python x.py test core_proof
-      - name: Cancel the workflow if this job failed
-        uses: vishnudxb/cancel-workflow@v1.2
-        if: failure()
-          with:
-        repo: ${{ github.repository }}
-        workflow_id: ${{ github.run_id }}
-        access_token: ${{ github.token }}
 
   # Run all the tests.
   all-tests:
@@ -194,13 +192,6 @@ jobs:
         run: |
           cd prusti-contracts/prusti-contracts-test/
           cargo +stable build
-      - name: Cancel the workflow if this job failed
-        uses: vishnudxb/cancel-workflow@v1.2
-        if: failure()
-          with:
-        repo: ${{ github.repository }}
-        workflow_id: ${{ github.run_id }}
-        access_token: ${{ github.token }}
 
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:
@@ -228,13 +219,6 @@ jobs:
           PRUSTI_CHECK_PANICS: false
           PRUSTI_CHECK_OVERFLOWS: false
           PRUSTI_INTERNAL_ERRORS_AS_WARNINGS: true
-      - name: Cancel the workflow if this job failed
-        uses: vishnudxb/cancel-workflow@v1.2
-        if: failure()
-          with:
-        repo: ${{ github.repository }}
-        workflow_id: ${{ github.run_id }}
-        access_token: ${{ github.token }}
 
   # Test cargo-prusti on a collection of crates.
   test-crates:
@@ -263,10 +247,3 @@ jobs:
         run: python x.py build --release --all
       - name: Test Prusti on a collection of crates
         run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
-      - name: Cancel the workflow if this job failed
-        uses: vishnudxb/cancel-workflow@v1.2
-        if: failure()
-          with:
-        repo: ${{ github.repository }}
-        workflow_id: ${{ github.run_id }}
-        access_token: ${{ github.token }}
