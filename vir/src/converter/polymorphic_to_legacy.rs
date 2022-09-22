@@ -327,7 +327,9 @@ impl From<polymorphic::Expr> for legacy::Expr {
                         },
                         builtin_func_app.position.into()
                     ),
-                    polymorphic::BuiltinFunc::EmptySeq => return legacy::Expr::Seq(
+                    polymorphic::BuiltinFunc::EmptySeq |
+                    polymorphic::BuiltinFunc::SingleSeq
+                    => return legacy::Expr::Seq(
                         builtin_func_app.return_type.into(),
                         builtin_func_app
                             .arguments
@@ -339,6 +341,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     _ => {}
                 };
                 let op_kind = match builtin_func_app.function {
+                    polymorphic::BuiltinFunc::ConcatSeq => legacy::ContainerOpKind::SeqConcat,
                     polymorphic::BuiltinFunc::LookupSeq => legacy::ContainerOpKind::SeqIndex,
                     polymorphic::BuiltinFunc::SeqLen => legacy::ContainerOpKind::SeqLen,
                     _ => unimplemented!("Cannot handle builtin: {:?}", builtin_func_app)
