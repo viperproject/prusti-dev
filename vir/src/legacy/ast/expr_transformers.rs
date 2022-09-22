@@ -309,14 +309,12 @@ pub trait ExprFolder: Sized {
     fn fold_container_op(
         &mut self,
         kind: ContainerOpKind,
-        l: Box<Expr>,
-        r: Box<Expr>,
+        v: Vec<Expr>,
         p: Position,
     ) -> Expr {
         Expr::ContainerOp(
             kind,
-            self.fold_boxed(l),
-            self.fold_boxed(r),
+            v.into_iter().map(|e| self.fold(e)).collect(),
             self.fold_position(p),
         )
     }
@@ -374,7 +372,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
         Expr::Downcast(b, p, f) => this.fold_downcast(b, p, f),
         Expr::SnapApp(e, p) => this.fold_snap_app(e, p),
-        Expr::ContainerOp(x, y, z, p) => this.fold_container_op(x, y, z, p),
+        Expr::ContainerOp(x, y, p) => this.fold_container_op(x, y, p),
         Expr::Seq(x, y, p) => this.fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fold_cast(kind, base, p),
@@ -579,9 +577,10 @@ pub trait ExprWalker: Sized {
         self.walk_position(pos);
     }
 
-    fn walk_container_op(&mut self, _kind: &ContainerOpKind, l: &Expr, r: &Expr, pos: &Position) {
-        self.walk(l);
-        self.walk(r);
+    fn walk_container_op(&mut self, _kind: &ContainerOpKind, v: &Vec<Expr>, pos: &Position) {
+        for elem in v {
+            self.walk(elem);
+        }
         self.walk_position(pos);
     }
 
@@ -637,7 +636,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
         Expr::Downcast(ref b, ref p, ref f) => this.walk_downcast(b, p, f),
         Expr::SnapApp(ref e, ref p) => this.walk_snap_app(e, p),
-        Expr::ContainerOp(ref kind, ref l, ref r, ref p) => this.walk_container_op(kind, l, r, p),
+        Expr::ContainerOp(ref kind, ref v, ref p) => this.walk_container_op(kind, v, p),
         Expr::Seq(ref ty, ref elems, ref p) => this.walk_seq(ty, elems, p),
         Expr::Map(ref ty, ref elems, ref p) => this.walk_map(ty, elems, p),
         Expr::Cast(ref kind, ref base, ref p) => this.walk_cast(kind, base, p),
@@ -912,14 +911,15 @@ pub trait FallibleExprFolder: Sized {
     fn fallible_fold_container_op(
         &mut self,
         kind: ContainerOpKind,
-        l: Box<Expr>,
-        r: Box<Expr>,
+        elems: Vec<Expr>,
         p: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::ContainerOp(
             kind,
-            self.fallible_fold_boxed(l)?,
-            self.fallible_fold_boxed(r)?,
+            elems
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<_, _>>()?,
             p,
         ))
     }
@@ -997,7 +997,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::InhaleExhale(x, y, p) => this.fallible_fold_inhale_exhale(x, y, p),
         Expr::Downcast(b, p, f) => this.fallible_fold_downcast(b, p, f),
         Expr::SnapApp(e, p) => this.fallible_fold_snap_app(e, p),
-        Expr::ContainerOp(x, y, z, p) => this.fallible_fold_container_op(x, y, z, p),
+        Expr::ContainerOp(x, v, p) => this.fallible_fold_container_op(x, v, p),
         Expr::Seq(x, y, p) => this.fallible_fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fallible_fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fallible_fold_cast(kind, base, p),

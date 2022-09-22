@@ -655,8 +655,20 @@ impl Expr {
             | &Expr::Field(FieldExpr { ref base, .. })
             | &Expr::AddrOf(AddrOf { ref base, .. })
             | &Expr::LabelledOld(LabelledOld { ref base, .. })
-            | &Expr::Unfolding(Unfolding { ref base, .. }) => base.is_place(),
-            _ => false,
+            | &Expr::Unfolding(Unfolding { ref base, .. }) => {
+                let result = base.is_place();
+                eprintln!("{} Depends on {} ({})", self,base, result);
+                result
+            },
+            | &Expr::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::LookupSeq,
+                ref arguments,
+                ..
+            }) if arguments.len() == 2 => arguments[0].is_place() && arguments[1].is_place(),
+            _ => {
+                eprintln!("{:?} is not a place", self);
+                false
+            },
         }
     }
 
@@ -687,7 +699,10 @@ impl Expr {
             &Expr::Variant(Variant { ref base, .. }) | &Expr::Field(FieldExpr { ref base, .. }) => {
                 base.is_simple_place()
             }
-            _ => false,
+            _ => {
+                eprintln!("{:?} is not a simple place", self);
+                false
+            }
         }
     }
 
@@ -701,7 +716,12 @@ impl Expr {
             | &Expr::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             &Expr::LabelledOld(_) => None,
             &Expr::Unfolding(_) => None,
-            ref x => unreachable!("{}", x),
+            &Expr::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::LookupSeq,
+                ref arguments,
+                ..
+            }) => Some(&arguments[0]),
+            ref x => unreachable!("Cannot get parent ref for {}", x),
         }
     }
 
@@ -911,8 +931,8 @@ impl Expr {
     }
 
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place(), "self={} other={}", self, other);
-        debug_assert!(other.is_place(), "self={} other={}", self, other);
+        debug_assert!(self.is_place(), "`self` is not a place. self={} other={}", self, other);
+        debug_assert!(other.is_place(), "`other` is not a place. self={} other={}", self, other);
         self != other && self.has_prefix(other)
     }
 

@@ -35,7 +35,7 @@ pub enum Expr {
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
     /// Container Operation on a Viper container (e.g. Seq index)
-    ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
+    ContainerOp(ContainerOpKind, Vec<Expr>, Position),
     /// Viper Seq
     Seq(Type, Vec<Expr>, Position),
     /// Viper Map
@@ -157,6 +157,13 @@ pub enum Const {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let comma_sep = |elems: &Vec<Expr>| {
+            elems
+                .iter()
+                .map(|e| format!("{}", e))
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
         match self {
             Expr::Local(ref v, ref _pos) => write!(f, "{}", v),
             Expr::Variant(ref base, ref variant_index, ref _pos) => {
@@ -168,23 +175,18 @@ impl fmt::Display for Expr {
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
                 write!(f, "({}) {} ({})", left, op, right)
             }
-            Expr::ContainerOp(op, box ref left, box ref right, _) => match op {
-                ContainerOpKind::SeqIndex => write!(f, "{}[{}]", left, right),
-                ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", left, right),
-                ContainerOpKind::SeqLen => write!(f, "|{}|", left),
+            Expr::ContainerOp(op, args, _) => match op {
+                ContainerOpKind::SeqIndex => write!(f, "{}[{}]", args[0], args[1]),
+                ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", args[0], args[1]),
+                ContainerOpKind::SeqLen => write!(f, "|{}|", args[0])
             },
             Expr::Seq(ty, elems, _) => {
-                let elems_printed = elems
-                    .iter()
-                    .map(|e| format!("{}", e))
-                    .collect::<Vec<_>>()
-                    .join(", ");
                 let elem_ty = if let Type::Seq(box elem_ty) = ty {
                     elem_ty
                 } else {
                     unreachable!()
                 };
-                write!(f, "Seq[{}]({})", elem_ty, elems_printed)
+                write!(f, "Seq[{}]({})", elem_ty, comma_sep(elems))
             }
             Expr::Map(..) => {
                 unimplemented!()
@@ -384,7 +386,7 @@ impl Expr {
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
             | Expr::InhaleExhale(_, _, p)
-            | Expr::ContainerOp(_, _, _, p)
+            | Expr::ContainerOp(_, _, p)
             | Expr::Seq(_, _, p)
             | Expr::Map(_, _, p)
             | Expr::Cast(_, _, p)
@@ -422,7 +424,7 @@ impl Expr {
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
             Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
-            Expr::ContainerOp(x, y, z, _) => Expr::ContainerOp(x, y, z, pos),
+            Expr::ContainerOp(x, y, _) => Expr::ContainerOp(x, y, pos),
             Expr::Seq(x, y, _) => Expr::Seq(x, y, pos),
             Expr::Map(x, y, _) => Expr::Map(x, y, pos),
             x => x,
@@ -1255,7 +1257,7 @@ impl Expr {
             // to allow for e.g. field access without special considerations.
             // SnapApps are replaced later in the encoder.
             Expr::SnapApp(box ref expr, _) => expr.get_type(),
-            Expr::ContainerOp(_op_kind, box ref _left, box ref _right, _) => {
+            Expr::ContainerOp(_, _, _) => {
                 return None;
             }
             Expr::Seq(ref ty, ..) | Expr::Map(ref ty, ..) => ty,
