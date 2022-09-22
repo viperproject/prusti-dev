@@ -340,6 +340,9 @@ fn get_all_required_expr_permissions(
         | vir::Expr::FuncApp(vir::FuncApp {
             arguments: inners, ..
         })
+        | vir::Expr::BuiltinFuncApp(vir::BuiltinFuncApp {
+            arguments: inners, ..
+        })
         | vir::Expr::DomainFuncApp(vir::DomainFuncApp {
             arguments: inners, ..
         }) => {
@@ -467,7 +470,8 @@ impl RequiredExprPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::FuncApp(vir::FuncApp { ref arguments, .. })
-            | vir::Expr::DomainFuncApp(vir::DomainFuncApp { ref arguments, .. }) => {
+            | vir::Expr::DomainFuncApp(vir::DomainFuncApp { ref arguments, .. })
+            | vir::Expr::BuiltinFuncApp(vir::BuiltinFuncApp { ref arguments, .. }) => {
                 arguments
                     .iter()
                     .flat_map(|arg| {
