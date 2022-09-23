@@ -8,83 +8,44 @@ on:
     branches: [master]
     paths-ignore: 'docs/**'
 
+# Cancel previous runs in a PR when pushing new commits
+concurrency:
+  group: worflow-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
-  # Run a subset of the tests that used to fail often.
-  # The goal here is to fail fast and give quick feedback to the developers.
-  quick-tests:
-    runs-on: ubuntu-latest
-    # Only run when triggered by a pull request event
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all
-      - name: Run "quick" cargo tests
-        run: python x.py test --all --verbose quick
-
-  # Run clippy checks on PRs.
-  clippy-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all
-      - name: Check and report Clippy errors
-        run: |
-          rustup component add clippy
-          python ./x.py clippy -- -D warnings
-
-  # Run rustfmt checks on PRs.
+  # Check formatting
   fmt-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
+      - name: Check formatting
+        run: |
+          rustup component add rustfmt
+          python ./x.py fmt-check-all
+
+  # Run clippy checks
+  clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all
-      - name: Check and report formatting warnings
+      - name: Check and report Clippy errors
         run: |
-          rustup component add rustfmt
-          python ./x.py fmt-check-all
+          python ./x.py clippy -- -D warnings
 
   # Check that we depend on the compiler only through SMIR.
   smir-check:
@@ -92,28 +53,19 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
       - name: Check and report illegal extern crate.
         run: |
           python ./x.py check-smir
 
-  # Run a subset of the tests with the purification optimization enabled
-  # to ensure that we do not introduce regressions.
-  purification-tests:
+  # Run a subset of the tests that used to fail often.
+  # The goal here is to fail fast and give quick feedback to the developers.
+  quick-tests:
     runs-on: ubuntu-latest
-    env:
-      PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
       - name: Set up the environment
@@ -122,7 +74,30 @@ jobs:
         uses: Swatinem/rust-cache@v1.3.0
       - name: Build with cargo
         run: python x.py build --all
-      - name: Run "quick" cargo tests
+      - name: Run quick tests
+        run: python x.py test --all --verbose quick
+
+  # Run a subset of the tests with the purification optimization enabled
+  # to ensure that we do not introduce regressions.
+  purification-tests:
+    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    runs-on: ubuntu-latest
+    env:
+      PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
+      - name: Build with cargo
+        run: python x.py build --all
+      - name: Run quick tests
         run: |
           python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
           # python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
@@ -183,9 +158,10 @@ jobs:
 
   # Run all the tests.
   all-tests:
+    needs: [fmt-check, clippy-check, smir-check, quick-tests]
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -195,7 +171,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      - uses: actions/setup-java@v1
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
       - name: Set up the environment
@@ -216,28 +193,58 @@ jobs:
           cd prusti-contracts/prusti-contracts-test/
           cargo +stable build
 
-  # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
+  # Run Prusti on itself.
+  # Disabled because of a bug when compiling jni-gen
   test-on-prusti:
+    needs: [fmt-check, clippy-check, smir-check, quick-tests]
     runs-on: ubuntu-latest
     if: false
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
       - name: Build with cargo
         run: python x.py build --release --all
       - name: Run cargo-prusti on Prusti
-        run: python x.py prusti
+        run: python x.py exec target/release/cargo-prusti
         env:
-          LD_LIBRARY_PATH: target/release:${{ env.LD_LIBRARY_PATH }}
           PRUSTI_SKIP_UNSUPPORTED_FEATURES: true
           PRUSTI_FULL_COMPILATION: true
           PRUSTI_CHECK_PANICS: false
+          PRUSTI_CHECK_OVERFLOWS: false
+          PRUSTI_INTERNAL_ERRORS_AS_WARNINGS: true
+
+  # Test cargo-prusti on a collection of crates.
+  test-crates:
+    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        shard_index: [0, 1, 2, 3]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
+      - name: Build with cargo --release
+        run: python x.py build --release --all
+      - name: Test Prusti on a collection of crates
+        run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
