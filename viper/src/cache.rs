@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use log::{error, info};
+use log::{error, info, warn};
 
 use crate::verification_result::VerificationResult;
 use std::{
@@ -88,16 +88,21 @@ impl PersistentCache {
     }
     pub fn save(&mut self) {
         // Save cache to disk, if changed and save path is valid
-        if self.updated && !self.load_loc.as_os_str().is_empty() {
-            let mut save_dir = self.load_loc.clone();
-            save_dir.pop();
-            match fs::create_dir_all(&save_dir) {
-                Ok(()) => self.save_cache(&self.load_loc),
-                Err(e) => error!("Failed to create cache dir: {e}"),
+        if self.updated {
+            if self.load_loc.as_os_str().is_empty() {
+                warn!("Cannot save cache, because the cache path is empty.")
+            } else {
+                let mut save_dir = self.load_loc.clone();
+                save_dir.pop();
+                match fs::create_dir_all(&save_dir) {
+                    Ok(()) => self.save_cache(&self.load_loc),
+                    Err(e) => error!("Failed to create cache dir: {e}"),
+                }
             }
         }
     }
 }
+
 impl Drop for PersistentCache {
     fn drop(&mut self) {
         self.save();
@@ -113,6 +118,7 @@ impl Cache for &mut PersistentCache {
         self.data.insert(request, result)
     }
 }
+
 impl Cache for &Arc<Mutex<PersistentCache>> {
     fn get(&self, request: u64) -> Option<VerificationResult> {
         let mut cache = self.lock().unwrap();

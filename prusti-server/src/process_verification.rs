@@ -82,13 +82,11 @@ pub fn process_verification_request<'v, 't: 'v>(
     // Early return in case of cache hit
     if config::enable_cache() {
         if let Some(mut result) = cache.get(hash) {
-            if result != VerificationResult::Success {
-                info!(
-                    "cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+            info!(
+                "Using cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             if config::dump_viper_program() {
                 ast_utils.with_local_frame(16, || {
                     let _ = build_or_dump_viper_program();
@@ -112,14 +110,13 @@ pub fn process_verification_request<'v, 't: 'v>(
         stopwatch.start_next("verification");
         let mut result = verifier.verify(viper_program);
 
-        if config::enable_cache() {
-            if result != VerificationResult::Success {
-                info!(
-                    "storing new cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+        // Don't cache Java exceptions, which might be due to misconfigured paths.
+        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+            info!(
+                "Storing new cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             cache.insert(hash, result.clone());
         }
 

@@ -12,6 +12,7 @@
 use compiletest_rs::{common::Mode, run_tests, Config};
 use prusti_server::spawn_server_thread;
 use std::{env, path::PathBuf};
+use log::{info, error};
 
 fn find_prusti_rustc_path() -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -161,9 +162,22 @@ fn run_lifetimes_dump(group_name: &str, filter: &Option<String>) {
 }
 
 fn test_runner(_tests: &[&()]) {
+    env_logger::init_from_env(env_logger::Env::new().filter_or("PRUSTI_LOG", "warn"));
+
     // Spawn server process as child (so it stays around until main function terminates)
     let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
+    let save_verification_cache = || {
+        match ureq::post(&format!("http://{server_address}/save")).call() {
+            Ok(response) => {
+                info!("Saving verification cache: {}", response.status_text());
+            }
+            Err(ureq::Error::Status(_code, response)) => {
+                error!("Error while saving verification cache: {response:?}");
+            }
+            Err(err) => error!("Error while saving verification cache: {err}"),
+        }
+    };
 
     // Filter the tests to run
     let filter = env::args().nth(1);
@@ -179,10 +193,12 @@ fn test_runner(_tests: &[&()]) {
     // Test the verifier.
     println!("[verify]");
     run_verification_no_overflow("verify", &filter);
+    save_verification_cache();
 
     // Test the verifier with overflow checks enabled.
     println!("[verify_overflow]");
     run_verification_overflow("verify_overflow", &filter);
+    save_verification_cache();
 
     // Test the verifier with test cases that only partially verify due to known open issues.
     // The purpose of these tests is two-fold: 1. these tests help prevent potential further
@@ -192,12 +208,15 @@ fn test_runner(_tests: &[&()]) {
     // `verify_overflow/pass` folders.
     println!("[verify_partial]");
     run_verification_overflow("verify_partial", &filter);
+    save_verification_cache();
 
     // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[core_proof]");
     run_verification_core_proof("core_proof", &filter);
+    save_verification_cache();
 
     // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[lifetimes_dump]");
     run_lifetimes_dump("lifetimes_dump", &filter);
+    save_verification_cache();
 }
