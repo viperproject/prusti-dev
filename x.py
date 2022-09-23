@@ -185,7 +185,7 @@ def setup(args):
         error("unexpected arguments: {}", args)
     if not rustup_only:
         if sys.platform in ("linux", "linux2"):
-            if 'Ubuntu' in platform.platform():
+            if 'Ubuntu' in platform.version():
                 setup_ubuntu()
             else:
                 setup_linux()
