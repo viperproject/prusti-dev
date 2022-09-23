@@ -1,3 +1,4 @@
+// compile-flags: -Zpolonius
 //! An adaptation of the example from Matsakis
 //! [blog](http://smallcultfollowing.com/babysteps/blog/2018/06/15/mir-based-borrow-check-nll-status-update/)
 //! that illustrates differences between Rust 2018 NLL and Polonius.
