@@ -10,9 +10,9 @@
 #![test_runner(test_runner)]
 
 use compiletest_rs::{common::Mode, run_tests, Config};
+use log::{error, info};
 use prusti_server::spawn_server_thread;
 use std::{env, path::PathBuf};
-use log::{info, error};
 
 fn find_prusti_rustc_path() -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -167,8 +167,8 @@ fn test_runner(_tests: &[&()]) {
     // Spawn server process as child (so it stays around until main function terminates)
     let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
-    let save_verification_cache = || {
-        match ureq::post(&format!("http://{server_address}/save")).call() {
+    let save_verification_cache =
+        || match ureq::post(&format!("http://{server_address}/save")).call() {
             Ok(response) => {
                 info!("Saving verification cache: {}", response.status_text());
             }
@@ -176,8 +176,7 @@ fn test_runner(_tests: &[&()]) {
                 error!("Error while saving verification cache: {response:?}");
             }
             Err(err) => error!("Error while saving verification cache: {err}"),
-        }
-    };
+        };
 
     // Filter the tests to run
     let filter = env::args().nth(1);
