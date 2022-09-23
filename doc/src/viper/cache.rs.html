@@ -123,13 +123,19 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>log::{<a href="../../log/macro.error.html">error</a>, <a href="../../log/macro.info.html">info</a>};
+</span><span class="kw">use </span>log::{<a href="../../log/macro.error.html">error</a>, <a href="../../log/macro.info.html">info</a>, <a href="../../log/macro.warn.html">warn</a>};
 
 <span class="kw">use </span><a href="verification_result.rs.html#11"><span class="kw">crate</span>::verification_result::VerificationResult</a>;
 <span class="kw">use </span>std::{
@@ -213,39 +219,45 @@
     }
     <span class="kw">pub fn </span>save(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Save cache to disk, if changed and save path is valid
-        </span><span class="kw">if </span><span class="self">self</span>.updated &amp;&amp; !<span class="self">self</span>.load_loc.as_os_str().is_empty() {
-            <span class="kw">let </span><span class="kw-2">mut </span>save_dir = <a class="self" href="#89">self</a>.load_loc.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a href="#92">save_dir</a>.pop();
-            <span class="kw">match </span>fs::create_dir_all(<span class="kw-2">&amp;</span><a href="#92">save_dir</a>) {
-                <span class="prelude-val">Ok</span>(()) =&gt; <a class="self" href="#89">self</a>.<a href="#79">save_cache</a>(<span class="kw-2">&amp;</span><a class="self" href="#89">self</a>.load_loc),
-                <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to create cache dir: {e}&quot;</span>),
+        </span><span class="kw">if </span><span class="self">self</span>.updated {
+            <span class="kw">if </span><span class="self">self</span>.load_loc.as_os_str().is_empty() {
+                <a class="macro" href="../../log/macro.warn.html">warn!</a>(<span class="string">&quot;Cannot save cache, because the cache path is empty.&quot;</span>)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>save_dir = <a class="self" href="#89">self</a>.load_loc.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <a href="#95">save_dir</a>.pop();
+                <span class="kw">match </span>fs::create_dir_all(<span class="kw-2">&amp;</span><a href="#95">save_dir</a>) {
+                    <span class="prelude-val">Ok</span>(()) =&gt; <a class="self" href="#89">self</a>.<a href="#79">save_cache</a>(<span class="kw-2">&amp;</span><a class="self" href="#89">self</a>.load_loc),
+                    <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="../../log/macro.error.html">error!</a>(<span class="string">&quot;Failed to create cache dir: {e}&quot;</span>),
+                }
             }
         }
     }
 }
+
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#24">PersistentCache</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="#102">self</a>.<a href="#89">save</a>();
+        <a class="self" href="#107">self</a>.<a href="#89">save</a>();
     }
 }
 
 <span class="kw">impl </span><a href="#18">Cache</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span><a href="#24">PersistentCache</a> {
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <a class="self" href="#108">self</a>.data.get(<span class="kw-2">&amp;</span><a href="#108">request</a>).cloned()
+        <a class="self" href="#113">self</a>.data.get(<span class="kw-2">&amp;</span><a href="#113">request</a>).cloned()
     }
     <span class="kw">fn </span>insert(<span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, result: <a href="verification_result.rs.html#11">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <a class="self" href="#111">self</a>.updated = <span class="bool-val">true</span>;
-        <a class="self" href="#111">self</a>.data.insert(<a href="#111">request</a>, <a href="#111">result</a>)
+        <a class="self" href="#116">self</a>.updated = <span class="bool-val">true</span>;
+        <a class="self" href="#116">self</a>.data.insert(<a href="#116">request</a>, <a href="#116">result</a>)
     }
 }
+
 <span class="kw">impl </span><a href="#18">Cache</a> <span class="kw">for </span><span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;<a href="#24">PersistentCache</a>&gt;&gt; {
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#117">self</a>.lock().unwrap();
-        <a href="#118">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>().<a href="#19">get</a>(<a href="#117">request</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#123">self</a>.lock().unwrap();
+        <a href="#124">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>().<a href="#19">get</a>(<a href="#123">request</a>)
     }
     <span class="kw">fn </span>insert(<span class="self">self</span>, request: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, result: <a href="verification_result.rs.html#11">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="verification_result.rs.html#11">VerificationResult</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#121">self</a>.lock().unwrap();
-        <a href="#122">cache</a>.<a href="#20">insert</a>(<a href="#121">request</a>, <a href="#121">result</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a class="self" href="#127">self</a>.lock().unwrap();
+        <a href="#128">cache</a>.<a href="#20">insert</a>(<a href="#127">request</a>, <a href="#127">result</a>)
     }
 }
 </code></pre></div>
