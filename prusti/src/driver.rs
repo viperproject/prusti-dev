@@ -35,7 +35,8 @@ lazy_static! {
 
 fn get_prusti_version_info() -> String {
     format!(
-        "commit {} {}, built on {}",
+        "{}, commit {} {}, built on {}",
+        env!("CARGO_PKG_VERSION"),
         option_env!("COMMIT_HASH").unwrap_or("<unknown>"),
         option_env!("COMMIT_TIME").unwrap_or("<unknown>"),
         option_env!("BUILD_TIME").unwrap_or("<unknown>"),
@@ -192,12 +193,6 @@ fn main() {
         user::message(format!("Prusti version: {}", get_prusti_version_info()));
         info!("Prusti version: {}", get_prusti_version_info());
 
-        // TODO: decide if we want to keep this enabled; it means that we accept rust programs that
-        // rustc wouldn't. For example: prusti-tests/tests/verify/pass/nll-rfc/borrow_first.rs
-        if !config::no_verify() {
-            // Should no longer be needed since `get_body_with_borrowck_facts` doesn't require this
-            rustc_args.push("-Zpolonius".to_owned());
-        }
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(stmt_expr_attributes)".to_owned());
