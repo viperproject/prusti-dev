@@ -176,7 +176,6 @@ fn main() {
         user::message(format!("Prusti version: {}", get_prusti_version_info()));
         info!("Prusti version: {}", get_prusti_version_info());
 
-        rustc_args.push("-Zpolonius".to_owned());
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(stmt_expr_attributes)".to_owned());
