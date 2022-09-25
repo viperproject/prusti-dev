@@ -169,8 +169,9 @@ impl<'a> GeneratedStruct<'a> {
         let self_type_path: syn::TypePath = parse_quote_spanned! {self_type_ident.span()=>
             #self_type_ident
         };
+        let self_type = syn::Type::Path(self_type_path);
 
-        generate_extern_spec_method_stub(trait_method, &self_type_path, Some(&self.self_type_trait), ExternSpecKind::Trait)
+        generate_extern_spec_method_stub(trait_method, &self_type, Some(&self.self_type_trait), ExternSpecKind::Trait)
     }
 }
 

@@ -221,7 +221,7 @@ mod self_type_rewriter {
 mod receiver_rewriter {
     use proc_macro2::{Ident, TokenStream, TokenTree};
     use quote::{quote, quote_spanned};
-    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, TypePath};
+    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, Type};
     use syn::spanned::Spanned;
     use syn::visit_mut::VisitMut;
 
@@ -242,25 +242,25 @@ mod receiver_rewriter {
     /// }
     /// ```
     pub(crate) trait RewritableReceiver {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath);
+        fn rewrite_receiver(&mut self, new_ty: &Type);
     }
 
     impl RewritableReceiver for ImplItemMethod {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
+        fn rewrite_receiver(&mut self, new_ty: &Type) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_impl_item_method(self);
         }
     }
 
     impl RewritableReceiver for ItemFn {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
+        fn rewrite_receiver(&mut self, new_ty: &Type) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_item_fn(self);
         }
     }
 
     struct Rewriter<'a> {
-        new_ty: &'a TypePath,
+        new_ty: &'a Type,
     }
 
     impl<'a> Rewriter<'a> {

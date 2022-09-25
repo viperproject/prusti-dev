@@ -1,4 +1,4 @@
-use crate::{ExternSpecKind, extract_prusti_attributes, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
+use crate::{ExternSpecKind, extract_prusti_attributes, extract_type_path, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
 use quote::{quote, ToTokens};
 use syn::{Expr, FnArg, parse_quote_spanned, Pat, PatType, Token};
 use syn::punctuated::Punctuated;
@@ -118,12 +118,11 @@ fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
 ///
 pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes + Spanned>(
     method: &T,
-    self_type: &syn::TypePath,
+    self_type: &syn::Type,
     self_type_trait: Option<&syn::TypePath>,
     extern_spec_kind: ExternSpecKind,
 ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
     let base_sig = method.sig();
-
     // Make elided lifetimes explicit, if necessary.
     let method_sig = with_explicit_lifetimes(base_sig).unwrap_or_else(|| base_sig.clone());
     let method_sig_span = method_sig.span();
@@ -162,12 +161,12 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     // In the generated spec items and the stub method:
     // - Rewrite associated types
     // - Rewrite "self" to "_self"
-    let self_type_path = parse_quote_spanned! {self_type.span()=> #self_type };
+    let self_type_path = extract_type_path(self_type);
 
     let mut stub_method = stub_method.expect_impl_item();
     stub_method.attrs.extend(generated_attributes);
     stub_method.rewrite_self_type(&self_type_path, self_type_trait);
-    stub_method.rewrite_receiver(&self_type_path);
+    stub_method.rewrite_receiver(&self_type);
 
     // Set span of generated method to externally specified method for better error reporting
     syn::visit_mut::visit_impl_item_method_mut(&mut SpanOverrider::new(method_sig_span), &mut stub_method);
@@ -179,7 +178,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
                     #spec_item_fn
                 };
                 spec_item_fn.rewrite_self_type(&self_type_path, self_type_trait);
-                spec_item_fn.rewrite_receiver(&self_type_path);
+                spec_item_fn.rewrite_receiver(&self_type);
 
                 spec_item_fn
             }

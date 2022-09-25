@@ -83,12 +83,6 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
         }
     }
 
-    let item_ty_path = if let syn::Type::Path(ref type_path) = **item_ty {
-        type_path.clone()
-    } else {
-        unreachable!("expected type path in extern spec trait impl");
-    };
-
     let mut rewritten_items = Vec::new();
     for item in impl_item.items.iter_mut() {
         match item {
@@ -101,7 +95,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
             syn::ImplItem::Method(method) => {
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
-                    &item_ty_path,
+                    &item_ty,
                     None,
                     ExternSpecKind::InherentImpl,
                 )?;
@@ -136,11 +130,6 @@ fn rewrite_trait_impl(
     new_ty: Box<syn::Type>,
 ) -> syn::Result<syn::ItemImpl> {
     let item_ty = impl_item.self_ty.clone();
-    let item_ty_path = if let syn::Type::Path(ref type_path) = *item_ty {
-        type_path.clone()
-    } else {
-        unreachable!("expected type path in extern spec trait impl");
-    };
 
     // Create new impl
     let mut new_impl = impl_item.clone();
@@ -163,7 +152,7 @@ fn rewrite_trait_impl(
             syn::ImplItem::Method(method) => {
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     &method,
-                    &item_ty_path,
+                    &item_ty,
                     Some(&item_trait_typath),
                     ExternSpecKind::TraitImpl,
                 )?;

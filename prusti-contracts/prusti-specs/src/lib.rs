@@ -569,7 +569,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     for generated_spec_item in generated_spec_items.iter_mut() {
         merge_generics(&mut generated_spec_item.sig.generics, impl_generics);
         generated_spec_item.rewrite_self_type(self_type_path, Some(&trait_path));
-        generated_spec_item.rewrite_receiver(self_type_path);
+        generated_spec_item.rewrite_receiver(self_type);
     }
 
     impl_block.items = new_items;
