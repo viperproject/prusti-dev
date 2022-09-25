@@ -31,7 +31,7 @@ use std::convert::TryInto;
 use syn::{spanned::Spanned, visit::Visit};
 
 use crate::{
-    common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
+    common::{merge_generics, extract_type_path, RewritableReceiver, SelfTypeRewriter},
     predicate::{is_predicate_macro, ParsedPredicate},
     specifications::preparser::{parse_ghost_constraint, parse_prusti, NestedSpec},
 };
@@ -505,16 +505,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         ))),
     };
     
-    fn extract_type_path(ty: &syn::Type) -> &syn::TypePath {
-        match ty {
-            syn::Type::Path(type_path) => type_path,
-            syn::Type::Reference(reference) => extract_type_path(&reference.elem),
-            syn::Type::Group(group) => extract_type_path(&group.elem),
-            _ => unimplemented!("Currently not supported: {:?}", ty),
-        }
-    }
-
-    let self_type_path: &syn::TypePath = extract_type_path(&*impl_block.self_ty);
+    let self_type: &syn::Type = &*impl_block.self_ty;
+    let self_type_path: &syn::TypePath = extract_type_path(&self_type);
 
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();

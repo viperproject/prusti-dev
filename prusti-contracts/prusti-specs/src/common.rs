@@ -462,6 +462,18 @@ pub(crate) fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStr
     }
 }
 
+/// Extracts the main/self type path from a type (e.g. `Foo` from `Foo`, `&Foo`, `[Foo]`, etc.)
+pub(crate) fn extract_type_path(ty: &syn::Type) -> &syn::TypePath {
+    match ty {
+        syn::Type::Path(type_path) => type_path,
+        syn::Type::Reference(reference) => extract_type_path(&reference.elem),
+        syn::Type::Group(group) => extract_type_path(&group.elem),
+        syn::Type::Slice(slice) => extract_type_path(&slice.elem),
+        syn::Type::Array(array) => extract_type_path(&array.elem),
+        _ => unimplemented!("Currently not supported: {:?}", ty),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
