@@ -15,7 +15,6 @@ use crate::{
     },
 };
 use log::{info, trace};
-use prusti_utils::force_matches;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
 use vir::common::identifier::WithIdentifier;
@@ -98,7 +97,7 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
 }
 
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
@@ -106,10 +105,10 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
-            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(context, ast)),
+            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(_context, ast)),
             Type::Map(ref key_type, ref val_type) => ast.map_type(
-                key_type.to_viper(context, ast),
-                val_type.to_viper(context, ast),
+                key_type.to_viper(_context, ast),
+                val_type.to_viper(_context, ast),
             ),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
@@ -311,17 +310,16 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::ApplyMagicWand(ref wand, ref pos) => {
-                let inhale = force_matches!(wand, Expr::MagicWand(_, _, Some(borrow), _) => {
-                    let borrow: usize = borrow_id(*borrow);
-                    let borrow: Expr = borrow.into();
-                    ast.inhale(
-                        ast.predicate_access_predicate(
-                            ast.predicate_access(&[borrow.to_viper(context, ast)], "DeadBorrowToken$"),
-                            ast.full_perm(),
-                        ),
-                        pos.to_viper(context, ast),
-                    )
-                });
+                let Expr::MagicWand(_, _, Some(borrow), _) = wand else { unreachable!() };
+                let borrow: usize = borrow_id(*borrow);
+                let borrow: Expr = borrow.into();
+                let inhale = ast.inhale(
+                    ast.predicate_access_predicate(
+                        ast.predicate_access(&[borrow.to_viper(context, ast)], "DeadBorrowToken$"),
+                        ast.full_perm(),
+                    ),
+                    pos.to_viper(context, ast),
+                );
                 let position =
                     ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(context, ast), position);
@@ -345,13 +343,13 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self {
             PermAmount::Write => ast.full_perm(),
             PermAmount::Read => ast.func_app("read$", &[], ast.perm_type(), ast.no_position()),
             PermAmount::Remaining => ast.perm_sub(
-                PermAmount::Write.to_viper(context, ast),
-                PermAmount::Read.to_viper(context, ast),
+                PermAmount::Write.to_viper(_context, ast),
+                PermAmount::Read.to_viper(_context, ast),
             ),
         }
     }
@@ -614,7 +612,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ContainerOpKind::SeqLen => ast.seq_length(left.to_viper(context, ast)),
             },
             Expr::Seq(ty, elems, _pos) => {
-                let elem_ty = force_matches!(ty, Type::Seq(box elem_ty) => elem_ty);
+                let Type::Seq(box elem_ty) = ty else { unreachable!() };
                 let viper_elem_ty = elem_ty.to_viper(context, ast);
                 if elems.is_empty() {
                     ast.empty_seq(viper_elem_ty)
@@ -627,7 +625,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             }
             Expr::Map(ty, elems, _pos) => {
-                let (key_ty, val_ty) = force_matches!(ty, Type::Map(box k, box v) => (k, v));
+                let Type::Map(box key_ty, box val_ty) = ty else { unreachable!() };
                 let viper_key_ty = key_ty.to_viper(context, ast);
                 let viper_val_ty = val_ty.to_viper(context, ast);
                 if elems.is_empty() {

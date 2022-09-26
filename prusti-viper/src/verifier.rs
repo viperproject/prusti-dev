@@ -156,7 +156,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
     }
 
-    pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+    pub fn verify(&mut self, task: &VerificationTask<'tcx>) -> VerificationResult {
         info!(
             "Received {} functions to be verified:",
             task.procedures.len()
@@ -245,6 +245,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         for &proc_id in task.procedures.iter().rev() {
             // FIXME: Use the loop above.
             self.encoder.queue_procedure_encoding(proc_id);
+        }
+        for &type_id in task.types.iter().rev() {
+            // FIXME: Use the loop above.
+            self.encoder.queue_type_encoding(type_id);
         }
         self.encoder.process_encoding_queue();
 
@@ -402,7 +406,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
             config::verify_specifications_backend()
         } else {
             config::viper_backend()
-        };
+        }.parse().unwrap();
         let request = VerificationRequest {
             program,
             backend_config: ViperBackendConfig::new(backend),

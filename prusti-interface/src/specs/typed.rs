@@ -239,6 +239,11 @@ impl Display for ProcedureSpecificationKind {
         }
     }
 }
+impl ProcedureSpecificationKind {
+    pub fn is_impure(&self) -> bool {
+        matches!(self, ProcedureSpecificationKind::Impure)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct LoopSpecification {

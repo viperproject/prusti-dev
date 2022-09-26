@@ -10,18 +10,28 @@ use vir_crate::{
     },
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default)]
+pub(super) struct Places {
+    /// A map from a place with erased lifetimes to normal place. We need this
+    /// because we do not take lifetimes into account when comparing.
+    ///
+    /// FIXME: Define an expression and type wrappers that when ordered do not
+    /// take lifetimes and constants into account, so that we can use `BTreeSet`
+    /// here and avoid many `clone()` (also in `has_prefix`).
+    places: BTreeMap<vir_typed::Expression, vir_typed::Expression>,
+}
+
+#[derive(Clone, Default, Debug)]
 pub(super) struct PredicateState {
-    owned_non_aliased: BTreeSet<vir_typed::Expression>,
-    memory_block_stack: BTreeSet<vir_typed::Expression>,
+    owned_non_aliased: Places,
+    memory_block_stack: Places,
     mut_borrowed: BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
     dead_lifetimes: BTreeSet<vir_typed::ty::LifetimeConst>,
 }
 
 pub(super) struct PlaceWithDeadLifetimes {
     pub(super) place: vir_typed::Expression,
-    pub(super) lifetimes_dead_before: Vec<bool>,
-    pub(super) lifetimes_dead_after: Vec<bool>,
+    pub(super) lifetime: vir_typed::ty::LifetimeConst,
 }
 
 #[derive(Clone)]
@@ -42,6 +52,74 @@ pub(in super::super) struct FoldUnfoldState {
     ///
     /// Invariant: only non-empty entries are present.
     conditional: BTreeMap<vir_mid::BlockMarkerCondition, PredicateState>,
+}
+
+impl Places {
+    pub(super) fn len(&self) -> usize {
+        self.places.len()
+    }
+
+    pub(super) fn is_empty(&self) -> bool {
+        self.places.is_empty()
+    }
+
+    pub(super) fn insert(&mut self, place: vir_typed::Expression) -> bool {
+        self.places
+            .insert(place.clone().erase_lifetime(), place)
+            .is_none()
+    }
+
+    fn remove(&mut self, place: &vir_typed::Expression) -> bool {
+        // FIXME: Avoid cloning.
+        self.places
+            .remove(&place.clone().erase_lifetime())
+            .is_some()
+    }
+
+    fn contains(&self, place: &vir_typed::Expression) -> bool {
+        // FIXME: Avoid cloning.
+        self.places.contains_key(&place.clone().erase_lifetime())
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &'_ vir_typed::Expression> {
+        self.places.values()
+    }
+
+    fn clear(&mut self) {
+        self.places.clear()
+    }
+
+    pub(super) fn drain_filter<'a, F>(
+        &'a mut self,
+        mut pred: F,
+    ) -> impl Iterator<Item = vir_typed::Expression> + 'a
+    where
+        F: 'a + FnMut(&vir_typed::Expression) -> bool,
+    {
+        self.places
+            .drain_filter(move |_, place| pred(place))
+            .map(|(_, place)| place)
+    }
+}
+
+impl<'a> IntoIterator for &'a Places {
+    type Item = &'a vir_typed::Expression;
+
+    type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Box::new(self.places.iter().map(|(_, place)| place))
+    }
+}
+
+impl IntoIterator for Places {
+    type Item = vir_typed::Expression;
+
+    type IntoIter = Box<dyn Iterator<Item = Self::Item>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Box::new(self.places.into_iter().map(|(_, place)| place))
+    }
 }
 
 impl std::fmt::Display for PredicateState {
@@ -78,7 +156,7 @@ impl PredicateState {
             })
     }
 
-    fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_typed::Expression> {
+    fn places_mut(&mut self, kind: PermissionKind) -> &mut Places {
         self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &mut self.memory_block_stack,
@@ -86,7 +164,7 @@ impl PredicateState {
         }
     }
 
-    fn places(&self, kind: PermissionKind) -> &BTreeSet<vir_typed::Expression> {
+    fn places(&self, kind: PermissionKind) -> &Places {
         self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &self.memory_block_stack,
@@ -246,7 +324,7 @@ impl PredicateState {
                 }) => &arguments[0],
                 _ => *p,
             };
-            place.has_prefix(prefix_expr)
+            place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
         }))
     }
 
@@ -271,37 +349,148 @@ impl PredicateState {
         }
     }
 
+    pub(super) fn check_consistency(&self) {
+        if cfg!(debug_assertions) {
+            for place1 in &self.owned_non_aliased {
+                for place2 in &self.owned_non_aliased {
+                    if place1 != place2 {
+                        assert!(
+                            !place1.has_prefix(place2),
+                            "({place1}).has_prefix({place2})"
+                        );
+                    }
+                }
+                for place2 in &self.memory_block_stack {
+                    if place1 != place2 {
+                        assert!(
+                            !place1.has_prefix(place2),
+                            "({place1}).has_prefix({place2})"
+                        );
+                    }
+                }
+            }
+            for place1 in &self.memory_block_stack {
+                for place2 in &self.owned_non_aliased {
+                    if place1 != place2 {
+                        assert!(
+                            !place1.has_prefix(place2),
+                            "({place1}).has_prefix({place2})"
+                        );
+                    }
+                }
+                for place2 in &self.memory_block_stack {
+                    if place1 != place2 {
+                        assert!(
+                            !place1.has_prefix(place2),
+                            "({place1}).has_prefix({place2})"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// When a lifetime dies, we can three kinds of places:
+    ///
+    /// 1.  Places that end with a type containing the dead lifetime as a
+    ///     parameter. For example, `z` in the following snippet:
+    ///
+    ///     ```ignore
+    ///     fn callee<'a>(a: &'a mut T3) -> T4<'a> {
+    ///         T4 {
+    ///             f: a,
+    ///         }
+    ///     }
+    ///     let z = callee(&mut a);
+    ///     let _ = z;
+    ///     ```
+    ///
+    ///     Since `T4` might be unsafe, we cannot just unfold it. Therefore, we
+    ///     need to call a builtin function that marks the lifetime `'a` as dead
+    ///     in `z`.
+    /// 2.  Places that dereference a reference with an expiring lifetime. This
+    ///     variant has two cases we care about:
+    ///
+    ///     1.  `UniqueRef` is present. For example, `x` in the following
+    ///         snippet:
+    ///
+    ///         ```ignore
+    ///         let x = &mut a;
+    ///         // dead(x)
+    ///         ```
+    ///
+    ///         In this case, we know that we have a complete `UniqueRef(*x)`
+    ///         and can replace it with a `MemoryBlock(x)`.
+    ///
+    ///     2.  At least some part of `UniqueRef` is missing. This happens when
+    ///         we have a reborrow:
+    ///
+    ///         ```ignore
+    ///         let x = &mut a;
+    ///         let y = &mut *x.f;
+    ///         // dead(x)
+    ///         ```
+    ///
+    ///         Note: since `y` is borrowing not `x`, but `a.f`, `x` can dye
+    ///         before `y`.
+    ///
+    ///         In this case, we need to forget about `UniqueRef` parts (delete
+    ///         them from fold-unfold state) and replace with `MemoryBlock(x)`
+    ///         because we know that this is what we have in the verifier's
+    ///         state.
+    ///
+    ///     If at some later point a folded version is requested, the
+    ///     fold-unfold algorithm should check that the lifetime is already dead
+    ///     and require only the backing memory block for producing `Owned` of
+    ///     reference.
     pub(super) fn mark_lifetime_dead(
         &mut self,
         lifetime: &vir_typed::ty::LifetimeConst,
-    ) -> (Vec<vir_typed::Expression>, Vec<PlaceWithDeadLifetimes>) {
+    ) -> (BTreeSet<vir_typed::Expression>, Vec<PlaceWithDeadLifetimes>) {
         assert!(
             !self.dead_lifetimes.contains(lifetime),
             "The lifetime {} is already dead.",
             lifetime
         );
-        let dead_references = self
+        let all_dead_references: Vec<_> = self
             .owned_non_aliased
             .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
             .collect();
+        // Case 2.1.
+        let mut dead_references = BTreeSet::new();
+        // Case 2.2.
+        let mut partial_dead_references = BTreeSet::new();
+        for place in all_dead_references {
+            if let vir_typed::Expression::Deref(vir_typed::Deref { box base, .. }) = &place {
+                if let vir_typed::Type::Reference(vir_typed::ty::Reference {
+                    lifetime: lft, ..
+                }) = base.get_type()
+                {
+                    if lifetime == lft {
+                        self.memory_block_stack.insert(base.clone());
+                        dead_references.insert(place);
+                        continue;
+                    }
+                }
+            }
+            partial_dead_references.insert(place.into_ref_with_lifetime(lifetime));
+        }
+        for place in partial_dead_references {
+            self.memory_block_stack.insert(place);
+        }
+        // Case 1.
         let mut places_with_dead_lifetimes = Vec::new();
         for place in &self.owned_non_aliased {
             let lifetimes = place.get_type().get_lifetimes();
             if lifetimes.contains(lifetime) {
                 places_with_dead_lifetimes.push(PlaceWithDeadLifetimes {
                     place: place.clone(),
-                    lifetimes_dead_before: lifetimes
-                        .iter()
-                        .map(|l| self.dead_lifetimes.contains(l))
-                        .collect(),
-                    lifetimes_dead_after: lifetimes
-                        .iter()
-                        .map(|l| self.dead_lifetimes.contains(l) || l == lifetime)
-                        .collect(),
+                    lifetime: lifetime.clone(),
                 });
             }
         }
         self.dead_lifetimes.insert(lifetime.clone());
+        self.check_consistency();
         (dead_references, places_with_dead_lifetimes)
     }
 }
@@ -498,10 +687,10 @@ impl FoldUnfoldState {
     }
 
     fn merge_unconditional(
-        unconditional: &mut BTreeSet<vir_typed::Expression>,
-        incoming_unconditional: BTreeSet<vir_typed::Expression>,
-        new_conditional: &mut BTreeSet<vir_typed::Expression>,
-        incoming_conditional: &mut BTreeSet<vir_typed::Expression>,
+        unconditional: &mut Places,
+        incoming_unconditional: Places,
+        new_conditional: &mut Places,
+        incoming_conditional: &mut Places,
     ) -> SpannedEncodingResult<()> {
         let mut unconditional_predicates = BTreeSet::default();
         // Unconditional: merge incoming into self.
@@ -664,6 +853,15 @@ impl FoldUnfoldState {
         self.unconditional.check_no_default_position();
         for predicates in self.conditional.values() {
             predicates.check_no_default_position();
+        }
+    }
+
+    pub(super) fn check_consistency(&self) {
+        if cfg!(debug_assertions) {
+            self.unconditional.check_consistency();
+            for predicates in self.conditional.values() {
+                predicates.check_consistency();
+            }
         }
     }
 }

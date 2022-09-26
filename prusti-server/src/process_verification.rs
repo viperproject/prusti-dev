@@ -82,13 +82,11 @@ pub fn process_verification_request<'v, 't: 'v>(
     // Early return in case of cache hit
     if config::enable_cache() {
         if let Some(mut result) = cache.get(hash) {
-            if result != VerificationResult::Success {
-                info!(
-                    "cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+            info!(
+                "Using cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             if config::dump_viper_program() {
                 ast_utils.with_local_frame(16, || {
                     let _ = build_or_dump_viper_program();
@@ -112,14 +110,13 @@ pub fn process_verification_request<'v, 't: 'v>(
         stopwatch.start_next("verification");
         let mut result = verifier.verify(viper_program);
 
-        if config::enable_cache() {
-            if result != VerificationResult::Success {
-                info!(
-                    "storing new cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+        // Don't cache Java exceptions, which might be due to misconfigured paths.
+        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+            info!(
+                "Storing new cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             cache.insert(hash, result.clone());
         }
 
@@ -180,10 +177,10 @@ fn new_viper_verifier<'v, 't: 'v>(
             log_path,
             config::preserve_smt_trace_files(),
             config::write_smt_statistics(),
-            config::smt_quantifier_instantiations_ignore_builtin(),
-            config::smt_quantifier_instantiations_bound_global_kind(),
-            config::smt_quantifier_instantiations_bound_trace(),
-            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_qi_ignore_builtin(),
+            config::smt_qi_bound_global_kind(),
+            config::smt_qi_bound_trace(),
+            config::smt_qi_bound_trace_kind(),
             config::smt_unique_triggers_bound(),
             config::smt_unique_triggers_bound_total(),
         );
@@ -199,12 +196,9 @@ fn new_viper_verifier<'v, 't: 'v>(
         (config::smt_solver_path(), SmtManager::default())
     };
     let boogie_path = config::boogie_path();
-    if let Some(bound) = config::smt_quantifier_instantiations_bound_global() {
+    if let Some(bound) = config::smt_qi_bound_global() {
         // We need to set the environment variable to reach our Z3 wrapper.
-        std::env::set_var(
-            "PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL",
-            bound.to_string(),
-        );
+        std::env::set_var("PRUSTI_SMT_QI_BOUND_GLOBAL", bound.to_string());
     }
 
     verification_context.new_verifier(

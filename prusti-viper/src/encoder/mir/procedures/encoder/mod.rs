@@ -183,6 +183,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut pre_statements = assume_lifetime_preconditions;
         pre_statements.extend(allocate_parameters);
         pre_statements.extend(assume_preconditions);
+        let old_label = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::old_label_no_pos(PRECONDITION_LABEL.to_string()),
+            self.mir.span,
+            ErrorCtxt::UnexpectedAssumeMethodPrecondition,
+            self.def_id,
+        )?;
+        pre_statements.push(old_label);
         pre_statements.extend(allocate_returns);
         let mut post_statements = assert_postconditions;
         post_statements.extend(deallocate_parameters);
@@ -372,13 +379,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             preconditions.push(assume_statement);
         }
-        let old_label = self.encoder.set_statement_error_ctxt(
-            vir_high::Statement::old_label_no_pos(PRECONDITION_LABEL.to_string()),
-            mir_span,
-            ErrorCtxt::UnexpectedAssumeMethodPrecondition,
-            self.def_id,
-        )?;
-        preconditions.push(old_label);
         let mut postconditions = vec![vir_high::Statement::comment(
             "Assert functional postconditions.".to_string(),
         )];
@@ -642,42 +642,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Ref(region, borrow_kind, place) => {
                 let is_reborrow = place
                     .iter_projections()
-                    .any(|(_ref, projection)| projection == mir::ProjectionElem::Deref);
-                let is_mut = matches!(
-                    borrow_kind,
-                    mir::BorrowKind::Mut {
-                        allow_two_phase_borrow: _,
-                    }
-                );
+                    .filter(|(_ref, projection)| projection == &mir::ProjectionElem::Deref)
+                    .last();
+                let uniquness = match borrow_kind {
+                    mir::BorrowKind::Mut { .. } => vir_high::ty::Uniqueness::Unique,
+                    _ => vir_high::ty::Uniqueness::Shared,
+                };
                 let encoded_place = self.encode_place(*place, None)?;
                 let region_name = region.to_text();
-                let operand_lifetime = vir_high::ty::LifetimeConst { name: region_name };
-                let root: vir_high::Expression = self
-                    .encoder
-                    .encode_local_high(self.mir, place.local)?
-                    .into();
-                let place_lifetimes = root.get_lifetimes();
+                let new_borrow_lifetime = vir_high::ty::LifetimeConst { name: region_name };
 
-                let encoded_rvalue = if is_reborrow {
+                let encoded_rvalue = if let Some((place, _)) = is_reborrow {
+                    let reference_type = place.ty(self.mir, self.encoder.env().tcx());
+                    let deref_lifetime = match reference_type.ty.kind() {
+                        ty::TyKind::Ref(region, _, _) => vir_high::ty::LifetimeConst {
+                            name: region.to_text(),
+                        },
+                        _ => unreachable!(),
+                    };
                     if let vir_high::Expression::Local(local) = &encoded_target {
                         self.points_to_reborrow.insert(local.clone());
                     }
                     vir_high::Rvalue::reborrow(
+                        new_borrow_lifetime,
+                        deref_lifetime,
                         encoded_place,
-                        operand_lifetime,
-                        place_lifetimes,
-                        is_mut,
+                        uniquness,
                         self.lifetime_token_fractional_permission(self.lifetime_count),
-                        encoded_target.clone(),
                     )
                 } else {
                     vir_high::Rvalue::ref_(
+                        new_borrow_lifetime,
                         encoded_place,
-                        operand_lifetime,
-                        place_lifetimes,
-                        is_mut,
+                        uniquness,
                         self.lifetime_token_fractional_permission(self.lifetime_count),
-                        encoded_target.clone(),
                     )
                 };
                 let assign_statement = vir_high::Statement::assign(
@@ -836,9 +834,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::AggregateKind::Closure(_, _) => unimplemented!(),
             mir::AggregateKind::Generator(_, _, _) => unimplemented!(),
         };
+        let base_lifetimes = ty.get_lifetimes();
+        let lifetime_replacement_map = self
+            .lifetimes
+            .construct_replacement_map(location, base_lifetimes);
+
         let mut encoded_operands = Vec::new();
         for operand in operands {
-            encoded_operands.push(self.encode_statement_operand(location, operand)?);
+            let mut encoded_operand = self.encode_statement_operand(location, operand)?;
+            let new_expression = encoded_operand
+                .expression
+                .clone()
+                .replace_lifetimes(&lifetime_replacement_map);
+            if encoded_operand.kind == vir_high::OperandKind::Move {
+                if let vir_high::Type::Reference(ty) = encoded_operand.expression.get_type() {
+                    // FIXME: Figure out whether we need to do this also for Copy.
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::LifetimeEncoding,
+                        vir_high::Statement::bor_shorten_no_pos(
+                            lifetime_replacement_map[&ty.lifetime].clone(),
+                            ty.lifetime.clone(),
+                            encoded_operand.expression.clone(),
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                        ),
+                    )?);
+                }
+            }
+            encoded_operand.expression = new_expression;
+            encoded_operands.push(encoded_operand);
         }
         let encoded_rvalue = vir_high::Rvalue::aggregate(ty, encoded_operands);
         block_builder.add_statement(vir_high::Statement::assign(

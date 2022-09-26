@@ -5,7 +5,9 @@ use vir_crate::{
     high as vir_high,
     typed::{
         self as vir_typed,
-        operations::{HighToTypedExpression, HighToTypedType, HighToTypedTypeDeclLowerer},
+        operations::{
+            HighToTypedExpression, HighToTypedType, HighToTypedTypeDecl, HighToTypedTypeDeclLowerer,
+        },
     },
 };
 
@@ -36,20 +38,6 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
         decl.high_to_typed_expression(self)
     }
 
-    fn high_to_typed_type_decl_discriminant_value(
-        &mut self,
-        value: vir_high::DiscriminantValue,
-    ) -> Result<vir_typed::DiscriminantValue, Self::Error> {
-        Ok(value)
-    }
-
-    fn high_to_typed_type_decl_discriminant_range(
-        &mut self,
-        range: vir_high::DiscriminantRange,
-    ) -> Result<vir_typed::DiscriminantRange, Self::Error> {
-        Ok(range)
-    }
-
     fn high_to_typed_type_decl_expression(
         &mut self,
         expression: vir_high::Expression,
@@ -64,11 +52,83 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
         let arguments = decl.arguments.high_to_typed_type(self)?;
         Ok(vir_typed::TypeDecl::struct_(
             self.generate_tuple_name(&arguments)?,
+            decl.lifetimes.high_to_typed_type(self)?,
+            decl.const_parameters.high_to_typed_expression(self)?,
             arguments
                 .into_iter()
                 .enumerate()
                 .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{}", index), index, ty))
                 .collect(),
         ))
+    }
+
+    fn high_to_typed_type_decl_variable_decl(
+        &mut self,
+        variable: vir_high::VariableDecl,
+    ) -> Result<vir_typed::VariableDecl, Self::Error> {
+        variable.high_to_typed_expression(self)
+    }
+
+    fn high_to_typed_type_decl_lifetime_const(
+        &mut self,
+        lifetime: vir_high::ty::LifetimeConst,
+    ) -> Result<vir_typed::ty::LifetimeConst, Self::Error> {
+        lifetime.high_to_typed_type(self)
+    }
+
+    fn high_to_typed_type_decl_type_decl_slice(
+        &mut self,
+        decl: vir_high::type_decl::Slice,
+    ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        Ok(vir_typed::TypeDecl::Array(vir_typed::type_decl::Array {
+            lifetimes: decl.lifetimes.high_to_typed_type(self)?,
+            const_parameters: decl.const_parameters.high_to_typed_expression(self)?,
+            element_type: decl.element_type.high_to_typed_type(self)?,
+        }))
+    }
+
+    fn high_to_typed_type_decl_array(
+        &mut self,
+        decl: vir_high::type_decl::Array,
+    ) -> Result<vir_typed::type_decl::Array, Self::Error> {
+        Ok(vir_typed::type_decl::Array {
+            lifetimes: decl.lifetimes.high_to_typed_type(self)?,
+            const_parameters: decl.const_parameters.high_to_typed_expression(self)?,
+            element_type: decl.element_type.high_to_typed_type(self)?,
+        })
+    }
+
+    fn high_to_typed_type_decl_type_decl_union(
+        &mut self,
+        decl: vir_high::type_decl::Union,
+    ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        Ok(vir_typed::TypeDecl::enum_(
+            decl.name,
+            vir_typed::ty::EnumSafety::Union,
+            decl.arguments.high_to_typed_type(self)?,
+            decl.lifetimes.high_to_typed_type(self)?,
+            decl.const_parameters.high_to_typed_expression(self)?,
+            decl.discriminant_type.high_to_typed_type(self)?,
+            decl.discriminant_bounds,
+            decl.discriminant_values,
+            decl.variants.high_to_typed_type_decl(self)?,
+        ))
+    }
+
+    fn high_to_typed_type_decl_enum(
+        &mut self,
+        decl: vir_high::type_decl::Enum,
+    ) -> Result<vir_typed::type_decl::Enum, Self::Error> {
+        Ok(vir_typed::type_decl::Enum {
+            name: decl.name,
+            safety: vir_typed::ty::EnumSafety::Enum,
+            arguments: decl.arguments.high_to_typed_type(self)?,
+            lifetimes: decl.lifetimes.high_to_typed_type(self)?,
+            const_parameters: decl.const_parameters.high_to_typed_expression(self)?,
+            discriminant_type: decl.discriminant_type.high_to_typed_type(self)?,
+            discriminant_bounds: decl.discriminant_bounds,
+            discriminant_values: decl.discriminant_values,
+            variants: decl.variants.high_to_typed_type_decl(self)?,
+        })
     }
 }

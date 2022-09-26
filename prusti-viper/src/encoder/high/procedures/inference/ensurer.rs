@@ -218,6 +218,42 @@ fn can_place_be_ensured_in(
     check_can_place_be_ensured_in(context, place, permission_kind, predicate_state, true)
 }
 
+fn check_contains_place(
+    predicate_state: &mut PredicateState,
+    place: &vir_typed::Expression,
+    permission_kind: PermissionKind,
+) -> SpannedEncodingResult<bool> {
+    let contains = if predicate_state.contains(permission_kind, place) {
+        true
+    } else if permission_kind == PermissionKind::MemoryBlock {
+        let address_place = vir_typed::Expression::field(
+            place.clone(),
+            vir_typed::FieldDecl::new(
+                "address$",
+                0usize,
+                vir_typed::Type::Int(vir_typed::ty::Int::Usize),
+            ),
+            place.position(),
+        );
+        if predicate_state.contains(PermissionKind::MemoryBlock, &address_place) {
+            predicate_state.remove(PermissionKind::MemoryBlock, &address_place)?;
+            predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+            true
+        } else if predicate_state.contains(PermissionKind::Owned, &address_place) {
+            for deref_place in predicate_state.collect_owned_with_prefix(place)? {
+                predicate_state.remove(PermissionKind::Owned, &deref_place)?;
+            }
+            predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+    Ok(contains)
+}
+
 /// Returns `true` if the state should be droped because it should be
 /// unreachable.
 fn ensure_permission_in_state(
@@ -227,7 +263,9 @@ fn ensure_permission_in_state(
     permission_kind: PermissionKind,
     actions: &mut Vec<Action>,
 ) -> SpannedEncodingResult<bool> {
-    let to_drop = if predicate_state.contains(permission_kind, &place) {
+    predicate_state.check_consistency();
+    let to_drop = if check_contains_place(predicate_state, &place, permission_kind)? {
+        debug!("  satisfied: {:?} {}", permission_kind, place);
         // The requirement is already satisfied.
         false
     } else if let Some(prefix) = predicate_state.find_prefix(permission_kind, &place) {
@@ -256,8 +294,9 @@ fn ensure_permission_in_state(
             None
         };
         let position = {
-            let error_ctxt = if let vir_typed::Type::Union(vir_typed::ty::Union {
+            let error_ctxt = if let vir_typed::Type::Enum(vir_typed::ty::Enum {
                 variant: Some(_),
+                safety: vir_typed::ty::EnumSafety::Union,
                 ..
             }) = prefix.get_type()
             {
@@ -404,5 +443,6 @@ fn ensure_permission_in_state(
             place, permission_kind, predicate_state
         );
     };
+    predicate_state.check_consistency();
     Ok(to_drop)
 }

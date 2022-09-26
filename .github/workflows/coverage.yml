@@ -17,17 +17,16 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
       - name: Build with cargo
-        run: python x.py build --all --verbose
+        run: python x.py build --all
         env:
           RUSTFLAGS: -Zinstrument-coverage
       - name: Run cargo tests, enabling debug dumps

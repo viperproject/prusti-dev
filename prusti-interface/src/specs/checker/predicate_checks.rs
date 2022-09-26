@@ -113,7 +113,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
             self.predicates.insert(def_id, s);
         }
 
-        intravisit::walk_fn(self, fk, fd, b, s, id);
+        intravisit::walk_fn(self, fk, fd, b, id);
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {

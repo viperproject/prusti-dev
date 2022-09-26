@@ -272,12 +272,12 @@ mod receiver_rewriter {
             syn::visit_mut::visit_item_fn_mut(self, item);
         }
 
-        fn rewrite_tokens(&self, tokens: TokenStream) -> TokenStream {
+        fn rewrite_tokens(tokens: TokenStream) -> TokenStream {
             let tokens_span = tokens.span();
             let rewritten = TokenStream::from_iter(tokens.into_iter().map(|token| match token {
                 TokenTree::Group(group) => {
                     let new_group =
-                        proc_macro2::Group::new(group.delimiter(), self.rewrite_tokens(group.stream()));
+                        proc_macro2::Group::new(group.delimiter(), Self::rewrite_tokens(group.stream()));
                     TokenTree::Group(new_group)
                 }
                 TokenTree::Ident(ident) if ident == "self" => {
@@ -322,7 +322,7 @@ mod receiver_rewriter {
 
         fn visit_macro_mut(&mut self, makro: &mut Macro) {
             // A macro can appear in a spec function (e.g. `matches!`)
-            makro.tokens = self.rewrite_tokens(makro.tokens.clone());
+            makro.tokens = Self::rewrite_tokens(makro.tokens.clone());
             syn::visit_mut::visit_macro_mut(self, makro);
         }
     }

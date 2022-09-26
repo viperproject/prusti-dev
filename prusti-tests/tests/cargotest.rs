@@ -94,7 +94,7 @@ error: could not compile `foo` due to previous error
 ///
 /// For more details on the special syntax allowed in the `output.*` files, check the documentation
 /// of `cargo_test_support`: <https://doc.crates.io/contrib/tests/writing.html>.
-fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, dependencies: &[&str]) {
+fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     let mut project_builder = project().no_manifest();
     let relative_project_path = Path::new("tests/cargo_verify").join(project_name.into());
     let project_path = fs::canonicalize(&relative_project_path).unwrap_or_else(|_| {
@@ -142,26 +142,15 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
         Path::new("prusti-contracts"),
     );
 
-    let cargo_verify_path = project_path.parent().unwrap_or_else(|| {
-        panic!(
-            "Failed to obtain parent folders of {}",
-            project_path.display()
-        )
-    });
-    for crate_name in dependencies {
-        println!(
-            "Creating symlink for {} -> {}",
-            Path::new(crate_name).display(),
-            cargo_verify_path.join(crate_name).as_path().display()
-        );
-        project_builder = project_builder.symlink_dir(
-            cargo_verify_path.join(crate_name).as_path(),
-            Path::new(crate_name),
-        );
-    }
-
     // Fetch dependencies using the same target folder of cargo-prusti
     let project = project_builder.build();
+    project
+        .process("cargo")
+        .arg("--config")
+        .arg("net.retry=5")
+        .arg("build")
+        .env("CARGO_TARGET_DIR", "target/verify")
+        .run();
 
     // Set the expected exit status, stdout and stderr
     let mut test_builder = project.process(cargo_prusti_path());
@@ -181,15 +170,14 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
     test_builder.run();
 }
 
-fn test_local_project<T: Into<PathBuf>>(project_name: T) {
-    test_local_project_with_dependencies(project_name, &[]);
-}
-
 #[cargo_test]
 fn test_symlinks() {
     // Required by `test_local_project`
     assert!(symlink_supported());
 }
+
+// TODO: automatically create a test for each folder in `test/cargo_verify`.
+// Each of the following functions, listed in alphabetic order, test a crate in `cargo_verify/`.
 
 #[cargo_test]
 fn test_failing_crate() {
@@ -197,8 +185,18 @@ fn test_failing_crate() {
 }
 
 #[cargo_test]
+fn test_library_contracts_test() {
+    test_local_project("library_contracts_test");
+}
+
+#[cargo_test]
 fn test_no_deps() {
     test_local_project("no_deps");
+}
+
+#[cargo_test]
+fn test_overflow_checks() {
+    test_local_project("overflow_checks");
 }
 
 #[cargo_test]
@@ -230,17 +228,8 @@ fn test_no_std() {
     test_local_project("test_no_std");
 }
 
+#[ignore] // Currently broken
 #[cargo_test]
-fn test_overflow_checks() {
-    test_local_project("overflow_checks");
-}
-
-// TODO: automatically create a test for each folder in `test/cargo_verify`.
-
-#[cargo_test]
-fn test_library_contracts_test() {
-    test_local_project_with_dependencies(
-        "library_contracts_test",
-        &["library_contracts_lib", "library_contracts_extern_specs"],
-    );
+fn test_veribetrfs() {
+    test_local_project("veribetrfs");
 }
