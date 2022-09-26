@@ -33,10 +33,25 @@ pub fn get_current_executable_dir() -> PathBuf {
         .to_path_buf()
 }
 
-pub fn get_prusti_contracts_dir(exe_dir: PathBuf) -> PathBuf {
-    let mut prusti_dir = exe_dir.parent().unwrap().parent().unwrap().to_path_buf();
-    prusti_dir.extend(["prusti-contracts", "target", "verify", "release"]);
-    prusti_dir
+pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
+    let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
+    let candidates = [
+        // Libraries in the Prusti artifact will show up here
+        exe_dir.to_path_buf(),
+        // Libraries when building Prusti will show up here
+        exe_dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("prusti-contracts")
+            .join("target")
+            .join("verify")
+            .join("release"),
+    ];
+    candidates
+        .into_iter()
+        .find(|candidate| candidate.join(&a_prusti_contracts_file).exists())
 }
 
 /// Append paths to the loader environment variable
