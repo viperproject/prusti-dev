@@ -177,10 +177,10 @@ fn new_viper_verifier<'v, 't: 'v>(
             log_path,
             config::preserve_smt_trace_files(),
             config::write_smt_statistics(),
-            config::smt_quantifier_instantiations_ignore_builtin(),
-            config::smt_quantifier_instantiations_bound_global_kind(),
-            config::smt_quantifier_instantiations_bound_trace(),
-            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_qi_ignore_builtin(),
+            config::smt_qi_bound_global_kind(),
+            config::smt_qi_bound_trace(),
+            config::smt_qi_bound_trace_kind(),
             config::smt_unique_triggers_bound(),
             config::smt_unique_triggers_bound_total(),
         );
@@ -196,12 +196,9 @@ fn new_viper_verifier<'v, 't: 'v>(
         (config::smt_solver_path(), SmtManager::default())
     };
     let boogie_path = config::boogie_path();
-    if let Some(bound) = config::smt_quantifier_instantiations_bound_global() {
+    if let Some(bound) = config::smt_qi_bound_global() {
         // We need to set the environment variable to reach our Z3 wrapper.
-        std::env::set_var(
-            "PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL",
-            bound.to_string(),
-        );
+        std::env::set_var("PRUSTI_SMT_QI_BOUND_GLOBAL", bound.to_string());
     }
 
     verification_context.new_verifier(

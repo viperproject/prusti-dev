@@ -1,7 +1,6 @@
-use ::config::{Value, Source, ConfigError};
-use std::collections::HashMap;
+use ::config::{ConfigError, Source, Value};
 use itertools::Itertools;
-use std::env;
+use std::{collections::HashMap, env};
 
 #[derive(Clone, Debug)]
 pub struct CommandLine {
@@ -57,8 +56,7 @@ impl CommandLine {
 
     /// Return String iterator of arguments that are invalid.
     pub fn get_remaining_args(self) -> impl Iterator<Item = String> {
-        env::args()
-            .filter(move |arg| !self.is_valid_arg(arg))
+        env::args().filter(move |arg| !self.is_valid_arg(arg))
     }
 
     fn get_prefix(&self) -> String {
@@ -69,8 +67,7 @@ impl CommandLine {
     }
 
     fn split_arg<'a>(&'a self, arg: &'a str) -> impl Iterator<Item = String> + 'a {
-        arg.splitn(2, &self.separator)
-            .map(|s| s.to_owned())
+        arg.splitn(2, &self.separator).map(|s| s.to_owned())
     }
 
     // An argument is valid if it begins with the optional
@@ -79,9 +76,11 @@ impl CommandLine {
     fn is_valid_arg(&self, arg: &str) -> bool {
         let prefix = self.get_prefix();
         if arg.starts_with(&prefix) {
-            return self.split_arg(&arg[prefix.len()..])
+            return self
+                .split_arg(&arg[prefix.len()..])
                 .map(|s| if s.is_empty() { 3 } else { 1 })
-                .sum::<i32>() == 2;
+                .sum::<i32>()
+                == 2;
         }
         false
     }
@@ -109,23 +108,23 @@ impl Source for CommandLine {
         let prefix_pattern = self.get_prefix();
 
         for arg in env::args() {
-
             if !self.is_valid_arg(&arg) {
                 if !self.ignore_invalid {
-                    return Err(ConfigError::Message(format!("Invalid command-line arg: '{}'", arg)));
+                    return Err(ConfigError::Message(format!(
+                        "Invalid command-line arg: '{}'",
+                        arg
+                    )));
                 }
 
                 continue;
             }
 
             // If arg is valid this can't panic
-            let (key, val) = self.split_arg(&arg[prefix_pattern.len()..])
-                                .next_tuple()
-                                .unwrap();
-            m.insert(
-                key.to_lowercase(),
-                Value::new(Some(&uri), val),
-            );
+            let (key, val) = self
+                .split_arg(&arg[prefix_pattern.len()..])
+                .next_tuple()
+                .unwrap();
+            m.insert(key.to_lowercase(), Value::new(Some(&uri), val));
         }
 
         Ok(m)
