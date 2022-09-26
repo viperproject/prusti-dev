@@ -14,7 +14,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
-    middle::hir::map::Map,
+    middle::{hir::map::Map, ty},
     span::Span,
 };
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
@@ -40,6 +40,18 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+}
+
+impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
+    fn from(refs: &ProcedureSpecRefs) -> Self {
+        if refs.abstract_predicate {
+            ProcedureSpecificationKind::Predicate(None)
+        } else if refs.pure {
+            ProcedureSpecificationKind::Pure
+        } else {
+            ProcedureSpecificationKind::Impure
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -106,13 +118,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
 
-            let mut kind = if refs.abstract_predicate {
-                ProcedureSpecificationKind::Predicate(None)
-            } else if refs.pure {
-                ProcedureSpecificationKind::Pure
-            } else {
-                ProcedureSpecificationKind::Impure
-            };
+            let mut kind = refs.into();
 
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
@@ -288,6 +294,13 @@ fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
     spec_id
         .try_into()
         .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
+}
+
+/// Returns true iff def_id points to a spec function (i.e. a function for
+/// which we don't need polonius/borrowck facts)
+pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
+    let attrs = tcx.get_attrs_unchecked(def_id);
+    read_prusti_attr("spec_id", attrs).is_some()
 }
 
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {

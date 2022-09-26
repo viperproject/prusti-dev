@@ -18,7 +18,7 @@ use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::{info, warn};
-use prusti_common::{config, report::user, Stopwatch};
+use prusti_common::{config, launch::PRUSTI_HELPERS, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic};
 
@@ -116,17 +116,34 @@ fn main() {
     // have been filtered out.
     let original_rustc_args = config::get_filtered_args();
 
-    // If the environment asks us to actually be rustc, or if lints have been disabled (which
-    // indicates that an upstream dependency is being compiled), then run `rustc` instead of Prusti.
-    let prusti_be_rustc = config::be_rustc();
+    // If the environment asks us to actually be rustc, then run `rustc` instead of Prusti.
+    if config::be_rustc() {
+        prusti_rustc_interface::driver::main();
+    }
+
     // This environment variable will not be set when building dependencies.
     let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
-    let is_no_verify_crate = !is_primary_package && config::no_verify_deps();
+    // Is this crate a dependency when user doesn't want to verify dependencies
+    let is_no_verify_dep_crate = !is_primary_package && config::no_verify_deps();
+
+    // Would `cargo check` not report errors for this crate? That is, are lints disabled
+    // (i.e. is this a non-local crate)
     let are_lints_disabled =
         arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
-    let is_prusti_package = config::is_prusti_helper_crate();
-    if prusti_be_rustc || is_no_verify_crate || are_lints_disabled || is_prusti_package {
-        prusti_rustc_interface::driver::main();
+
+    // Remote dependencies (e.g. from git/crates.io), or any dependencies if `no_verify_deps`,
+    // are not verified. However, we still run Prusti on them to export potential specs.
+    if is_no_verify_dep_crate || are_lints_disabled {
+        config::set_no_verify(true);
+    } else if !config::no_verify() {
+        assert!(
+            env::var("CARGO_PKG_NAME")
+                .map(|name| !PRUSTI_HELPERS.contains(&name.as_str()))
+                .unwrap_or(true),
+            "`prusti-contracts/*` crates should never be in a subdirectory of the crate \
+            currently being compiled, since they have `Prusti.toml` files which shouldn't \
+            be ignored! Move these crates elsewhere."
+        );
     }
 
     lazy_static::initialize(&ICE_HOOK);

@@ -8,9 +8,9 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
+use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home, PRUSTI_HELPERS, PRUSTI_LIBS};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -66,7 +66,7 @@ lazy_static::lazy_static! {
     static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();
 
-        // 1. Default values
+        // 0. Default values
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
         settings.set_default::<Option<String>>("smt_solver_path", env::var("Z3_EXE").ok()).unwrap();
@@ -94,7 +94,6 @@ lazy_static::lazy_static! {
         settings.set_default("dump_borrowck_info", false).unwrap();
         settings.set_default("dump_viper_program", false).unwrap();
         settings.set_default("foldunfold_state_filter", "").unwrap();
-        settings.set_default("contracts_lib", "").unwrap();
         settings.set_default::<Vec<String>>("extra_jvm_args", vec![]).unwrap();
         settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
         settings.set_default("quiet", false).unwrap();
@@ -136,14 +135,17 @@ lazy_static::lazy_static! {
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
 
+        settings.set_default("cargo_path", "cargo").unwrap();
+        settings.set_default("cargo_command", "check").unwrap();
+
         // Flags for testing.
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
         settings.set_default("use_smt_wrapper", false).unwrap();
-        settings.set_default("smt_quantifier_instantiations_ignore_builtin", true).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
-        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default("smt_qi_ignore_builtin", true).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_global", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_global_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_trace", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_bound_trace_kind", None).unwrap();
         settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
         settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
 
@@ -171,20 +173,28 @@ lazy_static::lazy_static! {
         allowed_keys.insert("rustc_log_env".to_string());
         allowed_keys.insert("original_smt_solver_path".to_string());
 
-        // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
+        // TODO: reduce this to something more sensible:
+        static MAX_CONFIG_LEN: usize = 40;
+        debug_assert!(
+            allowed_keys.iter().all(|key| key.len() <= MAX_CONFIG_LEN),
+            "Hey Prusti dev, please reduce the length of these configs: {:?}. \
+            Long configs are a pain to work with and list out in the guide.",
+            allowed_keys.iter().filter(|key| key.len() > MAX_CONFIG_LEN).collect::<Vec<_>>()
+        );
+
+        // 1. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
             Environment::with_prefix("DEFAULT_PRUSTI").ignore_empty(true)
         ).unwrap();
         check_keys(&settings, &allowed_keys, "default environment variables");
 
-        // 3. Override with an optional TOML file specified by the `PRUSTI_CONFIG` env variable
-        let file = env::var("PRUSTI_CONFIG").unwrap_or_else(|_| "./Prusti.toml".to_string());
-        // Since this file may explicitly be specified by the user, it would be
-        // nice to tell them if we cannot open it.
-        settings.merge(File::with_name(&file).required(false)).unwrap();
-        check_keys(&settings, &allowed_keys, &format!("{} file", file));
+        // 2. Override with an optional "Prusti.toml" file in manifest dir
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+        let file = PathBuf::from(manifest_dir).join("Prusti.toml");
+        settings.merge(File::from(file.as_path()).required(false)).unwrap();
+        check_keys(&settings, &allowed_keys, &format!("{} file", file.to_string_lossy()));
 
-        // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
+        // 3. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
             Environment::with_prefix("PRUSTI")
                 .ignore_empty(true)
@@ -197,7 +207,7 @@ lazy_static::lazy_static! {
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
 
-        // 5. Override with command-line arguments -P<arg>=<val>
+        // 4. Override with command-line arguments -P<arg>=<val>
         settings.merge(
             CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
@@ -222,9 +232,7 @@ fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
-            "{} contains unknown configuration flag: “{}”",
-            source,
-            key
+            "{source} contains unknown configuration flag: “{key}”",
         );
     }
 }
@@ -240,7 +248,10 @@ pub fn get_filtered_args() -> Vec<String> {
 pub fn dump() -> String {
     let settings = SETTINGS.read().unwrap();
     let map = config::Source::collect(&*settings).unwrap();
-    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    let mut pairs: Vec<_> = map
+        .iter()
+        .map(|(key, value)| format!("{}={:#?}", key, value))
+        .collect();
     pairs.sort();
     pairs.join("\n\n")
 }
@@ -256,7 +267,19 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+    SETTINGS
+        .read()
+        .unwrap()
+        .get(name)
+        .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+}
+
+fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
+    SETTINGS
+        .write()
+        .unwrap()
+        .set(key, value)
+        .unwrap_or_else(|e| panic!("Failed to write setting {} due to {}", key, e));
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -281,12 +304,11 @@ pub fn check_foldunfold_state() -> bool {
 ///   [Carbon](https://github.com/viperproject/carbon).
 /// - `Silicon` - symbolic-execution-based backend
 ///   [Silicon](https://github.com/viperproject/silicon/).
-pub fn viper_backend() -> viper::VerificationBackend {
-    let verification_backend_name = read_setting::<String>("viper_backend")
+pub fn viper_backend() -> String {
+    read_setting::<String>("viper_backend")
         .to_lowercase()
         .trim()
-        .to_string();
-    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+        .to_string()
 }
 
 /// The path to the SMT solver to use. `prusti-rustc` is expected to set this
@@ -429,11 +451,6 @@ pub fn encode_bitvectors() -> bool {
     read_setting("encode_bitvectors")
 }
 
-/// Path to `libprusti_contracts*.rlib`.
-pub fn contracts_lib() -> String {
-    read_setting("contracts_lib")
-}
-
 /// Additional arguments to pass to the JVM when launching a verifier backend.
 pub fn extra_jvm_args() -> Vec<String> {
     read_setting("extra_jvm_args")
@@ -477,18 +494,6 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
-}
-
-pub fn is_prusti_helper_crate() -> bool {
-    env::var("CARGO_PKG_NAME")
-        .map(|name| PRUSTI_HELPERS.contains(&name.as_str()))
-        .unwrap_or(false)
-}
-
-pub fn is_prusti_lib_crate() -> bool {
-    env::var("CARGO_PKG_NAME")
-        .map(|name| PRUSTI_LIBS.contains(&name.as_str()))
-        .unwrap_or(false)
 }
 
 /// When enabled, prints the items collected for verification.
@@ -666,38 +671,46 @@ pub fn enable_purification_optimization() -> bool {
 /// be used for tests that aim to catch performance regressions.
 pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
-        value.try_into().expect("verification_deadline must be a valid u64")
+        value
+            .try_into()
+            .expect("verification_deadline must be a valid u64")
     })
 }
 
 /// Instead of using Z3 directly, use our SMT wrapper that tracks important
 /// statistics. This must be set to `true` to use any of the
-/// `smt_quantifier_instantiations_bound_*`.
+/// `smt_qi_bound_*`.
 pub fn use_smt_wrapper() -> bool {
     read_setting("use_smt_wrapper")
 }
 
-fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool
-{
+fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool {
     let value = read_setting(name);
     if value {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
 
-fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64>
-{
+fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
     let value: Option<u64> = read_setting(name);
     if value.is_some() {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
 
 /// Whether the built-in quantifiers should be ignored when comparing bounds.
-pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
-    read_setting("smt_quantifier_instantiations_ignore_builtin")
+pub fn smt_qi_ignore_builtin() -> bool {
+    read_setting("smt_qi_ignore_builtin")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -707,8 +720,8 @@ pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global")
+pub fn smt_qi_bound_global() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_global")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -719,34 +732,34 @@ pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_global_kind() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global_kind")
+pub fn smt_qi_bound_global_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_global_kind")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
 /// program. This bound is for the total number of quantifier instantiations on
 /// a specific trace (in other words, it is a version of
-/// `smt_quantifier_instantiations_bound_global` that takes into account `push`
+/// `smt_qi_bound_global` that takes into account `push`
 /// and `pop`.)
 ///
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace")
+pub fn smt_qi_bound_trace() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_trace")
 }
 
 /// Limit how many quantifier instantiations Z3 can make while verifying the
 /// program. This bound is for the number of quantifier instantiations on a
 /// specific trace per quantifier (in other words, it is a version of
-/// `smt_quantifier_instantiations_bound_trace` that takes computes the
+/// `smt_qi_bound_trace` that takes computes the
 /// instantiations for each quantifier separately.)
 ///
 /// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
-pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
-    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+pub fn smt_qi_bound_trace_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_qi_bound_trace_kind")
 }
 
 /// Limit how many unique triggers per quantifier Z3 can instantiate.
@@ -816,12 +829,11 @@ pub fn verify_specifications_with_core_proof() -> bool {
 }
 
 /// Verification backend to use for functional specification only.
-pub fn verify_specifications_backend() -> viper::VerificationBackend {
-    let verification_backend_name = read_setting::<String>("verify_specifications_backend")
+pub fn verify_specifications_backend() -> String {
+    read_setting::<String>("verify_specifications_backend")
         .to_lowercase()
         .trim()
-        .to_string();
-    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+        .to_string()
 }
 
 /// Whether to generate `eval_axiom`.
@@ -893,6 +905,9 @@ pub fn allow_unreachable_unsupported_code() -> bool {
 pub fn no_verify() -> bool {
     read_setting("no_verify")
 }
+pub fn set_no_verify(value: bool) {
+    write_setting("no_verify", value);
+}
 
 /// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
@@ -920,6 +935,18 @@ pub fn intern_names() -> bool {
 /// introduce unsound verification behavior.
 pub fn enable_ghost_constraints() -> bool {
     read_setting("enable_ghost_constraints")
+}
+
+/// Determines which cargo `cargo-prusti` should run (e.g. if "cargo" isn't in
+/// the path can point to it directly). Not relevant when only running as `prusti=rustc`.
+pub fn cargo_path() -> String {
+    read_setting("cargo_path")
+}
+
+/// Determines which command `cargo-prusti` should run (default is "check"
+/// for `cargo check`). Not relevant when only running as `prusti=rustc`.
+pub fn cargo_command() -> String {
+    read_setting("cargo_command")
 }
 
 /// When enabled, type invariants can be declared on types using the

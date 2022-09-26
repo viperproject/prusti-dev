@@ -18,11 +18,10 @@ use std::{
     process::Command,
 };
 
-pub const PRUSTI_HELPERS: [&str; 4] = [
+pub const PRUSTI_HELPERS: [&str; 3] = [
     "prusti-contracts-internal",
     "prusti-contracts-impl",
     "prusti-specs",
-    "prusti-utils",
 ];
 pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-contracts-std"];
 
@@ -129,7 +128,7 @@ pub fn get_rust_toolchain_channel() -> String {
         components: Option<Vec<String>>,
     }
 
-    let content = include_str!("../../rust-toolchain");
+    let content = include_str!("../../../rust-toolchain");
     // Be ready to accept TOML format
     // See: https://github.com/rust-lang/rustup/pull/2438
     if content.starts_with("[toolchain]") {
@@ -296,4 +295,50 @@ pub fn set_viper_home_setting(cmd: &mut Command, current_executable_dir: &Path) 
 
 pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
     cmd.env("PRUSTI_JAVA_HOME", java_home);
+}
+
+/// Checks if the current crate has a (transitive) dependency on `prusti-contracts`
+/// and if that should lead to enabling the `prusti` feature when running cargo.
+/// Will panic if there is a transitive dependency but not a direct one; in such a
+/// case it wouldn't be possible to enable the feature.
+pub fn enable_prusti_feature(cargo_path: &str) -> bool {
+    let out = Command::new(cargo_path)
+        .args(["tree", "--prefix", "depth", "-f", " [{f}] {p}"])
+        .output()
+        .unwrap_or_else(|_| panic!("Failed to run '{cargo_path} tree'"));
+    // Expected stdout:
+    // (error if line "2+ [] prusti-contracts " appears but no "0/1 [] prusti-contracts " line does):
+    // 0 [] current-crate v0.1.0 (...)
+    // 1 [] dependency-crate v0.1.0 (...)
+    // 2 [] prusti-contracts v0.1.0 (...)
+    // 1 [] prusti-contracts v0.1.0 (...) (*)
+    if out.status.success() {
+        let (mut has_direct_dep, mut has_indirect_dep) = (false, false);
+        for line in String::from_utf8_lossy(&out.stdout).lines() {
+            if let Some(depth) = classify_line(line) {
+                has_direct_dep |= depth <= 1;
+                has_indirect_dep |= depth > 1;
+            }
+        }
+        assert!(has_direct_dep || !has_indirect_dep, "\n\nPrusti requires that the crate `prusti-contracts` is \
+        included as a direct dependency of the current crate, so that it can enable the required features.\n\
+        Please change the `[dependencies]` section of your `Cargo.toml` to include `prusti-contracts = ...`\n\n");
+        has_direct_dep
+    } else {
+        // There is no dependency on `prusti-contracts`
+        false
+    }
+}
+
+fn classify_line(line: &str) -> Option<u32> {
+    let mut line = line.split(' ');
+    let depth = line.next()?;
+    let feats = line.next()?;
+    let cname = line.next()?;
+    // We want to allow having crates which enable the `prusti` feature, thus anything that
+    // depends on them need not add `prusti-contracts` as a direct dependency.
+    if cname != "prusti-contracts" || feats != "[]" {
+        return None;
+    }
+    depth.parse().ok()
 }
