@@ -70,12 +70,15 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#3"><span class="kw">super</span>::common</a>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{
     environment::{<a href="../../environment/query.rs.html#27">EnvQuery</a>, <a href="../../environment/mod.rs.html#51">Environment</a>},
     <a href="../../lib.rs.html#24">utils</a>, <a href="../../prusti_error.rs.html#22">PrustiError</a>,
 };
-<span class="kw">use </span><a href="../../../../prusti_common/config/index.html">prusti_common::config</a>;
+<span class="kw">use </span><a href="../../../../prusti_utils/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span>prusti_rustc_interface::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::ast::Attribute</a>, errors::MultiSpan, hir, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">middle::hir::map::Map</a>};
 
 <span class="doccomment">/// Checks for mismatched version issues between `prusti` and `prusti-contracts`/`prusti-specs`
@@ -130,10 +133,13 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(used_specs_version) = <a href="../../utils.rs.html#236">utils::read_specs_version_attr</a>(<a href="#53">attr</a>) {
             <span class="comment">// If &#39;compiled with version&#39; &gt; &#39;version used now for proc-macros&#39; then complain (of `prusti-specs`)
             </span><span class="kw">if </span>Environment::compare_to_curr_specs_version(<span class="kw-2">&amp;</span>used_specs_version).is_gt() {
+                <span class="kw">let </span>downgrade_msg = config::min_prusti_version()
+                    .map(|prusti_ver| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot; Alternatively you could downgrade your Prusti version to &#39;{prusti_ver}&#39;.&quot;</span>))
+                    .unwrap_or_default();
                 <a class="self" href="#53">self</a>.errors.push(PrustiError::incorrect(
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                         <span class="string">&quot;The version of `prusti-specs` used is &#39;{used_specs_version}&#39;, however your Prusti executable was \
-                        built with &#39;{0}&#39;! Please use `prusti-specs` version &#39;{0}&#39; or newer.&quot;</span>,
+                        built with &#39;{0}&#39;! Please use `prusti-specs` version &#39;{0}&#39; or newer.{downgrade_msg}&quot;</span>,
                         Environment::get_specs_version(),
                     ),
                     MultiSpan::from_span(<a href="#53">attr</a>.span),

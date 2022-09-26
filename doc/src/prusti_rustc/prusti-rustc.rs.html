@@ -150,9 +150,6 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -161,10 +158,7 @@
 
 </span><span class="attribute">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
 </span><span class="kw">use </span>nix::unistd::{<a href="../../nix/unistd/fn.setpgid.html">setpgid</a>, <a href="../../nix/unistd/struct.Pid.html">Pid</a>};
-<span class="kw">use </span>prusti_launch::{
-    <a href="../../prusti_launch/fn.add_to_loader_path.html">add_to_loader_path</a>, <a href="../../prusti_launch/fn.get_current_executable_dir.html">get_current_executable_dir</a>, <a href="../../prusti_launch/fn.get_prusti_contracts_dir.html">get_prusti_contracts_dir</a>, <a href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>,
-    <a href="../../prusti_launch/constant.PRUSTI_LIBS.html">PRUSTI_LIBS</a>,
-};
+<span class="kw">use </span><a href="../../prusti_utils/launch/index.html">prusti_utils::launch</a>;
 <span class="kw">use </span>std::{
     <a href="https://doc.rust-lang.org/nightly/core/macro.env.html">env</a>,
     <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
@@ -173,54 +167,54 @@
 };
 
 <span class="kw">fn </span>main() {
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = <a href="#26">process</a>(std::env::args().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()) {
-        <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#21">code</a>);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = <a href="#23">process</a>(std::env::args().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()) {
+        <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#18">code</a>);
     }
 }
 
 <span class="kw">fn </span>process(<span class="kw-2">mut </span>args: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
-    <span class="kw">let </span>prusti_home = <a href="../../prusti_launch/fn.get_current_executable_dir.html">get_current_executable_dir</a>();
+    <span class="kw">let </span>prusti_home = launch::get_current_executable_dir();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>prusti_driver_path = <a href="#27">prusti_home</a>.join(<span class="string">&quot;prusti-driver&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>prusti_driver_path = <a href="#24">prusti_home</a>.join(<span class="string">&quot;prusti-driver&quot;</span>);
     <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(windows) {
-        <a href="#29">prusti_driver_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
+        <a href="#26">prusti_driver_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
     }
 
     <span class="kw">let </span>java_home = <span class="kw">match </span>env::var(<span class="string">&quot;JAVA_HOME&quot;</span>) {
-        <span class="prelude-val">Ok</span>(java_home) =&gt; PathBuf::from(<a href="#35">java_home</a>),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; prusti_launch::find_java_home()
+        <span class="prelude-val">Ok</span>(java_home) =&gt; PathBuf::from(<a href="#32">java_home</a>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; launch::find_java_home()
             .expect(<span class="string">&quot;Failed to find Java home directory. Try setting JAVA_HOME&quot;</span>),
     };
 
-    <span class="kw">let </span>libjvm_path = prusti_launch::find_libjvm(<span class="kw-2">&amp;</span><a href="#34">java_home</a>)
-        .expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
+    <span class="kw">let </span>libjvm_path =
+        launch::find_libjvm(<span class="kw-2">&amp;</span><a href="#31">java_home</a>).expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
 
-    <span class="kw">let </span>prusti_sysroot = prusti_launch::prusti_sysroot().expect(<span class="string">&quot;Failed to find Rust&#39;s sysroot&quot;</span>);
+    <span class="kw">let </span>prusti_sysroot = launch::prusti_sysroot().expect(<span class="string">&quot;Failed to find Rust&#39;s sysroot&quot;</span>);
 
-    <span class="kw">let </span>compiler_bin = <a href="#43">prusti_sysroot</a>.join(<span class="string">&quot;bin&quot;</span>);
-    <span class="kw">let </span>compiler_lib = <a href="#43">prusti_sysroot</a>.join(<span class="string">&quot;lib&quot;</span>);
+    <span class="kw">let </span>compiler_bin = <a href="#40">prusti_sysroot</a>.join(<span class="string">&quot;bin&quot;</span>);
+    <span class="kw">let </span>compiler_lib = <a href="#40">prusti_sysroot</a>.join(<span class="string">&quot;lib&quot;</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span><a href="#29">prusti_driver_path</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span><a href="#26">prusti_driver_path</a>);
 
-    <a href="../../prusti_launch/fn.add_to_loader_path.html">add_to_loader_path</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[compiler_lib, compiler_bin, libjvm_path], <span class="kw-2">&amp;mut </span><a href="#48">cmd</a>);
+    launch::add_to_loader_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[compiler_lib, compiler_bin, libjvm_path], <span class="kw-2">&amp;mut </span><a href="#45">cmd</a>);
 
-    prusti_launch::set_environment_settings(<span class="kw-2">&amp;mut </span><a href="#48">cmd</a>, <span class="kw-2">&amp;</span><a href="#27">prusti_home</a>, <span class="kw-2">&amp;</span><a href="#34">java_home</a>);
+    launch::set_environment_settings(<span class="kw-2">&amp;mut </span><a href="#45">cmd</a>, <span class="kw-2">&amp;</span><a href="#24">prusti_home</a>, <span class="kw-2">&amp;</span><a href="#31">java_home</a>);
 
     <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass &#39;rustc&#39; as the first argument.
     // We&#39;re invoking the compiler programmatically, so we ignore this
-    </span><span class="kw">let </span>rustc_pos = <a href="#26">args</a>
+    </span><span class="kw">let </span>rustc_pos = <a href="#23">args</a>
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|arg| Path::new(<a href="#58">arg</a>).file_stem() == <span class="prelude-val">Some</span>(<span class="string">&quot;rustc&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
-    <span class="kw">let </span>cargo_invoked = <a href="#56">rustc_pos</a>.is_some();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rustc_pos) = <a href="#56">rustc_pos</a> {
-        <a href="#26">args</a>.drain(<span class="number">0</span>..=<a href="#60">rustc_pos</a>);
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|arg| Path::new(<a href="#55">arg</a>).file_stem() == <span class="prelude-val">Some</span>(<span class="string">&quot;rustc&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
+    <span class="kw">let </span>cargo_invoked = <a href="#53">rustc_pos</a>.is_some();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rustc_pos) = <a href="#53">rustc_pos</a> {
+        <a href="#23">args</a>.drain(<span class="number">0</span>..=<a href="#57">rustc_pos</a>);
     }
 
     <span class="comment">// No need to check if we happen to be running on e.g. the `prusti-contracts` crate since this
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
     </span><span class="kw">if </span>!cargo_invoked {
         <span class="comment">// Need to give references to standard prusti libraries
-        </span><span class="kw">let </span>target_dir = <a href="../../prusti_launch/fn.get_prusti_contracts_dir.html">get_prusti_contracts_dir</a>(<a href="#27">prusti_home</a>);
+        </span><span class="kw">let </span>target_dir = launch::get_prusti_contracts_dir(<a href="#24">prusti_home</a>);
         <span class="kw">if </span>target_dir.to_str().is_none() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                 <span class="string">&quot;Path to &#39;{}&#39; is not a valid utf-8 string!&quot;</span>,
@@ -229,13 +223,13 @@
         }
 
         <span class="comment">// This is where the files we&#39;ll link against live
-        </span><a href="#26">args</a>.push(<span class="string">&quot;-L&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a href="#26">args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+        </span><a href="#23">args</a>.push(<span class="string">&quot;-L&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a href="#23">args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
             <span class="string">&quot;dependency={}&quot;</span>,
             target_dir.join(<span class="string">&quot;deps&quot;</span>).to_str().unwrap()
         ));
 
-        <span class="kw">for </span>prusti_lib <span class="kw">in </span>PRUSTI_LIBS.map(|c| c.replace(<span class="string">&#39;-&#39;</span>, <span class="string">&quot;_&quot;</span>)) {
+        <span class="kw">for </span>prusti_lib <span class="kw">in </span>launch::PRUSTI_LIBS.map(|c| c.replace(<span class="string">&#39;-&#39;</span>, <span class="string">&quot;_&quot;</span>)) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(illegal_arg) = args
                 .windows(<span class="number">2</span>)
                 .find(|p| p[<span class="number">0</span>] == <span class="string">&quot;--extern&quot; </span>&amp;&amp; p[<span class="number">1</span>].starts_with(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{prusti_lib}=&quot;</span>)))
@@ -257,13 +251,13 @@
             ));
         }
     }
-    <a href="#48">cmd</a>.args(<span class="kw-2">&amp;</span><a href="#26">args</a>);
+    <a href="#45">cmd</a>.args(<span class="kw-2">&amp;</span><a href="#23">args</a>);
 
-    <span class="kw">let </span>has_no_sysroot_arg = !<a href="#26">args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#107">s</a> == <span class="string">&quot;--sysroot&quot;</span>);
+    <span class="kw">let </span>has_no_sysroot_arg = !<a href="#23">args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#104">s</a> == <span class="string">&quot;--sysroot&quot;</span>);
     <span class="kw">if </span>has_no_sysroot_arg {
-        <a href="#48">cmd</a>.arg(<span class="string">&quot;--sysroot&quot;</span>);
-        <a href="#48">cmd</a>.arg(
-            <a href="#43">prusti_sysroot</a>
+        <a href="#45">cmd</a>.arg(<span class="string">&quot;--sysroot&quot;</span>);
+        <a href="#45">cmd</a>.arg(
+            <a href="#40">prusti_sysroot</a>
                 .into_os_string()
                 .into_string()
                 .expect(<span class="string">&quot;sysroot is not a valid utf-8 string&quot;</span>),
@@ -277,16 +271,16 @@
     </span><span class="attribute">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
     </span><span class="kw">let _ </span>= <a href="../../nix/unistd/fn.setpgid.html">setpgid</a>(Pid::this(), Pid::this());
     <span class="comment">// Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    </span>ctrlc::set_handler(<a href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
+    </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ARGS&quot;</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#127">path</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#124">path</a>).unwrap();
         <span class="kw">for </span>arg <span class="kw">in </span>cmd.get_args() {
             <span class="macro">writeln!</span>(file, <span class="string">&quot;{}&quot;</span>, arg.to_str().unwrap()).unwrap();
         }
     }
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ENV&quot;</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#133">path</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#130">path</a>).unwrap();
         <span class="kw">for </span>(key, value) <span class="kw">in </span>cmd.get_envs() {
             <span class="macro">writeln!</span>(
                 file,
@@ -298,14 +292,14 @@
         }
     }
 
-    <span class="kw">let </span>exit_status = <a href="#48">cmd</a>
+    <span class="kw">let </span>exit_status = <a href="#45">cmd</a>
         .status()
         .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;failed to execute prusti-driver ({:?})&quot;</span>, prusti_driver_path));
 
     <span class="kw">if </span>exit_status.success() {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#146">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a href="#143">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
     }
 }
 </code></pre></div>

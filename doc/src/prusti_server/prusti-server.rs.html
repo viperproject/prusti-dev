@@ -61,7 +61,7 @@
 
 </span><span class="attribute">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
 </span><span class="kw">use </span>nix::unistd::{<a href="../../nix/unistd/fn.setpgid.html">setpgid</a>, <a href="../../nix/unistd/struct.Pid.html">Pid</a>};
-<span class="kw">use </span>prusti_launch::{<a href="../../prusti_launch/fn.get_current_executable_dir.html">get_current_executable_dir</a>, <a href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>};
+<span class="kw">use </span><a href="../../prusti_utils/launch/index.html">prusti_utils::launch</a>;
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>};
 
 <span class="kw">fn </span>main() {
@@ -71,7 +71,7 @@
 }
 
 <span class="kw">fn </span>process(args: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; {
-    <span class="kw">let </span>current_executable_dir = <a href="../../prusti_launch/fn.get_current_executable_dir.html">get_current_executable_dir</a>();
+    <span class="kw">let </span>current_executable_dir = launch::get_current_executable_dir();
 
     <span class="kw">let </span><span class="kw-2">mut </span>prusti_server_driver_path = <a href="#19">current_executable_dir</a>.join(<span class="string">&quot;prusti-server-driver&quot;</span>);
     <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(windows) {
@@ -80,25 +80,25 @@
 
     <span class="kw">let </span>java_home = <span class="kw">match </span>std::env::var(<span class="string">&quot;JAVA_HOME&quot;</span>) {
         <span class="prelude-val">Ok</span>(java_home) =&gt; PathBuf::from(<a href="#27">java_home</a>),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; prusti_launch::find_java_home()
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; launch::find_java_home()
             .expect(<span class="string">&quot;Failed to find Java home directory. Try setting JAVA_HOME&quot;</span>),
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span><a href="#21">prusti_server_driver_path</a>);
     <a href="#32">cmd</a>.args(<a href="#18">args</a>);
 
-    <span class="kw">let </span>libjvm_path = prusti_launch::find_libjvm(<span class="kw-2">&amp;</span><a href="#26">java_home</a>)
-        .expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
-    prusti_launch::add_to_loader_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[libjvm_path], <span class="kw-2">&amp;mut </span><a href="#32">cmd</a>);
+    <span class="kw">let </span>libjvm_path =
+        launch::find_libjvm(<span class="kw-2">&amp;</span><a href="#26">java_home</a>).expect(<span class="string">&quot;Failed to find JVM library. Check JAVA_HOME&quot;</span>);
+    launch::add_to_loader_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[libjvm_path], <span class="kw-2">&amp;mut </span><a href="#32">cmd</a>);
 
-    prusti_launch::set_environment_settings(<span class="kw-2">&amp;mut </span><a href="#32">cmd</a>, <span class="kw-2">&amp;</span><a href="#19">current_executable_dir</a>, <span class="kw-2">&amp;</span><a href="#26">java_home</a>);
+    launch::set_environment_settings(<span class="kw-2">&amp;mut </span><a href="#32">cmd</a>, <span class="kw-2">&amp;</span><a href="#19">current_executable_dir</a>, <span class="kw-2">&amp;</span><a href="#26">java_home</a>);
 
     <span class="comment">// Move process to group leader if it isn&#39;t. The only applicable error should be EPERM which
     // can be thrown when the process is already the group leader. Thus, we ignore it.
     </span><span class="attribute">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
     </span><span class="kw">let _ </span>= <a href="../../nix/unistd/fn.setpgid.html">setpgid</a>(Pid::this(), Pid::this());
     <span class="comment">// Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    </span>ctrlc::set_handler(<a href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
+    </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
     <span class="kw">let </span>exit_status = <a href="#32">cmd</a>.status().expect(<span class="string">&quot;could not run prusti-server-driver&quot;</span>);
 

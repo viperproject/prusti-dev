@@ -80,6 +80,23 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -87,7 +104,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </span><span class="attribute">#![feature(let_chains)]
 
-</span><span class="kw">use </span><a href="../../prusti_launch/fn.get_rust_toolchain_channel.html">prusti_launch::get_rust_toolchain_channel</a>;
+</span><span class="kw">use </span>prusti_utils::{<a href="../../prusti_utils/config/index.html">config</a>, <a href="../../prusti_utils/launch/index.html">launch</a>};
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/macro.env.html">env</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>};
 
 <span class="kw">fn </span>main() {
@@ -107,35 +124,52 @@
         <a href="#21">prusti_rustc_path</a>.set_extension(<span class="string">&quot;exe&quot;</span>);
     }
 
-    <span class="comment">// Remove the &quot;prusti&quot; argument when `cargo-prusti` is invocated
-    // as `cargo --cflag prusti -flag` (note the space rather than `-`)
+    <span class="comment">// Remove the &quot;prusti&quot; argument when `cargo-prusti` is invoked as
+    // `cargo --cflag prusti -- -Pflag` (note the space in `cargo prusti` rather than a `-`)
     </span><span class="kw">let </span>args = <a href="#17">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip_while</a>(|arg| <a href="#30">arg</a> == <span class="string">&quot;prusti&quot;</span>);
+    <span class="comment">// Remove the &quot;-- -Pflag&quot; arguments since these won&#39;t apply to `cargo check`.
+    // They have already been loaded (and the Category B flags are used below).
+    </span><span class="kw">let </span>args = <a href="#30">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(|arg| <a href="#33">arg</a> != <span class="string">&quot;--&quot;</span>);
 
-    <span class="kw">let </span>cargo_path = env::var(<span class="string">&quot;CARGO_PATH&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;cargo&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <span class="kw">let </span><span class="kw-2">mut </span>cargo_target =
-        PathBuf::from(env::var(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;target&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
-    <a href="#33">cargo_target</a>.push(<span class="string">&quot;verify&quot;</span>);
-    <span class="kw">let </span>command = env::var(<span class="string">&quot;CARGO_PRUSTI_COMMAND&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;check&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <span class="kw">let </span>exit_status = Command::new(<a href="#32">cargo_path</a>)
-        .arg(<span class="kw-2">&amp;</span><a href="#36">command</a>)
-        .args(<a href="#30">args</a>)
-        .env(<span class="string">&quot;RUST_TOOLCHAIN&quot;</span>, <a href="../../prusti_launch/fn.get_rust_toolchain_channel.html">get_rust_toolchain_channel</a>())
+    <span class="comment">// Category B flags (see dev-guide flags table):
+    </span><span class="kw">let </span>cargo_path = config::cargo_path();
+    <span class="kw">let </span>command = config::cargo_command();
+
+    <span class="kw">let </span>features = <span class="kw">if </span>launch::enable_prusti_feature(<span class="kw-2">&amp;</span>cargo_path) &amp;&amp; !config::be_rustc() {
+        [<span class="string">&quot;--features&quot;</span>, <span class="string">&quot;prusti-contracts/prusti&quot;</span>].iter()
+    } <span class="kw">else </span>{
+        [].iter()
+    };
+    <span class="kw">let </span>cargo_target = env::var(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;target&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <span class="kw">let </span>cargo_target: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> = [<a href="#44">cargo_target</a>, <span class="string">&quot;verify&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()].<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>exit_status = Command::new(<a href="#36">cargo_path</a>)
+        .arg(<span class="kw-2">&amp;</span><a href="#37">command</a>)
+        .args(<a href="#39">features</a>)
+        .args(<a href="#33">args</a>)
+        .env(<span class="string">&quot;RUST_TOOLCHAIN&quot;</span>, launch::get_rust_toolchain_channel())
         .env(<span class="string">&quot;RUSTC_WRAPPER&quot;</span>, <a href="#21">prusti_rustc_path</a>)
-        .env(<span class="string">&quot;DEFAULT_PRUSTI_QUIET&quot;</span>, <span class="string">&quot;true&quot;</span>)
+        .env(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>, <span class="kw-2">&amp;</span><a href="#45">cargo_target</a>)
+        <span class="comment">// Category B flags (update the docs if any more are added):
+        </span>.env(<span class="string">&quot;PRUSTI_BE_RUSTC&quot;</span>, config::be_rustc().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        .env(
+            <span class="string">&quot;PRUSTI_NO_VERIFY_DEPS&quot;</span>,
+            config::no_verify_deps().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        )
+        <span class="comment">// Category A* flags:
+        </span>.env(<span class="string">&quot;DEFAULT_PRUSTI_QUIET&quot;</span>, <span class="string">&quot;true&quot;</span>)
         .env(<span class="string">&quot;DEFAULT_PRUSTI_FULL_COMPILATION&quot;</span>, <span class="string">&quot;true&quot;</span>)
-        .env(<span class="string">&quot;DEFAULT_PRUSTI_LOG_DIR&quot;</span>, <a href="#33">cargo_target</a>.join(<span class="string">&quot;log&quot;</span>))
-        .env(<span class="string">&quot;DEFAULT_PRUSTI_CACHE_PATH&quot;</span>, <a href="#33">cargo_target</a>.join(<span class="string">&quot;cache.bin&quot;</span>))
-        .env(<span class="string">&quot;CARGO_TARGET_DIR&quot;</span>, <span class="kw-2">&amp;</span><a href="#33">cargo_target</a>)
+        .env(<span class="string">&quot;DEFAULT_PRUSTI_LOG_DIR&quot;</span>, <a href="#45">cargo_target</a>.join(<span class="string">&quot;log&quot;</span>))
+        .env(<span class="string">&quot;DEFAULT_PRUSTI_CACHE_PATH&quot;</span>, <a href="#45">cargo_target</a>.join(<span class="string">&quot;cache.bin&quot;</span>))
         .status()
         .expect(<span class="string">&quot;could not run cargo&quot;</span>);
 
     <span class="kw">if </span>exit_status.success() {
         <span class="kw">if </span>command == <span class="string">&quot;build&quot; </span>{
-            <a href="#61">copy_exported_specs</a>(<a href="#33">cargo_target</a>).ok();
+            <a href="#78">copy_exported_specs</a>(<a href="#45">cargo_target</a>).ok();
         }
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#37">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a href="#46">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
     }
 }
 

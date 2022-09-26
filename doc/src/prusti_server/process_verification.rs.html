@@ -210,9 +210,6 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -222,10 +219,10 @@
 </span><span class="kw">use crate</span>::{<a href="verification_request.rs.html#15">VerificationRequest</a>, <a href="verification_request.rs.html#32">ViperBackendConfig</a>};
 <span class="kw">use </span><a href="../../log/macro.info.html">log::info</a>;
 <span class="kw">use </span>prusti_common::{
-    <a href="../../prusti_common/config/index.html">config</a>,
-    report::log::{<a href="../../prusti_common/report/log/fn.report.html">report</a>, <a href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>},
+    <a href="../../prusti_utils/config/index.html">config</a>,
+    report::log::{<a href="../../prusti_utils/report/log/fn.report.html">report</a>, <a href="../../prusti_utils/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>},
     vir::{<a href="../../prusti_common/vir/program_normalization/enum.NormalizationInfo.html">program_normalization::NormalizationInfo</a>, <a href="../../prusti_common/vir/low_to_viper/trait.ToViper.html">ToViper</a>},
-    <a href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>,
+    <a href="../../prusti_utils/stopwatch/struct.Stopwatch.html">Stopwatch</a>,
 };
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">fs::create_dir_all</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>};
 <span class="kw">use </span>viper::{
@@ -344,7 +341,7 @@
     <span class="kw">let </span>namespace = <span class="string">&quot;viper_program&quot;</span>;
     <span class="kw">let </span>filename = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.vpr&quot;</span>, program_name);
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Dumping Viper program to &#39;{}/{}&#39;&quot;</span>, namespace, filename);
-    <a href="../../prusti_common/report/log/fn.report.html">report</a>(<a href="#129">namespace</a>, <a href="#130">filename</a>, <a href="#128">ast_utils</a>.pretty_print(<a href="#128">program</a>));
+    <a href="../../prusti_utils/report/log/fn.report.html">report</a>(<a href="#129">namespace</a>, <a href="#130">filename</a>, <a href="#128">ast_utils</a>.pretty_print(<a href="#128">program</a>));
 }
 
 <span class="kw">fn </span>new_viper_verifier&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;t</span>: <span class="lifetime">&#39;v</span>&gt;(
@@ -357,7 +354,7 @@
     <span class="kw">if </span>config::dump_debug_info() {
         <span class="kw">let </span>log_path = config::log_dir()
             .join(<span class="string">&quot;viper_tmp&quot;</span>)
-            .join(<a href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a href="#136">program_name</a>));
+            .join(<a href="../../prusti_utils/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a href="#136">program_name</a>));
         <a href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>(<span class="kw-2">&amp;</span><a href="#143">log_path</a>).unwrap();
         <a href="#141">report_path</a> = <span class="prelude-val">Some</span>(<a href="#143">log_path</a>.join(<span class="string">&quot;report.csv&quot;</span>));
         <span class="kw">let </span>log_dir_str = <a href="#143">log_path</a>.to_str().unwrap();
@@ -386,16 +383,16 @@
         std::env::set_var(<span class="string">&quot;PRUSTI_ORIGINAL_SMT_SOLVER_PATH&quot;</span>, config::smt_solver_path());
         <span class="kw">let </span>log_path = config::log_dir()
             .join(<span class="string">&quot;smt&quot;</span>)
-            .join(<a href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a href="#136">program_name</a>));
+            .join(<a href="../../prusti_utils/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a href="#136">program_name</a>));
         <a href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>(<span class="kw-2">&amp;</span><a href="#172">log_path</a>).unwrap();
         <span class="kw">let </span>smt_manager = SmtManager::new(
             <a href="#172">log_path</a>,
             config::preserve_smt_trace_files(),
             config::write_smt_statistics(),
-            config::smt_quantifier_instantiations_ignore_builtin(),
-            config::smt_quantifier_instantiations_bound_global_kind(),
-            config::smt_quantifier_instantiations_bound_trace(),
-            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_qi_ignore_builtin(),
+            config::smt_qi_bound_global_kind(),
+            config::smt_qi_bound_trace(),
+            config::smt_qi_bound_trace_kind(),
             config::smt_unique_triggers_bound(),
             config::smt_unique_triggers_bound_total(),
         );
@@ -411,12 +408,9 @@
         (config::smt_solver_path(), SmtManager::default())
     };
     <span class="kw">let </span>boogie_path = config::boogie_path();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = config::smt_quantifier_instantiations_bound_global() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = config::smt_qi_bound_global() {
         <span class="comment">// We need to set the environment variable to reach our Z3 wrapper.
-        </span>std::env::set_var(
-            <span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>,
-            <a href="#199">bound</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-        );
+        </span>std::env::set_var(<span class="string">&quot;PRUSTI_SMT_QI_BOUND_GLOBAL&quot;</span>, <a href="#199">bound</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
     }
 
     <a href="#137">verification_context</a>.new_verifier(
