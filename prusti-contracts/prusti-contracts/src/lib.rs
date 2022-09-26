@@ -51,6 +51,9 @@ pub use prusti_contracts_proc_macros::ghost_constraint;
 /// but omitted during compilation.
 pub use prusti_contracts_proc_macros::ghost;
 
+/// A macro to customize how a struct or enum should be printed in a counterexample
+pub use prusti_contracts_proc_macros::print_counterexample;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;
@@ -58,7 +61,7 @@ mod private {
     /// A macro for defining a closure with a specification.
     /// Note: this is a declarative macro defined in this crate
     /// because declarative macros can't be exported from
-    /// the `prusti-contracts-internal` proc-macro crate.
+    /// the `prusti-contracts-proc-macros` proc-macro crate.
     /// See <https://github.com/rust-lang/rust/issues/40090>.
     #[macro_export]
     macro_rules! closure {

@@ -174,7 +174,7 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
 #[cfg(feature = "prusti")]
 #[proc_macro]
 pub fn closure(tokens: TokenStream) -> TokenStream {
-    prusti_specs::closure(tokens.into(), false).into()
+    prusti_specs::closure(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]
@@ -229,3 +229,6 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
 pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::print_counterexample(attr.into(), tokens.into()).into()
 }
+
+// Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`
+// version of your new macro above!
