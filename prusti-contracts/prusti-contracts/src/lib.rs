@@ -1,55 +1,55 @@
 #![no_std]
 
 /// A macro for writing a precondition on a function.
-pub use prusti_contracts_internal::requires;
+pub use prusti_contracts_proc_macros::requires;
 
 /// A macro for writing a postcondition on a function.
-pub use prusti_contracts_internal::ensures;
+pub use prusti_contracts_proc_macros::ensures;
 
 /// A macro for writing a pledge on a function.
-pub use prusti_contracts_internal::after_expiry;
+pub use prusti_contracts_proc_macros::after_expiry;
 
 /// A macro for writing a two-state pledge on a function.
-pub use prusti_contracts_internal::assert_on_expiry;
+pub use prusti_contracts_proc_macros::assert_on_expiry;
 
 /// A macro for marking a function as pure.
-pub use prusti_contracts_internal::pure;
+pub use prusti_contracts_proc_macros::pure;
 
 /// A macro for marking a function as trusted.
-pub use prusti_contracts_internal::trusted;
+pub use prusti_contracts_proc_macros::trusted;
 
 /// A macro for type invariants.
-pub use prusti_contracts_internal::invariant;
+pub use prusti_contracts_proc_macros::invariant;
 
 /// A macro for writing a loop body invariant.
-pub use prusti_contracts_internal::body_invariant;
+pub use prusti_contracts_proc_macros::body_invariant;
 
 /// A macro for writing assertions using the full prusti specifications
-pub use prusti_contracts_internal::prusti_assert;
+pub use prusti_contracts_proc_macros::prusti_assert;
 
 /// A macro for writing assumptions using prusti syntax
-pub use prusti_contracts_internal::prusti_assume;
+pub use prusti_contracts_proc_macros::prusti_assume;
 
 /// A macro for impl blocks that refine trait specifications.
-pub use prusti_contracts_internal::refine_trait_spec;
+pub use prusti_contracts_proc_macros::refine_trait_spec;
 
 /// A macro for specifying external functions.
-pub use prusti_contracts_internal::extern_spec;
+pub use prusti_contracts_proc_macros::extern_spec;
 
 /// A macro for defining a predicate using prusti expression syntax instead
 /// of just Rust expressions.
-pub use prusti_contracts_internal::predicate;
+pub use prusti_contracts_proc_macros::predicate;
 
 /// Macro for creating type models.
-pub use prusti_contracts_internal::model;
+pub use prusti_contracts_proc_macros::model;
 
 /// A macro to add trait bounds on a generic type parameter and specifications
 /// which are active only when these bounds are satisfied for a call.
-pub use prusti_contracts_internal::ghost_constraint;
+pub use prusti_contracts_proc_macros::ghost_constraint;
 
 /// A macro for defining ghost blocks which will be left in for verification
 /// but omitted during compilation.
-pub use prusti_contracts_internal::ghost;
+pub use prusti_contracts_proc_macros::ghost;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -104,7 +104,7 @@ mod private {
     use core::{marker::PhantomData, ops::*};
 
     /// A macro for defining a closure with a specification.
-    pub use prusti_contracts_internal::closure;
+    pub use prusti_contracts_proc_macros::closure;
 
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();

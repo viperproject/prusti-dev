@@ -1,4 +1,4 @@
-pub use prusti_contracts::*;
+use prusti_contracts::*;
 
 #[extern_spec]
 impl<K, V, S> ::std::collections::hash_map::HashMap<K, V, S>
