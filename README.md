@@ -19,7 +19,7 @@ Documentation
 -------------
 
 * The [user guide](https://viperproject.github.io/prusti-dev/user-guide/) contains installation instructions, a guided tutorial and a description of various verification features.
-* The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the prusti more approachable for new contributors.
+* The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the project more approachable for new contributors.
 
 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
 
