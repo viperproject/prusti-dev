@@ -74,14 +74,20 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
-      - name: Prepare Prusti cache key
+      - name: Prepare verification cache keys
+        shell: bash
         run: |
-          echo "VERIFICATION_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
-      - name: Persist Prusti cache
-        uses: actions/cache@v2
+          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
+          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - name: Load verification cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.PRUSTI_CACHE_PATH }}
-          key: ${{ env.VERIFICATION_CACHE_KEY }}
+          # Use a unique key, so that the job will always store the cache at the end of the run
+          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
+          # Restore from the most recent cache that matches a shared prefix of the key
+          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
@@ -106,14 +112,20 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
-      - name: Prepare Prusti cache key
+      - name: Prepare verification cache keys
+        shell: bash
         run: |
-          echo "VERIFICATION_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
-      - name: Persist Prusti cache
-        uses: actions/cache@v2
+          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
+          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - name: Load verification cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.PRUSTI_CACHE_PATH }}
-          key: ${{ env.VERIFICATION_CACHE_KEY }}
+          # Use a unique key, so that the job will always store the cache at the end of the run
+          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
+          # Restore from the most recent cache that matches a shared prefix of the key
+          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
@@ -200,15 +212,20 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
-      - name: Prepare Prusti cache key
+      - name: Prepare verification cache keys
         shell: bash
         run: |
-          echo "VERIFICATION_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
-      - name: Persist Prusti cache
-        uses: actions/cache@v2
+          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
+          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - name: Load verification cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.PRUSTI_CACHE_PATH }}
-          key: ${{ env.VERIFICATION_CACHE_KEY }}
+          # Use a unique key, so that the job will always store the cache at the end of the run
+          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
+          # Restore from the most recent cache that matches a shared prefix of the key
+          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run cargo tests
