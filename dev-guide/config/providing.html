@@ -140,11 +140,15 @@
 <li>Provided individually as environment variables with the prefix <code>DEFAULT_PRUSTI_</code> (for example, <code>DEFAULT_PRUSTI_CACHE_PATH</code> for the <a href="flags.html#cache_path"><code>CACHE_PATH</code></a> flag).</li>
 </ol>
 <blockquote>
-<p>NOTE: One should only use this to change the default value of flags, such that this can be overridden by a config file</p>
+<p><strong>Note:</strong> One should only use this to change the default value of flags, such that this can be overridden by a config file</p>
 </blockquote>
 <ol start="2">
 <li>
-<p>Provided lowercase in a file (<a href="https://docs.rs/config/latest/config/enum.FileFormat.html">allowed formats</a>) with the path in the environment variable <code>PRUSTI_CONFIG</code> (for example, <code>check_overflows</code> for the <a href="flags.html#check_overflows"><code>CHECK_OVERFLOWS</code></a> flag). This path defaults to <code>./Prusti.toml</code> if the environment variable is not set.<a name="flags-2"></a></p>
+<p>Provided lowercase in a <code>Prusti.toml</code> file (<a href="https://docs.rs/config/latest/config/enum.FileFormat.html">allowed formats</a>, e.g. <code>check_overflows = true</code> for the <a href="flags.html#check_overflows"><code>CHECK_OVERFLOWS</code></a> flag). Prusti searches for a <code>Prusti.toml</code> depending on how it is run:<a name="flags-2"></a></p>
+<ul>
+<li>As <code>cargo prusti</code> (on an entire crate): in the <a href="https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-crates"><code>CARGO_MANIFEST_DIR</code></a>, i.e. next to the crate's <code>Cargo.toml</code></li>
+<li>As <code>prusti-rustc</code> (on a single Rust file): in the current working directory</li>
+</ul>
 </li>
 <li>
 <p>Provided individually as environment variables with the prefix <code>PRUSTI_</code> (for example, <code>PRUSTI_ASSERT_TIMEOUT</code> for the <a href="flags.html#assert_timeout"><code>ASSERT_TIMEOUT</code></a> flag).</p>
@@ -153,6 +157,21 @@
 <p>Provided individually as command-line arguments to Prusti with the prefix <code>-P</code> (for example, <code>-Pprint_desugared_specs</code> for the <a href="flags.html#print_desugared_specs"><code>PRINT_DESUGARED_SPECS</code></a> flag).</p>
 </li>
 </ol>
+<h2 id="multi-crate-cargo-prusti-projects"><a class="header" href="#multi-crate-cargo-prusti-projects">Multi-crate Cargo Prusti Projects</a></h2>
+<p>Setting flags becomes slightly more complicated when Prusti is run on multiple crates as <code>cargo prusti</code>; e.g. which <code>Prusti.toml</code> file will be used. Though overriding priority as above remains the same, the three possible approaches to providing flags all behave differently, in particular depending on flag <a href="flags.html#list-of-configuration-flags">Category</a>.</p>
+<h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
+<p>The environment persists throughout compilation, therefore all flags set through the <code>DEFAULT_PRUSTI_</code> or <code>PRUSTI_</code> will apply to all crates, and flags of both Category A and B. For example setting <code>PRUSTI_CHECK_OVERFLOWS=false</code> will disable overflow checks in all dependencies, even if they try to override this with a <code>Prusti.toml</code> file.</p>
+<h3 id="prusti-config-file"><a class="header" href="#prusti-config-file">Prusti Config File</a></h3>
+<p>A <code>Prusti.toml</code> is optionally loaded from the current working directory prior to compilation. This file is used to configure flags in Category B <em>only</em> and these flags apply to the entire compilation.</p>
+<p>Then, as each individual crate is checked (from the roots of the dependency tree) a <code>Prusti.toml</code> is optionally loaded from the directory where the crate's corresponding <code>Cargo.toml</code> is located. This file is used to configure flags in Category A <em>only</em> — it would not make sense to set e.g. <a href="flags.html#no_verify_deps"><code>NO_VERIFY_DEPS</code></a> in a dependency since all of its dependencies have already been verified.</p>
+<p>Therefore, when publishing a <code>lib</code> crate to git/crates.io one can configure Category A flags by including a <code>Prusti.toml</code> file next to their <code>Cargo.toml</code>.</p>
+<blockquote>
+<p><strong>Note:</strong> Currently cargo does not track <code>Prusti.toml</code> files as a <a href="https://doc.rust-lang.org/cargo/guide/build-cache.html#dep-info-files">dependency</a>, therefore if it's the only file that changed in a crate you may need to run <code>cargo clean -p &lt;crate&gt;</code> to force reverification</p>
+</blockquote>
+<p>The <code>Prusti.toml</code> used to load Category B flags at the start and the one used to load Category A flags at the end for the root crate will often be one and the same because <code>cargo prusti</code> is typically run from the root crate's directory. This can be changed by providing the <a href="https://doc.rust-lang.org/cargo/commands/cargo-check.html#manifest-options"><code>--manifest-path</code> flag</a>.</p>
+<h3 id="commandline-arguments"><a class="header" href="#commandline-arguments">Commandline Arguments</a></h3>
+<p>Prusti <code>-P</code> flags can be provided after a <code>--</code> (e.g. <code>cargo prusti -- -Pcargo_command=build</code>). Currently flags from Category B <em>only</em> are supported; providing a flag in Category A this way will be ignored.</p>
+<p>Flags to cargo are provided in the <a href="https://doc.rust-lang.org/cargo/commands/cargo-check.html#options">regular way</a> (e.g. <code>cargo prusti --features foo</code>).</p>
 
                     </main>
 
