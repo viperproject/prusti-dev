@@ -6,10 +6,7 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::{
-    add_to_loader_path, get_current_executable_dir, get_prusti_contracts_dir, sigint_handler,
-    PRUSTI_LIBS,
-};
+use prusti_utils::launch;
 use std::{
     env,
     io::Write,
@@ -24,7 +21,7 @@ fn main() {
 }
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let prusti_home = get_current_executable_dir();
+    let prusti_home = launch::get_current_executable_dir();
 
     let mut prusti_driver_path = prusti_home.join("prusti-driver");
     if cfg!(windows) {
@@ -33,23 +30,23 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     let java_home = match env::var("JAVA_HOME") {
         Ok(java_home) => PathBuf::from(java_home),
-        Err(_) => prusti_launch::find_java_home()
+        Err(_) => launch::find_java_home()
             .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
     };
 
-    let libjvm_path = prusti_launch::find_libjvm(&java_home)
-        .expect("Failed to find JVM library. Check JAVA_HOME");
+    let libjvm_path =
+        launch::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
 
-    let prusti_sysroot = prusti_launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
+    let prusti_sysroot = launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
 
     let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
 
     let mut cmd = Command::new(&prusti_driver_path);
 
-    add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
+    launch::add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
-    prusti_launch::set_environment_settings(&mut cmd, &prusti_home, &java_home);
+    launch::set_environment_settings(&mut cmd, &prusti_home, &java_home);
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
@@ -65,7 +62,12 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
     if !cargo_invoked {
         // Need to give references to standard prusti libraries
-        let target_dir = get_prusti_contracts_dir(prusti_home);
+        let target_dir = launch::get_prusti_contracts_dir(&prusti_home).unwrap_or_else(|| {
+            panic!(
+                "Failed to find the path of the Prusti contracts from prusti home '{}'",
+                prusti_home.display()
+            )
+        });
         if target_dir.to_str().is_none() {
             panic!(
                 "Path to '{}' is not a valid utf-8 string!",
@@ -80,7 +82,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             target_dir.join("deps").to_str().unwrap()
         ));
 
-        for prusti_lib in PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
+        for prusti_lib in launch::PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
             if let Some(illegal_arg) = args
                 .windows(2)
                 .find(|p| p[0] == "--extern" && p[1].starts_with(&format!("{prusti_lib}=")))
@@ -122,7 +124,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     #[cfg(target_family = "unix")]
     let _ = setpgid(Pid::this(), Pid::this());
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
+    ctrlc::set_handler(launch::sigint_handler).expect("Error setting Ctrl-C handler");
 
     if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ARGS") {
         let mut file = std::fs::File::create(path).unwrap();

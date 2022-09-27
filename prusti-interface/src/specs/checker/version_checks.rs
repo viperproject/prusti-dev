@@ -21,7 +21,8 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
             if env.compare_prusti_version(&min_prusti_version).is_lt() {
                 check_version.errors.push(PrustiError::incorrect(
                     format!(
-                        "Running Prusti version '{}' when the min required version is '{min_prusti_version}'! \
+                        "Running Prusti version '{}' when the minimum version required by the \
+                        `min_prusti_version` flag of the crate being compiled is '{min_prusti_version}'! \
                         Please update Prusti to version '{min_prusti_version}' or newer.",
                         env.get_prusti_version(),
                     ),
@@ -57,10 +58,13 @@ impl<'tcx> hir::intravisit::Visitor<'tcx> for CheckVersionVisitor<'tcx> {
         if let Some(used_specs_version) = utils::read_specs_version_attr(attr) {
             // If 'compiled with version' > 'version used now for proc-macros' then complain (of `prusti-specs`)
             if Environment::compare_to_curr_specs_version(&used_specs_version).is_gt() {
+                let downgrade_msg = config::min_prusti_version()
+                    .map(|prusti_ver| format!(" Alternatively you could downgrade your Prusti version to '{prusti_ver}'."))
+                    .unwrap_or_default();
                 self.errors.push(PrustiError::incorrect(
                     format!(
                         "The version of `prusti-specs` used is '{used_specs_version}', however your Prusti executable was \
-                        built with '{0}'! Please use `prusti-specs` version '{0}' or newer.",
+                        built with '{0}'! Please use `prusti-specs` version '{0}' or newer.{downgrade_msg}",
                         Environment::get_specs_version(),
                     ),
                     MultiSpan::from_span(attr.span),

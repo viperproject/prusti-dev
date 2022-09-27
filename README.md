@@ -1,9 +1,8 @@
 Prusti
 ======
 
-[![Test](https://github.com/viperproject/prusti-dev/workflows/Test/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Test"+branch%3Amaster)
-[![Test on crates](https://github.com/viperproject/prusti-dev/workflows/Test%20on%20crates/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Test+on+crates"+branch%3Amaster)
-[![Deploy](https://github.com/viperproject/prusti-dev/workflows/Deploy/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Deploy"+branch%3Amaster)
+[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml)
+[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml)
 [![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
@@ -20,7 +19,7 @@ Documentation
 -------------
 
 * The [user guide](https://viperproject.github.io/prusti-dev/user-guide/) contains installation instructions, a guided tutorial and a description of various verification features.
-* The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the prusti more approachable for new contributors.
+* The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the project more approachable for new contributors.
 
 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
 
