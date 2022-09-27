@@ -150,6 +150,11 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -214,7 +219,12 @@
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
     </span><span class="kw">if </span>!cargo_invoked {
         <span class="comment">// Need to give references to standard prusti libraries
-        </span><span class="kw">let </span>target_dir = launch::get_prusti_contracts_dir(<a href="#24">prusti_home</a>);
+        </span><span class="kw">let </span>target_dir = launch::get_prusti_contracts_dir(<span class="kw-2">&amp;</span><a href="#24">prusti_home</a>).unwrap_or_else(|| {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                <span class="string">&quot;Failed to find the path of the Prusti contracts from prusti home &#39;{}&#39;&quot;</span>,
+                prusti_home.display()
+            )
+        });
         <span class="kw">if </span>target_dir.to_str().is_none() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                 <span class="string">&quot;Path to &#39;{}&#39; is not a valid utf-8 string!&quot;</span>,
@@ -253,7 +263,7 @@
     }
     <a href="#45">cmd</a>.args(<span class="kw-2">&amp;</span><a href="#23">args</a>);
 
-    <span class="kw">let </span>has_no_sysroot_arg = !<a href="#23">args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#104">s</a> == <span class="string">&quot;--sysroot&quot;</span>);
+    <span class="kw">let </span>has_no_sysroot_arg = !<a href="#23">args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="#109">s</a> == <span class="string">&quot;--sysroot&quot;</span>);
     <span class="kw">if </span>has_no_sysroot_arg {
         <a href="#45">cmd</a>.arg(<span class="string">&quot;--sysroot&quot;</span>);
         <a href="#45">cmd</a>.arg(
@@ -274,13 +284,13 @@
     </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ARGS&quot;</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#124">path</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#129">path</a>).unwrap();
         <span class="kw">for </span>arg <span class="kw">in </span>cmd.get_args() {
             <span class="macro">writeln!</span>(file, <span class="string">&quot;{}&quot;</span>, arg.to_str().unwrap()).unwrap();
         }
     }
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ENV&quot;</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#130">path</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a href="#135">path</a>).unwrap();
         <span class="kw">for </span>(key, value) <span class="kw">in </span>cmd.get_envs() {
             <span class="macro">writeln!</span>(
                 file,
@@ -299,7 +309,7 @@
     <span class="kw">if </span>exit_status.success() {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<a href="#143">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a href="#148">exit_status</a>.code().unwrap_or(-<span class="number">1</span>))
     }
 }
 </code></pre></div>
