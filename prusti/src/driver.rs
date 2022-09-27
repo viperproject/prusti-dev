@@ -18,7 +18,7 @@ use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::{info, warn};
-use prusti_common::{config, launch::PRUSTI_HELPERS, report::user, Stopwatch};
+use prusti_common::{config, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic};
 
@@ -135,15 +135,6 @@ fn main() {
     // are not verified. However, we still run Prusti on them to export potential specs.
     if is_no_verify_dep_crate || are_lints_disabled {
         config::set_no_verify(true);
-    } else if !config::no_verify() {
-        assert!(
-            env::var("CARGO_PKG_NAME")
-                .map(|name| !PRUSTI_HELPERS.contains(&name.as_str()))
-                .unwrap_or(true),
-            "`prusti-contracts/*` crates should never be in a subdirectory of the crate \
-            currently being compiled, since they have `Prusti.toml` files which shouldn't \
-            be ignored! Move these crates elsewhere."
-        );
     }
 
     lazy_static::initialize(&ICE_HOOK);

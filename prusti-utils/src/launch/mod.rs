@@ -18,12 +18,9 @@ use std::{
     process::Command,
 };
 
-pub const PRUSTI_HELPERS: [&str; 3] = [
-    "prusti-contracts-internal",
-    "prusti-contracts-impl",
-    "prusti-specs",
-];
-pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-contracts-std"];
+/// Determines which crates in `./prusti-contracts` have their specs re-exported
+/// for `prusti-rustc`.
+pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-std"];
 
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
