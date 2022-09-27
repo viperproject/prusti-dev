@@ -1044,17 +1044,6 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
 </pre><pre class="rust"><code><span class="attribute">#![deny(unused_must_use)]
 #![feature(drain_filter)]
 #![feature(box_patterns)]
@@ -1451,20 +1440,9 @@
     }
 }
 
-<span class="doccomment">/// Unlike the functions above, which are only called from
-/// prusti-contracts-internal, this function also needs to be called
-/// from prusti-contracts-impl, because we still need to parse the
-/// macro in order to replace it with the closure definition.
-/// Therefore, there is an extra parameter drop_spec here which tells
-/// the function whether to keep the specification (for -internal) or
-/// drop it (for -impl).
-</span><span class="kw">pub fn </span>closure(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, drop_spec: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">pub fn </span>closure(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>cl_spec: <a href="parse_closure_macro.rs.html#3">ClosureWithSpec</a> = <a class="macro" href="#45-52">handle_result!</a>(syn::parse(tokens.into()));
     <span class="kw">let </span>callsite_span = Span::call_site();
-
-    <span class="kw">if </span>drop_spec {
-        <span class="kw">return </span><a href="#405">cl_spec</a>.cl.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>();
-    }
 
     <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
 
@@ -1505,14 +1483,14 @@
         or2_token,
         output,
         body,
-    } = <a href="#405">cl_spec</a>.cl;
+    } = <a href="#398">cl_spec</a>.cl;
 
-    <span class="kw">let </span>output_type: <a href="../../syn/ty/enum.Type.html">syn::Type</a> = <span class="kw">match </span><a href="#449">output</a> {
+    <span class="kw">let </span>output_type: <a href="../../syn/ty/enum.Type.html">syn::Type</a> = <span class="kw">match </span><a href="#438">output</a> {
         syn::ReturnType::Default =&gt; {
-            <span class="kw">return </span>syn::Error::new(<a href="#449">output</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;closure must specify return type&quot;</span>)
+            <span class="kw">return </span>syn::Error::new(<a href="#438">output</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;closure must specify return type&quot;</span>)
                 .to_compile_error();
         }
-        syn::ReturnType::Type(<span class="kw">_</span>, <span class="kw-2">ref </span>ty) =&gt; (<span class="kw-2">**</span><a href="#458">ty</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        syn::ReturnType::Type(<span class="kw">_</span>, <span class="kw-2">ref </span>ty) =&gt; (<span class="kw-2">**</span><a href="#447">ty</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
     };
 
     <span class="kw">let </span>(spec_toks_pre, spec_toks_post) =
@@ -1551,9 +1529,9 @@
 
 <span class="kw">pub fn </span>refine_trait_spec(_attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>impl_block: <a href="../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> = <a class="macro" href="#45-52">handle_result!</a>(syn::parse2(tokens));
-    <span class="kw">let </span>impl_generics = <span class="kw-2">&amp;</span><a href="#496">impl_block</a>.generics;
+    <span class="kw">let </span>impl_generics = <span class="kw-2">&amp;</span><a href="#485">impl_block</a>.generics;
 
-    <span class="kw">let </span>trait_path: <a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#496">impl_block</a>.trait_ {
+    <span class="kw">let </span>trait_path: <a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#485">impl_block</a>.trait_ {
         <span class="prelude-val">Some</span>((<span class="kw">_</span>, trait_path, <span class="kw">_</span>)) =&gt; <a class="macro" href="parse_quote_spanned.rs.html#23-28">parse_quote_spanned!</a>(trait_path.span()=&gt;#trait_path),
         <span class="prelude-val">None </span>=&gt; <a class="macro" href="#45-52">handle_result!</a>(<span class="prelude-val">Err</span>(syn::Error::new(
             impl_block.span(),
@@ -1561,8 +1539,8 @@
         </span>))),
     };
 
-    <span class="kw">let </span>self_type_path: <span class="kw-2">&amp;</span><a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#496">impl_block</a>.self_ty {
-        syn::Type::Path(type_path) =&gt; <a href="#508">type_path</a>,
+    <span class="kw">let </span>self_type_path: <span class="kw-2">&amp;</span><a href="../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#485">impl_block</a>.self_ty {
+        syn::Type::Path(type_path) =&gt; <a href="#497">type_path</a>,
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;Currently not supported: {:?}&quot;</span>, impl_block.self_ty),
     };
 
@@ -1629,7 +1607,7 @@
         generated_spec_item.rewrite_receiver(self_type_path);
     }
 
-    <a href="#496">impl_block</a>.items = <a href="#512">new_items</a>;
+    <a href="#485">impl_block</a>.items = <a href="#501">new_items</a>;
     <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned! </a>{impl_block.span()=&gt;
         #(#generated_spec_items)*
         <span class="attribute">#[prusti::specs_version = #SPECS_VERSION]
@@ -1640,7 +1618,7 @@
 <span class="kw">pub fn </span>trusted(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">if </span>!attr.is_empty() {
         <span class="kw">return </span>syn::Error::new(
-            <a href="#583">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#572">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;the `#[trusted]` attribute does not take parameters&quot;</span>,
         )
         .to_compile_error();
@@ -1651,15 +1629,15 @@
     </span><span class="kw">if </span>syn::parse2::&lt;syn::DeriveInput&gt;(tokens.clone()).is_ok() {
         <span class="comment">// TODO: reduce duplication with `invariant`
         </span><span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
-        <span class="kw">let </span>spec_id = <a href="#596">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
-        <span class="kw">let </span>spec_id_str = <a href="#597">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>spec_id = <a href="#585">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
+        <span class="kw">let </span>spec_id_str = <a href="#586">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
         <span class="kw">let </span>item: <a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a> = <a class="macro" href="#45-52">handle_result!</a>(syn::parse2(tokens));
-        <span class="kw">let </span>item_span = <a href="#600">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
-        <span class="kw">let </span>item_ident = <a href="#600">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>item_span = <a href="#589">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
+        <span class="kw">let </span>item_ident = <a href="#589">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let </span>item_name = syn::Ident::new(
             <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;prusti_trusted_item_{}_{}&quot;</span>, item_ident, spec_id),
-            <a href="#601">item_span</a>,
+            <a href="#590">item_span</a>,
         );
 
         <span class="kw">let </span>spec_item: <a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> = <a class="macro" href="parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{item_span=&gt;
@@ -1670,11 +1648,11 @@
             </span><span class="kw">fn </span>#item_name(<span class="self">self</span>) {}
         };
 
-        <span class="kw">let </span>generics = <span class="kw-2">&amp;</span><a href="#600">item</a>.generics;
-        <span class="kw">let </span>generics_idents = <a href="#616">generics</a>
+        <span class="kw">let </span>generics = <span class="kw-2">&amp;</span><a href="#589">item</a>.generics;
+        <span class="kw">let </span>generics_idents = <a href="#605">generics</a>
             .params
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|generic_param| <span class="kw">match </span><a href="#620">generic_param</a> {
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|generic_param| <span class="kw">match </span><a href="#609">generic_param</a> {
                 syn::GenericParam::Type(param) =&gt; {
                     syn::GenericParam::Type(
                         <a href="../../syn/generics/struct.TypeParam.html">syn::TypeParam</a> {
@@ -1683,7 +1661,7 @@
                             colon_token: <span class="prelude-val">None</span>,
                             default: <span class="prelude-val">None</span>,
                             eq_token: <span class="prelude-val">None</span>,
-                            ident: <a href="#621">param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            ident: <a href="#610">param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         }
                     )
                 },
@@ -1693,7 +1671,7 @@
                             attrs: Vec::new(),
                             bounds: syn::punctuated::Punctuated::new(),
                             colon_token: <span class="prelude-val">None</span>,
-                            lifetime: <a href="#633">param</a>.lifetime.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            lifetime: <a href="#622">param</a>.lifetime.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         }
                     )
                 },
@@ -1701,12 +1679,12 @@
                     syn::GenericParam::Const(
                         <a href="../../syn/generics/struct.ConstParam.html">syn::ConstParam</a> {
                             attrs: Vec::new(),
-                            colon_token: <a href="#643">param</a>.colon_token,
-                            const_token: <a href="#643">param</a>.const_token,
+                            colon_token: <a href="#632">param</a>.colon_token,
+                            const_token: <a href="#632">param</a>.const_token,
                             default: <span class="prelude-val">None</span>,
                             eq_token: <span class="prelude-val">None</span>,
-                            ident: <a href="#643">param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                            ty: <a href="#643">param</a>.ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            ident: <a href="#632">param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            ty: <a href="#632">param</a>.ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         }
                     )
                 }
@@ -1724,21 +1702,21 @@
             #item_impl
         }
     } <span class="kw">else </span>{
-        <a href="#104-108">rewrite_prusti_attributes</a>(<a href="spec_attribute_kind.rs.html#14">SpecAttributeKind::Trusted</a>, <a href="#583">attr</a>, <a href="#583">tokens</a>)
+        <a href="#104-108">rewrite_prusti_attributes</a>(<a href="spec_attribute_kind.rs.html#14">SpecAttributeKind::Trusted</a>, <a href="#572">attr</a>, <a href="#572">tokens</a>)
     }
 }
 
 <span class="kw">pub fn </span>invariant(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
-    <span class="kw">let </span>spec_id = <a href="#675">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
-    <span class="kw">let </span>spec_id_str = <a href="#676">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+    <span class="kw">let </span>spec_id = <a href="#664">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
+    <span class="kw">let </span>spec_id_str = <a href="#665">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
     <span class="kw">let </span>item: <a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a> = <a class="macro" href="#45-52">handle_result!</a>(syn::parse2(tokens));
-    <span class="kw">let </span>item_span = <a href="#679">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
-    <span class="kw">let </span>item_ident = <a href="#679">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>item_span = <a href="#668">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let </span>item_ident = <a href="#668">item</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">let </span>item_name = syn::Ident::new(
         <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;prusti_invariant_item_{}_{}&quot;</span>, item_ident, spec_id),
-        <a href="#680">item_span</a>,
+        <a href="#669">item_span</a>,
     );
 
     <span class="kw">let </span>attr = <a class="macro" href="#45-52">handle_result!</a>(parse_prusti(attr));
@@ -1755,12 +1733,12 @@
         }
     };
 
-    <span class="kw">let </span>generics = <a href="#679">item</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>generics_idents = <a href="#701">generics</a>
+    <span class="kw">let </span>generics = <a href="#668">item</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>generics_idents = <a href="#690">generics</a>
         .params
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="#705">generic_param</a> {
-            syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<a href="#706">type_param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="#694">generic_param</a> {
+            syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<a href="#695">type_param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;syn::punctuated::Punctuated&lt;<span class="kw">_</span>, <a class="macro" href="../../syn/macro.Token.html">syn::Token!</a>[,]&gt;&gt;();
@@ -1779,7 +1757,7 @@
 
 <span class="kw">pub fn </span>extern_spec(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>item: <a href="../../syn/item/enum.Item.html">syn::Item</a> = <a class="macro" href="#45-52">handle_result!</a>(syn::parse2(tokens));
-    <span class="kw">match </span><a href="#724">item</a> {
+    <span class="kw">match </span><a href="#713">item</a> {
         syn::Item::Impl(item_impl) =&gt; {
             <a class="macro" href="#45-52">handle_result!</a>(extern_spec_rewriter::impls::rewrite_extern_spec(<span class="kw-2">&amp;</span>item_impl))
         }
@@ -1793,14 +1771,14 @@
                 <span class="kw-2">&amp;mut </span>item_mod
             ))
         }
-        <span class="kw">_ </span>=&gt; syn::Error::new(<a href="#723">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;Extern specs cannot be attached to this item&quot;</span>)
+        <span class="kw">_ </span>=&gt; syn::Error::new(<a href="#712">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;Extern specs cannot be attached to this item&quot;</span>)
             .to_compile_error(),
     }
 }
 
 <span class="kw">pub fn </span>predicate(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>parsed = <a class="macro" href="#45-52">handle_result!</a>(predicate::parse_predicate(tokens));
-    <a href="#745">parsed</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
+    <a href="#734">parsed</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
 }
 
 <span class="kw">pub fn </span>rewrite_prusti_attributes_for_types(
@@ -1814,21 +1792,21 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>prusti_attributes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(outer_attr_kind, outer_attr_tokens)];
 
     <span class="comment">// Collect the remaining Prusti attributes, removing them from `item`.
-    </span><a href="#757">prusti_attributes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#787-789">extract_prusti_attributes_for_types</a>(<span class="kw-2">&amp;mut </span><a href="#754">item</a>));
+    </span><a href="#746">prusti_attributes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#776-778">extract_prusti_attributes_for_types</a>(<span class="kw-2">&amp;mut </span><a href="#743">item</a>));
 
     <span class="kw">if </span>prusti_attributes.len() &gt; <span class="number">1 </span>&amp;&amp; prusti_attributes
         .iter()
         .any(|(ak, <span class="kw">_</span>)| ak == <span class="kw-2">&amp;</span>SpecAttributeKind::Trusted)
     {
         <span class="kw">return </span>syn::Error::new(
-            <a href="#754">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#743">item</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;`trusted!` is incompatible with other Prusti attributes&quot;</span>,
         )
         .to_compile_error();
     }
 
     <span class="comment">// we order the attributes to ensure a model attribute is processed first
-    </span><a href="#757">prusti_attributes</a>.sort_by(|(ak1, <span class="kw">_</span>), (ak2, <span class="kw">_</span>)| <a href="#774">ak1</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#774">ak2</a>));
+    </span><a href="#746">prusti_attributes</a>.sort_by(|(ak1, <span class="kw">_</span>), (ak2, <span class="kw">_</span>)| <a href="#763">ak1</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#763">ak2</a>));
 
     <span class="kw">let </span>(generated_spec_items, generated_attributes) =
         <a class="macro" href="#45-52">handle_result!</a>(generate_spec_and_assertions_for_types(prusti_attributes, <span class="kw-2">&amp;mut </span>item));
@@ -1880,8 +1858,8 @@
             regular_attributes.push(attr);
         }
     }
-    <a href="#788">item</a>.attrs = <a href="#791">regular_attributes</a>;
-    <a href="#790">prusti_attributes</a>
+    <a href="#777">item</a>.attrs = <a href="#780">regular_attributes</a>;
+    <a href="#779">prusti_attributes</a>
 }
 
 <span class="doccomment">/// Generate spec items and attributes for `item` from the Prusti attributes
@@ -1911,28 +1889,28 @@
         generated_attributes.extend(new_attributes);
     }
 
-    <span class="prelude-val">Ok</span>((<a href="#835">generated_items</a>, <a href="#836">generated_attributes</a>))
+    <span class="prelude-val">Ok</span>((<a href="#824">generated_items</a>, <a href="#825">generated_attributes</a>))
 }
 
 <span class="doccomment">/// Generate spec items and attributes to typecheck and later retrieve &quot;model&quot; annotations.
 </span><span class="kw">fn </span>generate_for_model(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, item: <span class="kw-2">&amp;mut </span><a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>) -&gt; <a href="#140">GeneratedResult</a> {
-    <span class="kw">match </span>syn::Item::from(<a href="#861">item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+    <span class="kw">match </span>syn::Item::from(<a href="#850">item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
         syn::Item::Struct(item_struct) =&gt; {
-            <span class="kw">match </span><a href="type_model/mod.rs.html#30">type_model::rewrite</a>(<a href="#863">item_struct</a>){
+            <span class="kw">match </span><a href="type_model/mod.rs.html#30">type_model::rewrite</a>(<a href="#852">item_struct</a>){
                 <span class="prelude-val">Ok</span>(result) =&gt; {
-                    <span class="kw">match </span><a href="#865">result</a>.first() {
+                    <span class="kw">match </span><a href="#854">result</a>.first() {
                         <span class="prelude-val">Some</span>(syn::Item::Struct(new_item)) =&gt; {
-                            <span class="kw-2">*</span><a href="#861">item</a> = syn::DeriveInput::from(<a href="#867">new_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">//the internal model replaces the original struct
+                            <span class="kw-2">*</span><a href="#850">item</a> = syn::DeriveInput::from(<a href="#856">new_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">//the internal model replaces the original struct
                             </span><span class="prelude-val">Ok</span>((<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result[<span class="number">1</span>].clone(), result[<span class="number">2</span>].clone()], <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]))
                         }
                         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                     }
                 },
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#874">err</a>),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#863">err</a>),
             }
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(syn::Error::new(
-            <a href="#861">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#850">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Only structs can be attributed with a type model&quot;</span>,
         )),
     }
@@ -1941,30 +1919,30 @@
 
 <span class="doccomment">/// Generate spec items and attributes to typecheck and later retrieve &quot;print_counterexample&quot; annotations.
 </span><span class="kw">fn </span>generate_for_print_counterexample(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, item: <span class="kw-2">&amp;mut </span><a href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>) -&gt; <a href="#140">GeneratedResult</a> {
-    <span class="kw">match </span>syn::Item::from(<a href="#886">item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+    <span class="kw">match </span>syn::Item::from(<a href="#875">item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
         syn::Item::Struct(item_struct) =&gt; {
-            <span class="kw">match </span><a href="print_counterexample.rs.html#10-13">print_counterexample::rewrite_struct</a>(<a href="#886">attr</a>, <a href="#888">item_struct</a>){
-                <span class="prelude-val">Ok</span>(result) =&gt; <span class="prelude-val">Ok</span>((<a href="#890">result</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#891">err</a>),
+            <span class="kw">match </span><a href="print_counterexample.rs.html#10-13">print_counterexample::rewrite_struct</a>(<a href="#875">attr</a>, <a href="#877">item_struct</a>){
+                <span class="prelude-val">Ok</span>(result) =&gt; <span class="prelude-val">Ok</span>((<a href="#879">result</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#880">err</a>),
             }
         }
         syn::Item::Enum(item_enum) =&gt; {
-            <span class="kw">match </span><a href="print_counterexample.rs.html#21">print_counterexample::rewrite_enum</a>(<a href="#886">attr</a>, <a href="#894">item_enum</a>){
+            <span class="kw">match </span><a href="print_counterexample.rs.html#21">print_counterexample::rewrite_enum</a>(<a href="#875">attr</a>, <a href="#883">item_enum</a>){
                 <span class="prelude-val">Ok</span>(result) =&gt; {
-                    <span class="kw">match </span><a href="#896">result</a>.first() {
+                    <span class="kw">match </span><a href="#885">result</a>.first() {
                         <span class="prelude-val">Some</span>(syn::Item::Enum(new_item)) =&gt; {
-                            <span class="kw-2">*</span><a href="#886">item</a> = syn::DeriveInput::from(<a href="#898">new_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">//print_counterexample removes all attributes inside the enum
+                            <span class="kw-2">*</span><a href="#875">item</a> = syn::DeriveInput::from(<a href="#887">new_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">//print_counterexample removes all attributes inside the enum
                             </span><span class="prelude-val">Ok</span>((<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result[<span class="number">1</span>].clone()], <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]))
                         },
                         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                     }
                 },
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#905">err</a>),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#894">err</a>),
             }
 
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(syn::Error::new(
-            <a href="#886">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#875">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Only structs and enums can be attributed with a custom counterexample print&quot;</span>,
         )),
     }
@@ -1972,10 +1950,10 @@
 
 <span class="kw">pub fn </span>type_model(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">if </span>syn::parse2::&lt;syn::DeriveInput&gt;(tokens.clone()).is_ok() {
-        <a href="#749-753">rewrite_prusti_attributes_for_types</a>(<a href="spec_attribute_kind.rs.html#8">SpecAttributeKind::Model</a>, <a href="#916">attr</a>, <a href="#916">tokens</a>)
+        <a href="#738-742">rewrite_prusti_attributes_for_types</a>(<a href="spec_attribute_kind.rs.html#8">SpecAttributeKind::Model</a>, <a href="#905">attr</a>, <a href="#905">tokens</a>)
     } <span class="kw">else </span>{
         syn::Error::new(
-            <a href="#916">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#905">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Only structs can be attributed with a type model&quot;</span>,
         )
         .to_compile_error()
@@ -1984,10 +1962,10 @@
 
 <span class="kw">pub fn </span>print_counterexample(attr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">if </span>syn::parse2::&lt;syn::DeriveInput&gt;(tokens.clone()).is_ok() {
-        <a href="#749-753">rewrite_prusti_attributes_for_types</a>(<a href="spec_attribute_kind.rs.html#18">SpecAttributeKind::PrintCounterexample</a>, <a href="#928">attr</a>, <a href="#928">tokens</a>)
+        <a href="#738-742">rewrite_prusti_attributes_for_types</a>(<a href="spec_attribute_kind.rs.html#18">SpecAttributeKind::PrintCounterexample</a>, <a href="#917">attr</a>, <a href="#917">tokens</a>)
     } <span class="kw">else </span>{
         syn::Error::new(
-            <a href="#928">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a href="#917">attr</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Only structs and enums can be attributed with print_counterexample&quot;</span>,
         )
         .to_compile_error()
@@ -1997,8 +1975,8 @@
     <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
     <span class="kw">let </span>callsite_span = Span::call_site();
 
-    <span class="kw">let </span>spec_id = <a href="#940">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
-    <span class="kw">let </span>spec_id_str = <a href="#943">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+    <span class="kw">let </span>spec_id = <a href="#929">rewriter</a>.<a href="rewriter.rs.html#43">generate_spec_id</a>();
+    <span class="kw">let </span>spec_id_str = <a href="#932">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
     <span class="kw">let </span>make_closure = |kind| {
         <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
@@ -2018,47 +1996,47 @@
         returns: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt;,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visit&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span><a href="#958">Visitor</a> {
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visit&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span><a href="#947">Visitor</a> {
         <span class="kw">fn </span>visit_expr_for_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprForLoop.html">syn::ExprForLoop</a>) {
-            <span class="kw">let </span>e = <a href="#965">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>lbl = <a href="#966">e</a>.label.map(|c| <a href="#967">c</a>.name.ident);
-            <span class="kw">let </span>span = <a href="#966">e</a>.body.brace_token.span;
-            <a class="self" href="#965">self</a>.loops.push((<a href="#967">lbl</a>, <a href="#968">span</a>));
-            syn::visit::visit_expr_for_loop(<a class="self" href="#965">self</a>, <a href="#965">ex</a>);
+            <span class="kw">let </span>e = <a href="#954">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>lbl = <a href="#955">e</a>.label.map(|c| <a href="#956">c</a>.name.ident);
+            <span class="kw">let </span>span = <a href="#955">e</a>.body.brace_token.span;
+            <a class="self" href="#954">self</a>.loops.push((<a href="#956">lbl</a>, <a href="#957">span</a>));
+            syn::visit::visit_expr_for_loop(<a class="self" href="#954">self</a>, <a href="#954">ex</a>);
         }
         <span class="kw">fn </span>visit_expr_while(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprWhile.html">syn::ExprWhile</a>) {
-            <span class="kw">let </span>e = <a href="#972">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>lbl = <a href="#973">e</a>.label.map(|c| <a href="#974">c</a>.name.ident);
-            <span class="kw">let </span>span = <a href="#973">e</a>.body.brace_token.span;
-            <a class="self" href="#972">self</a>.loops.push((<a href="#974">lbl</a>, <a href="#975">span</a>));
-            syn::visit::visit_expr_while(<a class="self" href="#972">self</a>, <a href="#972">ex</a>);
+            <span class="kw">let </span>e = <a href="#961">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>lbl = <a href="#962">e</a>.label.map(|c| <a href="#963">c</a>.name.ident);
+            <span class="kw">let </span>span = <a href="#962">e</a>.body.brace_token.span;
+            <a class="self" href="#961">self</a>.loops.push((<a href="#963">lbl</a>, <a href="#964">span</a>));
+            syn::visit::visit_expr_while(<a class="self" href="#961">self</a>, <a href="#961">ex</a>);
         }
         <span class="kw">fn </span>visit_expr_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprLoop.html">syn::ExprLoop</a>) {
-            <span class="kw">let </span>e = <a href="#979">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>lbl = <a href="#980">e</a>.label.map(|c| <a href="#981">c</a>.name.ident);
-            <span class="kw">let </span>span = <a href="#980">e</a>.body.brace_token.span;
-            <a class="self" href="#979">self</a>.loops.push((<a href="#981">lbl</a>, <a href="#982">span</a>));
-            syn::visit::visit_expr_loop(<a class="self" href="#979">self</a>, <a href="#979">ex</a>);
+            <span class="kw">let </span>e = <a href="#968">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>lbl = <a href="#969">e</a>.label.map(|c| <a href="#970">c</a>.name.ident);
+            <span class="kw">let </span>span = <a href="#969">e</a>.body.brace_token.span;
+            <a class="self" href="#968">self</a>.loops.push((<a href="#970">lbl</a>, <a href="#971">span</a>));
+            syn::visit::visit_expr_loop(<a class="self" href="#968">self</a>, <a href="#968">ex</a>);
         }
         <span class="kw">fn </span>visit_expr_continue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprContinue.html">syn::ExprContinue</a>) {
-            <span class="kw">let </span>e = <a href="#986">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>lbl = <a href="#987">e</a>.label.map(|c| <a href="#988">c</a>.ident);
-            <a class="self" href="#986">self</a>.breaks.push((<a href="#988">lbl</a>, <a href="#986">ex</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>()));
-            syn::visit::visit_expr_continue(<a class="self" href="#986">self</a>, <a href="#986">ex</a>);
+            <span class="kw">let </span>e = <a href="#975">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>lbl = <a href="#976">e</a>.label.map(|c| <a href="#977">c</a>.ident);
+            <a class="self" href="#975">self</a>.breaks.push((<a href="#977">lbl</a>, <a href="#975">ex</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>()));
+            syn::visit::visit_expr_continue(<a class="self" href="#975">self</a>, <a href="#975">ex</a>);
         }
         <span class="kw">fn </span>visit_expr_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprBreak.html">syn::ExprBreak</a>) {
-            <span class="kw">let </span>e = <a href="#992">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let </span>lbl = <a href="#993">e</a>.label.map(|c| <a href="#994">c</a>.ident);
-            <a class="self" href="#992">self</a>.breaks.push((<a href="#994">lbl</a>, <a href="#992">ex</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>()));
-            syn::visit::visit_expr_break(<a class="self" href="#992">self</a>, <a href="#992">ex</a>);
+            <span class="kw">let </span>e = <a href="#981">ex</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let </span>lbl = <a href="#982">e</a>.label.map(|c| <a href="#983">c</a>.ident);
+            <a class="self" href="#981">self</a>.breaks.push((<a href="#983">lbl</a>, <a href="#981">ex</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>()));
+            syn::visit::visit_expr_break(<a class="self" href="#981">self</a>, <a href="#981">ex</a>);
         }
         <span class="kw">fn </span>visit_expr_return(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><a href="../../syn/expr/struct.ExprReturn.html">syn::ExprReturn</a>) {
-            <span class="kw">let </span>e = <a href="#998">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a class="self" href="#998">self</a>.returns = <span class="prelude-val">Some</span>(<a href="#999">e</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>());
+            <span class="kw">let </span>e = <a href="#987">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a class="self" href="#987">self</a>.returns = <span class="prelude-val">Some</span>(<a href="#988">e</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>());
         }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#958">Visitor</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#947">Visitor</a> {
         loops: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         breaks: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         returns: <span class="prelude-val">None</span>,
@@ -2068,11 +2046,11 @@
         {#tokens}
     };
 
-    <span class="kw">let </span>input = syn::parse::&lt;<a href="../../syn/stmt/struct.Block.html">syn::Block</a>&gt;(<a href="#1010">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap();
+    <span class="kw">let </span>input = syn::parse::&lt;<a href="../../syn/stmt/struct.Block.html">syn::Block</a>&gt;(<a href="#999">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap();
 
-    <a href="#1004">visitor</a>.<a href="../../syn/gen/visit/trait.Visit.html">visit_block</a>(<span class="kw-2">&amp;</span><a href="#1014">input</a>);
+    <a href="#993">visitor</a>.<a href="../../syn/gen/visit/trait.Visit.html">visit_block</a>(<span class="kw-2">&amp;</span><a href="#1003">input</a>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>exit_errors = <a href="#1004">visitor</a>.returns.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span><span class="kw-2">mut </span>exit_errors = <a href="#993">visitor</a>.returns.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="lifetime">&#39;breaks</span>: <span class="kw">for </span>(break_label, break_span) <span class="kw">in </span>visitor.breaks.iter() {
         <span class="kw">for </span>(loop_label, loop_span) <span class="kw">in </span>visitor.loops.iter() {
@@ -2086,8 +2064,8 @@
         exit_errors.push(<span class="kw-2">*</span>break_span);
     }
 
-    <span class="kw">let </span>begin = <a href="#946">make_closure</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{ghost_begin});
-    <span class="kw">let </span>end = <a href="#946">make_closure</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{ghost_end});
+    <span class="kw">let </span>begin = <a href="#935">make_closure</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{ghost_begin});
+    <span class="kw">let </span>end = <a href="#935">make_closure</a>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{ghost_end});
 
     <span class="kw">if </span>exit_errors.is_empty() {
         <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned! </a>{callsite_span=&gt;
@@ -2109,7 +2087,7 @@
                 #error
             }
         }
-        <a href="#1046">syn_errors</a>
+        <a href="#1035">syn_errors</a>
     }
 }
 </code></pre></div>
