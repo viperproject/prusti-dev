@@ -258,8 +258,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
 
                             match encoded_args[0].get_type(){
                                 Type::Seq(_) => {
-                                    let ref_type = encoded_lhs.get_type().clone();
-                                    return builtin((LookupSeq, ref_type))
+                                    let seq_type = encoded_lhs.get_type().clone();
+                                    return builtin((LookupSeq, seq_type))
                                 },
                                 typ => {
                                 }

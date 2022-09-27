@@ -123,27 +123,24 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the span of the declared specification, if any, or else the span of
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
+
+    fn is_math_function(&self, def_id: DefId) -> bool;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
-        let kind = self.get_proc_kind(def_id, substs);
-        let mut pure = matches!(
-            kind,
+        matches!(
+            self.get_proc_kind(def_id, substs),
             ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
-        );
+        )
+    }
 
+    fn is_math_function(&self, def_id: DefId) -> bool {
         let func_name = self.env().name.get_unique_item_name(def_id);
-        if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
+        func_name.starts_with("prusti_contracts::prusti_contracts::Map")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Ghost")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Int")
-        {
-            pure = true;
-        }
-
-        trace!("is_pure {:?} = {}", def_id, pure);
-        pure
     }
 
     fn get_proc_kind(
@@ -151,6 +148,9 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         def_id: DefId,
         substs: Option<SubstsRef<'tcx>>,
     ) -> ProcedureSpecificationKind {
+        if self.is_math_function(def_id) {
+            return ProcedureSpecificationKind::Pure;
+        }
         let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
         self.specifications_state

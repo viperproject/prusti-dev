@@ -316,7 +316,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
                 let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
-                    || !self.env().query.has_body(proc_def_id);
+                    || !self.env().query.has_body(proc_def_id)
+                    || self.is_math_function(proc_def_id);
                 let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
                 } else {
@@ -341,7 +342,10 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                             function
                         }
                         ProcedureSpecificationKind::Impure => {
-                            unreachable!("trying to encode an impure function in pure encoder")
+                            unreachable!(
+                                "trying to encode impure function {:?} in pure encoder",
+                                proc_def_id
+                            )
                         }
                     }
                 };
