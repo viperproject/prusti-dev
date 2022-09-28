@@ -65,7 +65,7 @@ impl cmd::Runnable for CargoPrusti {
         cmd.env("VIPER_HOME", self.viper_home.to_str().unwrap())
             .env("Z3_EXE", self.z3_exe.join("z3").to_str().unwrap())
             .env("JAVA_HOME", java_home)
-            .env("CARGO_PATH", "/opt/rustwide/cargo-home/bin/cargo")
+            .env("PRUSTI_CARGO_PATH", "/opt/rustwide/cargo-home/bin/cargo")
     }
 }
 
