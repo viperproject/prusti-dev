@@ -81,7 +81,7 @@ jobs:
       - name: Prepare verification cache keys
         shell: bash
         run: |
-          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
           echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
           echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
       - name: Load verification cache
@@ -92,6 +92,28 @@ jobs:
           key: ${{ env.VER_CACHE_KEY_UNIQUE }}
           # Restore from the most recent cache that matches a shared prefix of the key
           restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
+      - name: Build with cargo
+        run: python x.py build --all
+      - name: Run quick tests
+        run: python x.py test --all quick
+
+  # Run some tests without the verification cache
+  test-no-verification-cache:
+    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
@@ -121,7 +143,7 @@ jobs:
       - name: Prepare verification cache keys
         shell: bash
         run: |
-          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
           echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
           echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
       - name: Load verification cache
@@ -223,7 +245,7 @@ jobs:
       - name: Prepare verification cache keys
         shell: bash
         run: |
-          VER_CACHE_KEY_SHARED=prusti-cache-$(date +%Y-%m)
+          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
           echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
           echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
       - name: Load verification cache
