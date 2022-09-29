@@ -435,6 +435,7 @@ impl Type {
                     Self::encode_arguments(&[val_type.clone()])
                 )
             }
+            Type::Int => "Int".to_string(),
             Type::TypeVar(TypeVar { label }) => {
                 assert!(
                     TypeVar::is_valid_label(label),
