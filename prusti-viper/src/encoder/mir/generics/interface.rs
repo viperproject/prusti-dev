@@ -7,6 +7,19 @@ use prusti_rustc_interface::{
 };
 use vir_crate::high::{self as vir_high};
 
+pub fn get_generic_types<'tcx>(
+    substs: SubstsRef<'tcx>,
+) -> Vec<ty::Ty<'tcx>> {
+    substs
+        .iter()
+        // TODO(tymap): ignoring const params and lifetimes for now
+        .filter_map(|generic| match generic.unpack() {
+            ty::subst::GenericArgKind::Type(ty) => Some(ty),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+}
+
 pub(crate) trait MirGenericsEncoderInterface<'tcx> {
     /// For a function specified with the `def_id`, encode the full list list of
     /// its generic parameters.
@@ -43,20 +56,18 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         }
         Ok(parameters)
     }
+
+
     fn encode_generic_arguments_high(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>> {
         assert_eq!(substs.len(), self.env().query.identity_substs(def_id).len());
-        Ok(substs
+        let generics = get_generic_types(substs);
+        Ok(generics
             .iter()
-            // TODO(tymap): ignoring const params and lifetimes for now
-            .filter_map(|generic| match generic.unpack() {
-                ty::subst::GenericArgKind::Type(ty) => Some(ty),
-                _ => None,
-            })
-            .map(|ty| self.encode_type_high(ty))
+            .map(|ty| self.encode_type_high(*ty))
             .collect::<Result<Vec<_>, _>>()?)
     }
     fn encode_param(&self, name: Symbol, index: u32) -> vir_high::ty::TypeVar {

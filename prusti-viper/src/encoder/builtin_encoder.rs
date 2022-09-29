@@ -21,6 +21,7 @@ pub enum BuiltinMethodKind {
     HavocBV(vir::BitVector),
     HavocRef,
     HavocSeq(vir::Type),
+    HavocMap(vir::Type, vir::Type),
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -77,6 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
             BuiltinMethodKind::HavocSeq(typ) => compute_identifier("builtin$havoc_seq", &[typ.clone()], &[], typ),
+            BuiltinMethodKind::HavocMap(kt, vt) => compute_identifier("builtin$havoc_map", &[kt.clone(), vt.clone()], &[], kt),
         }
     }
 
@@ -90,6 +92,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
             BuiltinMethodKind::HavocSeq(typ) =>
                 vir::Type::Seq(vir::SeqType {typ: box typ.clone()}),
+            BuiltinMethodKind::HavocMap(kt, vt) =>
+                vir::Type::Map(vir::MapType {
+                    key_type: box kt.clone(),
+                    val_type: box vt.clone()
+                }),
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),

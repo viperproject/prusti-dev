@@ -34,7 +34,7 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Array(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Slice(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Sequence(ty_decl) => ty_decl.lower(ty, encoder),
-            vir_high::TypeDecl::Map(_ty_decl) => unimplemented!(),
+            vir_high::TypeDecl::Map(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Reference(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Pointer(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Never => construct_never_predicate(encoder),
@@ -200,6 +200,17 @@ impl IntoPredicates for vir_high::type_decl::Array {
 }
 
 impl IntoPredicates for vir_high::type_decl::Sequence {
+    fn lower(
+        &self,
+        ty: &vir_high::Type,
+        encoder: &impl HighTypeEncoderInterfacePrivate,
+    ) -> Predicates {
+        let predicate = Predicate::new_abstract(ty.lower(encoder));
+        Ok(vec![predicate])
+    }
+}
+
+impl IntoPredicates for vir_high::type_decl::Map {
     fn lower(
         &self,
         ty: &vir_high::Type,

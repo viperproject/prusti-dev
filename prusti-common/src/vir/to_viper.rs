@@ -606,10 +606,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ContainerOpKind::SeqIndex => {
                     ast.seq_index(args[0].to_viper(context, ast), args[1].to_viper(context, ast))
                 }
+                ContainerOpKind::MapIndex => {
+                    ast.lookup_map(args[0].to_viper(context, ast), args[1].to_viper(context, ast))
+                }
                 ContainerOpKind::SeqConcat => {
                     ast.seq_append(args[0].to_viper(context, ast), args[1].to_viper(context, ast))
                 }
                 ContainerOpKind::SeqLen => ast.seq_length(args[0].to_viper(context, ast)),
+                ContainerOpKind::MapLen => ast.map_len(args[0].to_viper(context, ast)),
+                ContainerOpKind::MapUpdate => ast.update_map(
+                    args[0].to_viper(context, ast),
+                    args[1].to_viper(context, ast),
+                    args[2].to_viper(context, ast)
+                ),
             },
             Expr::Seq(ty, elems, _pos) => {
                 let Type::Seq(box elem_ty) = ty else { unreachable!() };
