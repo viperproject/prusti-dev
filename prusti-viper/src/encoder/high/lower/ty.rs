@@ -20,7 +20,7 @@ impl LowerAsSnapshotType for vir_high::Type {
                 unreachable!("Permissions are used only in the unsafe core proof")
             }
             vir_high::Type::Bool => vir_poly::Type::Bool,
-            vir_high::Type::Int(int) => vir_poly::Type::Int,
+            vir_high::Type::Int(_) => vir_poly::Type::Int,
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
                 typ: box ty.element_type.lower_as_snapshot_type(),
             }),
