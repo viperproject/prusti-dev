@@ -7,6 +7,7 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
+        generics::interface::get_generic_types,
         pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
         sequences::MirSequencesEncoderInterface,
         specifications::SpecificationsInterface,
@@ -139,14 +140,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 if let Some(proc_name) = full_func_proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
                     assert_eq!(type_arguments.len(), 2);
 
-                    let key_type = type_arguments[0].clone();
-                    let val_type = type_arguments[1].clone();
+                    let arg_types = get_generic_types(call_substs);
+
+                    let key_type =
+                        self.encoder.encode_snapshot_type(arg_types[0]).with_span(span)?;
+                    let val_type =
+                        self.encoder.encode_snapshot_type(arg_types[1]).with_span(span)?;
+                    // let key_type = type_arguments[0].clone();
+                    // let val_type = type_arguments[1].clone();
                     let map_type = vir::Type::Map(
                         MapType {
                             key_type: Box::new(key_type),
                             val_type: Box::new(val_type.clone())
                         }
                     );
+                    eprintln!("{:?}", map_type);
 
                     return builtin(match proc_name {
                         "empty" => (EmptyMap, map_type),
@@ -179,6 +187,51 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                         _ => unreachable!("no further int functions"),
                     }
                 } else {
+                    eprintln!("{:?}", encoded_args[0].get_type());
+                    let std = full_func_proc_name.strip_prefix("std::");
+                    let core = full_func_proc_name.strip_prefix("core::");
+                    let op_name = std.or(core).and_then(|name| {
+                        name.strip_prefix("ops::")
+                            .or_else(|| name.strip_prefix("cmp::PartialOrd::"))
+                            .or_else(|| name.strip_prefix("cmp::PartialEq::"))
+                    });
+
+                    if let Some(op_name) = op_name {
+                        if let Type::TypedRef(tr) = encoded_args[0].get_type() && tr.label == "unbounded" {
+                use vir::BinaryOpKind::*;
+                let ops = [
+                    ("Add::add", Add),
+                    ("Sub::sub", Sub),
+                    ("Mul::mul", Mul),
+                    ("Div::div", Div),
+                    ("Rem::rem", Mod),
+                    ("lt", LtCmp),
+                    ("le", LeCmp),
+                    ("gt", GtCmp),
+                    ("ge", GeCmp),
+                    ("eq", EqCmp),
+                    ("ne", NeCmp),
+                ];
+
+                // replace binary ops
+                for (fun, op_kind) in ops {
+                    if op_name == fun {
+                        return subst_with(vir::Expr::bin_op(
+                            op_kind,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone()
+                        ));
+                    }
+                }
+
+                // replace negation
+                if op_name == "Neg::neg" {
+                    return subst_with(vir::Expr::minus(encoded_args[0].clone()));
+                }
+
+                unreachable!("Didn't expect function {:?} on Int.", full_func_proc_name);
+                        }
+                    }
                     match full_func_proc_name {
                         "prusti_contracts::old" => {
                             trace!("Encoding old expression {:?}", args[0]);
@@ -261,6 +314,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                                     let elem_type =
                                         self.encoder.encode_snapshot_type(ty).with_span(span)?;
                                     return builtin((LookupSeq, elem_type))
+                                },
+                                Type::Map(_) => {
+                                    let elem_type =
+                                        self.encoder.encode_snapshot_type(ty).with_span(span)?;
+                                    return builtin((LookupMap, elem_type))
                                 },
                                 _ => {}
                             };

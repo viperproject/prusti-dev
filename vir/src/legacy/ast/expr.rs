@@ -119,8 +119,11 @@ pub enum BinaryOpKind {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum ContainerOpKind {
-    SeqIndex,
+    MapIndex,
+    MapLen,
+    MapUpdate,
     SeqConcat,
+    SeqIndex,
     SeqLen,
     // more to follow if required
 }
@@ -176,9 +179,12 @@ impl fmt::Display for Expr {
                 write!(f, "({}) {} ({})", left, op, right)
             }
             Expr::ContainerOp(op, args, _) => match op {
+                ContainerOpKind::MapUpdate => write!(f, "{}[{} -> {}]", args[0], args[1], args[2]),
                 ContainerOpKind::SeqIndex => write!(f, "{}[{}]", args[0], args[1]),
+                ContainerOpKind::MapIndex => write!(f, "{}[{}]", args[0], args[1]),
                 ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", args[0], args[1]),
-                ContainerOpKind::SeqLen => write!(f, "|{}|", args[0])
+                ContainerOpKind::SeqLen => write!(f, "|{}|", args[0]),
+                ContainerOpKind::MapLen => write!(f, "|{}|", args[0])
             },
             Expr::Seq(ty, elems, _) => {
                 let elem_ty = if let Type::Seq(box elem_ty) = ty {
