@@ -88,7 +88,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => vir::Type::Float(vir::Float::F32),
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
-            BuiltinMethodKind::HavocSeq(typ) => vir::Type::Seq(vir::SeqType {typ: Box::new(typ.clone())}),
+            BuiltinMethodKind::HavocSeq(typ) =>
+                vir::Type::Seq(vir::SeqType {typ: box typ.clone()}),
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),

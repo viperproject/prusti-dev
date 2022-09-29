@@ -696,10 +696,7 @@ impl Expr {
             &Expr::Variant(Variant { ref base, .. }) | &Expr::Field(FieldExpr { ref base, .. }) => {
                 base.is_simple_place()
             }
-            _ => {
-                eprintln!("{:?} is not a simple place", self);
-                false
-            }
+            _ => false
         }
     }
 

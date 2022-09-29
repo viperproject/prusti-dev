@@ -512,7 +512,7 @@ impl RequiredExprPermissionsGetter for vir::Expr {
 
             _ => FxHashSet::default(),
         };
-        eprintln!(
+        trace!(
             "[exit] get_required_expr_permissions(expr={}): {:#?}",
             self,
             permissions

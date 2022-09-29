@@ -1,7 +1,7 @@
 use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingResult, ErrorCtxt, MultiSpan, SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::HighBuiltinFunctionEncoderInterface,
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
@@ -27,7 +27,7 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir, MapType, SeqType, TypedRef};
+use vir_crate::polymorphic::{self as vir, MapType, SeqType};
 use prusti_common::vir::polymorphic_vir::BuiltinFunc::*;
 use prusti_common::vir::polymorphic_vir::Type;
 
@@ -262,8 +262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                                         self.encoder.encode_snapshot_type(ty).with_span(span)?;
                                     return builtin((LookupSeq, elem_type))
                                 },
-                                typ => {
-                                }
+                                _ => {}
                             };
 
                             let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);

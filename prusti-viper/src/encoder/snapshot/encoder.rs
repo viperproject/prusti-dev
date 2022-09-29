@@ -611,7 +611,6 @@ impl SnapshotEncoder {
 
         // otherwise, encode
 
-        eprintln!("Predicate type: {:?}, {}", predicate_type, predicate_type.is_seq());
         // figure out resulting type
         let snapshot_type = match ty.kind() {
             ty::TyKind::Int(_) => Type::Int,

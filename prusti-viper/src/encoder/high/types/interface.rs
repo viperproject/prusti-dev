@@ -171,7 +171,6 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         name: &vir_poly::Type,
     ) -> SpannedEncodingResult<vir_poly::Predicate> {
         self.ensure_viper_predicate_encoded(name)?;
-        eprintln!("Get predicate for {:?}", name);
         Ok(self.high_type_encoder_state.viper_predicates.borrow()[name].clone())
     }
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type> {
