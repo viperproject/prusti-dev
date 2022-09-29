@@ -5,6 +5,34 @@ use vir_crate::{
     polymorphic::Float::{F32, F64},
 };
 
+trait LowerAsSnapshotType {
+    fn lower_as_snapshot_type(&self) -> vir_poly::Type;
+}
+
+impl LowerAsSnapshotType for vir_high::Type {
+    fn lower_as_snapshot_type(&self) -> vir_poly::Type {
+        match self {
+            vir_high::Type::MBool => vir_poly::Type::Bool,
+            vir_high::Type::MInt => vir_poly::Type::Int,
+            vir_high::Type::MFloat32 => vir_poly::Type::Float(F32),
+            vir_high::Type::MFloat64 => vir_poly::Type::Float(F64),
+            vir_high::Type::MPerm => {
+                unreachable!("Permissions are used only in the unsafe core proof")
+            }
+            vir_high::Type::Bool => vir_poly::Type::Bool,
+            vir_high::Type::Int(int) => vir_poly::Type::Int,
+            vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
+                typ: box ty.element_type.lower_as_snapshot_type(),
+            }),
+            vir_high::Type::Map(ty) => vir_poly::Type::Map(vir_poly::MapType {
+                key_type: box ty.key_type.lower_as_snapshot_type(),
+                val_type: box ty.val_type.lower_as_snapshot_type(),
+            }),
+            _ => unimplemented!()
+        }
+    }
+}
+
 impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
         encoder.get_interned_lowered_type(self, || match self {
@@ -18,11 +46,11 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
-                typ: box ty.element_type.lower(encoder),
+                typ: box ty.element_type.lower_as_snapshot_type(),
             }),
             vir_high::Type::Map(ty) => vir_poly::Type::Map(vir_poly::MapType {
-                key_type: box ty.key_type.lower(encoder),
-                val_type: box ty.val_type.lower(encoder),
+                key_type: box ty.key_type.lower_as_snapshot_type(),
+                val_type: box ty.val_type.lower_as_snapshot_type(),
             }),
             vir_high::Type::Float(float) => {
                 vir_poly::Type::typed_ref(float.to_string().to_lowercase())
