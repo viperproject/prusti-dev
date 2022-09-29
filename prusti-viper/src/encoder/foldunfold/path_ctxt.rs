@@ -580,7 +580,7 @@ impl<'a> PathCtxt<'a> {
         // 4. Obtain with a fold
         if req.is_pred() {
             // We want to fold `req`
-            eprintln!("We want to fold {}", req);
+            trace!("We want to fold {}", req);
             let predicate_type = req.get_type();
             let predicate = self
                 .predicates

@@ -29,7 +29,8 @@ fn seq_construction() {
 }
 
 fn random_indexing_fails_usize(seq: Seq, idx: usize) {
-    prusti_assert!(seq[idx] == seq[idx]); //~ ERROR: the sequence index may be out of bounds
+    let idx2 = idx;
+    prusti_assert!(seq[idx] == seq[idx2]); //~ ERROR: the sequence index may be out of bounds
 }
 
 fn main() {}
