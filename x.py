@@ -12,6 +12,8 @@ import platform
 import subprocess
 import glob
 import csv
+import logging
+from pathlib import Path
 import time
 import json
 import signal
@@ -78,7 +80,7 @@ RUSTFMT_PATHS = [
 
 def shell(command, term_on_nzec=True):
     """Run a shell command."""
-    print("Running a shell command: ", command)
+    logging.debug("Running a shell command: ", command)
     if not dry_run:
         completed = subprocess.run(command.split())
         if completed.returncode != 0 and term_on_nzec:
@@ -158,6 +160,8 @@ def setup_win():
 def setup_rustup():
     # Update rustup
     shell('rustup self update', term_on_nzec=False)
+    # Install toolchain
+    shell('rustup show', term_on_nzec=False)
 
 
 def setup(args):
@@ -251,7 +255,103 @@ def check_smir():
                 )
             )
 
+def package(mode: str, package_path: str):
+    """Packages Prusti artifacts in the `package_path` folder.
+
+    Args:
+      mode: Either 'debug' or 'release'.
+      package_path: Where to copy all Prusti files and dependencies.
+    """
+    logging.info(f"Preparing a {mode}-mode Prusti package in '{package_path}'.")
+
+    # Prepare destination folder
+    Path(package_path).mkdir(parents=True, exist_ok=True)
+    if not os.listdir(package_path):
+        logging.warning(f"The destination folder '{package_path}' is not empty.")
+
+    # The glob patterns of the files to copy and their destination folder inside the package.
+    include_paths_and_dst = [
+        # (source pattern, destination)
+        ("rust-toolchain", "."),
+        ("viper_tools", "."),
+        (f"target/{mode}/prusti-driver*", "."),
+        (f"target/{mode}/prusti-server*", "."),
+        (f"target/{mode}/prusti-rustc*", "."),
+        (f"target/{mode}/cargo-prusti*", "."),
+        (f"prusti-contracts/target/verify/{mode}/libprusti_contracts.*", "."),
+        (f"prusti-contracts/target/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
+        (f"prusti-contracts/target/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
+        (f"prusti-contracts/target/verify/{mode}/libprusti_std.*", "."),
+        (f"prusti-contracts/target/verify/{mode}/deps/libprusti_contracts-*", "deps"),
+        (f"prusti-contracts/target/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
+    ]
+    exclude_paths = [
+        f"target/{mode}/*.d",
+        f"prusti-contracts/target/verify/{mode}/*.d",
+        f"prusti-contracts/target/verify/{mode}/deps/*.d",
+    ]
+    actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
+
+    # Copy the paths
+    num_copied_paths = 0
+    for pattern, dst_folder in include_paths_and_dst:
+        actual_paths = sorted(set(glob.glob(pattern)) - actual_exclude_set)
+        for src_path in actual_paths:
+            dst_folder_path = os.path.join(package_path, dst_folder)
+            dst_path = os.path.join(dst_folder_path, os.path.basename(src_path))
+            logging.info(f"Copying '{src_path}' to '{dst_path}'...")
+            num_copied_paths += 1
+            if os.path.isfile(src_path):
+                Path(dst_folder_path).mkdir(parents=True, exist_ok=True)
+                shutil.copy(src_path, dst_path)
+            else:
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                shutil.copytree(src_path, dst_path)
+
+    logging.info(f"Copied {num_copied_paths} paths to the package folder")
+    if num_copied_paths <= 11:
+        logging.error(f"The number of copied paths is too low.")
+        sys.exit(1)
+
+
+def test_package(package_path: str):
+    """Quickly test that a Prusti release has been packaged correctly.
+
+    Args:
+      package_path: The path of the package.
+    """
+    prusti_rustc_path = os.path.join(package_path, "prusti-rustc")
+    if sys.platform == "win32":
+        prusti_rustc_path += ".exe"
+    os.chmod(prusti_rustc_path, 0o744)
+    test_files = [
+        (True, "prusti-tests/tests/verify_overflow/pass/simple-specs/simple-spec.rs"),
+        (False, "prusti-tests/tests/verify/fail/simple-specs/binary-search.rs"),
+    ]
+    for should_pass, test_path in test_files:
+        logging.info(f"Testing '{prusti_rustc_path}' on '{test_path}'")
+        status = subprocess.run(
+            [prusti_rustc_path, test_path, "--edition=2018"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        exit_code = status.returncode
+        if (exit_code == 0) != should_pass:
+            logging.error(
+                f"The test is marked as {should_pass=}, but the exit code is {exit_code}.\n"
+                "┌─── Begin stdout ───┐\n"
+                f"{status.stdout.decode('utf-8')}\n"
+                "└─── End stdout ─────┘\n"
+                "┌─── Begin stderr ───┐\n"
+                f"{status.stderr.decode('utf-8')}\n"
+                "└─── End stderr ─────┘"
+            )
+            sys.exit(1)
+
+
 def main(argv):
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
@@ -295,6 +395,12 @@ def main(argv):
             break
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
+            break
+        elif arg == 'package':
+            package(*argv[i+1:])
+            break
+        elif arg == 'test-package':
+            test_package(*argv[i+1:])
             break
         else:
             cargo(argv[i:])
