@@ -5,14 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::{vir_local, vir_expr};
-use vir_crate::polymorphic::{self as vir};
+use vir_crate::polymorphic::{self as vir, compute_identifier};
 use vir_crate::common::identifier::WithIdentifier;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
     HavocBool,
     HavocInt,
@@ -20,6 +20,8 @@ pub enum BuiltinMethodKind {
     HavocF64,
     HavocBV(vir::BitVector),
     HavocRef,
+    HavocSeq(vir::Type),
+    HavocMap(vir::Type, vir::Type),
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -67,7 +69,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_builtin_method_name(&self, method: BuiltinMethodKind) -> String {
+    pub fn encode_builtin_method_name(&self, method: &BuiltinMethodKind) -> String {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
@@ -75,17 +77,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
+            BuiltinMethodKind::HavocSeq(typ) => compute_identifier("builtin$havoc_seq", &[typ.clone()], &[], typ),
+            BuiltinMethodKind::HavocMap(kt, vt) => compute_identifier("builtin$havoc_map", &[kt.clone(), vt.clone()], &[], kt),
         }
     }
 
-    pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> vir::BodylessMethod {
+    pub fn encode_builtin_method_def(&self, method: &BuiltinMethodKind) -> vir::BodylessMethod {
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
-            BuiltinMethodKind::HavocBV(variant) => vir::Type::BitVector(variant),
+            BuiltinMethodKind::HavocBV(variant) => vir::Type::BitVector(*variant),
             BuiltinMethodKind::HavocF32 => vir::Type::Float(vir::Float::F32),
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
+            BuiltinMethodKind::HavocSeq(typ) =>
+                vir::Type::Seq(vir::SeqType {typ: box typ.clone()}),
+            BuiltinMethodKind::HavocMap(kt, vt) =>
+                vir::Type::Map(vir::MapType {
+                    key_type: box kt.clone(),
+                    val_type: box vt.clone()
+                }),
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),

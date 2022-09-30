@@ -215,9 +215,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     fn initialize(&mut self) {
         // These are used in optimization passes
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
+        self.encode_builtin_method_def(&BuiltinMethodKind::HavocBool);
+        self.encode_builtin_method_def(&BuiltinMethodKind::HavocInt);
+        self.encode_builtin_method_def(&BuiltinMethodKind::HavocRef);
     }
 
     pub fn env(&self) -> &'v Environment<'tcx> {
@@ -414,25 +414,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }))
     }
 
-    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
+    pub fn encode_builtin_method_def(&self, method_kind: &BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
-        if !self.builtin_methods.borrow().contains_key(&method_kind) {
+        if !self.builtin_methods.borrow().contains_key(method_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
             self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods
                 .borrow_mut()
-                .insert(method_kind, method);
+                .insert(method_kind.clone(), method);
         }
-        self.builtin_methods.borrow()[&method_kind].clone()
+        self.builtin_methods.borrow()[method_kind].clone()
     }
 
     pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
         trace!("encode_builtin_method_use({:?})", method_kind);
         // Trigger encoding of definition
-        self.encode_builtin_method_def(method_kind);
+        self.encode_builtin_method_def(&method_kind);
         let builtin_encoder = BuiltinEncoder::new(self);
-        builtin_encoder.encode_builtin_method_name(method_kind)
+        builtin_encoder.encode_builtin_method_name(&method_kind)
     }
 
     pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
