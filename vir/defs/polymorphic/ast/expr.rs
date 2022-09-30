@@ -283,7 +283,7 @@ impl Expr {
 
     pub fn pred_permission(place: Expr, perm: PermAmount) -> Option<Self> {
         let typ = place.get_type();
-        if typ.is_typed_ref_or_type_var() || typ.is_seq() || typ.is_map() {
+        if typ.is_typed_ref_or_type_var() || typ.is_seq() || typ.is_map() || *typ == Type::Int {
             Some(Expr::predicate_access_predicate(typ.clone(), place, perm))
         } else {
             None

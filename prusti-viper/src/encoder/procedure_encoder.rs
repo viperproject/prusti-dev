@@ -3653,7 +3653,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let type_predicate = self
             .mir_encoder
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
-            .unwrap();
+            .unwrap_or_else(|| panic!("Cannot encode place predicate permission for {:?}", target_place));
 
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: type_predicate,
@@ -3748,6 +3748,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         -> SpannedEncodingResult<vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
+            ty::TyKind::Adt(def, _)
+                if self.encoder.env().name.get_absolute_item_name(def.did()) == "prusti_contracts::Int" => {
+                true.into()
+            },
             ty::TyKind::Ref(_, ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
@@ -3778,13 +3782,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Expr::pred_permission(place, perm_amount).unwrap(),
                 )
             }
-            _ => self
+            kind => self
                 .mir_encoder
                 .encode_place_predicate_permission(
                     self.encode_prusti_local(local).into(),
                     vir::PermAmount::Write,
                 )
-                .unwrap(),
+                .unwrap_or_else(|| panic!("Cannot encode permission to {:?}:{:?}", local, kind)),
         })
     }
 

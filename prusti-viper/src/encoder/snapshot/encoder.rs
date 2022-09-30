@@ -621,6 +621,7 @@ impl SnapshotEncoder {
             ty::TyKind::Bool => Type::Bool,
 
             _ if predicate_type.is_map() || predicate_type.is_seq() => predicate_type.clone(),
+            _ if predicate_type == Type::Int => Type::Int,
             // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
             _ => predicate_type.convert_to_snapshot(),
         };
@@ -664,6 +665,7 @@ impl SnapshotEncoder {
             _ if ty.is_box() => unreachable!(),
             _ if predicate_type.is_map() => Ok(Snapshot::Primitive(predicate_type.clone())),
             _ if predicate_type.is_seq() => Ok(Snapshot::Primitive(predicate_type.clone())),
+            _ if *predicate_type == Type::Int => Ok(Snapshot::Primitive(Type::Int)),
             ty::TyKind::Ref(_, _, _) => unreachable!(),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {

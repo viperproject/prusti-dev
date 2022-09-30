@@ -146,8 +146,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                         self.encoder.encode_snapshot_type(arg_types[0]).with_span(span)?;
                     let val_type =
                         self.encoder.encode_snapshot_type(arg_types[1]).with_span(span)?;
-                    // let key_type = type_arguments[0].clone();
-                    // let val_type = type_arguments[1].clone();
                     let map_type = vir::Type::Map(
                         MapType {
                             key_type: Box::new(key_type),
@@ -197,7 +195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     });
 
                     if let Some(op_name) = op_name {
-                        if let Type::TypedRef(tr) = encoded_args[0].get_type() && tr.label == "unbounded" {
+                        if let Type::Int = encoded_args[0].get_type() {
                 use vir::BinaryOpKind::*;
                 let ops = [
                     ("Add::add", Add),
