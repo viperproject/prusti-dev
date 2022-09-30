@@ -80,7 +80,7 @@ RUSTFMT_PATHS = [
 
 def shell(command, term_on_nzec=True):
     """Run a shell command."""
-    logging.debug("Running a shell command: ", command)
+    logging.debug(f"Running a shell command: {command}")
     if not dry_run:
         completed = subprocess.run(command.split())
         if completed.returncode != 0 and term_on_nzec:
