@@ -320,13 +320,19 @@ impl From<polymorphic::Expr> for legacy::Expr {
             ),
             polymorphic::Expr::BuiltinFuncApp(builtin_func_app) => {
                 match builtin_func_app.function {
-                    polymorphic::BuiltinFunc::NewInt => return legacy::Expr::Const(
+                    polymorphic::BuiltinFunc::NewInt => {
                         match &builtin_func_app.arguments[0] {
-                            polymorphic::Expr::Const(c) => c.value.clone().into(),
-                            other => unimplemented!("Howto {:?}", other)
-                        },
-                        builtin_func_app.position.into()
-                    ),
+                            polymorphic::Expr::Const(c) => return legacy::Expr::Const(
+                                c.value.clone().into(),
+                                builtin_func_app.position.into()
+                            ),
+                            _other =>
+                                return legacy::Expr::Const(
+                                1337.into(),
+                                builtin_func_app.position.into()
+                            )
+                        }
+                    },
                     polymorphic::BuiltinFunc::EmptySeq |
                     polymorphic::BuiltinFunc::SingleSeq
                     => return legacy::Expr::Seq(

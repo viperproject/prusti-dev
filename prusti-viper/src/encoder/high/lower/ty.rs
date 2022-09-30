@@ -13,14 +13,13 @@ impl LowerAsSnapshotType for vir_high::Type {
     fn lower_as_snapshot_type(&self) -> vir_poly::Type {
         match self {
             vir_high::Type::MBool => vir_poly::Type::Bool,
-            vir_high::Type::MInt => vir_poly::Type::Int,
+            vir_high::Type::MInt | vir_high::Type::Int(_) => vir_poly::Type::Int,
             vir_high::Type::MFloat32 => vir_poly::Type::Float(F32),
             vir_high::Type::MFloat64 => vir_poly::Type::Float(F64),
             vir_high::Type::MPerm => {
                 unreachable!("Permissions are used only in the unsafe core proof")
             }
             vir_high::Type::Bool => vir_poly::Type::Bool,
-            vir_high::Type::Int(_) => vir_poly::Type::Int,
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
                 typ: box ty.element_type.lower_as_snapshot_type(),
             }),
@@ -37,7 +36,8 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
         encoder.get_interned_lowered_type(self, || match self {
             vir_high::Type::MBool => vir_poly::Type::Bool,
-            vir_high::Type::MInt => vir_poly::Type::Int,
+            vir_high::Type::MInt | vir_high::Type::Int(vir_high::ty::Int::Unbounded) =>
+                vir_poly::Type::Int,
             vir_high::Type::MFloat32 => vir_poly::Type::Float(F32),
             vir_high::Type::MFloat64 => vir_poly::Type::Float(F64),
             vir_high::Type::MPerm => {
