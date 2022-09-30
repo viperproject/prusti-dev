@@ -1187,8 +1187,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
             vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
             vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
-            vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
-            vir::Type::Map(_) => BuiltinMethodKind::HavocRef
+            vir::Type::Seq(ref st) => BuiltinMethodKind::HavocSeq(*st.typ.clone()),
+            vir::Type::Map(ref mt) => BuiltinMethodKind::HavocMap(*mt.key_type.clone(), *mt.val_type.clone())
         }
     }
 
