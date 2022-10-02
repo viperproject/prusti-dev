@@ -6,45 +6,62 @@
 
 //! This module defines the interface provided to a verifier.
 
-use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::hir::hir_id::HirId;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::middle::ty::{self, TyCtxt};
-use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
-use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
-use std::path::PathBuf;
-use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
-use prusti_rustc_interface::span::{Span, symbol::Symbol};
-use std::collections::HashSet;
 use log::{debug, trace};
-use std::rc::Rc;
-use std::collections::HashMap;
-use std::cell::RefCell;
+use prusti_rustc_interface::{
+    errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan},
+    hir::{
+        def_id::{DefId, LocalDefId},
+        hir_id::HirId,
+    },
+    middle::{
+        mir,
+        ty::{
+            self,
+            subst::{Subst, SubstsRef},
+            TyCtxt,
+        },
+    },
+    span::{symbol::Symbol, Span},
+    trait_selection::infer::{InferCtxtExt, TyCtxtInferExt},
+};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+    rc::Rc,
+};
 
 pub mod borrowck;
-mod collect_prusti_spec_visitor;
 mod collect_closure_defs_visitor;
+mod collect_prusti_spec_visitor;
+pub mod debug_utils;
 mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
+pub mod mir_body;
+pub mod mir_dump;
+pub mod mir_sets;
 pub mod mir_storage;
 pub mod mir_utils;
-pub mod mir_sets;
 pub mod polonius_info;
 mod procedure;
-pub mod mir_dump;
 mod traits;
-pub mod mir_body;
-pub mod debug_utils;
 
-use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
-use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
-pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
-pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker};
-use self::borrowck::facts::BorrowckFacts;
+use self::{
+    borrowck::facts::BorrowckFacts, collect_closure_defs_visitor::CollectClosureDefsVisitor,
+    collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
+};
+pub use self::{
+    loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops},
+    loops_utils::*,
+    procedure::{
+        get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
+        is_marked_specification_block, BasicBlockIndex, Procedure,
+    },
+};
 use crate::data::ProcedureDefId;
+pub use crate::environment::polonius_info::graphviz;
 use prusti_rustc_interface::span::source_map::SourceMap;
 
 struct CachedBody<'tcx> {
@@ -92,7 +109,12 @@ impl<'tcx> Environment<'tcx> {
     /// Returns the file name of the source that is being compiled
     pub fn source_file_name(&self) -> String {
         let source_path = self.source_path();
-        source_path.file_name().unwrap().to_str().unwrap().to_owned()
+        source_path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned()
     }
 
     /// Returns the name of the crate that is being compiled
@@ -142,7 +164,7 @@ impl<'tcx> Environment<'tcx> {
         diagnostic: &mut DiagnosticBuilder<T>,
         sp: S,
         help: &Option<String>,
-        notes: &[(String, Option<S>)]
+        notes: &[(String, Option<S>)],
     ) {
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
@@ -218,11 +240,17 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
-    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
+    pub fn get_local_attributes(
+        &self,
+        def_id: LocalDefId,
+    ) -> &[prusti_rustc_interface::ast::ast::Attribute] {
         crate::utils::get_local_attributes(self.tcx(), def_id)
     }
 
-    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
+    pub fn get_attributes(
+        &self,
+        def_id: ProcedureDefId,
+    ) -> &[prusti_rustc_interface::ast::ast::Attribute] {
         crate::utils::get_attributes(self.tcx(), def_id)
     }
 
@@ -279,34 +307,26 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get the MIR body of a local procedure, monomorphised with the given
     /// type substitutions.
-    pub fn local_mir(
-        &self,
-        def_id: LocalDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Rc<mir::Body<'tcx>> {
+    pub fn local_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.bodies.borrow_mut();
-        let body = bodies.entry(def_id)
-            .or_insert_with(|| {
-                // SAFETY: This is safe because we are feeding in the same `tcx`
-                // that was used to store the data.
-                let body_with_facts = unsafe {
-                    self::mir_storage::retrieve_mir_body(self.tcx, def_id)
-                };
-                let body = body_with_facts.body;
-                let facts = BorrowckFacts {
-                    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-                    output_facts: body_with_facts.output_facts,
-                    location_table: RefCell::new(Some(body_with_facts.location_table)),
-                };
+        let body = bodies.entry(def_id).or_insert_with(|| {
+            // SAFETY: This is safe because we are feeding in the same `tcx`
+            // that was used to store the data.
+            let body_with_facts = unsafe { self::mir_storage::retrieve_mir_body(self.tcx, def_id) };
+            let body = body_with_facts.body;
+            let facts = BorrowckFacts {
+                input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+                output_facts: body_with_facts.output_facts,
+                location_table: RefCell::new(Some(body_with_facts.location_table)),
+            };
 
-                CachedBody {
-                    base_body: Rc::new(body),
-                    monomorphised_bodies: HashMap::new(),
-                    borrowck_facts: Rc::new(facts),
-                }
-            });
-        body
-            .monomorphised_bodies
+            CachedBody {
+                base_body: Rc::new(body),
+                monomorphised_bodies: HashMap::new(),
+                borrowck_facts: Rc::new(facts),
+            }
+        });
+        body.monomorphised_bodies
             .entry(substs)
             .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
@@ -317,30 +337,28 @@ impl<'tcx> Environment<'tcx> {
         self.try_get_local_mir_borrowck_facts(def_id).unwrap()
     }
 
-    pub fn try_get_local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Option<Rc<BorrowckFacts>> {
+    pub fn try_get_local_mir_borrowck_facts(
+        &self,
+        def_id: LocalDefId,
+    ) -> Option<Rc<BorrowckFacts>> {
         trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
-        self.bodies.borrow()
+        self.bodies
+            .borrow()
             .get(&def_id)
             .map(|body| body.borrowck_facts.clone())
     }
 
     /// Get the MIR body of an external procedure.
-    pub fn external_mir(
-        &self,
-        def_id: DefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Rc<mir::Body<'tcx>> {
+    pub fn external_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.external_bodies.borrow_mut();
-        let body = bodies.entry(def_id)
-            .or_insert_with(|| {
-                let body = self.tcx.optimized_mir(def_id);
-                CachedExternalBody {
-                    base_body: Rc::new(body.clone()),
-                    monomorphised_bodies: HashMap::new(),
-                }
-            });
-        body
-            .monomorphised_bodies
+        let body = bodies.entry(def_id).or_insert_with(|| {
+            let body = self.tcx.optimized_mir(def_id);
+            CachedExternalBody {
+                base_body: Rc::new(body.clone()),
+                monomorphised_bodies: HashMap::new(),
+            }
+        });
+        body.monomorphised_bodies
             .entry(substs)
             .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
@@ -364,7 +382,11 @@ impl<'tcx> Environment<'tcx> {
     pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssocItem> {
         // FIXME: Probably we should use https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.AssociatedItems.html#method.find_by_name_and_namespace
         // instead.
-        self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
+        self.tcx()
+            .associated_items(id)
+            .filter_by_name_unhygienic(name)
+            .next()
+            .cloned()
     }
 
     /// Returns true iff `def_id` is a trait method
@@ -374,7 +396,8 @@ impl<'tcx> Environment<'tcx> {
 
     /// Returns true iff `def_id` is an implementation of a trait method
     pub fn is_trait_method_impl(&self, def_id: ProcedureDefId) -> bool {
-        self.tcx.impl_of_method(def_id)
+        self.tcx
+            .impl_of_method(def_id)
             .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
             .is_some()
     }
@@ -410,10 +433,10 @@ impl<'tcx> Environment<'tcx> {
         // For the `get_assoc_item` call, we therefore `unwrap`, as not finding
         // the associated item would be a (compiler) internal error.
         let trait_def_id = trait_ref.def_id;
-        let trait_method_def_id = self.get_assoc_item(
-            trait_def_id,
-            self.tcx().item_name(impl_method_def_id),
-        ).unwrap().def_id;
+        let trait_method_def_id = self
+            .get_assoc_item(trait_def_id, self.tcx().item_name(impl_method_def_id))
+            .unwrap()
+            .def_id;
 
         // sanity check: have we been given the correct number of substs?
         let identity_impl_method = self.identity_substs(impl_method_def_id);
@@ -446,10 +469,14 @@ impl<'tcx> Environment<'tcx> {
         // above) with call substs, so that we get the trait's type parameters
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
-        let call_trait_substs = ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
+        let call_trait_substs =
+            ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
-            .chain(impl_method_substs.iter().skip(impl_substs.len())));
+        let trait_method_substs = self.tcx.mk_substs(
+            call_trait_substs
+                .iter()
+                .chain(impl_method_substs.iter().skip(impl_substs.len())),
+        );
 
         // sanity check: do we now have the correct number of substs?
         let identity_trait_method = self.identity_substs(trait_method_def_id);
@@ -460,21 +487,28 @@ impl<'tcx> Environment<'tcx> {
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
     /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
-    pub fn find_impl_of_trait_method_call(&self, proc_def_id: ProcedureDefId, substs: SubstsRef<'tcx>) -> Option<ProcedureDefId> {
+    pub fn find_impl_of_trait_method_call(
+        &self,
+        proc_def_id: ProcedureDefId,
+        substs: SubstsRef<'tcx>,
+    ) -> Option<ProcedureDefId> {
         // TODO(tymap): remove this method?
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
 
             // TODO(tymap): don't use reveal_all
             let param_env = ty::ParamEnv::reveal_all();
-            let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
+            let key = ty::ParamEnvAnd {
+                param_env,
+                value: (proc_def_id, substs),
+            };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
             match resolved_instance {
                 Ok(method_impl_instance) => {
                     let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
                     debug!("Resolved to-be called method: {:?}", impl_method_def_id);
                     impl_method_def_id
-                },
+                }
                 Err(err) => {
                     debug!("Error while resolving the to-be called method: {:?}", err);
                     None
@@ -505,35 +539,55 @@ impl<'tcx> Environment<'tcx> {
 
         let param_env = self.tcx.param_env(caller_def_id);
         traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
-            .map(|opt_instance| opt_instance
-                .map(|instance| (instance.def_id(), instance.substs))
-                .unwrap_or((called_def_id, call_substs)))
+            .map(|opt_instance| {
+                opt_instance
+                    .map(|instance| (instance.def_id(), instance.substs))
+                    .unwrap_or((called_def_id, call_substs))
+            })
             .unwrap_or((called_def_id, call_substs))
     }
 
     /// Checks whether `ty` is copy.
     /// The type is wrapped into a `Binder` to handle regions correctly.
-    pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
+    pub fn type_is_copy(
+        &self,
+        ty: ty::Binder<'tcx, ty::Ty<'tcx>>,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> bool {
         // Normalize the type to account for associated types
         let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
-        ty.is_copy_modulo_regions(self.tcx.at(prusti_rustc_interface::span::DUMMY_SP), param_env)
+        ty.is_copy_modulo_regions(
+            self.tcx.at(prusti_rustc_interface::span::DUMMY_SP),
+            param_env,
+        )
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
-    pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
+    pub fn type_implements_trait(
+        &self,
+        ty: ty::Ty<'tcx>,
+        trait_def_id: DefId,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> bool {
         self.type_implements_trait_with_trait_substs(ty, trait_def_id, ty::List::empty(), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
     /// Accounts for generic params on the trait by the given `trait_substs`.
-    pub fn type_implements_trait_with_trait_substs(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, trait_substs: ty::subst::SubstsRef<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
+    pub fn type_implements_trait_with_trait_substs(
+        &self,
+        ty: ty::Ty<'tcx>,
+        trait_def_id: DefId,
+        trait_substs: ty::subst::SubstsRef<'tcx>,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
-        self.tcx.infer_ctxt().enter(|infcx|
+        self.tcx.infer_ctxt().enter(|infcx| {
             infcx
                 .type_implements_trait(trait_def_id, ty, trait_substs, param_env)
                 .must_apply_considering_regions()
-        )
+        })
     }
 
     /// Return the default substitutions for a particular item, i.e. where each
@@ -545,38 +599,46 @@ impl<'tcx> Environment<'tcx> {
     /// Evaluates the provided [ty::Predicate].
     /// Returns true if the predicate is fulfilled.
     /// Returns false if the predicate is not fulfilled or it could not be evaluated.
-    pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
+    pub fn evaluate_predicate(
+        &self,
+        predicate: ty::Predicate<'tcx>,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> bool {
         debug!("Evaluating predicate {:?}", predicate);
-        use prusti_rustc_interface::trait_selection::traits;
-        use prusti_rustc_interface::trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+        use prusti_rustc_interface::trait_selection::{
+            traits, traits::query::evaluate_obligation::InferCtxtExt,
+        };
 
-        let obligation = traits::Obligation::new(
-            traits::ObligationCause::dummy(),
-            param_env,
-            predicate,
-        );
+        let obligation =
+            traits::Obligation::new(traits::ObligationCause::dummy(), param_env, predicate);
 
-        self.tcx.infer_ctxt().enter(|infcx| {
-            infcx.predicate_must_hold_considering_regions(&obligation)
-        })
+        self.tcx
+            .infer_ctxt()
+            .enter(|infcx| infcx.predicate_must_hold_considering_regions(&obligation))
     }
 
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
     /// **Important:** Regions while be erased during this process
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
-        let norm_res = self.tcx.try_normalize_erasing_regions(
-            param_env,
-            normalizable
-        );
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(
+        &self,
+        normalizable: T,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> T {
+        let norm_res = self
+            .tcx
+            .try_normalize_erasing_regions(param_env, normalizable);
 
         match norm_res {
             Ok(normalized) => {
                 debug!("Normalized {:?}: {:?}", normalizable, normalized);
                 normalized
-            },
+            }
             Err(err) => {
-                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
+                debug!(
+                    "Error while resolving associated types for {:?}: {:?}",
+                    normalizable, err
+                );
                 normalizable
             }
         }
