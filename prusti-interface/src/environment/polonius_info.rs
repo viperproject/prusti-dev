@@ -375,9 +375,9 @@ pub fn graphviz<'tcx>(
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) tcx: ty::TyCtxt<'tcx>,
     pub(crate) mir: &'a mir::Body<'tcx>,
-    pub(crate) borrowck_in_facts: facts::AllInputFacts,
-    pub(crate) borrowck_out_facts: facts::AllOutputFacts,
-    pub(crate) interner: facts::Interner,
+    pub borrowck_in_facts: facts::AllInputFacts,
+    pub borrowck_out_facts: facts::AllOutputFacts,
+    pub interner: facts::Interner,
     /// Position at which a specific loan was created.
     pub(crate) loan_position: FxHashMap<facts::Loan, mir::Location>,
     pub(crate) loan_at_position: FxHashMap<mir::Location, facts::Loan>,

@@ -12,15 +12,17 @@ use crate::{
         MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCSPermissionKind,
         PCSPermissionKind::*, PCS,
     },
-    util::EncodingResult,
+    util::{abbreviate_terminator, EncodingResult},
 };
 use analysis::mir_utils::expand_struct_place;
 use prusti_interface::{
     environment::{
+        borrowck::facts::{Point, PointType},
         mir_analyses::{
             allocation::DefinitelyAllocatedAnalysisResult,
             initialization::DefinitelyInitializedAnalysisResult,
         },
+        mir_body::borrowck::facts::RichLocation,
         mir_sets::{LocalSet, PlaceSet},
         polonius_info::PoloniusInfo,
         Environment,
@@ -31,10 +33,11 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
-    middle::mir::{BasicBlock, Body, Location, Mutability, Mutability::*, Place},
+    middle::mir::{BasicBlock, Body, Location, Mutability, Mutability::*, Place, TerminatorKind},
 };
 use std::{
     cmp::min,
+    io,
     iter::{repeat, zip},
 };
 
@@ -421,6 +424,158 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         Ok(CondPCS {
             blocks: generated_blocks,
         })
+    }
+
+    pub fn vis_input_facts(&self, writer: &mut dyn io::Write) -> Result<(), io::Error> {
+        // Location styling
+        // fn write_node(writer: &mut dyn io::Write, loc: usize) -> Result<(), io::Error> {
+        //     writeln!(
+        //         writer,
+        //         "{:?} [style=filled, color=white, shape=circle]",
+        //         loc
+        //     )?;
+        //     Ok(())
+        // }
+
+        // println!("{:?}", self.polonius_info.borrowck_in_facts.loan_issued_at);
+        let mut bb_nodes: FxHashMap<BasicBlock, FxHashSet<usize>> = FxHashMap::default();
+
+        // Populate bb_nodes with the CFG
+        for (l0, l1) in self.polonius_info.borrowck_in_facts.cfg_edge.iter() {
+            let block_set_borrow_0 = bb_nodes
+                .entry(self.polonius_info.interner.get_point(*l0).location.block)
+                .or_insert(FxHashSet::default());
+            (*block_set_borrow_0).insert(l0.index());
+
+            let block_set_borrow_1 = bb_nodes
+                .entry(self.polonius_info.interner.get_point(*l1).location.block)
+                .or_insert(FxHashSet::default());
+            (*block_set_borrow_1).insert(l1.index());
+        }
+
+        writeln!(writer, "digraph CFG {{")?;
+
+        // Write locations into clusters
+        for (bb, locations) in bb_nodes.drain() {
+            writeln!(writer, "subgraph cluster{:?} {{", bb)?;
+            writeln!(writer, "style=filled;")?;
+            writeln!(writer, "color=lightgrey;")?;
+            for loc in locations.iter() {
+                writeln!(
+                    writer,
+                    " {:?} [style=filled, color=white, shape=circle]",
+                    loc
+                )?;
+            }
+            writeln!(writer, "label={:?}", bb)?;
+            writeln!(writer, "}}")?;
+        }
+
+        // Write the CFG edges with MIR annotations
+        for (l0, l1) in self.polonius_info.borrowck_in_facts.cfg_edge.iter() {
+            let rl0 = self.polonius_info.interner.get_point(*l0);
+            let rl1 = self.polonius_info.interner.get_point(*l1);
+            let mir_stmt = self.mir.stmt_at(rl0.location);
+            let internal_edge = rl0.typ == PointType::Start && rl1.typ == PointType::Mid;
+
+            if internal_edge && mir_stmt.is_left() {
+                // Statement (not terminator)
+                writeln!(
+                    writer,
+                    "{:?} -> {:?} [label=\"{:?}\"]",
+                    l0.index(),
+                    l1.index(),
+                    mir_stmt.left().unwrap()
+                )?;
+            } else if internal_edge && mir_stmt.is_right() {
+                // Terminator
+                writeln!(
+                    writer,
+                    "{:?} -> {:?} [label=\"({:?} term) {}\"]",
+                    l0.index(),
+                    l1.index(),
+                    rl0.location.block,
+                    abbreviate_terminator(&mir_stmt.right().unwrap().kind)
+                )?;
+            } else {
+                // Edge between statements
+                writeln!(writer, "{:?} -> {:?}", l0.index(), l1.index())?;
+            }
+        }
+
+        /*
+
+               for (bb, edges) in bb_nodes.drain() {
+                   for (rl0, rl1) in edges.iter() {
+                       let l0 = self.polonius_info.interner.get_point_index(rl0);
+                       let l1 = self.polonius_info.interner.get_point_index(rl1);
+
+                       if rl0.location == rl1.location
+                           && rl0.typ == PointType::Start
+                           && rl1.typ == PointType::Mid
+                       {
+                           let mir_stmt = self.mir.stmt_at(rl0.location);
+                           if mir_stmt.is_left() {
+                               writeln!(
+                                   writer,
+                                   ,
+                                   l0.index(),
+                                   l1.index(),
+                                   rl0.location.block,
+                                   mir_stmt.left().unwrap()
+                               )?;
+                           } else {
+                               writeln!(
+                                   writer,
+                                   "{:?} -> {:?} [label=\"({:?} terminator)\"]",
+                                   l0.index(),
+                                   l1.index(),
+                                   rl0.location.block,
+                               )?;
+                           }
+                       } else {
+                           writeln!(writer, "{:?} -> {:?}", l0.index(), l1.index())?;
+                       }
+                   }
+
+        */
+        /*
+
+            } else {
+            }
+        }
+        */
+
+        // writeln!(writer, "label={:?}", bb)?;
+        // writeln!(writer, "}}")?;
+        // }
+
+        /*
+        for (l0, l1) in self.polonius_info.borrowck_in_facts.cfg_edge.iter() {
+            if nodes.insert(l0.index()) {
+                writeln!(writer, "{:?} [shape=circle]", l0.index())?;
+            }
+            if nodes.insert(l1.index()) {
+                writeln!(writer, "{:?} [shape=circle]", l1.index())?;
+            }
+
+            // l0 and l1 have same MIR location => l0->l1 edge should be annotated with
+            //      the MIR statement
+            //  terminators?
+
+
+
+            // if let Start(mirl) = self.polonius_info.interner.to_location(l0) {
+            //     if let Mid(mirl) = self.polonius_info.location_table.to_location(l1) {
+            //         todo!();
+            //     }
+            // }
+        }
+        */
+
+        writeln!(writer, "}}")?;
+
+        Ok(())
     }
 
     // Straight-line PCS computation inside the body of a basic block

@@ -119,6 +119,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default("dump_operational_pcs", false).unwrap();
+        settings.set_default("vis_pcs_facts", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -252,7 +253,11 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+    SETTINGS
+        .read()
+        .unwrap()
+        .get(name)
+        .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -863,4 +868,9 @@ pub fn enable_type_invariants() -> bool {
 /// When enabled, dump operational PCS summary instead of verifying
 pub fn dump_operational_pcs() -> bool {
     read_setting("dump_operational_pcs")
+}
+
+/// When enabled, output a visualization of PCS input facts instead of verifying
+pub fn vis_pcs_facts() -> bool {
+    read_setting("vis_pcs_facts")
 }
