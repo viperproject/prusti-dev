@@ -4,7 +4,7 @@ use prusti_interface::{
     environment::{mir_storage, Environment},
     specs,
 };
-use prusti_pcs::dump_pcs;
+use prusti_pcs::{dump_pcs, vis_pcs_facts};
 use prusti_rustc_interface::{
     driver::Compilation,
     hir::def_id::LocalDefId,
@@ -136,7 +136,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 }
             }
 
-            if config::dump_operational_pcs() {
+            if config::vis_pcs_facts() {
+                vis_pcs_facts(&env).unwrap();
+            } else if config::dump_operational_pcs() {
                 match dump_pcs(&env) {
                     Ok(_) => println!("Operational PCS done!"),
                     Err(e) => e.emit(&env),

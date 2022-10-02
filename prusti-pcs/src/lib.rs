@@ -28,4 +28,4 @@ pub mod syntax;
 mod graph;
 mod pcs;
 mod util;
-pub use pcs::dump_pcs;
+pub use pcs::{dump_pcs, vis_pcs_facts};
