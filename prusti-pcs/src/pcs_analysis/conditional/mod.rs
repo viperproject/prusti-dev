@@ -439,18 +439,34 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
         // println!("{:?}", self.polonius_info.borrowck_in_facts.loan_issued_at);
         let mut bb_nodes: FxHashMap<BasicBlock, FxHashSet<usize>> = FxHashMap::default();
+        let mut loan_live_at: FxHashMap<usize, Vec<usize>> = FxHashMap::default();
 
         // Populate bb_nodes with the CFG
+        // TODO: Factor out this code
         for (l0, l1) in self.polonius_info.borrowck_in_facts.cfg_edge.iter() {
             let block_set_borrow_0 = bb_nodes
                 .entry(self.polonius_info.interner.get_point(*l0).location.block)
                 .or_insert(FxHashSet::default());
             (*block_set_borrow_0).insert(l0.index());
+            loan_live_at.insert(
+                l0.index(),
+                match self.polonius_info.borrowck_out_facts.loan_live_at.get(l0) {
+                    Some(v) => v.iter().map(|loan| loan.index()).collect::<Vec<usize>>(),
+                    None => vec![],
+                },
+            );
 
             let block_set_borrow_1 = bb_nodes
                 .entry(self.polonius_info.interner.get_point(*l1).location.block)
                 .or_insert(FxHashSet::default());
             (*block_set_borrow_1).insert(l1.index());
+            loan_live_at.insert(
+                l1.index(),
+                match self.polonius_info.borrowck_out_facts.loan_live_at.get(l1) {
+                    Some(v) => v.iter().map(|loan| loan.index()).collect::<Vec<usize>>(),
+                    None => vec![],
+                },
+            );
         }
 
         writeln!(writer, "digraph CFG {{")?;
@@ -460,11 +476,23 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             writeln!(writer, "subgraph cluster{:?} {{", bb)?;
             writeln!(writer, "style=filled;")?;
             writeln!(writer, "color=lightgrey;")?;
+
             for loc in locations.iter() {
+                let mut xlabel = "".to_string();
+
+                match loan_live_at.get(loc) {
+                    Some(v) => {
+                        if v.len() > 0 {
+                            xlabel = format!("{}\nlive: {:?}", xlabel, v);
+                        }
+                    }
+                    None => unreachable!(),
+                };
+
                 writeln!(
                     writer,
-                    " {:?} [style=filled, color=white, shape=circle]",
-                    loc
+                    " {:?} [style=filled, color=white, shape=circle, xlabel=\"{}\"]",
+                    loc, xlabel
                 )?;
             }
             writeln!(writer, "label={:?}", bb)?;

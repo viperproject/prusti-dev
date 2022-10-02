@@ -11,7 +11,7 @@ use prusti_interface::{
             allocation::compute_definitely_allocated,
             initialization::compute_definitely_initialized,
         },
-        polonius_info::PoloniusInfo,
+        polonius_info::{graphviz, PoloniusInfo},
         Environment, Procedure,
     },
     PrustiError,
@@ -50,11 +50,17 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
 
 pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResult<()> {
     for proc_id in env.get_annotated_procedures().iter() {
+        let local_def_id = proc_id.expect_local();
+        let def_path = env.tcx().hir().def_path(local_def_id);
+
+        // This panics all the time and is never called by anything else. Fixable?
+        // graphviz(env, &def_path, *proc_id);
+
         println!("id: {:#?}", env.get_unique_item_name(*proc_id));
         let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
         let mir: &Body<'tcx> = current_procedure.get_mir();
         let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir, env.tcx())?;
-        micro_mir.pprint();
+        // micro_mir.pprint();
 
         let polonius_info =
             PoloniusInfo::new_without_loop_invariant_block(env, &current_procedure).unwrap();
@@ -70,9 +76,11 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
 
         // let namespace = format!("pcs_input_facts_{:?}", proc_id);
         // let mut writer = File::create("hello.bees.dot").unwrap();
-        log::report_with_writer("pcs_input_facts_test", "test.graph.dot", |writer| {
-            ctx.vis_input_facts(writer).unwrap()
-        });
+        log::report_with_writer(
+            "pcs_input_facts",
+            format!("{}.graph.dot", env.get_unique_item_name(*proc_id)),
+            |writer| ctx.vis_input_facts(writer).unwrap(),
+        );
     }
     Ok(())
 }
