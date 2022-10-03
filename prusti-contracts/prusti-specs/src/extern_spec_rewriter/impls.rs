@@ -32,8 +32,7 @@ fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<Rewrit
         #struct_ident #generic_args
     };
 
-    if item_impl.trait_.is_some() {
-        let (_, trait_path, _) = item_impl.trait_.as_ref().unwrap();
+    if let Some((_, trait_path, _)) = &item_impl.trait_ {
         if has_generic_arguments(trait_path) {
             return Err(syn::Error::new(
                 item_impl.generics.params.span(),

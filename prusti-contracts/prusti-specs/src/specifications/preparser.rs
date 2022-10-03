@@ -172,12 +172,10 @@ impl PrustiTokenStream {
     {
         let result = f(&mut self)?;
         if !self.is_empty() {
-            let start = self.tokens.front().unwrap().span();
-            let end = self.tokens.back().unwrap().span();
-            let span = start.join(end);
-            // this is None if the spans are not combinable, which seems to happen when running the cfg(tests) via cargo
-            let error_span = span.unwrap_or(start);
-            return err(error_span, "unexpected extra tokens");
+            let start = self.tokens.front().expect("unreachable").span();
+            let end = self.tokens.back().expect("unreachable").span();
+            let span = join_spans(start, end);
+            return err(span, "unexpected extra tokens");
         }
         Ok(result)
     }
@@ -227,12 +225,10 @@ impl PrustiTokenStream {
         TokenStream
     )> {
         let mut pledge_ops = self.split(PrustiBinaryOp::Rust(RustOp::Arrow), false);
-        let (reference, body) = if pledge_ops.len() == 1 {
-            (None, pledge_ops.pop().unwrap())
-        } else if pledge_ops.len() == 2 {
-            (Some(pledge_ops[0].expr_bp(0)?), pledge_ops.pop().unwrap())
-        } else {
-            return err(Span::call_site(), "too many arrows in assert_on_expiry");
+        let (reference, body) = match (pledge_ops.pop(), pledge_ops.pop(), pledge_ops.pop()) {
+            (Some(body), None, _) => (None, body),
+            (Some(body), Some(mut reference), None) => (Some(reference.expr_bp(0)?), body),
+            _ => return err(Span::call_site(), "too many arrows in assert_on_expiry"),
         };
         let mut body_parts = body.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
         if body_parts.len() == 2 {
@@ -507,7 +503,7 @@ impl Parse for GhostConstraint {
         Ok(GhostConstraint {
             trait_bounds: parse_trait_bounds(input)?,
             comma: input.parse().map_err(with_ghost_constraint_example)?,
-            specs: PrustiTokenStream::new(input.parse().unwrap())
+            specs: PrustiTokenStream::new(input.parse().expect("Failed to parse GhostConstraint"))
                 .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
     }
@@ -745,7 +741,7 @@ impl PrustiToken {
         p1: &Punct,
         p2: &Punct,
     ) -> Option<Self> {
-        let span = p1.span().join(p2.span()).unwrap();
+        let span = join_spans(p1.span(), p2.span());
         Some(Self::BinOp(span, if operator2("&&", p1, p2) {
             PrustiBinaryOp::And
         } else if operator2("||", p1, p2) {
@@ -786,7 +782,7 @@ impl PrustiToken {
         p2: &Punct,
         p3: &Punct,
     ) -> Option<Self> {
-        let span = p1.span().join(p2.span()).unwrap().join(p3.span()).unwrap();
+        let span = join_spans(join_spans(p1.span(), p2.span()), p3.span());
         Some(Self::BinOp(span, if operator3("==>", p1, p2, p3) {
             PrustiBinaryOp::Implies
         } else if operator3("===", p1, p2, p3) {
@@ -905,6 +901,18 @@ impl RustOp {
             Self::Semicolon => quote_spanned! { span => ; },
             Self::Assign => quote_spanned! { span => = },
         }
+    }
+}
+
+fn join_spans(s1: Span, s2: Span) -> Span {
+    // Tests don't run in the proc macro context
+    let is_proc_macro = std::panic::catch_unwind(|| s1.unwrap()).is_ok();
+    if is_proc_macro {
+        // This works even when compiled with stable
+        s1.unwrap().join(s2.unwrap()).expect("Failed to join spans!").into()
+    } else {
+        // During tests we don't care so much about returning a default
+        s1.join(s2).unwrap_or(s1)
     }
 }
 
