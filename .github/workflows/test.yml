@@ -11,7 +11,8 @@ on:
 # Cancel previous runs in a PR when pushing new commits
 concurrency:
   group: worflow-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Do not cancel when testing the master branch
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 env:
   RUST_BACKTRACE: 1
