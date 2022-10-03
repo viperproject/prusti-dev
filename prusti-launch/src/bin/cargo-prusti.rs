@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![feature(let_chains)]
+#![feature(option_result_contains)]
 
 use prusti_utils::{config, launch};
 use std::{env, fs, io, path::PathBuf, process::Command};
@@ -27,7 +28,9 @@ where
 
     // Remove the "prusti" argument when `cargo-prusti` is invoked as
     // `cargo --cflag prusti -- -Pflag` (note the space in `cargo prusti` rather than a `-`)
-    let args = args.skip_while(|arg| arg == "prusti");
+    let mut args = args.peekable();
+    let is_cargo_subcommand = args.peek().contains(&"prusti");
+    args.next_if(|arg| arg == "prusti");
     // Remove the "-- -Pflag" arguments since these won't apply to `cargo check`.
     // They have already been loaded (and the Category B flags are used below).
     let args = args.take_while(|arg| arg != "--");
@@ -43,27 +46,28 @@ where
     };
     let cargo_target = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
     let cargo_target: PathBuf = [cargo_target, "verify".to_string()].into_iter().collect();
-    let exit_status = Command::new(cargo_path)
-        .arg(&format!("+{}", launch::get_rust_toolchain_channel()))
-        .arg(&command)
-        .args(features)
-        .args(args)
-        .env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel())
-        .env("RUSTC_WRAPPER", prusti_rustc_path)
-        .env("CARGO_TARGET_DIR", &cargo_target)
-        // Category B flags (update the docs if any more are added):
-        .env("PRUSTI_BE_RUSTC", config::be_rustc().to_string())
-        .env(
-            "PRUSTI_NO_VERIFY_DEPS",
-            config::no_verify_deps().to_string(),
-        )
-        // Category A* flags:
-        .env("DEFAULT_PRUSTI_QUIET", "true")
-        .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
-        .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))
-        .env("DEFAULT_PRUSTI_CACHE_PATH", cargo_target.join("cache.bin"))
-        .status()
-        .expect("could not run cargo");
+    let mut cmd = Command::new(cargo_path);
+    if is_cargo_subcommand {
+        cmd.arg(&format!("+{}", launch::get_rust_toolchain_channel()));
+    }
+    cmd.arg(&command);
+    cmd.args(features);
+    cmd.args(args);
+    cmd.env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel());
+    cmd.env("RUSTC_WRAPPER", prusti_rustc_path);
+    cmd.env("CARGO_TARGET_DIR", &cargo_target);
+    // Category B flags (update the docs if any more are added):
+    cmd.env("PRUSTI_BE_RUSTC", config::be_rustc().to_string());
+    cmd.env(
+        "PRUSTI_NO_VERIFY_DEPS",
+        config::no_verify_deps().to_string(),
+    );
+    // Category A* flags:
+    cmd.env("DEFAULT_PRUSTI_QUIET", "true");
+    cmd.env("DEFAULT_PRUSTI_FULL_COMPILATION", "true");
+    cmd.env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"));
+    cmd.env("DEFAULT_PRUSTI_CACHE_PATH", cargo_target.join("cache.bin"));
+    let exit_status = cmd.status().expect("could not run cargo");
 
     if exit_status.success() {
         if command == "build" {
