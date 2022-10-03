@@ -89,6 +89,8 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
     let mut bb_nodes: FxHashMap<BasicBlock, FxHashSet<usize>> = FxHashMap::default();
     let mut loan_live_at: FxHashMap<usize, Vec<usize>> = FxHashMap::default();
 
+    println!("{:?}", polonius_info.borrowck_in_facts.loan_issued_at);
+
     // Populate bb_nodes with the CFG
     // TODO: Factor out this code
     for (l0, l1) in polonius_info.borrowck_in_facts.cfg_edge.iter() {
