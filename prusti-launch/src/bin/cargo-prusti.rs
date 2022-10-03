@@ -44,6 +44,7 @@ where
     let cargo_target = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
     let cargo_target: PathBuf = [cargo_target, "verify".to_string()].into_iter().collect();
     let exit_status = Command::new(cargo_path)
+        .arg(&format!("+{}", launch::get_rust_toolchain_channel()))
         .arg(&command)
         .args(features)
         .args(args)
