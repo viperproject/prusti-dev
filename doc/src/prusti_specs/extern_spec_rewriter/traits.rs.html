@@ -214,7 +214,6 @@
 <span id="214">214</span>
 <span id="215">215</span>
 <span id="216">216</span>
-<span id="217">217</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Encoding of external specs for traits
 </span><span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../predicate.rs.html#59">is_predicate_macro</a>, <a href="../parse_quote_spanned.rs.html#23">parse_quote_spanned</a>};
 <span class="kw">use </span><a href="../specifications/common.rs.html#106"><span class="kw">crate</span>::specifications::common::generate_struct_name_for_trait</a>;
@@ -254,7 +253,7 @@
 }
 
 <span class="doccomment">/// Responsible for generating a struct
-</span><span class="kw">fn </span>generate_new_struct(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;<a href="#104">GeneratedStruct</a>&gt; {
+</span><span class="kw">fn </span>generate_new_struct(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;<a href="#103">GeneratedStruct</a>&gt; {
     <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a href="#40">item_trait</a>.ident;
 
     <span class="kw">let </span>struct_name = <a href="../specifications/common.rs.html#106">generate_struct_name_for_trait</a>(<a href="#40">item_trait</a>);
@@ -283,18 +282,17 @@
     };
 
     <span class="comment">// Add a where clause which restricts this self type parameter to the trait
-    </span><span class="kw">if </span>item_trait.generics.where_clause.as_ref().is_some() {
-        <span class="kw">let </span>span = <a href="#40">item_trait</a>.generics.where_clause.as_ref().unwrap().<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
-        <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(<a href="#70">span</a>, <span class="string">&quot;Where clauses for extern traits specs are not supported&quot;</span>));
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(where_clause) = <span class="kw-2">&amp;</span><a href="#40">item_trait</a>.generics.where_clause {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(<a href="#69">where_clause</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;Where clauses for extern traits specs are not supported&quot;</span>));
     }
     <span class="kw">let </span>self_where_clause: <a href="../../../syn/generics/struct.WhereClause.html">syn::WhereClause</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
         <span class="kw">where </span>#self_type_ident: #self_type_trait
     };
-    <a href="#46">new_struct</a>.generics.where_clause = <span class="prelude-val">Some</span>(<a href="#73">self_where_clause</a>);
+    <a href="#46">new_struct</a>.generics.where_clause = <span class="prelude-val">Some</span>(<a href="#72">self_where_clause</a>);
 
     <a href="common.rs.html#245">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#46">new_struct</a>);
 
-    <span class="prelude-val">Ok</span>(<a href="#104">GeneratedStruct</a> {
+    <span class="prelude-val">Ok</span>(<a href="#103">GeneratedStruct</a> {
         generated_struct: <a href="#46">new_struct</a>,
         <a href="#40">item_trait</a>,
         <a href="#51">self_type_ident</a>,
@@ -302,7 +300,7 @@
     })
 }
 
-<span class="kw">fn </span>parse_trait_type_params(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;Vec&lt;<a href="#178">ProvidedTypeParam</a>&gt;&gt; {
+<span class="kw">fn </span>parse_trait_type_params(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;Vec&lt;<a href="#177">ProvidedTypeParam</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for </span>generic_param <span class="kw">in </span>item_trait.generics.params.iter() {
         <span class="kw">if let </span>syn::GenericParam::Type(type_param) = generic_param {
@@ -315,7 +313,7 @@
             );
         }
     }
-    <span class="prelude-val">Ok</span>(<a href="#89">result</a>)
+    <span class="prelude-val">Ok</span>(<a href="#88">result</a>)
 }
 
 <span class="kw">struct </span>GeneratedStruct&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -328,14 +326,14 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; GeneratedStruct&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>generate_impl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; syn::Result&lt;<a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>&gt; {
         <span class="comment">// Generate impl block
-        </span><span class="kw">let </span>struct_ident = <span class="kw-2">&amp;</span><a class="self" href="#112">self</a>.generated_struct.ident;
-        <span class="kw">let </span>generic_params = <span class="self"><a href="#112">self</a>
+        </span><span class="kw">let </span>struct_ident = <span class="kw-2">&amp;</span><a class="self" href="#111">self</a>.generated_struct.ident;
+        <span class="kw">let </span>generic_params = <span class="self"><a href="#111">self</a>
             </span>.generated_struct
             .generics
             .params
             .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             .<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>();
-        <span class="kw">let </span>where_clause = <span class="self"><a href="#112">self</a>
+        <span class="kw">let </span>where_clause = <span class="self"><a href="#111">self</a>
             </span>.generated_struct
             .generics
             .where_clause
@@ -357,9 +355,9 @@
                     ));
                 }
                 syn::TraitItem::Method(trait_method) =&gt; {
-                    <span class="kw">if </span>trait_method.default.is_some() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(default) = <span class="kw-2">&amp;</span>trait_method.default {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(
-                            trait_method.default.as_ref().unwrap().span(),
+                            default.span(),
                             <span class="string">&quot;Default methods in external trait specs are invalid&quot;</span>,
                         ));
                     }
@@ -378,16 +376,16 @@
             };
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#128">struct_impl</a>)
+        <span class="prelude-val">Ok</span>(<a href="#127">struct_impl</a>)
     }
 
     <span class="kw">fn </span>generate_method_stub(<span class="kw-2">&amp;</span><span class="self">self</span>, trait_method: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.TraitItemMethod.html">syn::TraitItemMethod</a>) -&gt; syn::Result&lt;(<a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>, Vec&lt;<a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>&gt;)&gt; {
-        <span class="kw">let </span>self_type_ident = <span class="kw-2">&amp;</span><a class="self" href="#167">self</a>.self_type_ident;
+        <span class="kw">let </span>self_type_ident = <span class="kw-2">&amp;</span><a class="self" href="#166">self</a>.self_type_ident;
         <span class="kw">let </span>self_type_path: <a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <a class="macro" href="../parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{self_type_ident.span()=&gt;
             #self_type_ident
         };
 
-        <a href="common.rs.html#120-125">generate_extern_spec_method_stub</a>(<a href="#167">trait_method</a>, <span class="kw-2">&amp;</span><a href="#169">self_type_path</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#167">self</a>.self_type_trait), <a href="mod.rs.html#12">ExternSpecKind::Trait</a>)
+        <a href="common.rs.html#120-125">generate_extern_spec_method_stub</a>(<a href="#166">trait_method</a>, <span class="kw-2">&amp;</span><a href="#168">self_type_path</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#166">self</a>.self_type_trait), <a href="mod.rs.html#12">ExternSpecKind::Trait</a>)
     }
 }
 
@@ -399,36 +397,36 @@
     </span>GenericType(<a href="../../../syn/generics/struct.TypeParam.html">syn::TypeParam</a>),
 }
 
-<span class="kw">impl </span><a href="#178">ProvidedTypeParam</a> {
+<span class="kw">impl </span><a href="#177">ProvidedTypeParam</a> {
     <span class="kw">fn </span>try_parse(from: <span class="kw-2">&amp;</span><a href="../../../syn/generics/struct.TypeParam.html">syn::TypeParam</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>from.attrs.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="#186">from</a>.attrs[<span class="number">0</span>].path;
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="#185">from</a>.attrs[<span class="number">0</span>].path;
         <span class="kw">if </span>path.segments.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
         <span class="comment">// Closure for cloning and removing the attrs
         </span><span class="kw">let </span>clone_without_attrs = || {
-            <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#186">from</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a href="#198">cloned</a>.attrs.clear();
-            <a href="#198">cloned</a>
+            <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#185">from</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a href="#197">cloned</a>.attrs.clear();
+            <a href="#197">cloned</a>
         };
 
-        <span class="kw">match </span><a href="#191">path</a>.segments[<span class="number">0</span>].ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_str() {
-            <span class="string">&quot;generic&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#182">ProvidedTypeParam::GenericType</a>(<a href="#197">clone_without_attrs</a>())),
-            <span class="string">&quot;concrete&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#180">ProvidedTypeParam::ConcreteType</a>(<a href="#197">clone_without_attrs</a>())),
+        <span class="kw">match </span><a href="#190">path</a>.segments[<span class="number">0</span>].ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_str() {
+            <span class="string">&quot;generic&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#181">ProvidedTypeParam::GenericType</a>(<a href="#196">clone_without_attrs</a>())),
+            <span class="string">&quot;concrete&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#179">ProvidedTypeParam::ConcreteType</a>(<a href="#196">clone_without_attrs</a>())),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None
         </span>}
     }
 }
 
-<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#178">ProvidedTypeParam</a> {
+<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#177">ProvidedTypeParam</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#212">self</a> </span>{
-            <a href="#180">ProvidedTypeParam::ConcreteType</a>(ty_param) |  <a href="#182">ProvidedTypeParam::GenericType</a>(ty_param) =&gt; <a href="#214">ty_param</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#212">tokens</a>),
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#211">self</a> </span>{
+            <a href="#179">ProvidedTypeParam::ConcreteType</a>(ty_param) |  <a href="#181">ProvidedTypeParam::GenericType</a>(ty_param) =&gt; <a href="#213">ty_param</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#211">tokens</a>),
         }
     }
 }</code></pre></div>

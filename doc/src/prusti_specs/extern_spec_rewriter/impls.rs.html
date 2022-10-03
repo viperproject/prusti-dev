@@ -344,7 +344,6 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
-<span id="347">347</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../lib.rs.html#43"><span class="kw">crate</span>::SPECS_VERSION</a>;
 <span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../predicate.rs.html#59">is_predicate_macro</a>, <a href="../specifications/common.rs.html#100">specifications::common::generate_struct_name</a>};
 <span class="kw">use </span><a href="../../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
@@ -379,8 +378,7 @@
         #struct_ident #generic_args
     };
 
-    <span class="kw">if </span>item_impl.trait_.is_some() {
-        <span class="kw">let </span>(<span class="kw">_</span>, trait_path, <span class="kw">_</span>) = <a href="#26">item_impl</a>.trait_.as_ref().unwrap();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, trait_path, <span class="kw">_</span>)) = <span class="kw-2">&amp;</span><a href="#26">item_impl</a>.trait_ {
         <span class="kw">if </span>has_generic_arguments(trait_path) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(
                 <a href="#26">item_impl</a>.generics.params.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(),
@@ -392,7 +390,7 @@
 
         <span class="prelude-val">Ok</span>(<a href="#21">RewrittenExternalSpecs</a> {
             generated_struct: <a href="#27">new_struct</a>,
-            generated_impl: <a href="#44">rewritten_impl</a>,
+            generated_impl: <a href="#43">rewritten_impl</a>,
         })
     } <span class="kw">else </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>rewritten_item = <a href="#26">item_impl</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
@@ -400,29 +398,29 @@
 
         <span class="prelude-val">Ok</span>(<a href="#21">RewrittenExternalSpecs</a> {
             generated_struct: <a href="#27">new_struct</a>,
-            generated_impl: <a href="#51">rewritten_item</a>,
+            generated_impl: <a href="#50">rewritten_item</a>,
         })
     }
 }
 
 <span class="kw">fn </span>generate_new_struct(item_impl: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>) -&gt; syn::Result&lt;<a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>&gt; {
-    <span class="kw">let </span>struct_name = <a href="../specifications/common.rs.html#100">generate_struct_name</a>(<a href="#61">item_impl</a>);
-    <span class="kw">let </span>struct_ident = syn::Ident::new(<span class="kw-2">&amp;</span><a href="#62">struct_name</a>, <a href="#61">item_impl</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>());
+    <span class="kw">let </span>struct_name = <a href="../specifications/common.rs.html#100">generate_struct_name</a>(<a href="#60">item_impl</a>);
+    <span class="kw">let </span>struct_ident = syn::Ident::new(<span class="kw-2">&amp;</span><a href="#61">struct_name</a>, <a href="#60">item_impl</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>());
 
     <span class="kw">let </span><span class="kw-2">mut </span>new_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{item_impl.span()=&gt;
         <span class="attribute">#[allow(non_camel_case_types)] </span><span class="kw">struct </span>#struct_ident;
     };
-    <a href="#65">new_struct</a>.generics = <a href="#61">item_impl</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#64">new_struct</a>.generics = <a href="#60">item_impl</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <a href="common.rs.html#245">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#65">new_struct</a>);
-    <span class="prelude-val">Ok</span>(<a href="#65">new_struct</a>)
+    <a href="common.rs.html#245">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#64">new_struct</a>);
+    <span class="prelude-val">Ok</span>(<a href="#64">new_struct</a>)
 }
 
 <span class="doccomment">/// Rewrite all methods in an impl block to calls to the specified methods.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
 </span><span class="kw">fn </span>rewrite_plain_impl(impl_item: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>, new_ty: Box&lt;<a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt;) -&gt; syn::Result&lt;()&gt; {
-    <span class="kw">let </span>item_ty = <span class="kw-2">&amp;mut </span><a href="#76">impl_item</a>.self_ty;
-    <span class="kw">if let </span>syn::Type::Path(type_path) = <a href="#77">item_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html">as_mut</a>() {
+    <span class="kw">let </span>item_ty = <span class="kw-2">&amp;mut </span><a href="#75">impl_item</a>.self_ty;
+    <span class="kw">if let </span>syn::Type::Path(type_path) = <a href="#76">item_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html">as_mut</a>() {
         <span class="kw">for </span>seg <span class="kw">in </span>type_path.path.segments.iter_mut() {
             <span class="kw">if let </span>syn::PathArguments::AngleBracketed(genargs) = <span class="kw-2">&amp;mut </span>seg.arguments {
                 genargs.colon2_token = <span class="prelude-val">Some</span>(&lt;<span class="macro">syn::Token!</span>[::]&gt;::default());
@@ -430,8 +428,8 @@
         }
     }
 
-    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">**</span><a href="#77">item_ty</a> {
-        <a href="#86">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">**</span><a href="#76">item_ty</a> {
+        <a href="#85">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     } <span class="kw">else </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;expected type path in extern spec trait impl&quot;</span>);
     };
@@ -472,8 +470,8 @@
             }
         }
     }
-    <a href="#76">impl_item</a>.self_ty = <a href="#76">new_ty</a>;
-    <a href="#76">impl_item</a>.items = <a href="#92">rewritten_items</a>;
+    <a href="#75">impl_item</a>.self_ty = <a href="#75">new_ty</a>;
+    <a href="#75">impl_item</a>.items = <a href="#91">rewritten_items</a>;
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -482,20 +480,20 @@
     impl_item: <a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>,
     new_ty: Box&lt;<a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt;,
 ) -&gt; syn::Result&lt;<a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>&gt; {
-    <span class="kw">let </span>item_ty = <a href="#135">impl_item</a>.self_ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">*</span><a href="#138">item_ty</a> {
-        <a href="#139">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">let </span>item_ty = <a href="#134">impl_item</a>.self_ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">*</span><a href="#137">item_ty</a> {
+        <a href="#138">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     } <span class="kw">else </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;expected type path in extern spec trait impl&quot;</span>);
     };
 
     <span class="comment">// Create new impl
-    </span><span class="kw">let </span><span class="kw-2">mut </span>new_impl = <a href="#135">impl_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <a href="#146">new_impl</a>.self_ty = <a href="#136">new_ty</a>;
-    <a href="#146">new_impl</a>.trait_ = <span class="prelude-val">None</span>;
-    <a href="#146">new_impl</a>.items.clear();
+    </span><span class="kw">let </span><span class="kw-2">mut </span>new_impl = <a href="#134">impl_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#145">new_impl</a>.self_ty = <a href="#135">new_ty</a>;
+    <a href="#145">new_impl</a>.trait_ = <span class="prelude-val">None</span>;
+    <a href="#145">new_impl</a>.items.clear();
 
-    <span class="kw">let </span>item_trait_path = <a href="#135">impl_item</a>.trait_.as_ref().unwrap().<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>item_trait_path = <a href="#134">impl_item</a>.trait_.as_ref().unwrap().<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">let </span>item_trait_typath: <a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{item_trait_path.span()=&gt; #item_trait_path };
 
     <span class="comment">// TODO: reduce duplication with rewrite_plain_impl
@@ -529,7 +527,7 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a href="#146">new_impl</a>)
+    <span class="prelude-val">Ok</span>(<a href="#145">new_impl</a>)
 }
 
 <span class="kw">fn </span>has_generic_arguments(path: <span class="kw-2">&amp;</span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
