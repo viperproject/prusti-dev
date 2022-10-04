@@ -18,12 +18,9 @@ use std::{
     process::Command,
 };
 
-pub const PRUSTI_HELPERS: [&str; 3] = [
-    "prusti-contracts-internal",
-    "prusti-contracts-impl",
-    "prusti-specs",
-];
-pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-contracts-std"];
+/// Determines which crates in `./prusti-contracts` have their specs re-exported
+/// for `prusti-rustc`.
+pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-std"];
 
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
@@ -33,10 +30,30 @@ pub fn get_current_executable_dir() -> PathBuf {
         .to_path_buf()
 }
 
-pub fn get_prusti_contracts_dir(exe_dir: PathBuf) -> PathBuf {
-    let mut prusti_dir = exe_dir.parent().unwrap().parent().unwrap().to_path_buf();
-    prusti_dir.extend(["prusti-contracts", "target", "verify", "release"]);
-    prusti_dir
+pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
+    let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
+    let target_dir = if cfg!(debug_assertions) {
+        "debug"
+    } else {
+        "release"
+    };
+    let candidates = [
+        // Libraries in the Prusti artifact will show up here
+        exe_dir.to_path_buf(),
+        // Libraries when building Prusti will show up here
+        exe_dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("prusti-contracts")
+            .join("target")
+            .join("verify")
+            .join(target_dir),
+    ];
+    candidates
+        .into_iter()
+        .find(|candidate| candidate.join(&a_prusti_contracts_file).exists())
 }
 
 /// Append paths to the loader environment variable

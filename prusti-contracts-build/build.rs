@@ -41,24 +41,23 @@ fn main() {
     let cargo_prusti = ["..", "target", dir, &cargo_prusti]
         .iter()
         .collect::<PathBuf>();
-    let arg = "--release";
-    // Not a warning but no other way to print to console
-    println!(
-        "cargo:warning=Building `prusti-contracts` with '{} {arg}', please wait.",
-        cargo_prusti.to_string_lossy()
-    );
 
     // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
     // but this is hard to find for linking. So instead build to the `prusti-contracts` dir.
     // let out_dir = std::env::var("OUT_DIR").unwrap();
     // println!("cargo:warning=out_dir: {}", out_dir);
 
-    let status = Command::new(&cargo_prusti)
-        .current_dir(&prusti_contracts)
-        .arg(arg)
-        .env_remove("CARGO_MANIFEST_DIR")
-        .status()
-        .expect("Failed to run cargo-prusti!");
+    let mut cmd = Command::new(&cargo_prusti);
+    cmd.current_dir(&prusti_contracts);
+    if !cfg!(debug_assertions) {
+        cmd.arg("--release");
+    }
+    cmd.env_remove("CARGO_MANIFEST_DIR");
+
+    // Not a warning but no other way to print to console
+    println!("cargo:warning=Building `prusti-contracts` with {cmd:?}, please wait.",);
+
+    let status = cmd.status().expect("Failed to run cargo-prusti!");
     assert!(status.success());
 }
 

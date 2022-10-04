@@ -14,71 +14,68 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-20.04, ubuntu-22.04, windows-latest, macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
           java-version: '15'
+
       - name: Set up the environment
         run: python x.py setup
+
       - name: Build with cargo --release
         run: python x.py build --release --all
+
       - name: Run cargo tests --release
-        run: python x.py test --release --all --verbose
+        run: python x.py test --release --all
+
+      - name: Package Prusti artifact
+        run: python x.py package release prusti_artifact
+
+      - name: Test Prusti artifact
+        run: python x.py test-package prusti_artifact
+
       - name: Upload Prusti artifact
         uses: actions/upload-artifact@v3
         with:
           name: prusti-release-${{ matrix.os }}
           if-no-files-found: error
-          path: |
-            rust-toolchain
-            viper_tools/
-            target/release/prusti-driver*
-            target/release/prusti-server-driver*
-            target/release/prusti-server*
-            target/release/prusti-rustc*
-            target/release/cargo-prusti*
-            prusti-contracts/target/verify/release/libprusti_contracts.*
-            prusti-contracts/target/verify/release/deps/libprusti_contracts_internal-*
-            prusti-contracts/target/verify/release/deps/prusti_contracts_internal-*.dll
-            prusti-contracts/target/verify/release/libprusti_contracts_std.*
-            prusti-contracts/target/verify/release/deps/libprusti_contracts-*
-            prusti-contracts/target/verify/release/deps/prusti_contracts-*.dll
-            !target/release/*.d
-            !prusti-contracts/target/verify/release/*.d
-            !prusti-contracts/target/verify/release/deps/*.d
+          path: prusti_artifact/**
 
   # Deploy to a new GitHub pre-release
   deploy:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Download all Prusti artifacts
         uses: actions/download-artifact@v2
-      - name: Package Prusti artifacts
+
+      - name: Zip Prusti artifacts
         shell: bash
         run: |
-          for os in ubuntu-latest windows-latest macos-latest
+          for os in ubuntu-20.04 ubuntu-22.04 windows-latest macos-latest
           do
             echo "Package Prusti artifact for $os"
             cd prusti-release-$os
-            mv target/release/* .
-            rm -rf target
             zip -r prusti.zip *
             cd ..
           done
+
       - name: Create release tag
         shell: bash
         run: echo "TAG_NAME=$(date +v-%Y-%m-%d-%H%M)" >> $GITHUB_ENV
+
       - name: Create a nightly release
         id: create_release
         uses: viperproject/create-nightly-release@v1
@@ -88,15 +85,37 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           release_name: Nightly Release ${{ env.TAG_NAME }}
           keep_num: 2
-      - name: Upload release asset for Ubuntu
+
+      - name: Upload release asset for Ubuntu 20.04 using a backward compatible asset name
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-ubuntu-latest/prusti.zip
+          asset_path: ./prusti-release-ubuntu-20.04/prusti.zip
           asset_name: prusti-release-ubuntu.zip
           asset_content_type: application/zip
+
+      - name: Upload release asset for Ubuntu 20.04
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-ubuntu-20.04/prusti.zip
+          asset_name: prusti-release-ubuntu-20.04.zip
+          asset_content_type: application/zip
+
+      - name: Upload release asset for Ubuntu 22.04
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-ubuntu-22.04/prusti.zip
+          asset_name: prusti-release-ubuntu-22.04.zip
+          asset_content_type: application/zip
+
       - name: Upload release asset for Windows
         uses: actions/upload-release-asset@v1
         env:
@@ -106,6 +125,7 @@ jobs:
           asset_path: ./prusti-release-windows-latest/prusti.zip
           asset_name: prusti-release-windows.zip
           asset_content_type: application/zip
+
       - name: Upload release asset for MacOS
         uses: actions/upload-release-asset@v1
         env:

@@ -394,20 +394,9 @@ fn generate_expression_closure(
     }
 }
 
-/// Unlike the functions above, which are only called from
-/// prusti-contracts-internal, this function also needs to be called
-/// from prusti-contracts-impl, because we still need to parse the
-/// macro in order to replace it with the closure definition.
-/// Therefore, there is an extra parameter drop_spec here which tells
-/// the function whether to keep the specification (for -internal) or
-/// drop it (for -impl).
-pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
+pub fn closure(tokens: TokenStream) -> TokenStream {
     let cl_spec: ClosureWithSpec = handle_result!(syn::parse(tokens.into()));
     let callsite_span = Span::call_site();
-
-    if drop_spec {
-        return cl_spec.cl.into_token_stream();
-    }
 
     let mut rewriter = rewriter::AstRewriter::new();
 

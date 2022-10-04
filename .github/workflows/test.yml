@@ -11,7 +11,8 @@ on:
 # Cancel previous runs in a PR when pushing new commits
 concurrency:
   group: worflow-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Do not cancel when testing the master branch
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 env:
   RUST_BACKTRACE: 1
@@ -42,7 +43,9 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
       - name: Check and report Clippy errors
         run: |
           python ./x.py clippy -- -D warnings
@@ -59,8 +62,11 @@ jobs:
 
   # Run a subset of the tests that used to fail often.
   # The goal here is to fail fast and give quick feedback to the developers.
+  # This job intentionally doesn't use the verification cache.
   quick-tests:
     runs-on: ubuntu-latest
+    env:
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -71,11 +77,13 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
-        run: python x.py test --all --verbose quick
+        run: python x.py test --all quick
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
@@ -84,6 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -94,27 +103,43 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Prepare verification cache keys
+        shell: bash
+        run: |
+          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
+          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
+          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - name: Load verification cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          # Use a unique key, so that the job will always store the cache at the end of the run
+          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
+          # Restore from the most recent cache that matches a shared prefix of the key
+          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
         run: |
           python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
-          # python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
-          # python x.py test --all --verbose pass/demos/account.rs
-          # python x.py test --all --verbose pass/rosetta/Knights_tour.rs
-          # python x.py test --all --verbose pass/quick/fold-unfold.rs
-          # python x.py test --all --verbose pass/quick/moves.rs
-          # python x.py test --all --verbose pass/quick/mut-borrows.rs
-          # python x.py test --all --verbose pass/quick/shared-borrows.rs
-          # python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
-          # python x.py test --all --verbose pass/quick/fibonacci.rs
-          # python x.py test --all --verbose pass/pure-fn/len-lookup.rs
-          # python x.py test --all --verbose pass/pure-fn/quantifiers.rs
-          # python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
-          # python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
-          # python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
-          # python x.py test --all --verbose pass/rosetta/Heapsort.rs
+          # python x.py test --all pass/rosetta/Binary_search_shared.rs
+          # python x.py test --all pass/demos/account.rs
+          # python x.py test --all pass/rosetta/Knights_tour.rs
+          # python x.py test --all pass/quick/fold-unfold.rs
+          # python x.py test --all pass/quick/moves.rs
+          # python x.py test --all pass/quick/mut-borrows.rs
+          # python x.py test --all pass/quick/shared-borrows.rs
+          # python x.py test --all pass/quick/trait-contracts-refinement.rs
+          # python x.py test --all pass/quick/fibonacci.rs
+          # python x.py test --all pass/pure-fn/len-lookup.rs
+          # python x.py test --all pass/pure-fn/quantifiers.rs
+          # python x.py test --all pass/pure-fn/recursive-pure-fn.rs
+          # python x.py test --all pass/pure-fn/ref-mut-arg.rs
+          # python x.py test --all pass/rosetta/Ackermann_function.rs
+          # python x.py test --all pass/rosetta/Heapsort.rs
       - name: Run with purification.
         env:
           PRUSTI_VIPER_BACKEND: silicon
@@ -164,6 +189,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    env:
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -178,11 +205,27 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Prepare verification cache keys
+        shell: bash
+        run: |
+          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
+          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
+          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - name: Load verification cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          # Use a unique key, so that the job will always store the cache at the end of the run
+          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
+          # Restore from the most recent cache that matches a shared prefix of the key
+          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run cargo tests
-        run: python x.py test --all --verbose
+        run: python x.py test --all
       - name: Run a subset of tests with Carbon
         run: |
             python x.py test pass/no-annotation --all --verbose
@@ -209,7 +252,9 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
       - name: Build with cargo
         run: python x.py build --release --all
       - name: Run cargo-prusti on Prusti
@@ -243,7 +288,9 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
       - name: Build with cargo --release
         run: python x.py build --release --all
       - name: Test Prusti on a collection of crates
