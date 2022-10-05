@@ -334,6 +334,46 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -349,8 +389,8 @@
 ///
 /// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
 /// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
-/// 3.  Replace all arithmetic expressions inside `forall` that do not depend on bound variables
-///     with `let tmp == (...) in forall ..`.
+/// 3.  Replace all arithmetic and conditional expressions inside `forall` that
+///     do not depend on bound variables with `let tmp == (...) in forall ..`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
 </span><span class="kw">pub fn </span>fix_quantifiers(cfg: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
@@ -390,7 +430,7 @@
     }
 
     <span class="kw">fn </span>replace_expr_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>unfolding_extractor = <a href="#256">UnfoldingExtractor</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>unfolding_extractor = <a href="#296">UnfoldingExtractor</a> {
             unfoldings: HashMap::new(),
             in_quantifier: <span class="bool-val">false</span>,
         };
@@ -527,6 +567,46 @@
             <a href="#176">original_expr</a>
         }
     }
+
+    <span class="kw">fn </span>fold_cond(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">vir::Cond</a> {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">vir::Cond</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">let </span>contains_bounded = <span class="self"><a href="#196">self</a>
+            </span>.bound_vars
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="#198">guard</a>.find(<a href="#207">v</a>) || <a href="#199">then_expr</a>.find(<a href="#207">v</a>) || <a href="#200">else_expr</a>.find(<a href="#207">v</a>));
+        <span class="kw">if </span>contains_bounded {
+            <span class="comment">// Do not extract conditional branches into let-vars: it&#39;s possible that
+            // the &quot;then&quot; branch is well-defined only when `guard` is true, or
+            // vice-versa (i.e the &quot;else&quot; branch is only defined when `guard` is
+            // false). For example, the expression:
+            //     `x &gt;= 0 ? sqrt(x) + 1 : 1`
+            // is well-defined, but
+            //     `let (t == sqrt(x) + 1) in x &gt;= 0 ? t :1`
+            // is not. (assuming sqrt(x) is defined only for x &gt;= 0)
+            </span>vir::Expr::Cond(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">vir::Cond</a> {
+                guard: <a class="self" href="#196">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#198">guard</a>),
+                <a href="#199">then_expr</a>,
+                <a href="#200">else_expr</a>,
+                <a href="#201">position</a>,
+            })
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>original_expr = vir::Expr::Cond(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">vir::Cond</a> {
+                <a href="#198">guard</a>,
+                <a href="#199">then_expr</a>,
+                <a href="#200">else_expr</a>,
+                <a href="#201">position</a>,
+            });
+            <a class="self" href="#196">self</a>.<a href="#149">replace_expr</a>(<a href="#224">original_expr</a>, <a href="#201">position</a>)
+        }
+    }
+
     <span class="kw">fn </span>fold_bin_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
@@ -536,28 +616,28 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a>,
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let </span>first_contains_bounded = <a class="self" href="#195">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="#198">left</a>.find(<a href="#203">v</a>));
-        <span class="kw">let </span>second_contains_bounded = <a class="self" href="#195">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="#199">right</a>.find(<a href="#204">v</a>));
+        <span class="kw">let </span>first_contains_bounded = <a class="self" href="#235">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="#238">left</a>.find(<a href="#243">v</a>));
+        <span class="kw">let </span>second_contains_bounded = <a class="self" href="#235">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="#239">right</a>.find(<a href="#244">v</a>));
 
         <span class="kw">if </span>first_contains_bounded || second_contains_bounded {
             <span class="comment">// The expression contains bounded variables. Cannot pull it out.
-            </span><span class="kw">let </span>folded_first = <a class="self" href="#195">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#198">left</a>);
-            <span class="kw">let </span>folded_second = <a class="self" href="#195">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#199">right</a>);
+            </span><span class="kw">let </span>folded_first = <a class="self" href="#235">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#238">left</a>);
+            <span class="kw">let </span>folded_second = <a class="self" href="#235">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#239">right</a>);
             vir::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
-                <a href="#197">op_kind</a>,
-                left: <a href="#208">folded_first</a>,
-                right: <a href="#209">folded_second</a>,
-                <a href="#200">position</a>,
+                <a href="#237">op_kind</a>,
+                left: <a href="#248">folded_first</a>,
+                right: <a href="#249">folded_second</a>,
+                <a href="#240">position</a>,
             })
         } <span class="kw">else </span>{
             <span class="comment">// Pull out the expression.
             </span><span class="kw">let </span>original_expr = vir::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
-                <a href="#197">op_kind</a>,
-                <a href="#198">left</a>,
-                <a href="#199">right</a>,
-                <a href="#200">position</a>,
+                <a href="#237">op_kind</a>,
+                <a href="#238">left</a>,
+                <a href="#239">right</a>,
+                <a href="#240">position</a>,
             });
-            <a class="self" href="#195">self</a>.<a href="#149">replace_expr</a>(<a href="#218">original_expr</a>, <a href="#200">position</a>)
+            <a class="self" href="#235">self</a>.<a href="#149">replace_expr</a>(<a href="#258">original_expr</a>, <a href="#240">position</a>)
         }
     }
     <span class="kw">fn </span>fold_field(
@@ -568,24 +648,24 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a>,
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#230">base</a> {
+        <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="#270">base</a> {
             vir::Expr::Local(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>original_expr = vir::Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
-                    <a href="#230">base</a>,
-                    <a href="#231">field</a>,
-                    <a href="#232">position</a>,
+                    <a href="#270">base</a>,
+                    <a href="#271">field</a>,
+                    <a href="#272">position</a>,
                 });
-                <a class="self" href="#228">self</a>.<a href="#149">replace_expr</a>(<a href="#237">original_expr</a>, <a href="#232">position</a>)
+                <a class="self" href="#268">self</a>.<a href="#149">replace_expr</a>(<a href="#277">original_expr</a>, <a href="#272">position</a>)
             }
             <span class="kw">_ </span>=&gt; vir::Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
-                <a href="#230">base</a>,
-                <a href="#231">field</a>,
-                <a href="#232">position</a>,
+                <a href="#270">base</a>,
+                <a href="#271">field</a>,
+                <a href="#272">position</a>,
             }),
         }
     }
     <span class="kw">fn </span>fold_forall(<span class="kw-2">&amp;mut </span><span class="self">self</span>, for_all: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        vir::Expr::ForAll(<a href="#251">for_all</a>)
+        vir::Expr::ForAll(<a href="#291">for_all</a>)
     }
 }
 
@@ -597,7 +677,7 @@
     in_quantifier: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span><a href="#256">UnfoldingExtractor</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span><a href="#296">UnfoldingExtractor</a> {
     <span class="kw">fn </span>fold_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
@@ -613,18 +693,18 @@
         </span>);
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;original body: {}&quot;</span>, body);
 
-        <a class="self" href="#266">self</a>.in_quantifier = <span class="bool-val">true</span>;
-        <span class="kw">let </span>replaced_body = <a class="self" href="#266">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#270">body</a>);
-        <a class="self" href="#266">self</a>.in_quantifier = <span class="bool-val">false</span>;
+        <a class="self" href="#306">self</a>.in_quantifier = <span class="bool-val">true</span>;
+        <span class="kw">let </span>replaced_body = <a class="self" href="#306">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="#310">body</a>);
+        <a class="self" href="#306">self</a>.in_quantifier = <span class="bool-val">false</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>forall = vir::Expr::ForAll(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
-            <a href="#268">variables</a>,
-            <a href="#269">triggers</a>,
-            body: <a href="#281">replaced_body</a>,
-            <a href="#271">position</a>,
+            <a href="#308">variables</a>,
+            <a href="#309">triggers</a>,
+            body: <a href="#321">replaced_body</a>,
+            <a href="#311">position</a>,
         });
 
-        <span class="kw">let </span>unfoldings = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#266">self</a>.unfoldings);
+        <span class="kw">let </span>unfoldings = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="#306">self</a>.unfoldings);
 
         <span class="kw">for </span>((typ, args), (perm_amount, variant, <span class="kw">_</span>)) <span class="kw">in </span>unfoldings {
             forall = vir::Expr::Unfolding(vir::Unfolding {
@@ -638,7 +718,7 @@
         }
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced quantifier: {}&quot;</span>, forall);
 
-        <a href="#284">forall</a>
+        <a href="#324">forall</a>
     }
     <span class="kw">fn </span>fold_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -652,22 +732,22 @@
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a>,
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
         <span class="kw">if </span><span class="self">self</span>.in_quantifier {
-            <a class="self" href="#308">self</a>.unfoldings
-                .insert((<a href="#310">predicate</a>, <a href="#311">arguments</a>), (<a href="#313">permission</a>, <a href="#314">variant</a>, <a href="#315">position</a>));
-            <a class="self" href="#308">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<span class="kw-2">*</span><a href="#312">base</a>)
+            <a class="self" href="#348">self</a>.unfoldings
+                .insert((<a href="#350">predicate</a>, <a href="#351">arguments</a>), (<a href="#353">permission</a>, <a href="#354">variant</a>, <a href="#355">position</a>));
+            <a class="self" href="#348">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<span class="kw-2">*</span><a href="#352">base</a>)
         } <span class="kw">else </span>{
             vir::Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
-                <a href="#310">predicate</a>,
-                <a href="#311">arguments</a>,
-                <a href="#312">base</a>,
-                <a href="#313">permission</a>,
-                <a href="#314">variant</a>,
-                <a href="#315">position</a>,
+                <a href="#350">predicate</a>,
+                <a href="#351">arguments</a>,
+                <a href="#352">base</a>,
+                <a href="#353">permission</a>,
+                <a href="#354">variant</a>,
+                <a href="#355">position</a>,
             })
         }
     }
     <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, labelled_old: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        vir::Expr::LabelledOld(<a href="#333">labelled_old</a>)
+        vir::Expr::LabelledOld(<a href="#373">labelled_old</a>)
     }
 }
 </code></pre></div>
