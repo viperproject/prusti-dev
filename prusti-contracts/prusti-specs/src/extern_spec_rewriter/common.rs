@@ -165,8 +165,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
 
     let mut stub_method = stub_method.expect_impl_item();
     stub_method.attrs.extend(generated_attributes);
-    stub_method.rewrite_self_type(&self_type_path, self_type_trait);
-    stub_method.rewrite_receiver(&self_type);
+    stub_method.rewrite_self_type(self_type_path, self_type_trait);
+    stub_method.rewrite_receiver(self_type);
 
     // Set span of generated method to externally specified method for better error reporting
     syn::visit_mut::visit_impl_item_method_mut(&mut SpanOverrider::new(method_sig_span), &mut stub_method);
@@ -177,8 +177,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
                 let mut spec_item_fn: syn::ImplItemMethod = parse_quote_spanned! {spec_item_fn.span()=>
                     #spec_item_fn
                 };
-                spec_item_fn.rewrite_self_type(&self_type_path, self_type_trait);
-                spec_item_fn.rewrite_receiver(&self_type);
+                spec_item_fn.rewrite_self_type(self_type_path, self_type_trait);
+                spec_item_fn.rewrite_receiver(self_type);
 
                 spec_item_fn
             }

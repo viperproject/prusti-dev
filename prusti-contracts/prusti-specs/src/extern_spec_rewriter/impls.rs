@@ -94,7 +94,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
             syn::ImplItem::Method(method) => {
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
-                    &item_ty,
+                    item_ty,
                     None,
                     ExternSpecKind::InherentImpl,
                 )?;

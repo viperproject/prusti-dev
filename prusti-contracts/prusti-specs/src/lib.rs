@@ -493,8 +493,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         ))),
     };
     
-    let self_type: &syn::Type = &*impl_block.self_ty;
-    let self_type_path: &syn::TypePath = extract_type_path(&self_type);
+    let self_type: &syn::Type = &impl_block.self_ty;
+    let self_type_path: &syn::TypePath = extract_type_path(self_type);
 
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
