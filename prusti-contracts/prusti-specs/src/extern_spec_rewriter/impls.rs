@@ -240,22 +240,19 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct) {
-                        <MyStruct> :: foo(_self);
-                        unimplemented!()
+                        <MyStruct> :: foo(_self)
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn bar(_self: &mut MyStruct) {
-                        <MyStruct> :: bar(_self);
-                        unimplemented!()
+                        <MyStruct> :: bar(_self)
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn baz(_self: MyStruct) {
-                        <MyStruct> :: baz(_self);
-                        unimplemented!()
+                        <MyStruct> :: baz(_self)
                     }
                 }
             };
@@ -280,8 +277,7 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
-                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2);
-                        unimplemented!()
+                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2)
                     }
                 }
             };
@@ -310,8 +306,7 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &mut MyStruct) -> <MyStruct as MyTrait> :: Result {
-                        <MyStruct as MyTrait> :: foo(_self);
-                        unimplemented!()
+                        <MyStruct as MyTrait> :: foo(_self)
                     }
                 }
             };
