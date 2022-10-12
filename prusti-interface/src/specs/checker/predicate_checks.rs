@@ -27,7 +27,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
         let illegal_pred_usages =
             self.collect_illegal_predicate_usages(collected_predicates.predicates, env.query);
         debug!("Predicate usages: {:?}", illegal_pred_usages);
-        
+
         // TODO: check behavioral subtyping of implemented predicates against default implementation
 
         let illegal_usage_errors = illegal_pred_usages
