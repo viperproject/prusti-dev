@@ -1,4 +1,4 @@
-use crate::{ExternSpecKind, extract_prusti_attributes, extract_type_path, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
+use crate::{ExternSpecKind, extract_prusti_attributes, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
 use quote::{quote, ToTokens};
 use syn::{Expr, FnArg, parse_quote_spanned, Pat, PatType, Token};
 use syn::punctuated::Punctuated;
@@ -161,11 +161,9 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     // In the generated spec items and the stub method:
     // - Rewrite associated types
     // - Rewrite "self" to "_self"
-    let self_type_path = extract_type_path(self_type);
-
     let mut stub_method = stub_method.expect_impl_item();
     stub_method.attrs.extend(generated_attributes);
-    stub_method.rewrite_self_type(self_type_path, self_type_trait);
+    stub_method.rewrite_self_type(self_type, self_type_trait);
     stub_method.rewrite_receiver(self_type);
 
     // Set span of generated method to externally specified method for better error reporting
@@ -177,7 +175,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
                 let mut spec_item_fn: syn::ImplItemMethod = parse_quote_spanned! {spec_item_fn.span()=>
                     #spec_item_fn
                 };
-                spec_item_fn.rewrite_self_type(self_type_path, self_type_trait);
+                spec_item_fn.rewrite_self_type(self_type, self_type_trait);
                 spec_item_fn.rewrite_receiver(self_type);
 
                 spec_item_fn
