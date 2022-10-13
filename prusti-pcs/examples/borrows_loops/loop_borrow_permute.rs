@@ -19,6 +19,10 @@ fn main() {
 
     // @40, before loop break check
     // live loans: 0, 1, 6, 9, 10
+    //
+    // _3 changed rhs and both are live at loopo head
+    // Is collapse implemented for tagged places?
+    // Work backwards: 
     
     while n < 20 {
         // @54
