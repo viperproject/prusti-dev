@@ -75,7 +75,7 @@ impl SpannedEncodingError {
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        trace!("Constructing internal error at:\n{:?}", Backtrace::new());
+        panic!("Constructing internal error at:\n{:?}", Backtrace::new());
         SpannedEncodingError::new(
             EncodingErrorKind::internal(message),
             span
