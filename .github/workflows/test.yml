@@ -91,7 +91,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
-      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -101,24 +100,6 @@ jobs:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "shared"
-      - name: Prepare verification cache keys
-        shell: bash
-        run: |
-          VER_CACHE_KEY_SHARED=prusti-cache-$(cat viper-toolchain)-$(date +%Y-%m)
-          echo "VER_CACHE_KEY_SHARED=$VER_CACHE_KEY_SHARED" >> $GITHUB_ENV
-          echo "VER_CACHE_KEY_UNIQUE=$VER_CACHE_KEY_SHARED-${RANDOM}${RANDOM}" >> $GITHUB_ENV
-      - name: Load verification cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.PRUSTI_CACHE_PATH }}
-          # Use a unique key, so that the job will always store the cache at the end of the run
-          key: ${{ env.VER_CACHE_KEY_UNIQUE }}
-          # Restore from the most recent cache that matches a shared prefix of the key
-          restore-keys: ${{ env.VER_CACHE_KEY_SHARED }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
