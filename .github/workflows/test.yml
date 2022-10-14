@@ -91,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
+      PRUSTI_LOG: info
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -102,24 +103,6 @@ jobs:
         run: python x.py setup
       - name: Build with cargo
         run: python x.py build --all
-      - name: Run quick tests
-        run: |
-          python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
-          # python x.py test --all pass/rosetta/Binary_search_shared.rs
-          # python x.py test --all pass/demos/account.rs
-          # python x.py test --all pass/rosetta/Knights_tour.rs
-          # python x.py test --all pass/quick/fold-unfold.rs
-          # python x.py test --all pass/quick/moves.rs
-          # python x.py test --all pass/quick/mut-borrows.rs
-          # python x.py test --all pass/quick/shared-borrows.rs
-          # python x.py test --all pass/quick/trait-contracts-refinement.rs
-          # python x.py test --all pass/quick/fibonacci.rs
-          # python x.py test --all pass/pure-fn/len-lookup.rs
-          # python x.py test --all pass/pure-fn/quantifiers.rs
-          # python x.py test --all pass/pure-fn/recursive-pure-fn.rs
-          # python x.py test --all pass/pure-fn/ref-mut-arg.rs
-          # python x.py test --all pass/rosetta/Ackermann_function.rs
-          # python x.py test --all pass/rosetta/Heapsort.rs
       - name: Run with purification.
         env:
           PRUSTI_VIPER_BACKEND: silicon
@@ -129,7 +112,7 @@ jobs:
           PRUSTI_VERIFY_SPECIFICATIONS_WITH_CORE_PROOF: false
           PRUSTI_INLINE_CALLER_FOR: false
         run: |
-          python x.py test core_proof
+          python x.py test fail/core_proof/trusted.rs
       - name: Run with purification with Carbon.
         env:
           PRUSTI_VIPER_BACKEND: silicon
