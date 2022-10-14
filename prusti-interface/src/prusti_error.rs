@@ -129,21 +129,22 @@ impl PrustiError {
 
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
-        check_message(message.to_string());
-        let mut error = PrustiError::new(
-            "[Prusti internal error] Prusti encountered an unexpected internal error".to_string(),
-            span
-        ).add_note(
-            "We would appreciate a bug report: https://github.com/viperproject/prusti-dev/issues/new",
-            None
-        ).add_note(
-            format!("Details: {}", message.to_string()),
-            None
-        );
-        if config::internal_errors_as_warnings() {
-            error.set_warning();
-        }
-        error
+        unimplemented!("message: {}", message.to_string());
+        // check_message(message.to_string());
+        // let mut error = PrustiError::new(
+        //     "[Prusti internal error] Prusti encountered an unexpected internal error".to_string(),
+        //     span
+        // ).add_note(
+        //     "We would appreciate a bug report: https://github.com/viperproject/prusti-dev/issues/new",
+        //     None
+        // ).add_note(
+        //     format!("Details: {}", message.to_string()),
+        //     None
+        // );
+        // if config::internal_errors_as_warnings() {
+        //     error.set_warning();
+        // }
+        // error
     }
 
     /// Set that this Prusti error should be reported as a warning to the user
