@@ -29,7 +29,12 @@ use prusti_rustc_interface::{
     errors::MultiSpan,
     middle::mir::{BasicBlock, Body, Location, Mutability, Mutability::*, Place, TerminatorKind},
 };
-use std::{fs::File, io, io::Write};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs::File,
+    io,
+    io::Write,
+};
 
 /// Computes the PCS and prints it to the console
 /// Currently the entry point for the compiler
@@ -88,8 +93,22 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
 ) -> Result<(), io::Error> {
     let mut bb_nodes: FxHashMap<BasicBlock, FxHashSet<usize>> = FxHashMap::default();
     let mut loan_live_at: FxHashMap<usize, Vec<usize>> = FxHashMap::default();
+    let mut subsets: FxHashMap<
+        usize,
+        Option<&BTreeMap<rustc_middle::ty::RegionVid, BTreeSet<rustc_middle::ty::RegionVid>>>,
+    > = FxHashMap::default();
 
-    println!("{:?}", polonius_info.borrowck_in_facts.loan_issued_at);
+    println!("{:?}", polonius_info.borrowck_out_facts);
+
+    let mut loan_to_origin: FxHashMap<usize, rustc_middle::ty::RegionVid> = FxHashMap::default();
+    let mut origin_to_loan: FxHashMap<rustc_middle::ty::RegionVid, usize> = FxHashMap::default();
+    let mut base_origins: FxHashSet<rustc_middle::ty::RegionVid> = FxHashSet::default();
+
+    for (r, ix, _) in polonius_info.borrowck_in_facts.loan_issued_at.iter() {
+        loan_to_origin.insert(ix.index().clone(), r.clone());
+        origin_to_loan.insert(r.clone(), ix.index().clone());
+        base_origins.insert(r.clone());
+    }
 
     // Populate bb_nodes with the CFG
     // TODO: Factor out this code
@@ -105,6 +124,7 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
                 None => vec![],
             },
         );
+        subsets.insert(l0.index(), polonius_info.borrowck_out_facts.subset.get(l0));
 
         let block_set_borrow_1 = bb_nodes
             .entry(polonius_info.interner.get_point(*l1).location.block)
@@ -117,9 +137,11 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
                 None => vec![],
             },
         );
+        subsets.insert(l1.index(), polonius_info.borrowck_out_facts.subset.get(l1));
     }
 
     writeln!(writer, "digraph CFG {{")?;
+    // writeln!(writer, "newrank=true;")?;
 
     // Write locations into clusters
     for (bb, locations) in bb_nodes.drain() {
@@ -128,6 +150,41 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
         writeln!(writer, "color=lightgrey;")?;
 
         for loc in locations.iter() {
+            writeln!(writer, "subgraph cluster{:?} {{", loc)?;
+            writeln!(writer, "style=filled;")?;
+            writeln!(writer, "color=orange;")?;
+
+            writeln!(writer, " subs{:?} [style=invis]", loc)?;
+
+            for og in base_origins.iter() {
+                writeln!(
+                    writer,
+                    "origin{:?}_{} [style=filled, color=white, shape=square, label=\"{}\"]",
+                    loc,
+                    prettify_origin(*og),
+                    prettify_origin(*og),
+                )?;
+            }
+
+            // if let Some(mp) = subsets.get(loc).unwrap() {
+            if let Some(mp) = subsets.get(loc).unwrap() {
+                for (k, vs) in mp.iter() {
+                    for v in vs.iter() {
+                        writeln!(
+                            writer,
+                            "origin{:?}_{} -> origin{:?}_{}",
+                            loc,
+                            prettify_origin(*k),
+                            loc,
+                            prettify_origin(*v),
+                        )?;
+                    }
+                }
+            }
+
+            writeln!(writer, "label=\"subsets {:?}\"", loc)?;
+            writeln!(writer, "}}")?;
+
             let mut xlabel = "".to_string();
 
             match loan_live_at.get(loc) {
@@ -144,8 +201,10 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
                 " {:?} [style=filled, color=white, shape=circle, xlabel=\"{}\"]",
                 loc, xlabel
             )?;
+
+            writeln!(writer, " {:?} -> subs{:?} [weight=1.5]", loc, loc)?;
         }
-        writeln!(writer, "label={:?}", bb)?;
+        writeln!(writer, "label=\"{:?}\"", bb)?;
         writeln!(writer, "}}")?;
     }
 
@@ -160,28 +219,49 @@ pub fn vis_input_facts<'mir, 'tcx: 'mir>(
             // Statement (not terminator)
             writeln!(
                 writer,
-                "{:?} -> {:?} [label=\"{:?}\"]",
+                "{:?} -> {:?} [label=\"{:?}\", lhead=cluster_{:?}, ltail=cluster_{:?}]",
                 l0.index(),
                 l1.index(),
-                mir_stmt.left().unwrap()
+                mir_stmt.left().unwrap(),
+                l0.index(),
+                l1.index(),
             )?;
         } else if internal_edge && mir_stmt.is_right() {
             // Terminator
             writeln!(
                 writer,
-                "{:?} -> {:?} [label=\"({:?} term) {}\"]",
+                "{:?} -> {:?} [label=\"({:?} term) {}\", lhead=cluster_{:?}, ltail=cluster_{:?}, weight=1.5]",
                 l0.index(),
                 l1.index(),
                 rl0.location.block,
-                abbreviate_terminator(&mir_stmt.right().unwrap().kind)
+                abbreviate_terminator(&mir_stmt.right().unwrap().kind),
+                l0.index(),
+                l1.index(),
             )?;
         } else {
             // Edge between statements
-            writeln!(writer, "{:?} -> {:?}", l0.index(), l1.index())?;
+            writeln!(
+                writer,
+                "{:?} -> {:?} [lhead=cluster_{:?}, ltail=cluster_{:?}, weight=1.5]",
+                l0.index(),
+                l1.index(),
+                l0.index(),
+                l1.index(),
+            )?;
         }
+        writeln!(
+            writer,
+            "subs{:?} -> subs{:?} [style=invis, weight=1.5]",
+            l0.index(),
+            l1.index(),
+        )?;
     }
 
     writeln!(writer, "}}")?;
 
     Ok(())
+}
+
+fn prettify_origin(og: rustc_middle::ty::RegionVid) -> String {
+    format!("{:?}", og)[3..].to_owned()
 }
