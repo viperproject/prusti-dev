@@ -97,7 +97,7 @@ lazy_static::lazy_static! {
         settings.set_default::<Vec<String>>("extra_jvm_args", vec![]).unwrap();
         settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
         settings.set_default("quiet", false).unwrap();
-        settings.set_default("assert_timeout", 10_000).unwrap();
+        settings.set_default("assert_timeout", 60_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
