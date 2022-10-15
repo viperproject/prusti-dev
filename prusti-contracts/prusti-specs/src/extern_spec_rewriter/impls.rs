@@ -240,19 +240,28 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct) {
-                        <MyStruct> :: foo(_self)
+                        let res = <MyStruct> :: foo :: <>(_self);
+                        unreachable!();
+                        #[allow(unreachable_code)]
+                        res
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn bar(_self: &mut MyStruct) {
-                        <MyStruct> :: bar(_self)
+                        let res = <MyStruct> :: bar :: <>(_self);
+                        unreachable!();
+                        #[allow(unreachable_code)]
+                        res
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn baz(_self: MyStruct) {
-                        <MyStruct> :: baz(_self)
+                        let res = <MyStruct> :: baz :: <>(_self);
+                        unreachable!();
+                        #[allow(unreachable_code)]
+                        res
                     }
                 }
             };
@@ -277,7 +286,10 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
-                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2)
+                        let res = <MyStruct::<I,O,i32>> :: foo :: <>(_self, arg1, arg2);
+                        unreachable!();
+                        #[allow(unreachable_code)]
+                        res
                     }
                 }
             };
@@ -306,7 +318,10 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &mut MyStruct) -> <MyStruct as MyTrait> :: Result {
-                        <MyStruct as MyTrait> :: foo(_self)
+                        let res = <MyStruct as MyTrait> :: foo :: <>(_self);
+                        unreachable!();
+                        #[allow(unreachable_code)]
+                        res
                     }
                 }
             };
