@@ -129,6 +129,12 @@ mod syn_extensions {
             &self.attrs
         }
     }
+    
+    impl HasAttributes for ItemFn {
+        fn attrs(&self) -> &Vec<Attribute> {
+            &self.attrs
+        }
+    }
 }
 
 /// See [SelfTypeRewriter]

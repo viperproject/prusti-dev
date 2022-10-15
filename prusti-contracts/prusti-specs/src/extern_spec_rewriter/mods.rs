@@ -5,12 +5,11 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-use crate::specifications::common::generate_mod_name;
+use super::common::generate_extern_spec_function_stub;
+use crate::{specifications::common::generate_mod_name, ExternSpecKind};
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
-use syn::parse_quote_spanned;
-use syn::spanned::Spanned;
-
+use syn::{parse_quote_spanned, spanned::Spanned};
 
 pub fn rewrite_extern_spec(item_mod: &mut syn::ItemMod) -> syn::Result<TokenStream> {
     let mut path = syn::Path {
@@ -30,10 +29,7 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
         ident: item_mod.ident.clone(),
         arguments: syn::PathArguments::None,
     });
-    item_mod.ident = syn::Ident::new(
-        &generate_mod_name(&item_mod.ident),
-        item_mod.span(),
-    );
+    item_mod.ident = syn::Ident::new(&generate_mod_name(&item_mod.ident), item_mod.span());
 
     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
         match item {
@@ -82,19 +78,8 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
 fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
     let ident = &item_fn.sig.ident;
-    let args = &item_fn.sig.inputs;
-    let item_fn_span = item_fn.span();
-    item_fn.block = parse_quote_spanned! {item_fn_span=>
-        {
-            #path :: #ident (#args);
-            unimplemented!()
-        }
-    };
+    let path_span = item_fn.sig.ident.span();
+    let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    item_fn
-        .attrs
-        .push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec = "method"]));
-    item_fn
-        .attrs
-        .push(parse_quote_spanned!(item_fn_span=> #[trusted]));
+    *item_fn = generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method);
 }
