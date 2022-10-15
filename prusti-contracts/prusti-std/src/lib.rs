@@ -7,5 +7,8 @@ where
     S: ::std::hash::BuildHasher,
 {
     #[pure]
-    pub fn contains_key<Q>(&self, k: &Q) -> bool where K: ::core::borrow::Borrow<Q>, Q: ::core::hash::Hash + Eq;
+    pub fn contains_key<Q>(&self, k: &Q) -> bool
+    where
+        K: ::core::borrow::Borrow<Q>,
+        Q: ::core::hash::Hash + Eq;
 }
