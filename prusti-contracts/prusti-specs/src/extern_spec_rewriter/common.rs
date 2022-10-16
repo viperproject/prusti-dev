@@ -122,9 +122,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     self_type_trait: Option<&syn::TypePath>,
     extern_spec_kind: ExternSpecKind,
 ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
-    let base_sig = method.sig();
-    // Make elided lifetimes explicit, if necessary.
-    let method_sig = with_explicit_lifetimes(base_sig).unwrap_or_else(|| base_sig.clone());
+    let method_sig = method.sig();
     let method_sig_span = method_sig.span();
     let method_ident = &method_sig.ident;
 
@@ -183,6 +181,8 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     extern_spec_kind: ExternSpecKind,
 ) -> Output {
     let signature = function.sig();
+    // Make elided lifetimes explicit, if necessary.
+    let signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
     let attrs = function.attrs().clone();
     let generic_params = &signature.generic_params_as_call_args();
     let args = &signature.params_as_call_args();
@@ -252,15 +252,15 @@ impl GenericParamsAsCallArguments for Punctuated<GenericParam, Token![,]> {
         use syn::*;
         Punctuated::from_iter(
             self.iter()
-                .map(|param| -> GenericArgument {
+                .flat_map(|param| -> Option<GenericArgument> {
                     let span = param.span();
                     match param {
                         GenericParam::Type(TypeParam { ident, .. }) =>
-                            parse_quote_spanned! {span=>#ident },
-                        GenericParam::Lifetime(LifetimeDef { lifetime, .. }) =>
-                            parse_quote_spanned! {span=>#lifetime },
+                            Some(parse_quote_spanned! {span=>#ident }),
+                        GenericParam::Lifetime(_) =>
+                            None,
                         GenericParam::Const(ConstParam { ident, .. }) =>
-                            parse_quote_spanned! {span=>#ident },
+                            Some(parse_quote_spanned! {span=>#ident }),
                     }
                 })
         )
