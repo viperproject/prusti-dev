@@ -223,8 +223,7 @@ fn get_keys(settings: &Config) -> HashSet<String> {
         .clone()
         .into_table()
         .unwrap()
-        .into_iter()
-        .map(|(key, _)| key)
+        .into_keys()
         .collect()
 }
 
