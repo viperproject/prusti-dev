@@ -297,7 +297,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Invoke const evaluation to extract scalar value.
     fn uneval_eval_intlike(
         &self,
-        ct: ty::Unevaluated<'tcx>,
+        ct: mir::UnevaluatedConst<'tcx>,
     ) -> Option<mir::interpret::Scalar> {
         let tcx = self.env.tcx();
         let param_env = tcx.param_env(ct.def.did);
@@ -316,8 +316,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 ty::ConstKind::Value(ref const_value) => {
                     const_value.try_to_scalar()
                 }
-                ty::ConstKind::Unevaluated(ct) =>
-                    self.uneval_eval_intlike(ty::Unevaluated { promoted: None, ..ct }),
+                ty::ConstKind::Unevaluated(ct) => {
+                    let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.substs);
+                    self.uneval_eval_intlike(mir_ct)
+                },
                 _ => unimplemented!("{:?}", value),
             }
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),

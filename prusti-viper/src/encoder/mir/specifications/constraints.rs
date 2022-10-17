@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{
         ty,
-        ty::subst::{Subst, SubstsRef},
+        ty::subst::SubstsRef,
     },
     span::Span,
 };
