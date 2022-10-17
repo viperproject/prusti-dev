@@ -11,15 +11,6 @@ pub(crate) trait MirTypeLayoutsEncoderInterface<'tcx> {
         &self,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
-    fn encode_type_size_expression_with_reps_vir(
-        &self,
-        count: vir_high::Expression,
-        ty: vir_high::Type,
-    ) -> SpannedEncodingResult<vir_high::Expression>;
-    fn encode_type_size_expression_vir(
-        &self,
-        ty: vir_high::Type,
-    ) -> SpannedEncodingResult<vir_high::Expression>;
 }
 
 impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -39,21 +30,6 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
         Ok(function_call)
     }
 
-    fn encode_type_size_expression_with_reps_vir(
-        &self,
-        count: vir_high::Expression,
-        ty: vir_high::Type,
-    ) -> SpannedEncodingResult<vir_high::Expression> {
-        let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
-        let function_call = vir_high::Expression::builtin_func_app_no_pos(
-            vir_high::BuiltinFunc::Size,
-            vec![ty],
-            vec![count],
-            usize,
-        );
-        Ok(function_call)
-    }
-
     fn encode_type_padding_size_expression(
         &self,
         ty: ty::Ty<'tcx>,
@@ -67,11 +43,5 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
             usize,
         );
         Ok(function_call)
-    }
-    fn encode_type_size_expression_vir(
-        &self,
-        ty: vir_high::Type,
-    ) -> SpannedEncodingResult<vir_high::Expression> {
-        self.encode_type_size_expression_with_reps_vir(1usize.into(), ty)
     }
 }

@@ -80,6 +80,8 @@ impl LinkedList {
         }
     }
     #[pure]
+    #[terminates]
+    #[trusted] // FIXME: encode length as a ghost field to allow a proper termination proof
     // FIXME: This function should be “predicate!”.
     #[ensures(result >= Int::new(1))]
     fn len(&self) -> Int {
@@ -92,6 +94,7 @@ impl LinkedList {
     }
     #[pure]
     #[ensures(Int::new_usize(result) == self.len())]
+    #[terminates(self.len())]
     fn len_shared(&self) -> usize {
         match &self.next {
             None => 1,
@@ -140,6 +143,7 @@ impl LinkedList {
     #[pure]
     // FIXME: This function should be “predicate!”.
     #[requires(Int::new(0) <= index && index < self.len())]
+    #[terminates(index)]
     fn lookup(&self, index: Int) -> Int {
         if index == Int::new(0) {
             Int::new(self.val)

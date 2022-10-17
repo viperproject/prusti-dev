@@ -135,38 +135,6 @@ impl<'tcx> Environment<'tcx> {
             .unwrap()
     }
 
-    pub fn is_recursive(&self, proc_def_id: ProcedureDefId) -> bool {
-        use rustc_middle::mir;
-        let proc = self.get_procedure(proc_def_id);
-        for block in proc.get_mir().basic_blocks.iter() {
-            let (&func, substs_ref) = match block.terminator().kind {
-                mir::TerminatorKind::Call {
-                    func: mir::Operand::Constant(box mir::Constant { literal, .. }),
-                    ..
-                } => {
-                    if let ty::TyKind::FnDef(def_id, substs_ref) = literal.ty().kind() {
-                        (def_id, substs_ref)
-                    } else {
-                        continue;
-                    }
-                }
-                _ => continue,
-            };
-            if func == proc_def_id {
-                return true;
-            }
-            if func.as_local().is_some() {
-                // assumption that functions from a different crate cannot call this function
-                // that would entail a cyclic dependency which doesn't make much sense to me
-                let reachable = self.callee_reaches_caller(proc_def_id, func, substs_ref);
-                if reachable {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
     pub fn callee_reaches_caller(
         &self,
         caller_def_id: ProcedureDefId,
