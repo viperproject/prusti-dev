@@ -194,11 +194,7 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
         #(#attrs)*
         #[allow(unused, dead_code)]
         #signature {
-            // this has to be the first call in the body for ExternSpecResolver to identify it correctly
-            let res = #fn_path :: < #generic_params > ( #args );
-            unreachable!();
-            #[allow(unreachable_code)]
-            res
+            #fn_path :: < #generic_params > ( #args )
         }
     }
 }
