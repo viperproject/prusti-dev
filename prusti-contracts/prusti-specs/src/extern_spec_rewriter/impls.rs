@@ -284,6 +284,31 @@ mod tests {
 
             assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
         }
+
+        #[test]
+        fn impl_forwarded_generics() {
+            let mut inp_impl: syn::ItemImpl = parse_quote!(
+                impl MyStruct {
+                    fn foo<T: Copy>(&self) -> bool;
+                }
+            );
+
+            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+
+            let newtype_ident = &rewritten.generated_struct.ident;
+            let expected: syn::ItemImpl = parse_quote! {
+                impl #newtype_ident <> {
+                    #[prusti::extern_spec = "inherent_impl"]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
+                    fn foo<T: Copy>(_self: &MyStruct) -> bool {
+                        <MyStruct> :: foo :: <T>(_self)
+                    }
+                }
+            };
+
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
+        }
     }
 
     mod trait_impl {
