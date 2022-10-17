@@ -113,9 +113,9 @@ impl AstRewriter {
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
         let (return_type, return_modifier) = if spec_type == SpecItemType::Termination {
-            (quote! {Int}, quote! {Int::new(0) + })
+            (quote_spanned! {item_span => Int}, quote_spanned! {item_span => Int::new(0) + })
         } else {
-            (quote! {bool}, quote! {!!})
+            (quote_spanned! {item_span => bool}, quote_spanned! {item_span => !!})
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
