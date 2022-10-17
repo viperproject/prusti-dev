@@ -8,10 +8,7 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{
-        ty,
-        ty::subst::SubstsRef,
-    },
+    middle::{ty, ty::subst::SubstsRef},
     span::Span,
 };
 
