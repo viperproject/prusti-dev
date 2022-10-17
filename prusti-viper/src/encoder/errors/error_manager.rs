@@ -84,8 +84,10 @@ pub enum ErrorCtxt {
     UnexpectedReachableLoop,
     /// If a call needs to terminate and it does not necessarily terminate
     UnexpectedReachableCall,
-    /// Termination measure of a call isn't lower, or a function is called when entered with termination measure 0
-    CallTermination,
+    /// Termination measure of a call might not be lower
+    CallTerminationMeasureLower,
+    /// The termination measure of a call might be negative
+    CallTerminationMeasureNonNegative,
     /// Finding the value of the termination measure at the begin of a method unexpectedly caused an error
     UnexpectedAssignMethodTerminationMeasure,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
@@ -664,9 +666,16 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_help("Consider marking the called function with `#[terminates]` or making it `#[pure]`\nAlternatively, remove the `#[terminates] attribute of this function.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::CallTermination) => {
+            ("assert.failed:assertion.false", ErrorCtxt::CallTerminationMeasureLower) => {
                 PrustiError::verification(
                     "the termination measure of this call is not necessarily lower".to_string(),
+                    error_span
+                )
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::CallTerminationMeasureNonNegative) => {
+                PrustiError::verification(
+                    "the termination measure of this call might become negative".to_string(),
                     error_span
                 )
             }

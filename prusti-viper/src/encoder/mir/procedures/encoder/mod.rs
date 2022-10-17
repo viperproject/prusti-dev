@@ -384,16 +384,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let term_var = self.termination_variable.clone().unwrap();
         let term_ty = vir_high::Type::Int(vir_high::ty::Int::Unbounded);
-        let zero = vir_high::Expression::constant_no_pos(0.into(), term_ty);
-        let cond = vir_high::Expression::and(
-            vir_high::Expression::greater_than(term_var.clone().into(), zero),
-            vir_high::Expression::greater_than(term_var.into(), call_expr),
-        );
 
+        // called termination measure is lower
+        let cond = vir_high::Expression::greater_than(term_var.clone().into(), call_expr);
         let assert_statement = self.encoder.set_statement_error_ctxt(
             vir_high::Statement::assert_no_pos(cond),
             span,
-            ErrorCtxt::CallTermination,
+            ErrorCtxt::CallTerminationMeasureLower,
+            self.def_id,
+        )?;
+        block_builder.add_statement(assert_statement);
+
+        // called termination measure should be non-negative
+        let zero = vir_high::Expression::constant_no_pos(0.into(), term_ty);
+        let cond = vir_high::Expression::greater_equals(term_var.clone().into(), zero);
+        let assert_statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::assert_no_pos(cond),
+            span,
+            ErrorCtxt::CallTerminationMeasureNonNegative,
             self.def_id,
         )?;
         block_builder.add_statement(assert_statement);
