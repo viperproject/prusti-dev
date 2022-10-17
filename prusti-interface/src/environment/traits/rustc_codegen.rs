@@ -57,62 +57,61 @@ pub(super) fn codegen_fulfill_obligation<'tcx>(
 
     // Do the initial selection for the obligation. This yields the
     // shallow result we are looking for -- that is, what specific impl.
-    tcx.infer_ctxt().enter(|infcx| {
-        let mut selcx = SelectionContext::new(&infcx);
+    let infcx = tcx.infer_ctxt().build();
+    let mut selcx = SelectionContext::new(&infcx);
 
-        let obligation_cause = ObligationCause::dummy();
-        let obligation = Obligation::new(
-            obligation_cause,
-            param_env,
-            trait_ref.to_poly_trait_predicate(),
-        );
+    let obligation_cause = ObligationCause::dummy();
+    let obligation = Obligation::new(
+        obligation_cause,
+        param_env,
+        trait_ref.to_poly_trait_predicate(),
+    );
 
-        let selection = match selcx.select(&obligation) {
-            Ok(Some(selection)) => selection,
-            Ok(None) => return Err(CodegenObligationError::Ambiguity),
-            Err(Unimplemented) => return Err(CodegenObligationError::Unimplemented),
-            Err(e) => {
-                panic!(
-                    "Encountered error `{:?}` selecting `{:?}` during codegen",
-                    e, trait_ref
-                )
-            }
-        };
-
-        debug!("fulfill_obligation: selection={:?}", selection);
-
-        // Currently, we use a fulfillment context to completely resolve
-        // all nested obligations. This is because they can inform the
-        // inference of the impl's type parameters.
-        let mut fulfill_cx = FulfillmentContext::new();
-        let impl_source = selection.map(|predicate| {
-            debug!(
-                "fulfill_obligation: register_predicate_obligation {:?}",
-                predicate
-            );
-            fulfill_cx.register_predicate_obligation(&infcx, predicate);
-        });
-
-        // In principle, we only need to do this so long as `impl_source`
-        // contains unbound type parameters. It could be a slight
-        // optimization to stop iterating early.
-        let errors = fulfill_cx.select_all_or_error(&infcx);
-        if !errors.is_empty() {
-            return Err(CodegenObligationError::FulfillmentError);
+    let selection = match selcx.select(&obligation) {
+        Ok(Some(selection)) => selection,
+        Ok(None) => return Err(CodegenObligationError::Ambiguity),
+        Err(Unimplemented) => return Err(CodegenObligationError::Unimplemented),
+        Err(e) => {
+            panic!(
+                "Encountered error `{:?}` selecting `{:?}` during codegen",
+                e, trait_ref
+            )
         }
+    };
 
-        let impl_source = infcx.resolve_vars_if_possible(impl_source);
-        let impl_source = infcx.tcx.erase_regions(impl_source);
+    debug!("fulfill_obligation: selection={:?}", selection);
 
-        // Opaque types may have gotten their hidden types constrained, but we can ignore them safely
-        // as they will get constrained elsewhere, too.
-        let _opaque_types = infcx
-            .inner
-            .borrow_mut()
-            .opaque_type_storage
-            .take_opaque_types();
+    // Currently, we use a fulfillment context to completely resolve
+    // all nested obligations. This is because they can inform the
+    // inference of the impl's type parameters.
+    let mut fulfill_cx = FulfillmentContext::new();
+    let impl_source = selection.map(|predicate| {
+        debug!(
+            "fulfill_obligation: register_predicate_obligation {:?}",
+            predicate
+        );
+        fulfill_cx.register_predicate_obligation(&infcx, predicate);
+    });
 
-        debug!("Cache miss: {trait_ref:?} => {impl_source:?}");
-        Ok(&*tcx.arena.alloc(impl_source))
-    })
+    // In principle, we only need to do this so long as `impl_source`
+    // contains unbound type parameters. It could be a slight
+    // optimization to stop iterating early.
+    let errors = fulfill_cx.select_all_or_error(&infcx);
+    if !errors.is_empty() {
+        return Err(CodegenObligationError::FulfillmentError);
+    }
+
+    let impl_source = infcx.resolve_vars_if_possible(impl_source);
+    let impl_source = infcx.tcx.erase_regions(impl_source);
+
+    // Opaque types may have gotten their hidden types constrained, but we can ignore them safely
+    // as they will get constrained elsewhere, too.
+    let _opaque_types = infcx
+        .inner
+        .borrow_mut()
+        .opaque_type_storage
+        .take_opaque_types();
+
+    debug!("Cache miss: {trait_ref:?} => {impl_source:?}");
+    Ok(&*tcx.arena.alloc(impl_source))
 }

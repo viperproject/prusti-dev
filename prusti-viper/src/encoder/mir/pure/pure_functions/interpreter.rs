@@ -1150,7 +1150,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&encoded_lhs, encoded_ref);
                     }
 
-                    mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                    mir::Rvalue::Cast(mir::CastKind::IntToInt, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
                             .encode_cast_expr(operand, *dst_ty, span)?;
 

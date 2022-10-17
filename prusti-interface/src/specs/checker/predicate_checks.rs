@@ -159,7 +159,7 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
     }
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
-        let owner_def_id = ex.hir_id.owner;
+        let owner_def_id = ex.hir_id.owner.def_id;
 
         // General check: The "path" of a predicate doesn't appear anywhere
         // (e.g. as in a function call or an argument when we pass the predicate to another function)

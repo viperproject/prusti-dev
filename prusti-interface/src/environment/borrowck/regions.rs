@@ -67,8 +67,13 @@ impl PlaceRegions {
                         not supported"
                         .to_string(),
                 )),
-                mir::ProjectionElem::Downcast(_, _) => Err(PlaceRegionsError::Unsupported(
+                mir::ProjectionElem::Downcast(..) => Err(PlaceRegionsError::Unsupported(
                     "determining the region of a downcast is \
+                        not supported"
+                        .to_string(),
+                )),
+                mir::ProjectionElem::OpaqueCast(..) => Err(PlaceRegionsError::Unsupported(
+                    "determining the region of an opaque cast is \
                         not supported"
                         .to_string(),
                 )),

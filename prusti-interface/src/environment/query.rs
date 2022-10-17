@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
         hir::map::Map,
         ty::{
             self,
-            subst::{Subst, SubstsRef},
+            subst::SubstsRef,
             Binder, BoundConstness, ImplPolarity, ParamEnv, TraitPredicate, TraitRef, TyCtxt,
         },
     },
@@ -18,7 +18,10 @@ use prusti_rustc_interface::{
     },
     trait_selection::{
         infer::{InferCtxtExt, TyCtxtInferExt},
-        traits::{ImplSource, Obligation, ObligationCause, SelectionContext},
+        traits::{
+            ImplSource, Obligation, ObligationCause, SelectionContext,
+            query::evaluate_obligation::InferCtxtExt as QueryInferCtxtExt,
+        },
     },
 };
 use sealed::{IntoParam, IntoParamTcx};
@@ -270,23 +273,22 @@ impl<'tcx> EnvQuery<'tcx> {
         let proc_def_id = proc_def_id.into_param();
         if let Some(trait_id) = self.get_trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
-            let result = self.tcx.infer_ctxt().enter(|infcx| {
-                let mut sc = SelectionContext::new(&infcx);
-                let obligation = Obligation::new(
-                    ObligationCause::dummy(),
-                    // TODO(tymap): don't use reveal_all
-                    ParamEnv::reveal_all(),
-                    Binder::dummy(TraitPredicate {
-                        trait_ref: TraitRef {
-                            def_id: trait_id,
-                            substs,
-                        },
-                        constness: BoundConstness::NotConst,
-                        polarity: ImplPolarity::Positive,
-                    }),
-                );
-                sc.select(&obligation)
-            });
+            let infcx = self.tcx.infer_ctxt().build();
+            let mut sc = SelectionContext::new(&infcx);
+            let obligation = Obligation::new(
+                ObligationCause::dummy(),
+                // TODO(tymap): don't use reveal_all
+                ParamEnv::reveal_all(),
+                Binder::dummy(TraitPredicate {
+                    trait_ref: TraitRef {
+                        def_id: trait_id,
+                        substs,
+                    },
+                    constness: BoundConstness::NotConst,
+                    polarity: ImplPolarity::Positive,
+                }),
+            );
+            let result = sc.select(&obligation);
             match result {
                 Ok(Some(ImplSource::UserDefined(data))) => {
                     for item in self
@@ -384,21 +386,20 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
-        self.tcx.infer_ctxt().enter(|infcx| {
-            // If `ty` has any inference variables (e.g. a region variable), then using it with
-            // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
-            // a panic, since those inference variables don't exist in the new `InferCtxt`.
-            // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
-            let fresh_ty = infcx.freshen(ty);
-            infcx
-                .type_implements_trait(
-                    trait_def_id,
-                    fresh_ty,
-                    trait_substs,
-                    param_env.into_param(self.tcx),
-                )
-                .must_apply_considering_regions()
-        })
+        let infcx = self.tcx.infer_ctxt().build();
+        // If `ty` has any inference variables (e.g. a region variable), then using it with
+        // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
+        // a panic, since those inference variables don't exist in the new `InferCtxt`.
+        // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
+        let fresh_ty = infcx.freshen(ty);
+        infcx
+            .type_implements_trait(
+                trait_def_id,
+                fresh_ty,
+                trait_substs,
+                param_env.into_param(self.tcx),
+            )
+            .must_apply_considering_regions()
     }
 
     /// Return the default substitutions for a particular item, i.e. where each
@@ -419,7 +420,6 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         debug!("Evaluating predicate {:?}", predicate);
-        use prusti_rustc_interface::trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
 
         let obligation = Obligation::new(
             ObligationCause::dummy(),
@@ -427,9 +427,7 @@ impl<'tcx> EnvQuery<'tcx> {
             predicate,
         );
 
-        self.tcx
-            .infer_ctxt()
-            .enter(|infcx| infcx.predicate_must_hold_considering_regions(&obligation))
+        self.tcx.infer_ctxt().build().predicate_must_hold_considering_regions(&obligation)
     }
 
     /// Normalizes associated types in foldable types,
@@ -466,7 +464,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
 mod sealed {
     use prusti_rustc_interface::{
-        hir::hir_id::HirId,
+        hir::hir_id::{HirId, OwnerId},
         middle::ty::{ParamEnv, TyCtxt},
         span::def_id::{DefId, LocalDefId},
     };
@@ -492,6 +490,18 @@ mod sealed {
             self.to_def_id()
         }
     }
+    impl IntoParam<DefId> for OwnerId {
+        #[inline(always)]
+        fn into_param(self) -> DefId {
+            self.to_def_id()
+        }
+    }
+    impl IntoParam<LocalDefId> for OwnerId {
+        #[inline(always)]
+        fn into_param(self) -> LocalDefId {
+            self.def_id
+        }
+    }
 
     pub trait IntoParamTcx<'tcx, P> {
         fn into_param(self, tcx: TyCtxt<'tcx>) -> P;
@@ -500,6 +510,12 @@ mod sealed {
         #[inline(always)]
         fn into_param(self, _tcx: TyCtxt<'tcx>) -> U {
             self.into_param()
+        }
+    }
+    impl<'tcx> IntoParamTcx<'tcx, HirId> for OwnerId {
+        #[inline(always)]
+        fn into_param(self, tcx: TyCtxt<'tcx>) -> HirId {
+            tcx.hir().local_def_id_to_hir_id(self.def_id)
         }
     }
     impl<'tcx> IntoParamTcx<'tcx, HirId> for LocalDefId {

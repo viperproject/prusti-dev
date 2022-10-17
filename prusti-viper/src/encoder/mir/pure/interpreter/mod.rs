@@ -262,7 +262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
             }
-            mir::Rvalue::Cast(mir::CastKind::Misc, operand, dst_ty) => {
+            mir::Rvalue::Cast(mir::CastKind::IntToInt, operand, dst_ty) => {
                 let encoded_rhs = self.encoder.encode_cast_expression_high(
                     self.mir,
                     self.caller_def_id,
@@ -438,7 +438,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            use prusti_rustc_interface::middle::ty::subst::Subst;
             let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {

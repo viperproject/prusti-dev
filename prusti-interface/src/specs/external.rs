@@ -309,7 +309,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         }
         if let prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let prusti_rustc_interface::hir::ExprKind::Path(ref qself) = callee_expr.kind {
-                let tyck_res = self.env_query.tcx().typeck(callee_expr.hir_id.owner);
+                let tyck_res = self.env_query.tcx().typeck(callee_expr.hir_id.owner.def_id);
                 let substs = tyck_res.node_substs(callee_expr.hir_id);
                 let res = tyck_res.qpath_res(qself, callee_expr.hir_id);
                 if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {

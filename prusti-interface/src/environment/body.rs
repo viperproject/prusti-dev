@@ -6,7 +6,7 @@ use prusti_rustc_interface::{
         mir,
         ty::{
             self,
-            subst::{Subst, SubstsRef},
+            subst::SubstsRef,
             TyCtxt,
         },
     },
