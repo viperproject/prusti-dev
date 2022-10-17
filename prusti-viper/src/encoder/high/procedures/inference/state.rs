@@ -108,7 +108,7 @@ impl<'a> IntoIterator for &'a Places {
     type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Box::new(self.places.iter().map(|(_, place)| place))
+        Box::new(self.places.values())
     }
 }
 
@@ -118,7 +118,7 @@ impl IntoIterator for Places {
     type IntoIter = Box<dyn Iterator<Item = Self::Item>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Box::new(self.places.into_iter().map(|(_, place)| place))
+        Box::new(self.places.into_values())
     }
 }
 

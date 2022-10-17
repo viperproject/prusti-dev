@@ -25,7 +25,7 @@ impl From<usize> for Borrow {
 
 impl From<Borrow> for usize {
     fn from(borrow: Borrow) -> Self {
-        borrow.0 as usize
+        borrow.0
     }
 }
 

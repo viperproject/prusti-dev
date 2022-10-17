@@ -69,8 +69,8 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     fn get_label_markers(&self) -> FxHashMap<String, bool> {
         self.var_mapping
             .labels_successor_mapping
-            .iter()
-            .map(|(label, _)| {
+            .keys()
+            .map(|label| {
                 match self
                     .silicon_counterexample
                     .model
