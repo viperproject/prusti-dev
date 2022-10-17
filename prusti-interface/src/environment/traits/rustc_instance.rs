@@ -59,14 +59,14 @@ impl<'tcx> BoundVarsCollector<'tcx> {
     }
 
     fn into_vars(self, tcx: TyCtxt<'tcx>) -> &'tcx ty::List<ty::BoundVariableKind> {
-        let max = self.vars.iter().map(|(k, _)| *k).max().unwrap_or(0);
+        let max = self.vars.keys().copied().max().unwrap_or(0);
         for i in 0..max {
             if self.vars.get(&i).is_none() {
                 panic!("Unknown variable: {:?}", i);
             }
         }
 
-        tcx.mk_bound_variable_kinds(self.vars.into_iter().map(|(_, v)| v))
+        tcx.mk_bound_variable_kinds(self.vars.into_values())
     }
 }
 
