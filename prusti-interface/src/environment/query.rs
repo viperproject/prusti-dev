@@ -6,9 +6,8 @@ use prusti_rustc_interface::{
     middle::{
         hir::map::Map,
         ty::{
-            self,
-            subst::SubstsRef,
-            Binder, BoundConstness, ImplPolarity, ParamEnv, TraitPredicate, TraitRef, TyCtxt,
+            self, subst::SubstsRef, Binder, BoundConstness, ImplPolarity, ParamEnv, TraitPredicate,
+            TraitRef, TyCtxt,
         },
     },
     span::{
@@ -19,8 +18,8 @@ use prusti_rustc_interface::{
     trait_selection::{
         infer::{InferCtxtExt, TyCtxtInferExt},
         traits::{
-            ImplSource, Obligation, ObligationCause, SelectionContext,
-            query::evaluate_obligation::InferCtxtExt as QueryInferCtxtExt,
+            query::evaluate_obligation::InferCtxtExt as QueryInferCtxtExt, ImplSource, Obligation,
+            ObligationCause, SelectionContext,
         },
     },
 };
@@ -427,7 +426,10 @@ impl<'tcx> EnvQuery<'tcx> {
             predicate,
         );
 
-        self.tcx.infer_ctxt().build().predicate_must_hold_considering_regions(&obligation)
+        self.tcx
+            .infer_ctxt()
+            .build()
+            .predicate_must_hold_considering_regions(&obligation)
     }
 
     /// Normalizes associated types in foldable types,

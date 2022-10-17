@@ -4,11 +4,7 @@ use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
     middle::{
         mir,
-        ty::{
-            self,
-            subst::SubstsRef,
-            TyCtxt,
-        },
+        ty::{self, subst::SubstsRef, TyCtxt},
     },
     span::def_id::{DefId, LocalDefId},
 };
