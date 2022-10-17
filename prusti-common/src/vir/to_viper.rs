@@ -1221,7 +1221,7 @@ fn unsigned_max_for_size(size: BitVectorSize) -> u128 {
         BitVectorSize::BV16 => u16::MAX as u128,
         BitVectorSize::BV32 => u32::MAX as u128,
         BitVectorSize::BV64 => u64::MAX as u128,
-        BitVectorSize::BV128 => u128::MAX as u128,
+        BitVectorSize::BV128 => u128::MAX,
     }
 }
 

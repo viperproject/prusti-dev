@@ -101,8 +101,8 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
         // Mark all modelled types as "dangerous", i.e. assume they have no fields
         let mut modelled_types_has_fields: FxHashMap<HirId, bool> = collect
             .modelled_types
-            .iter()
-            .map(|(ty_hir_id, _)| (*ty_hir_id, true))
+            .keys()
+            .map(|ty_hir_id| (*ty_hir_id, true))
             .collect();
         let mut type_names: FxHashMap<HirId, String> = FxHashMap::default();
 

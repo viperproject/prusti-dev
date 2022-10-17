@@ -255,6 +255,6 @@ pub mod trait_bounds {
             .emit(&env.diagnostic);
         }
 
-        param_envs.into_iter().map(|(k, _)| k).next().unwrap()
+        param_envs.into_keys().next().unwrap()
     }
 }
