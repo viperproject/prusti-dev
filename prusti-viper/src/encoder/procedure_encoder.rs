@@ -44,7 +44,7 @@ use prusti_interface::{
             LoanPlaces, PoloniusInfo, PoloniusInfoError, ReborrowingDAG, ReborrowingDAGNode,
             ReborrowingKind, ReborrowingZombity,
         },
-        BasicBlockIndex, PermissionKind, Procedure,
+        BasicBlockIndex, LoopAnalysisError, PermissionKind, Procedure,
     },
     PrustiError,
 };
@@ -4992,7 +4992,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let permissions_forest = self
             .loop_encoder
-            .compute_loop_invariant(loop_head, loop_inv);
+            .compute_loop_invariant(loop_head, loop_inv)
+            .map_err(|err| match err {
+                LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
+                    SpannedEncodingError::internal(
+                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        self.mir_encoder.get_span_of_location(loc),
+                    )
+                }
+            })?;
         debug!("permissions_forest: {:?}", permissions_forest);
         let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
@@ -5001,7 +5009,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Some(self.loop_encoder.compute_loop_invariant(
                 enclosing_loop_head,
                 self.cached_loop_invariant_block[&enclosing_loop_head],
-            ))
+            ).map_err(|err| match err {
+                LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
+                    SpannedEncodingError::internal(
+                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        self.mir_encoder.get_span_of_location(loc),
+                    )
+                }
+            })?)
         } else {
             None
         };

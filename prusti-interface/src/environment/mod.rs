@@ -32,7 +32,7 @@ mod traits;
 pub use self::{
     body::EnvBody,
     diagnostic::EnvDiagnostic,
-    loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops},
+    loops::{LoopAnalysisError, PlaceAccess, PlaceAccessKind, ProcedureLoops},
     loops_utils::*,
     name::EnvName,
     procedure::{
