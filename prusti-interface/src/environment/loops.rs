@@ -16,6 +16,12 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 
+#[derive(Clone, Debug)]
+pub enum LoopAnalysisError {
+    /// The loop contains unsupported place contexts
+    UnsupportedPlaceContext(mir::visit::PlaceContext, mir::Location),
+}
+
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 fn collect_loop_body(
     head: BasicBlockIndex,
@@ -85,6 +91,8 @@ struct AccessCollector<'b, 'tcx> {
     pub body: &'b FxHashSet<BasicBlockIndex>,
     /// The places that are defined before the loop and accessed inside a loop.
     pub accessed_places: Vec<PlaceAccess<'tcx>>,
+    /// Errors raised while visiting the loop
+    pub errors: Vec<LoopAnalysisError>,
 }
 
 impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
@@ -114,14 +122,15 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
-                NonMutatingUse(mir::visit::NonMutatingUseContext::AddressOf) => {
-                    PlaceAccessKind::Read
-                }
                 NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) => {
                     PlaceAccessKind::SharedBorrow
                 }
-                NonUse(_) => unreachable!(),
-                x => unimplemented!("{:?}", x),
+                _ => {
+                    self.errors.push(LoopAnalysisError::UnsupportedPlaceContext(
+                        context, location,
+                    ));
+                    return;
+                }
             };
             let access = PlaceAccess {
                 location,
@@ -468,14 +477,19 @@ impl ProcedureLoops {
         &self,
         loop_head: BasicBlockIndex,
         mir: &'a mir::Body<'tcx>,
-    ) -> Vec<PlaceAccess<'tcx>> {
+    ) -> Result<Vec<PlaceAccess<'tcx>>, LoopAnalysisError> {
         let body = self.loop_bodies.get(&loop_head).unwrap();
         let mut visitor = AccessCollector {
             body,
             accessed_places: Vec::new(),
+            errors: Vec::new(),
         };
         visitor.visit_body(mir);
-        visitor.accessed_places
+        if let Some(error) = visitor.errors.into_iter().next() {
+            Err(error)
+        } else {
+            Ok(visitor.accessed_places)
+        }
     }
 
     /// If `definitely_initalised_paths` is not `None`, returns only leaves that are
@@ -485,11 +499,14 @@ impl ProcedureLoops {
         loop_head: BasicBlockIndex,
         mir: &'a mir::Body<'tcx>,
         definitely_initalised_paths: Option<&PlaceSet<'tcx>>,
-    ) -> (
-        Vec<mir::Place<'tcx>>,
-        Vec<mir::Place<'tcx>>,
-        Vec<mir::Place<'tcx>>,
-    ) {
+    ) -> Result<
+        (
+            Vec<mir::Place<'tcx>>,
+            Vec<mir::Place<'tcx>>,
+            Vec<mir::Place<'tcx>>,
+        ),
+        LoopAnalysisError,
+    > {
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
         //     accessed in the loop body and ``t`` is the type of access (read,
         //     destructive read, …).
@@ -511,7 +528,7 @@ impl ProcedureLoops {
         //         bodies without unreachable elements instead of predicates.
 
         // Paths accessed inside the loop body.
-        let accesses = self.compute_used_paths(loop_head, mir);
+        let accesses = self.compute_used_paths(loop_head, mir)?;
         debug!("accesses = {:?}", accesses);
         let mut accesses_pairs: Vec<_> = accesses
             .iter()
@@ -590,6 +607,6 @@ impl ProcedureLoops {
         }
         debug!("read_leaves = {:?}", read_leaves);
 
-        (write_leaves, mut_borrow_leaves, read_leaves)
+        Ok((write_leaves, mut_borrow_leaves, read_leaves))
     }
 }

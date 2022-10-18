@@ -1,11 +1,12 @@
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
+    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult},
     mir::{
         errors::ErrorInterface, places::PlacesEncoderInterface,
         pure::SpecificationEncoderInterface, spans::SpanInterface,
         specifications::SpecificationsInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
 };
+use prusti_interface::environment::LoopAnalysisError;
 use prusti_rustc_interface::middle::mir;
 use vir_crate::high::{self as vir_high};
 
@@ -68,7 +69,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
         let (written_places, mutably_borrowed_places, _) = self
             .procedure
             .loop_info()
-            .compute_read_and_write_leaves(loop_head, self.mir, None);
+            .compute_read_and_write_leaves(loop_head, self.mir, None)
+            .map_err(|err| match err {
+                LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
+                    SpannedEncodingError::internal(
+                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        self.encoder.get_mir_location_span(self.mir, loc),
+                    )
+                }
+            })?;
 
         let mut maybe_modified_places = Vec::new();
         for place in written_places.into_iter().chain(mutably_borrowed_places) {

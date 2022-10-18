@@ -8,7 +8,7 @@ use prusti_interface::environment::mir_analyses::initialization::{
     compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
 };
 use prusti_interface::environment::mir_sets::PlaceSet;
-use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
+use prusti_interface::environment::{BasicBlockIndex, LoopAnalysisError, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
 use prusti_rustc_interface::middle::{mir, ty};
 use log::{trace, debug};
@@ -73,7 +73,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
         &self,
         bb: BasicBlockIndex,
         bb_inv: BasicBlockIndex
-    ) -> PermissionForest<'p, 'tcx> {
+    ) -> Result<PermissionForest<'p, 'tcx>, LoopAnalysisError> {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -102,7 +102,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
                 bb,
                 self.mir(),
                 Some(self.initialization.get_before_block(bb_inv)),
-            );
+            )?;
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
@@ -119,7 +119,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
         let forest =
             PermissionForest::new(self.procedure.get_mir(), self.tcx, &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
 
-        forest
+        Ok(forest)
     }
 
     /// Is the ``place`` definitely initialised at the beginning of ``bbi``?
