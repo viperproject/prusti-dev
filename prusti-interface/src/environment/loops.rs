@@ -114,6 +114,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::AddressOf) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) => {
                     PlaceAccessKind::SharedBorrow
                 }
