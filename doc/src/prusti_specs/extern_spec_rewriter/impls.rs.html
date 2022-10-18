@@ -344,6 +344,15 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../lib.rs.html#43"><span class="kw">crate</span>::SPECS_VERSION</a>;
 <span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../predicate.rs.html#59">is_predicate_macro</a>, <a href="../specifications/common.rs.html#100">specifications::common::generate_struct_name</a>};
 <span class="kw">use </span><a href="../../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
@@ -372,7 +381,7 @@
 <span class="kw">fn </span>rewrite_extern_spec_internal(item_impl: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>) -&gt; syn::Result&lt;<a href="#21">RewrittenExternalSpecs</a>&gt; {
     <span class="kw">let </span>new_struct = generate_new_struct(item_impl)<span class="question-mark">?</span>;
     <span class="kw">let </span>struct_ident = <span class="kw-2">&amp;</span><a href="#27">new_struct</a>.ident;
-    <span class="kw">let </span>generic_args = <a href="common.rs.html#265">rewrite_generics</a>(<span class="kw-2">&amp;</span><a href="#27">new_struct</a>.generics);
+    <span class="kw">let </span>generic_args = <a href="common.rs.html#301">rewrite_generics</a>(<span class="kw-2">&amp;</span><a href="#27">new_struct</a>.generics);
 
     <span class="kw">let </span>struct_ty: <a href="../../../syn/ty/enum.Type.html">syn::Type</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{item_impl.span()=&gt;
         #struct_ident #generic_args
@@ -412,7 +421,7 @@
     };
     <a href="#64">new_struct</a>.generics = <a href="#60">item_impl</a>.generics.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <a href="common.rs.html#245">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#64">new_struct</a>);
+    <a href="common.rs.html#281">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#64">new_struct</a>);
     <span class="prelude-val">Ok</span>(<a href="#64">new_struct</a>)
 }
 
@@ -428,12 +437,6 @@
         }
     }
 
-    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">**</span><a href="#76">item_ty</a> {
-        <a href="#85">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-    } <span class="kw">else </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;expected type path in extern spec trait impl&quot;</span>);
-    };
-
     <span class="kw">let </span><span class="kw-2">mut </span>rewritten_items = Vec::new();
     <span class="kw">for </span>item <span class="kw">in </span>impl_item.items.iter_mut() {
         <span class="kw">match </span>item {
@@ -446,7 +449,7 @@
             syn::ImplItem::Method(method) =&gt; {
                 <span class="kw">let </span>(rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
-                    <span class="kw-2">&amp;</span>item_ty_path,
+                    item_ty,
                     <span class="prelude-val">None</span>,
                     ExternSpecKind::InherentImpl,
                 )<span class="question-mark">?</span>;
@@ -471,7 +474,7 @@
         }
     }
     <a href="#75">impl_item</a>.self_ty = <a href="#75">new_ty</a>;
-    <a href="#75">impl_item</a>.items = <a href="#91">rewritten_items</a>;
+    <a href="#75">impl_item</a>.items = <a href="#85">rewritten_items</a>;
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -480,20 +483,15 @@
     impl_item: <a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>,
     new_ty: Box&lt;<a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt;,
 ) -&gt; syn::Result&lt;<a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>&gt; {
-    <span class="kw">let </span>item_ty = <a href="#134">impl_item</a>.self_ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>item_ty_path = <span class="kw">if let </span>syn::Type::Path(<span class="kw-2">ref </span>type_path) = <span class="kw-2">*</span><a href="#137">item_ty</a> {
-        <a href="#138">type_path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-    } <span class="kw">else </span>{
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;expected type path in extern spec trait impl&quot;</span>);
-    };
+    <span class="kw">let </span>item_ty = <a href="#128">impl_item</a>.self_ty.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
     <span class="comment">// Create new impl
-    </span><span class="kw">let </span><span class="kw-2">mut </span>new_impl = <a href="#134">impl_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <a href="#145">new_impl</a>.self_ty = <a href="#135">new_ty</a>;
-    <a href="#145">new_impl</a>.trait_ = <span class="prelude-val">None</span>;
-    <a href="#145">new_impl</a>.items.clear();
+    </span><span class="kw">let </span><span class="kw-2">mut </span>new_impl = <a href="#128">impl_item</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#134">new_impl</a>.self_ty = <a href="#129">new_ty</a>;
+    <a href="#134">new_impl</a>.trait_ = <span class="prelude-val">None</span>;
+    <a href="#134">new_impl</a>.items.clear();
 
-    <span class="kw">let </span>item_trait_path = <a href="#134">impl_item</a>.trait_.as_ref().unwrap().<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>item_trait_path = <a href="#128">impl_item</a>.trait_.as_ref().unwrap().<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">let </span>item_trait_typath: <a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{item_trait_path.span()=&gt; #item_trait_path };
 
     <span class="comment">// TODO: reduce duplication with rewrite_plain_impl
@@ -508,7 +506,7 @@
             syn::ImplItem::Method(method) =&gt; {
                 <span class="kw">let </span>(rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     <span class="kw-2">&amp;</span>method,
-                    <span class="kw-2">&amp;</span>item_ty_path,
+                    <span class="kw-2">&amp;</span>item_ty,
                     <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>item_trait_typath),
                     ExternSpecKind::TraitImpl,
                 )<span class="question-mark">?</span>;
@@ -527,7 +525,7 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a href="#145">new_impl</a>)
+    <span class="prelude-val">Ok</span>(<a href="#134">new_impl</a>)
 }
 
 <span class="kw">fn </span>has_generic_arguments(path: <span class="kw-2">&amp;</span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -597,22 +595,19 @@
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     </span><span class="kw">fn </span>foo(_self: <span class="kw-2">&amp;</span>MyStruct) {
-                        &lt;MyStruct&gt; :: foo(_self);
-                        <span class="macro">unimplemented!</span>()
+                        &lt;MyStruct&gt; :: foo :: &lt;&gt;(_self)
                     }
                     <span class="attribute">#[prusti::extern_spec = <span class="string">&quot;inherent_impl&quot;</span>]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     </span><span class="kw">fn </span>bar(_self: <span class="kw-2">&amp;mut </span>MyStruct) {
-                        &lt;MyStruct&gt; :: bar(_self);
-                        <span class="macro">unimplemented!</span>()
+                        &lt;MyStruct&gt; :: bar :: &lt;&gt;(_self)
                     }
                     <span class="attribute">#[prusti::extern_spec = <span class="string">&quot;inherent_impl&quot;</span>]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     </span><span class="kw">fn </span>baz(_self: MyStruct) {
-                        &lt;MyStruct&gt; :: baz(_self);
-                        <span class="macro">unimplemented!</span>()
+                        &lt;MyStruct&gt; :: baz :: &lt;&gt;(_self)
                     }
                 }
             };
@@ -637,8 +632,32 @@
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     </span><span class="kw">fn </span>foo(_self: <span class="kw-2">&amp;</span>MyStruct::&lt;I,O, i32&gt;, arg1: I, arg2: i32) -&gt; O {
-                        &lt;MyStruct::&lt;I,O,i32&gt;&gt; :: foo(_self, arg1, arg2);
-                        <span class="macro">unimplemented!</span>()
+                        &lt;MyStruct::&lt;I,O,i32&gt;&gt; :: foo :: &lt;&gt;(_self, arg1, arg2)
+                    }
+                }
+            };
+
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
+        }
+
+        <span class="attribute">#[test]
+        </span><span class="kw">fn </span>impl_forwarded_generics() {
+            <span class="kw">let </span><span class="kw-2">mut </span>inp_impl: syn::ItemImpl = <span class="macro">parse_quote!</span>(
+                <span class="kw">impl </span>MyStruct {
+                    <span class="kw">fn </span>foo&lt;T: Copy&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+                }
+            );
+
+            <span class="kw">let </span>rewritten = rewrite_extern_spec_internal(<span class="kw-2">&amp;mut </span>inp_impl).unwrap();
+
+            <span class="kw">let </span>newtype_ident = <span class="kw-2">&amp;</span>rewritten.generated_struct.ident;
+            <span class="kw">let </span>expected: syn::ItemImpl = <span class="macro">parse_quote! </span>{
+                <span class="kw">impl </span>#newtype_ident &lt;&gt; {
+                    <span class="attribute">#[prusti::extern_spec = <span class="string">&quot;inherent_impl&quot;</span>]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
+                    </span><span class="kw">fn </span>foo&lt;T: Copy&gt;(_self: <span class="kw-2">&amp;</span>MyStruct) -&gt; bool {
+                        &lt;MyStruct&gt; :: foo :: &lt;T&gt;(_self)
                     }
                 }
             };
@@ -667,8 +686,7 @@
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     </span><span class="kw">fn </span>foo(_self: <span class="kw-2">&amp;mut </span>MyStruct) -&gt; &lt;MyStruct <span class="kw">as </span>MyTrait&gt; :: <span class="prelude-ty">Result </span>{
-                        &lt;MyStruct <span class="kw">as </span>MyTrait&gt; :: foo(_self);
-                        <span class="macro">unimplemented!</span>()
+                        &lt;MyStruct <span class="kw">as </span>MyTrait&gt; :: foo :: &lt;&gt;(_self)
                     }
                 }
             };

@@ -84,20 +84,6 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Process external specifications in Rust modules marked with the
 //! #[extern_spec] attribute. Nested modules are processed recursively.
 //! Specifications are collected from functions and function stubs.
@@ -105,43 +91,40 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-</span><span class="kw">use </span><a href="../specifications/common.rs.html#111"><span class="kw">crate</span>::specifications::common::generate_mod_name</a>;
+</span><span class="kw">use </span><a href="common.rs.html#178-182"><span class="kw">super</span>::common::generate_extern_spec_function_stub</a>;
+<span class="kw">use crate</span>::{<a href="../specifications/common.rs.html#111">specifications::common::generate_mod_name</a>, <a href="mod.rs.html#9">ExternSpecKind</a>};
 <span class="kw">use </span>proc_macro2::{<a href="../../../proc_macro2/struct.Group.html">Group</a>, <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
 <span class="kw">use </span>quote::{<a href="../../../quote/macro.quote.html">quote</a>, <a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
-<span class="kw">use </span><a href="../../../syn/macro.parse_quote_spanned.html">syn::parse_quote_spanned</a>;
-<span class="kw">use </span><a href="../../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
-
+<span class="kw">use </span>syn::{<a href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
 
 <span class="kw">pub fn </span>rewrite_extern_spec(item_mod: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>) -&gt; syn::Result&lt;<a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="../../../syn/path/struct.Path.html">syn::Path</a> {
+    <span class="kw">let </span>path = <a href="../../../syn/path/struct.Path.html">syn::Path</a> {
         leading_colon: <span class="prelude-val">None</span>,
         segments: syn::punctuated::Punctuated::new(),
     };
-    rewrite_mod(item_mod, <span class="kw-2">&amp;mut </span>path)<span class="question-mark">?</span>;
+    rewrite_mod(item_mod, <span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(#item_mod))
 }
 
-<span class="kw">fn </span>rewrite_mod(item_mod: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, path: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) -&gt; syn::Result&lt;()&gt; {
+<span class="kw">fn </span>rewrite_mod(item_mod: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, path: <span class="kw-2">&amp;</span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) -&gt; syn::Result&lt;()&gt; {
     <span class="kw">if </span>item_mod.content.is_none() {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    <a href="#24">path</a>.segments.push(<a href="../../../syn/path/struct.PathSegment.html">syn::PathSegment</a> {
-        ident: <a href="#24">item_mod</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="#23">path</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#28">path</a>.segments.push(<a href="../../../syn/path/struct.PathSegment.html">syn::PathSegment</a> {
+        ident: <a href="#23">item_mod</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         arguments: syn::PathArguments::None,
     });
-    <a href="#24">item_mod</a>.ident = syn::Ident::new(
-        <span class="kw-2">&amp;</span><a href="../specifications/common.rs.html#111">generate_mod_name</a>(<span class="kw-2">&amp;</span><a href="#24">item_mod</a>.ident),
-        <a href="#24">item_mod</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(),
-    );
+    <a href="#23">item_mod</a>.ident = syn::Ident::new(<span class="kw-2">&amp;</span><a href="../specifications/common.rs.html#111">generate_mod_name</a>(<span class="kw-2">&amp;</span><a href="#23">item_mod</a>.ident), <a href="#23">item_mod</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>());
 
     <span class="kw">for </span>item <span class="kw">in </span>item_mod.content.as_mut().unwrap().<span class="number">1</span>.iter_mut() {
         <span class="kw">match </span>item {
             syn::Item::Fn(item_fn) =&gt; {
-                rewrite_fn(item_fn, path);
+                rewrite_fn(item_fn, <span class="kw-2">&amp;</span>path);
             }
             syn::Item::Mod(inner_mod) =&gt; {
-                rewrite_mod(inner_mod, path)<span class="question-mark">?</span>;
+                rewrite_mod(inner_mod, <span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
             }
             syn::Item::Verbatim(tokens) =&gt; {
                 <span class="comment">// Transforms function stubs (functions with a `;` after the
@@ -167,7 +150,7 @@
 
                 <span class="kw">let </span><span class="kw-2">mut </span>item = res.unwrap();
                 <span class="kw">if let </span>syn::Item::Fn(item_fn) = <span class="kw-2">&amp;mut </span>item {
-                    rewrite_fn(item_fn, path);
+                    rewrite_fn(item_fn, <span class="kw-2">&amp;</span>path);
                 }
                 <span class="kw-2">*</span>tokens = <span class="macro">quote!</span>(#item)
             }
@@ -180,23 +163,12 @@
 
 <span class="doccomment">/// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-</span><span class="kw">fn </span>rewrite_fn(item_fn: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemFn.html">syn::ItemFn</a>, path: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) {
-    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="#83">item_fn</a>.sig.ident;
-    <span class="kw">let </span>args = <span class="kw-2">&amp;</span><a href="#83">item_fn</a>.sig.inputs;
-    <span class="kw">let </span>item_fn_span = <a href="#83">item_fn</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
-    <a href="#83">item_fn</a>.block = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{item_fn_span=&gt;
-        {
-            #path :: #ident (#args);
-            <span class="macro">unimplemented!</span>()
-        }
-    };
+</span><span class="kw">fn </span>rewrite_fn(item_fn: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemFn.html">syn::ItemFn</a>, path: <span class="kw-2">&amp;</span><a href="../../../syn/path/struct.Path.html">syn::Path</a>) {
+    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="#80">item_fn</a>.sig.ident;
+    <span class="kw">let </span>path_span = <a href="#80">item_fn</a>.sig.ident.span();
+    <span class="kw">let </span>path = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(path_span=&gt; #path :: #ident);
 
-    <a href="#83">item_fn</a>
-        .attrs
-        .push(<a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(item_fn_span=&gt; <span class="attribute">#[prusti::extern_spec = <span class="string">&quot;method&quot;</span>]</span>));
-    <a href="#83">item_fn</a>
-        .attrs
-        .push(<a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(item_fn_span=&gt; <span class="attribute">#[trusted]</span>));
+    <span class="kw-2">*</span><a href="#80">item_fn</a> = <a href="common.rs.html#178-182">generate_extern_spec_function_stub</a>(<a href="#80">item_fn</a>, <span class="kw-2">&amp;</span><a href="#83">path</a>, <a href="mod.rs.html#13">ExternSpecKind::Method</a>);
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

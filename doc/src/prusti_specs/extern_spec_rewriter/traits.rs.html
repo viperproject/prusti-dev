@@ -214,6 +214,7 @@
 <span id="214">214</span>
 <span id="215">215</span>
 <span id="216">216</span>
+<span id="217">217</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Encoding of external specs for traits
 </span><span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../predicate.rs.html#59">is_predicate_macro</a>, <a href="../parse_quote_spanned.rs.html#23">parse_quote_spanned</a>};
 <span class="kw">use </span><a href="../specifications/common.rs.html#106"><span class="kw">crate</span>::specifications::common::generate_struct_name_for_trait</a>;
@@ -290,7 +291,7 @@
     };
     <a href="#46">new_struct</a>.generics.where_clause = <span class="prelude-val">Some</span>(<a href="#72">self_where_clause</a>);
 
-    <a href="common.rs.html#245">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#46">new_struct</a>);
+    <a href="common.rs.html#281">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="#46">new_struct</a>);
 
     <span class="prelude-val">Ok</span>(<a href="#103">GeneratedStruct</a> {
         generated_struct: <a href="#46">new_struct</a>,
@@ -300,7 +301,7 @@
     })
 }
 
-<span class="kw">fn </span>parse_trait_type_params(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;Vec&lt;<a href="#177">ProvidedTypeParam</a>&gt;&gt; {
+<span class="kw">fn </span>parse_trait_type_params(item_trait: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; syn::Result&lt;Vec&lt;<a href="#178">ProvidedTypeParam</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for </span>generic_param <span class="kw">in </span>item_trait.generics.params.iter() {
         <span class="kw">if let </span>syn::GenericParam::Type(type_param) = generic_param {
@@ -384,8 +385,9 @@
         <span class="kw">let </span>self_type_path: <a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> = <a class="macro" href="../parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{self_type_ident.span()=&gt;
             #self_type_ident
         };
+        <span class="kw">let </span>self_type = syn::Type::Path(<a href="#168">self_type_path</a>);
 
-        <a href="common.rs.html#120-125">generate_extern_spec_method_stub</a>(<a href="#166">trait_method</a>, <span class="kw-2">&amp;</span><a href="#168">self_type_path</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#166">self</a>.self_type_trait), <a href="mod.rs.html#12">ExternSpecKind::Trait</a>)
+        <a href="common.rs.html#119-124">generate_extern_spec_method_stub</a>(<a href="#166">trait_method</a>, <span class="kw-2">&amp;</span><a href="#171">self_type</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="#166">self</a>.self_type_trait), <a href="mod.rs.html#12">ExternSpecKind::Trait</a>)
     }
 }
 
@@ -397,37 +399,38 @@
     </span>GenericType(<a href="../../../syn/generics/struct.TypeParam.html">syn::TypeParam</a>),
 }
 
-<span class="kw">impl </span><a href="#177">ProvidedTypeParam</a> {
+<span class="kw">impl </span><a href="#178">ProvidedTypeParam</a> {
     <span class="kw">fn </span>try_parse(from: <span class="kw-2">&amp;</span><a href="../../../syn/generics/struct.TypeParam.html">syn::TypeParam</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>from.attrs.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="#185">from</a>.attrs[<span class="number">0</span>].path;
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a href="#186">from</a>.attrs[<span class="number">0</span>].path;
         <span class="kw">if </span>path.segments.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
         <span class="comment">// Closure for cloning and removing the attrs
         </span><span class="kw">let </span>clone_without_attrs = || {
-            <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#185">from</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a href="#197">cloned</a>.attrs.clear();
-            <a href="#197">cloned</a>
+            <span class="kw">let </span><span class="kw-2">mut </span>cloned = <a href="#186">from</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a href="#198">cloned</a>.attrs.clear();
+            <a href="#198">cloned</a>
         };
 
-        <span class="kw">match </span><a href="#190">path</a>.segments[<span class="number">0</span>].ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_str() {
-            <span class="string">&quot;generic&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#181">ProvidedTypeParam::GenericType</a>(<a href="#196">clone_without_attrs</a>())),
-            <span class="string">&quot;concrete&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#179">ProvidedTypeParam::ConcreteType</a>(<a href="#196">clone_without_attrs</a>())),
+        <span class="kw">match </span><a href="#191">path</a>.segments[<span class="number">0</span>].ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_str() {
+            <span class="string">&quot;generic&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#182">ProvidedTypeParam::GenericType</a>(<a href="#197">clone_without_attrs</a>())),
+            <span class="string">&quot;concrete&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="#180">ProvidedTypeParam::ConcreteType</a>(<a href="#197">clone_without_attrs</a>())),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None
         </span>}
     }
 }
 
-<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#177">ProvidedTypeParam</a> {
+<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#178">ProvidedTypeParam</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#211">self</a> </span>{
-            <a href="#179">ProvidedTypeParam::ConcreteType</a>(ty_param) |  <a href="#181">ProvidedTypeParam::GenericType</a>(ty_param) =&gt; <a href="#213">ty_param</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#211">tokens</a>),
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#212">self</a> </span>{
+            <a href="#180">ProvidedTypeParam::ConcreteType</a>(ty_param) |  <a href="#182">ProvidedTypeParam::GenericType</a>(ty_param) =&gt; <a href="#214">ty_param</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#212">tokens</a>),
         }
     }
-}</code></pre></div>
+}
+</code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>

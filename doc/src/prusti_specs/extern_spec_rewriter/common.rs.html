@@ -278,9 +278,45 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../lib.rs.html#54-56">extract_prusti_attributes</a>, <a href="../lib.rs.html#143-146">generate_spec_and_assertions</a>, <a href="../common.rs.html#244">RewritableReceiver</a>, <a href="../common.rs.html#157">SelfTypeRewriter</a>};
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="mod.rs.html#9">ExternSpecKind</a>, <a href="../lib.rs.html#54-56">extract_prusti_attributes</a>, <a href="../lib.rs.html#143-146">generate_spec_and_assertions</a>, <a href="../common.rs.html#264">RewritableReceiver</a>, <a href="../common.rs.html#164">SelfTypeRewriter</a>};
 <span class="kw">use </span>quote::{<a href="../../../quote/macro.quote.html">quote</a>, <a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
-<span class="kw">use </span>syn::{<a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a href="../../../syn/item/enum.FnArg.html">FnArg</a>, <a href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a href="../../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../../syn/pat/struct.PatType.html">PatType</a>, <a href="../../../syn/macro.Token.html">Token</a>};
+<span class="kw">use </span>syn::{<a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a href="../../../syn/item/enum.FnArg.html">FnArg</a>, <a href="../../../syn/generics/enum.GenericParam.html">GenericParam</a>, <a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a href="../../../syn/pat/enum.Pat.html">Pat</a>, <a href="../../../syn/pat/struct.PatType.html">PatType</a>, <a href="../../../syn/macro.Token.html">Token</a>};
 <span class="kw">use </span><a href="../../../syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
 <span class="kw">use </span><a href="../../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
 <span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../common.rs.html#117">HasAttributes</a>, <a href="../common.rs.html#54">HasSignature</a>};
@@ -392,26 +428,22 @@
 /// ```ignore
 /// // spec functions with &quot;self&quot; rewritten to &quot;_self: SomeStruct&quot;
 /// fn the_trait_method(_self: SomeStruct, arg: &lt;SomeStruct as SomeTrait::AssocType&gt; -&gt; Bar {
-///     &lt;SomeStruct as SomeTrait&gt;::the_trait_method(_self, arg);
-///     unimplemented!()
+///     &lt;SomeStruct as SomeTrait&gt;::the_trait_method(_self, arg)
 /// }
 /// ```
 ///
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generate_extern_spec_method_stub&lt;T: <a href="../common.rs.html#54">HasSignature</a> + <a href="../common.rs.html#117">HasAttributes</a> + <a href="../../../syn/spanned/trait.Spanned.html">Spanned</a>&gt;(
     method: <span class="kw-2">&amp;</span>T,
-    self_type: <span class="kw-2">&amp;</span><a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a>,
+    self_type: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>,
     self_type_trait: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a>&gt;,
     extern_spec_kind: <a href="mod.rs.html#9">ExternSpecKind</a>,
 ) -&gt; syn::Result&lt;(<a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>, Vec&lt;<a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>&gt;)&gt; {
-    <span class="kw">let </span>base_sig = <a href="#121">method</a>.<a href="../common.rs.html#55">sig</a>();
-
-    <span class="comment">// Make elided lifetimes explicit, if necessary.
-    </span><span class="kw">let </span>method_sig = <a href="#62">with_explicit_lifetimes</a>(<a href="#126">base_sig</a>).unwrap_or_else(|| <a href="#126">base_sig</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-    <span class="kw">let </span>method_sig_span = <a href="#129">method_sig</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
-    <span class="kw">let </span>method_ident = <span class="kw-2">&amp;</span><a href="#129">method_sig</a>.ident;
+    <span class="kw">let </span>method_sig = <a href="#120">method</a>.<a href="../common.rs.html#55">sig</a>();
+    <span class="kw">let </span>method_sig_span = <a href="#125">method_sig</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let </span>method_ident = <span class="kw-2">&amp;</span><a href="#125">method_sig</a>.ident;
 
     <span class="comment">// Determine path to externally specified method in UFCS
-    </span><span class="kw">let </span>method_path: <a href="../../../syn/expr/struct.ExprPath.html">syn::ExprPath</a> = <span class="kw">match </span><a href="#123">self_type_trait</a> {
+    </span><span class="kw">let </span>method_path: <a href="../../../syn/expr/struct.ExprPath.html">syn::ExprPath</a> = <span class="kw">match </span><a href="#122">self_type_trait</a> {
         <span class="prelude-val">Some</span>(self_type_as_trait) =&gt; <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{method_sig_span=&gt;
             &lt;#self_type <span class="kw">as </span>#self_type_as_trait&gt; :: #method_ident
         },
@@ -421,55 +453,66 @@
     };
 
     <span class="comment">// Build the method stub
-    </span><span class="kw">let </span>method_attrs = <a href="#121">method</a>.<a href="../common.rs.html#118">attrs</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let </span>method_args = <span class="kw-2">&amp;</span><a href="#129">method_sig</a>.<a href="#201">params_as_call_args</a>();
-    <span class="kw">let </span>extern_spec_kind_string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#124">extern_spec_kind</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-    <span class="kw">let </span>stub_method: <a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{method.span()=&gt;
-        <span class="attribute">#[trusted]
-        #[prusti::extern_spec = #extern_spec_kind_string]
-        </span>#(#method_attrs)*
-        <span class="attribute">#[allow(unused, dead_code)]
-        </span>#method_sig {
-            #method_path ( #method_args );
-            <span class="macro">unimplemented!</span>()
-        }
-    };
-
+    </span><span class="kw">let </span>stub_method: <a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> =
+        <a href="#178-182">generate_extern_spec_function_stub</a>(<a href="#120">method</a>, <span class="kw-2">&amp;</span><a href="#130">method_path</a>, <a href="#123">extern_spec_kind</a>);
+    
     <span class="comment">// Eagerly extract and process specifications
-    </span><span class="kw">let </span><span class="kw-2">mut </span>stub_method = <a href="../specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<a href="#147">stub_method</a>);
-    <span class="kw">let </span>prusti_attributes = <a href="../lib.rs.html#54-56">extract_prusti_attributes</a>(<span class="kw-2">&amp;mut </span><a href="#159">stub_method</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>stub_method = <a href="../specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<a href="#140">stub_method</a>);
+    <span class="kw">let </span>prusti_attributes = <a href="../lib.rs.html#54-56">extract_prusti_attributes</a>(<span class="kw-2">&amp;mut </span><a href="#144">stub_method</a>);
     <span class="kw">let </span>(spec_items, generated_attributes) =
         generate_spec_and_assertions(prusti_attributes, <span class="kw-2">&amp;</span>stub_method)<span class="question-mark">?</span>;
 
     <span class="comment">// In the generated spec items and the stub method:
     // - Rewrite associated types
     // - Rewrite &quot;self&quot; to &quot;_self&quot;
-    </span><span class="kw">let </span>self_type_path = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{self_type.span()=&gt; #self_type };
-
-    <span class="kw">let </span><span class="kw-2">mut </span>stub_method = <a href="#159">stub_method</a>.<a href="../specifications/untyped.rs.html#62">expect_impl_item</a>();
-    <a href="#169">stub_method</a>.attrs.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#161">generated_attributes</a>);
-    <a href="#169">stub_method</a>.<a href="../common.rs.html#158">rewrite_self_type</a>(<span class="kw-2">&amp;</span><a href="#167">self_type_path</a>, <a href="#123">self_type_trait</a>);
-    <a href="#169">stub_method</a>.<a href="../common.rs.html#245">rewrite_receiver</a>(<span class="kw-2">&amp;</span><a href="#167">self_type_path</a>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>stub_method = <a href="#144">stub_method</a>.<a href="../specifications/untyped.rs.html#62">expect_impl_item</a>();
+    <a href="#152">stub_method</a>.attrs.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#146">generated_attributes</a>);
+    <a href="#152">stub_method</a>.<a href="../common.rs.html#165">rewrite_self_type</a>(<a href="#121">self_type</a>, <a href="#122">self_type_trait</a>);
+    <a href="#152">stub_method</a>.<a href="../common.rs.html#265">rewrite_receiver</a>(<a href="#121">self_type</a>);
 
     <span class="comment">// Set span of generated method to externally specified method for better error reporting
-    </span>syn::visit_mut::visit_impl_item_method_mut(<span class="kw-2">&amp;mut </span>SpanOverrider::new(<a href="#130">method_sig_span</a>), <span class="kw-2">&amp;mut </span><a href="#169">stub_method</a>);
+    </span>syn::visit_mut::visit_impl_item_method_mut(<span class="kw-2">&amp;mut </span>SpanOverrider::new(<a href="#126">method_sig_span</a>), <span class="kw-2">&amp;mut </span><a href="#152">stub_method</a>);
 
-    <span class="kw">let </span>rewritten_spec_items = <a href="#161">spec_items</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|spec_item| {
-        <span class="kw">match </span><a href="#177">spec_item</a> {
+    <span class="kw">let </span>rewritten_spec_items = <a href="#146">spec_items</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|spec_item| {
+        <span class="kw">match </span><a href="#160">spec_item</a> {
             syn::Item::Fn(spec_item_fn) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>spec_item_fn: <a href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> = <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{spec_item_fn.span()=&gt;
                     #spec_item_fn
                 };
-                <a href="#180">spec_item_fn</a>.<a href="../common.rs.html#158">rewrite_self_type</a>(<span class="kw-2">&amp;</span><a href="#167">self_type_path</a>, <a href="#123">self_type_trait</a>);
-                <a href="#180">spec_item_fn</a>.<a href="../common.rs.html#245">rewrite_receiver</a>(<span class="kw-2">&amp;</span><a href="#167">self_type_path</a>);
+                <a href="#163">spec_item_fn</a>.<a href="../common.rs.html#165">rewrite_self_type</a>(<a href="#121">self_type</a>, <a href="#122">self_type_trait</a>);
+                <a href="#163">spec_item_fn</a>.<a href="../common.rs.html#265">rewrite_receiver</a>(<a href="#121">self_type</a>);
 
-                <a href="#180">spec_item_fn</a>
+                <a href="#163">spec_item_fn</a>
             }
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-    <span class="prelude-val">Ok</span>((<a href="#169">stub_method</a>, <a href="#177">rewritten_spec_items</a>))
+    <span class="prelude-val">Ok</span>((<a href="#152">stub_method</a>, <a href="#160">rewritten_spec_items</a>))
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generate_extern_spec_function_stub&lt;Input: <a href="../common.rs.html#54">HasSignature</a> + <a href="../common.rs.html#117">HasAttributes</a> + <a href="../../../syn/spanned/trait.Spanned.html">Spanned</a>, Output: <a href="../../../syn/parse/trait.Parse.html">syn::parse::Parse</a>&gt;(
+    function: <span class="kw-2">&amp;</span>Input,
+    fn_path: <span class="kw-2">&amp;</span><a href="../../../syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
+    extern_spec_kind: <a href="mod.rs.html#9">ExternSpecKind</a>,
+) -&gt; Output {
+    <span class="kw">let </span>signature = <a href="#179">function</a>.<a href="../common.rs.html#55">sig</a>();
+    <span class="comment">// Make elided lifetimes explicit, if necessary.
+    </span><span class="kw">let </span>signature = <a href="#62">with_explicit_lifetimes</a>(<a href="#183">signature</a>).unwrap_or_else(|| <a href="#183">signature</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="kw">let </span>attrs = <a href="#179">function</a>.<a href="../common.rs.html#118">attrs</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>generic_params = <span class="kw-2">&amp;</span><a href="#185">signature</a>.<a href="#237">generic_params_as_call_args</a>();
+    <span class="kw">let </span>args = <span class="kw-2">&amp;</span><a href="#185">signature</a>.<a href="#208">params_as_call_args</a>();
+    <span class="kw">let </span>extern_spec_kind_string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = <a href="#181">extern_spec_kind</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    
+    <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{function.span()=&gt;
+        <span class="attribute">#[trusted]
+        #[prusti::extern_spec = #extern_spec_kind_string]
+        </span>#(#attrs)*
+        <span class="attribute">#[allow(unused, dead_code)]
+        </span>#signature {
+            #fn_path :: &lt; #generic_params &gt; ( #args )
+        }
+    }
 }
 
 <span class="doccomment">/// Given a method signature with parameters, this function returns all typed parameters
@@ -481,27 +524,56 @@
     <span class="kw">fn </span>params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>[,]&gt;;
 }
 
-<span class="kw">impl</span>&lt;H: <a href="../common.rs.html#54">HasSignature</a>&gt; <a href="#200">MethodParamsAsCallArguments</a> <span class="kw">for </span>H {
+<span class="kw">impl</span>&lt;H: <a href="../common.rs.html#54">HasSignature</a>&gt; <a href="#207">MethodParamsAsCallArguments</a> <span class="kw">for </span>H {
     <span class="kw">fn </span>params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>(,)&gt; {
-        <a class="self" href="#205">self</a>.<a href="../common.rs.html#55">sig</a>().inputs.<a href="#201">params_as_call_args</a>()
+        <a class="self" href="#212">self</a>.<a href="../common.rs.html#55">sig</a>().inputs.<a href="#208">params_as_call_args</a>()
     }
 }
 
-<span class="kw">impl </span><a href="#200">MethodParamsAsCallArguments</a> <span class="kw">for </span>Punctuated&lt;<a href="../../../syn/item/enum.FnArg.html">FnArg</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>[,]&gt; {
+<span class="kw">impl </span><a href="#207">MethodParamsAsCallArguments</a> <span class="kw">for </span>Punctuated&lt;<a href="../../../syn/item/enum.FnArg.html">FnArg</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>[,]&gt; {
     <span class="kw">fn </span>params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>(,)&gt; {
         Punctuated::from_iter(
-            <a class="self" href="#211">self</a>.iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|param| {
-                    <span class="kw">let </span>span = <a href="#214">param</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
-                    <span class="kw">let </span>call_arg: <a href="../../../syn/expr/enum.Expr.html">Expr</a> = <span class="kw">match </span><a href="#214">param</a> {
+            <a class="self" href="#218">self</a>.iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|param| -&gt; <a href="../../../syn/expr/enum.Expr.html">Expr</a> {
+                    <span class="kw">let </span>span = <a href="#221">param</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
+                    <span class="kw">match </span><a href="#221">param</a> {
                         FnArg::Typed(<a href="../../../syn/pat/struct.PatType.html">PatType</a> { pat: <span class="kw">box </span>Pat::Ident(ident), .. }) =&gt;
                             <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{span=&gt;#ident },
                         FnArg::Receiver(<span class="kw">_</span>) =&gt;
                             <a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{span=&gt;<span class="self">self</span>},
                         <span class="kw">_ </span>=&gt;
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
-                    };
-                    <a href="#216">call_arg</a>
+                    }
+                })
+        )
+    }
+}
+
+<span class="kw">pub trait </span>GenericParamsAsCallArguments {
+    <span class="kw">fn </span>generic_params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>[,]&gt;;
+}
+
+<span class="kw">impl</span>&lt;H: <a href="../common.rs.html#54">HasSignature</a>&gt; <a href="#236">GenericParamsAsCallArguments</a> <span class="kw">for </span>H {
+    <span class="kw">fn </span>generic_params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>(,)&gt; {
+        <a class="self" href="#241">self</a>.<a href="../common.rs.html#55">sig</a>().generics.params.<a href="#237">generic_params_as_call_args</a>()
+    }
+}
+
+<span class="kw">impl </span><a href="#236">GenericParamsAsCallArguments</a> <span class="kw">for </span>Punctuated&lt;<a href="../../../syn/generics/enum.GenericParam.html">GenericParam</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>[,]&gt; {
+    <span class="kw">fn </span>generic_params_as_call_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Punctuated&lt;<a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a class="macro" href="../../../syn/macro.Token.html">Token!</a>(,)&gt; {
+        <span class="kw">use </span><a href="../../../syn/index.html">syn</a>::<span class="kw-2">*</span>;
+        Punctuated::from_iter(
+            <a class="self" href="#247">self</a>.iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|param| -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>&gt; {
+                    <span class="kw">let </span>span = <a href="#251">param</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>();
+                    <span class="kw">match </span><a href="#251">param</a> {
+                        GenericParam::Type(<a href="../../../syn/generics/struct.TypeParam.html">TypeParam</a> { ident, .. }) =&gt;
+                            <span class="prelude-val">Some</span>(<a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{span=&gt;#ident }),
+                        GenericParam::Lifetime(<span class="kw">_</span>) =&gt;
+                            <span class="prelude-val">None</span>,
+                        GenericParam::Const(<a href="../../../syn/generics/struct.ConstParam.html">ConstParam</a> { ident, .. }) =&gt;
+                            <span class="prelude-val">Some</span>(<a class="macro" href="../../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{span=&gt;#ident }),
+                    }
                 })
         )
     }
@@ -523,37 +595,37 @@
 /// }
 /// ```
 </span><span class="kw">pub fn </span>add_phantom_data_for_generic_params(item_struct: <span class="kw-2">&amp;mut </span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) {
-    <span class="kw">let </span>fields = <a href="#245">item_struct</a>.generics.params.iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|param| <span class="kw">match </span><a href="#247">param</a> {
+    <span class="kw">let </span>fields = <a href="#281">item_struct</a>.generics.params.iter()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|param| <span class="kw">match </span><a href="#283">param</a> {
             syn::GenericParam::Type(tp) =&gt; {
-                <span class="kw">let </span>ident = <a href="#248">tp</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <span class="kw">let </span>ident = <a href="#284">tp</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 <span class="prelude-val">Some</span>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(::core::marker::PhantomData&lt;#ident&gt;))
             }
             syn::GenericParam::Lifetime(ld) =&gt; {
-                <span class="kw">let </span>ident = <a href="#252">ld</a>.lifetime.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <span class="kw">let </span>ident = <a href="#288">ld</a>.lifetime.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 <span class="prelude-val">Some</span>(<a class="macro" href="../../../quote/macro.quote.html">quote!</a>(<span class="kw-2">&amp;</span>#ident ::core::marker::PhantomData&lt;()&gt;))
             }
             syn::GenericParam::Const(_cp) =&gt; <span class="prelude-val">None</span>,
         });
 
-    <a href="#245">item_struct</a>.fields = syn::Fields::Unnamed(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ ( #(#fields),* ) });
+    <a href="#281">item_struct</a>.fields = syn::Fields::Unnamed(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ ( #(#fields),* ) });
 }
 
 <span class="doccomment">/// We take the Generics (parameters) defined with the `#[extern_spec] impl&lt;...&gt;` (the `&lt;...&gt;`)
 /// but then need to pass those as arguments: `SomeStruct&lt;...&gt;`. This function translates from
 /// the syntax of one to the other; e.g. `&lt;T: Bound, &#39;l: Bound, const C: usize&gt;` -&gt; `&lt;T, &#39;l, C&gt;`
 </span><span class="kw">pub fn </span>rewrite_generics(gens: <span class="kw-2">&amp;</span><a href="../../../syn/generics/struct.Generics.html">syn::Generics</a>) -&gt; <a href="../../../syn/path/struct.AngleBracketedGenericArguments.html">syn::AngleBracketedGenericArguments</a> {
-    <span class="kw">let </span>args: Vec&lt;<a href="../../../syn/path/enum.GenericArgument.html">syn::GenericArgument</a>&gt; = <a href="#265">gens</a>
+    <span class="kw">let </span>args: Vec&lt;<a href="../../../syn/path/enum.GenericArgument.html">syn::GenericArgument</a>&gt; = <a href="#301">gens</a>
         .params
         .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|gp| {
-            <span class="kw">let </span>ts = <span class="kw">match </span><a href="#270">gp</a> {
+            <span class="kw">let </span>ts = <span class="kw">match </span><a href="#306">gp</a> {
                 syn::GenericParam::Type(<a href="../../../syn/generics/struct.TypeParam.html">syn::TypeParam</a> { ident, .. })
-                | syn::GenericParam::Const(<a href="../../../syn/generics/struct.ConstParam.html">syn::ConstParam</a> { ident, .. }) =&gt; <a href="#272">ident</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>(),
-                syn::GenericParam::Lifetime(ld) =&gt; <a href="#274">ld</a>.lifetime.<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>(),
+                | syn::GenericParam::Const(<a href="../../../syn/generics/struct.ConstParam.html">syn::ConstParam</a> { ident, .. }) =&gt; <a href="#308">ident</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>(),
+                syn::GenericParam::Lifetime(ld) =&gt; <a href="#310">ld</a>.lifetime.<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>(),
             };
-            syn::parse2::&lt;<a href="../../../syn/path/enum.GenericArgument.html">syn::GenericArgument</a>&gt;(<a href="#271">ts</a>).unwrap()
+            syn::parse2::&lt;<a href="../../../syn/path/enum.GenericArgument.html">syn::GenericArgument</a>&gt;(<a href="#307">ts</a>).unwrap()
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ &lt; #(#args),* &gt; }

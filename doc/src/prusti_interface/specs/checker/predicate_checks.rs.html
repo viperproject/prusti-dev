@@ -188,15 +188,6 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#3"><span class="kw">super</span>::common</a>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{
     environment::{<a href="../../environment/query.rs.html#27">EnvQuery</a>, <a href="../../environment/mod.rs.html#51">Environment</a>},
@@ -217,41 +208,32 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; SpecCheckerStrategy&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span><a href="#17">IllegalPredicateUsagesChecker</a> {
     <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;<a href="../../prusti_error.rs.html#22">PrustiError</a>&gt; {
-        <span class="kw">let </span>collected_predicates = <a class="self" href="#20">self</a>.<a href="#61-64">collect_predicates</a>(<a href="#20">env</a>.query);
+        <span class="kw">let </span>collected_predicates = <a class="self" href="#20">self</a>.<a href="#52-55">collect_predicates</a>(<a href="#20">env</a>.query);
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Predicate funcs: {:?}&quot;</span>, collected_predicates.predicates);
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;Abstract predicates with bodies: {:?}&quot;</span>,
             collected_predicates.abstract_predicate_with_bodies
         );
         <span class="kw">let </span>illegal_pred_usages =
-            <a class="self" href="#20">self</a>.<a href="#77-81">collect_illegal_predicate_usages</a>(<a href="#21">collected_predicates</a>.predicates, <a href="#20">env</a>.query);
+            <a class="self" href="#20">self</a>.<a href="#68-72">collect_illegal_predicate_usages</a>(<a href="#21">collected_predicates</a>.predicates, <a href="#20">env</a>.query);
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Predicate usages: {:?}&quot;</span>, illegal_pred_usages);
 
-        <span class="kw">let </span>body_errors = <a href="#21">collected_predicates</a>
-            .abstract_predicate_with_bodies
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|def_id| {
-                <span class="kw">let </span>span = <a href="#20">env</a>.query.<a href="../../environment/query.rs.html#86">get_def_span</a>(<a href="#34">def_id</a>);
-                PrustiError::incorrect(
-                    <span class="string">&quot;abstract predicates must not have bodies&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    MultiSpan::from_span(<a href="#35">span</a>),
-                )
-            });
+        <span class="comment">// TODO: check behavioral subtyping of implemented predicates against default implementation
 
-        <span class="kw">let </span>illegal_usage_errors = <a href="#27">illegal_pred_usages</a>
+        </span><span class="kw">let </span>illegal_usage_errors = <a href="#27">illegal_pred_usages</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(usage_span, def_span)| {
                 PrustiError::incorrect(
                     <span class="string">&quot;using predicate from non-specification code is not allowed&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    MultiSpan::from_span(<a href="#44">usage_span</a>),
+                    MultiSpan::from_span(<a href="#35">usage_span</a>),
                 )
                 .<a href="../../prusti_error.rs.html#172">add_note</a>(
                     <span class="string">&quot;this is a specification-only predicate function&quot;</span>,
-                    <span class="prelude-val">Some</span>(<a href="#44">def_span</a>),
+                    <span class="prelude-val">Some</span>(<a href="#35">def_span</a>),
                 )
             });
 
-        <a href="#31">body_errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#42">illegal_usage_errors</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <a href="#33">illegal_usage_errors</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 
@@ -261,15 +243,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; CollectPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>collect = <a href="#98">CollectPredicatesVisitor</a> {
-            <a href="#63">env_query</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>collect = <a href="#89">CollectPredicatesVisitor</a> {
+            <a href="#54">env_query</a>,
             predicates: HashMap::new(),
             abstract_predicate_with_bodies: HashSet::new(),
         };
-        <a href="#63">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#65">collect</a>);
-        <a href="#63">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_attributes(<span class="kw-2">&amp;mut </span><a href="#65">collect</a>);
+        <a href="#54">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#56">collect</a>);
+        <a href="#54">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_attributes(<span class="kw-2">&amp;mut </span><a href="#56">collect</a>);
 
-        <a href="#65">collect</a>
+        <a href="#56">collect</a>
     }
 
     <span class="doccomment">/// Span of use and definition of predicates used outside of specifications, collected in the second pass.
@@ -278,17 +260,17 @@
         predicates: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;,
         env_query: <a href="../../environment/query.rs.html#27">EnvQuery</a>,
     ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>visit = <a href="#149">CheckPredicatesVisitor</a> {
-            <a href="#80">env_query</a>,
-            <a href="#79">predicates</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>visit = <a href="#140">CheckPredicatesVisitor</a> {
+            <a href="#71">env_query</a>,
+            <a href="#70">predicates</a>,
             pred_usages: Vec::new(),
         }
         .<a href="common.rs.html#28-30">wrap_as_visitor</a>();
 
-        <a href="#80">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#82">visit</a>);
-        <a href="#80">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_attributes(<span class="kw-2">&amp;mut </span><a href="#82">visit</a>);
+        <a href="#71">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#73">visit</a>);
+        <a href="#71">env_query</a>.<a href="../../environment/query.rs.html#42">hir</a>().walk_attributes(<span class="kw-2">&amp;mut </span><a href="#73">visit</a>);
 
-        <a href="#82">visit</a>.wrapped.pred_usages
+        <a href="#73">visit</a>.wrapped.pred_usages
     }
 }
 
@@ -305,7 +287,7 @@
     <span class="kw">type </span>NestedFilter = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/nested_filter/struct.All.html">prusti_rustc_interface::middle::hir::nested_filter::All</a>;
 
     <span class="kw">fn </span>nested_visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Map {
-        <a class="self" href="#108">self</a>.env_query.<a href="../../environment/query.rs.html#42">hir</a>()
+        <a class="self" href="#99">self</a>.env_query.<a href="../../environment/query.rs.html#42">hir</a>()
     }
 
     <span class="kw">fn </span>visit_fn(
@@ -317,29 +299,29 @@
         id: hir::HirId,
     ) {
         <span class="comment">// collect this fn&#39;s DefId if predicate function
-        </span><span class="kw">let </span>attrs = <a class="self" href="#113">self</a>.env_query.<a href="../../environment/query.rs.html#67">get_local_attributes</a>(<a href="#118">id</a>);
+        </span><span class="kw">let </span>attrs = <a class="self" href="#104">self</a>.env_query.<a href="../../environment/query.rs.html#67">get_local_attributes</a>(<a href="#109">id</a>);
         <span class="kw">if </span>has_prusti_attr(attrs, <span class="string">&quot;pred_spec_id_ref&quot;</span>) {
-            <span class="kw">let </span>def_id = <a class="self" href="#113">self</a>.env_query.<a href="../../environment/query.rs.html#58">as_local_def_id</a>(<a href="#118">id</a>).to_def_id();
-            <a class="self" href="#113">self</a>.predicates.insert(<a href="#123">def_id</a>, <a href="#117">s</a>);
+            <span class="kw">let </span>def_id = <a class="self" href="#104">self</a>.env_query.<a href="../../environment/query.rs.html#58">as_local_def_id</a>(<a href="#109">id</a>).to_def_id();
+            <a class="self" href="#104">self</a>.predicates.insert(<a href="#114">def_id</a>, <a href="#108">s</a>);
         }
 
-        intravisit::walk_fn(<a class="self" href="#113">self</a>, <a href="#114">fk</a>, <a href="#115">fd</a>, <a href="#116">b</a>, <a href="#118">id</a>);
+        intravisit::walk_fn(<a class="self" href="#104">self</a>, <a href="#105">fk</a>, <a href="#106">fd</a>, <a href="#107">b</a>, <a href="#109">id</a>);
     }
 
     <span class="kw">fn </span>visit_trait_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ti: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::TraitItem&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>def_id = <a href="#130">ti</a>.def_id.to_def_id();
-        <span class="kw">let </span>attrs = <a class="self" href="#130">self</a>.env_query.<a href="../../environment/query.rs.html#67">get_local_attributes</a>(<a href="#130">ti</a>.def_id);
+        <span class="kw">let </span>def_id = <a href="#121">ti</a>.def_id.to_def_id();
+        <span class="kw">let </span>attrs = <a class="self" href="#121">self</a>.env_query.<a href="../../environment/query.rs.html#67">get_local_attributes</a>(<a href="#121">ti</a>.def_id);
 
         <span class="kw">if </span>has_abstract_predicate_attr(attrs) {
-            <span class="kw">let </span>span = <a class="self" href="#130">self</a>.env_query.<a href="../../environment/query.rs.html#86">get_def_span</a>(<a href="#131">def_id</a>);
-            <a class="self" href="#130">self</a>.predicates.insert(<a href="#131">def_id</a>, <a href="#135">span</a>);
+            <span class="kw">let </span>span = <a class="self" href="#121">self</a>.env_query.<a href="../../environment/query.rs.html#86">get_def_span</a>(<a href="#122">def_id</a>);
+            <a class="self" href="#121">self</a>.predicates.insert(<a href="#122">def_id</a>, <a href="#126">span</a>);
         } <span class="kw">else if </span>has_prusti_attr(attrs, <span class="string">&quot;pred_spec_id_ref&quot;</span>) {
-            <span class="kw">if let </span>hir::TraitItemKind::Fn(<span class="kw">_</span>, hir::TraitFn::Provided(<span class="kw">_</span>)) = <span class="kw-2">&amp;</span><a href="#130">ti</a>.kind {
-                <a class="self" href="#130">self</a>.abstract_predicate_with_bodies.insert(<a href="#131">def_id</a>);
+            <span class="kw">if let </span>hir::TraitItemKind::Fn(<span class="kw">_</span>, hir::TraitFn::Provided(<span class="kw">_</span>)) = <span class="kw-2">&amp;</span><a href="#121">ti</a>.kind {
+                <a class="self" href="#121">self</a>.abstract_predicate_with_bodies.insert(<a href="#122">def_id</a>);
             }
         }
 
-        intravisit::walk_trait_item(<a class="self" href="#130">self</a>, <a href="#130">ti</a>);
+        intravisit::walk_trait_item(<a class="self" href="#121">self</a>, <a href="#121">ti</a>);
     }
 }
 
@@ -354,24 +336,24 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; NonSpecExprVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CheckPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>tcx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="#157">self</a>.env_query.<a href="../../environment/query.rs.html#37">tcx</a>()
+        <a class="self" href="#148">self</a>.env_query.<a href="../../environment/query.rs.html#37">tcx</a>()
     }
 
     <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::Expr&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">let </span>owner_def_id = <a href="#161">ex</a>.hir_id.owner;
+        <span class="kw">let </span>owner_def_id = <a href="#152">ex</a>.hir_id.owner;
 
         <span class="comment">// General check: The &quot;path&quot; of a predicate doesn&#39;t appear anywhere
         // (e.g. as in a function call or an argument when we pass the predicate to another function)
-        </span><span class="kw">if let </span>hir::ExprKind::Path(<span class="kw-2">ref </span>path) = <a href="#161">ex</a>.kind {
+        </span><span class="kw">if let </span>hir::ExprKind::Path(<span class="kw-2">ref </span>path) = <a href="#152">ex</a>.kind {
             <span class="kw">if </span><span class="self">self</span>.env_query.has_body(owner_def_id) {
-                <span class="kw">let </span>res = <span class="self"><a href="#161">self</a>
+                <span class="kw">let </span>res = <span class="self"><a href="#152">self</a>
                     </span>.env_query
                     .<a href="../../environment/query.rs.html#37">tcx</a>()
-                    .typeck(<a href="#162">owner_def_id</a>)
-                    .qpath_res(<a href="#166">path</a>, <a href="#161">ex</a>.hir_id);
-                <span class="kw">if let </span>hir::def::Res::Def(<span class="kw">_</span>, def_id) = <a href="#168">res</a> {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(pred_def_span) = <a class="self" href="#161">self</a>.predicates.get(<span class="kw-2">&amp;</span><a href="#173">def_id</a>) {
-                        <a class="self" href="#161">self</a>.pred_usages.push((<a href="#161">ex</a>.span, <span class="kw-2">*</span><a href="#174">pred_def_span</a>));
+                    .typeck(<a href="#153">owner_def_id</a>)
+                    .qpath_res(<a href="#157">path</a>, <a href="#152">ex</a>.hir_id);
+                <span class="kw">if let </span>hir::def::Res::Def(<span class="kw">_</span>, def_id) = <a href="#159">res</a> {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(pred_def_span) = <a class="self" href="#152">self</a>.predicates.get(<span class="kw-2">&amp;</span><a href="#164">def_id</a>) {
+                        <a class="self" href="#152">self</a>.pred_usages.push((<a href="#152">ex</a>.span, <span class="kw-2">*</span><a href="#165">pred_def_span</a>));
                     }
                 }
             }
@@ -381,15 +363,15 @@
         // i.e. when Foo::bar is a predicate and we call `foo.bar()` on some `foo: Foo`,
         // we do not observe the called def id `bar` via path resolution.
         </span><span class="kw">if </span><span class="self">self</span>.env_query.has_body(owner_def_id) {
-            <span class="kw">let </span>resolved_called_method = <span class="self"><a href="#161">self</a>
+            <span class="kw">let </span>resolved_called_method = <span class="self"><a href="#152">self</a>
                 </span>.env_query
                 .<a href="../../environment/query.rs.html#37">tcx</a>()
-                .typeck(<a href="#162">owner_def_id</a>)
-                .type_dependent_def_id(<a href="#161">ex</a>.hir_id);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(called_def_id) = <a href="#185">resolved_called_method</a> {
+                .typeck(<a href="#153">owner_def_id</a>)
+                .type_dependent_def_id(<a href="#152">ex</a>.hir_id);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(called_def_id) = <a href="#176">resolved_called_method</a> {
                 <span class="kw">if </span>!<span class="self">self</span>.env_query.tcx().is_constructor(called_def_id) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(pred_def_span) = <a class="self" href="#161">self</a>.predicates.get(<span class="kw-2">&amp;</span><a href="#190">called_def_id</a>) {
-                        <a class="self" href="#161">self</a>.pred_usages.push((<a href="#161">ex</a>.span, <span class="kw-2">*</span><a href="#192">pred_def_span</a>));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(pred_def_span) = <a class="self" href="#152">self</a>.predicates.get(<span class="kw-2">&amp;</span><a href="#181">called_def_id</a>) {
+                        <a class="self" href="#152">self</a>.pred_usages.push((<a href="#152">ex</a>.span, <span class="kw-2">*</span><a href="#183">pred_def_span</a>));
                     }
                 }
             }
