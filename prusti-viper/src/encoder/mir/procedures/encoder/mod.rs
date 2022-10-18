@@ -397,7 +397,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // called termination measure should be non-negative
         let zero = vir_high::Expression::constant_no_pos(0.into(), term_ty);
-        let cond = vir_high::Expression::greater_equals(term_var.clone().into(), zero);
+        let cond = vir_high::Expression::greater_equals(term_var.into(), zero);
         let assert_statement = self.encoder.set_statement_error_ctxt(
             vir_high::Statement::assert_no_pos(cond),
             span,
