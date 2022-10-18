@@ -246,6 +246,12 @@ pub struct ProcedureLoops {
     pub ordered_blocks: Vec<BasicBlockIndex>,
 }
 
+pub type ReadAndWriteLeaves<'tcx> = (
+    Vec<mir::Place<'tcx>>,
+    Vec<mir::Place<'tcx>>,
+    Vec<mir::Place<'tcx>>,
+);
+
 impl ProcedureLoops {
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
         let dominators = mir.basic_blocks.dominators();
@@ -499,14 +505,7 @@ impl ProcedureLoops {
         loop_head: BasicBlockIndex,
         mir: &'a mir::Body<'tcx>,
         definitely_initalised_paths: Option<&PlaceSet<'tcx>>,
-    ) -> Result<
-        (
-            Vec<mir::Place<'tcx>>,
-            Vec<mir::Place<'tcx>>,
-            Vec<mir::Place<'tcx>>,
-        ),
-        LoopAnalysisError,
-    > {
+    ) -> Result<ReadAndWriteLeaves<'tcx>, LoopAnalysisError> {
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
         //     accessed in the loop body and ``t`` is the type of access (read,
         //     destructive read, …).
