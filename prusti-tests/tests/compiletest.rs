@@ -86,16 +86,16 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     // Add compilation flags
     config.target_rustcflags = Some(format!("--edition=2018 {}", rustc_flags.unwrap_or("")));
 
-    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
-    if path.exists() {
-        config.target_rustcflags = Some(format!(
-            "--color=never {}",
-            config.target_rustcflags.unwrap_or_else(|| "".to_string())
-        ));
-        config.mode = Mode::Ui;
-        config.src_base = path;
-        run_tests(&config);
-    }
+    //let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
+    //if path.exists() {
+        //config.target_rustcflags = Some(format!(
+            //"--color=never {}",
+            //config.target_rustcflags.unwrap_or_else(|| "".to_string())
+        //));
+        //config.mode = Mode::Ui;
+        //config.src_base = path;
+        //run_tests(&config);
+    //}
 
     let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
     if path.exists() {
