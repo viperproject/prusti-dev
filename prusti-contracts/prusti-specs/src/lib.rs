@@ -492,11 +492,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             "Can refine trait specifications only on trait implementation blocks"
         ))),
     };
-
-    let self_type_path: &syn::TypePath = match &*impl_block.self_ty {
-        syn::Type::Path(type_path) => type_path,
-        _ => unimplemented!("Currently not supported: {:?}", impl_block.self_ty),
-    };
+    
+    let self_type: &syn::Type = &impl_block.self_ty;
 
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
@@ -557,8 +554,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     // Patch the spec items (merge generics, handle associated types, rewrite receiver)
     for generated_spec_item in generated_spec_items.iter_mut() {
         merge_generics(&mut generated_spec_item.sig.generics, impl_generics);
-        generated_spec_item.rewrite_self_type(self_type_path, Some(&trait_path));
-        generated_spec_item.rewrite_receiver(self_type_path);
+        generated_spec_item.rewrite_self_type(self_type, Some(&trait_path));
+        generated_spec_item.rewrite_receiver(self_type);
     }
 
     impl_block.items = new_items;

@@ -8,7 +8,7 @@ struct A {
 #[extern_spec]
 trait PartialOrd<#[generic] Rhs> {
     #[pure]
-    fn lt(&self, other: &Rhs) -> Option<std::cmp::Ordering>;
+    fn lt(&self, other: &Rhs) -> bool;
 }
 
 #[requires(_x < _y)]

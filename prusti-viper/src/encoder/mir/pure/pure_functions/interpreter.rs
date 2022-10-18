@@ -279,7 +279,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::FalseEdge {
                 ref real_target, ..
             } => {
-                assert_eq!(states.len(), 2);
+                assert!(states.len() == 1 || states.len() == 2); // can be 1 for match guards (both targets point at the same block after some optimizations)
                 states[real_target].clone()
             }
 

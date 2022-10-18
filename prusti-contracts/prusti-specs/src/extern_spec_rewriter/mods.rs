@@ -5,43 +5,40 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-use crate::specifications::common::generate_mod_name;
+use super::common::generate_extern_spec_function_stub;
+use crate::{specifications::common::generate_mod_name, ExternSpecKind};
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
-use syn::parse_quote_spanned;
-use syn::spanned::Spanned;
-
+use syn::{parse_quote_spanned, spanned::Spanned};
 
 pub fn rewrite_extern_spec(item_mod: &mut syn::ItemMod) -> syn::Result<TokenStream> {
-    let mut path = syn::Path {
+    let path = syn::Path {
         leading_colon: None,
         segments: syn::punctuated::Punctuated::new(),
     };
-    rewrite_mod(item_mod, &mut path)?;
+    rewrite_mod(item_mod, &path)?;
     Ok(quote!(#item_mod))
 }
 
-fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result<()> {
+fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &syn::Path) -> syn::Result<()> {
     if item_mod.content.is_none() {
         return Ok(());
     }
 
+    let mut path = path.clone();
     path.segments.push(syn::PathSegment {
         ident: item_mod.ident.clone(),
         arguments: syn::PathArguments::None,
     });
-    item_mod.ident = syn::Ident::new(
-        &generate_mod_name(&item_mod.ident),
-        item_mod.span(),
-    );
+    item_mod.ident = syn::Ident::new(&generate_mod_name(&item_mod.ident), item_mod.span());
 
     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
         match item {
             syn::Item::Fn(item_fn) => {
-                rewrite_fn(item_fn, path);
+                rewrite_fn(item_fn, &path);
             }
             syn::Item::Mod(inner_mod) => {
-                rewrite_mod(inner_mod, path)?;
+                rewrite_mod(inner_mod, &path)?;
             }
             syn::Item::Verbatim(tokens) => {
                 // Transforms function stubs (functions with a `;` after the
@@ -67,7 +64,7 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
 
                 let mut item = res.unwrap();
                 if let syn::Item::Fn(item_fn) = &mut item {
-                    rewrite_fn(item_fn, path);
+                    rewrite_fn(item_fn, &path);
                 }
                 *tokens = quote!(#item)
             }
@@ -80,21 +77,10 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
 
 /// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
+fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &syn::Path) {
     let ident = &item_fn.sig.ident;
-    let args = &item_fn.sig.inputs;
-    let item_fn_span = item_fn.span();
-    item_fn.block = parse_quote_spanned! {item_fn_span=>
-        {
-            #path :: #ident (#args);
-            unimplemented!()
-        }
-    };
+    let path_span = item_fn.sig.ident.span();
+    let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    item_fn
-        .attrs
-        .push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec = "method"]));
-    item_fn
-        .attrs
-        .push(parse_quote_spanned!(item_fn_span=> #[trusted]));
+    *item_fn = generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method);
 }
