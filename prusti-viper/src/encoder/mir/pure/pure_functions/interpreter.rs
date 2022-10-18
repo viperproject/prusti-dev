@@ -695,7 +695,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     // Other kind of calls?
                     return Err(SpannedEncodingError::internal(
                         format!("unexpected call kind '{:?}'", term.kind),
-                        span
+                        span,
                     ));
                 }
             }
@@ -704,7 +704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 // Other kind of calls?
                 return Err(SpannedEncodingError::internal(
                     format!("unexpected call kind '{:?}'", term.kind),
-                    span
+                    span,
                 ));
             }
 
@@ -776,7 +776,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             | TerminatorKind::InlineAsm { .. } => {
                 return Err(SpannedEncodingError::internal(
                     format!("unimplemented encoding of terminator '{:?}'", term.kind),
-                    span
+                    span,
                 ));
             }
         };
