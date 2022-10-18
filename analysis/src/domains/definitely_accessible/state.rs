@@ -227,6 +227,7 @@ fn pretty_print_place<'tcx>(
             }
             mir::ProjectionElem::Index(..)
             | mir::ProjectionElem::ConstantIndex { .. }
+            | mir::ProjectionElem::OpaqueCast(..)
             | mir::ProjectionElem::Subslice { .. } => {
                 // It's not possible to move-out or borrow an individual element.
                 unreachable!()

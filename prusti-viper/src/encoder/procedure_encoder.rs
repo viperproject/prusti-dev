@@ -1533,7 +1533,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Cast(mir::CastKind::PointerExposeAddress, ref operand, dst_ty) |
             mir::Rvalue::Cast(mir::CastKind::PointerFromExposedAddress, ref operand, dst_ty) |
-            mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+            mir::Rvalue::Cast(mir::CastKind::IntToInt, ref operand, dst_ty) => {
                 self.encode_cast(
                     operand,
                     dst_ty,
@@ -1580,6 +1580,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
+                )).with_span(span);
+            }
+            mir::Rvalue::Cast(cast_kind, _, _) => {
+                return Err(EncodingError::unsupported(
+                    format!("casts {:?} are not supported", cast_kind)
                 )).with_span(span);
             }
             mir::Rvalue::AddressOf(_, _) => {

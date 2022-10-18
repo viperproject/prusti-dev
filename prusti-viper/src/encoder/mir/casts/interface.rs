@@ -63,7 +63,7 @@ impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<
                 number.into()
             }
             ty::TyKind::Uint(ty::UintTy::U128) => {
-                let number = value as u128;
+                let number = value;
                 number.into()
             }
             ty::TyKind::Uint(ty::UintTy::Usize) => {

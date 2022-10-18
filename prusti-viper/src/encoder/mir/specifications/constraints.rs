@@ -8,10 +8,7 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{
-        ty,
-        ty::subst::{Subst, SubstsRef},
-    },
+    middle::{ty, ty::subst::SubstsRef},
     span::Span,
 };
 
@@ -258,6 +255,6 @@ pub mod trait_bounds {
             .emit(&env.diagnostic);
         }
 
-        param_envs.into_iter().map(|(k, _)| k).next().unwrap()
+        param_envs.into_keys().next().unwrap()
     }
 }

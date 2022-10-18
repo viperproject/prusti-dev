@@ -59,14 +59,14 @@ impl<'tcx> BoundVarsCollector<'tcx> {
     }
 
     fn into_vars(self, tcx: TyCtxt<'tcx>) -> &'tcx ty::List<ty::BoundVariableKind> {
-        let max = self.vars.iter().map(|(k, _)| *k).max().unwrap_or(0);
+        let max = self.vars.keys().copied().max().unwrap_or(0);
         for i in 0..max {
             if self.vars.get(&i).is_none() {
                 panic!("Unknown variable: {:?}", i);
             }
         }
 
-        tcx.mk_bound_variable_kinds(self.vars.into_iter().map(|(_, v)| v))
+        tcx.mk_bound_variable_kinds(self.vars.into_values())
     }
 }
 
@@ -258,18 +258,17 @@ fn resolve_associated_item<'tcx>(
                     );
                 });
 
-            let substs = tcx.infer_ctxt().enter(|infcx| {
-                let param_env = param_env.with_reveal_all_normalized(tcx);
-                let substs = rcvr_substs.rebase_onto(tcx, trait_def_id, impl_data.substs);
-                let substs = translate_substs(
-                    &infcx,
-                    param_env,
-                    impl_data.impl_def_id,
-                    substs,
-                    leaf_def.defining_node,
-                );
-                infcx.tcx.erase_regions(substs)
-            });
+            let infcx = tcx.infer_ctxt().build();
+            let param_env = param_env.with_reveal_all_normalized(tcx);
+            let substs = rcvr_substs.rebase_onto(tcx, trait_def_id, impl_data.substs);
+            let substs = translate_substs(
+                &infcx,
+                param_env,
+                impl_data.impl_def_id,
+                substs,
+                leaf_def.defining_node,
+            );
+            let substs = infcx.tcx.erase_regions(substs);
 
             // Since this is a trait item, we need to see if the item is either a trait default item
             // or a specialization because we can't resolve those unless we can `Reveal::All`.
@@ -403,8 +402,7 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::DiscriminantKind(..)
         | traits::ImplSource::Pointee(..)
         | traits::ImplSource::TraitUpcasting(_)
-        | traits::ImplSource::ConstDestruct(_)
-        | traits::ImplSource::Tuple => None,
+        | traits::ImplSource::ConstDestruct(_) => None,
     })
 }
 

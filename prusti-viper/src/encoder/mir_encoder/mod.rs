@@ -176,8 +176,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Generator(_, _, _) => {
-                        return Err(EncodingError::unsupported("generator fields are not supported yet"));
+                    ty::TyKind::Generator(..) => {
+                        return Err(EncodingError::unsupported("generator fields are not supported"));
                     }
 
                     x => {
@@ -195,7 +195,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (PlaceEncoding::Expr(e), ty, v)
                     }
                     Err(_) => return Err(EncodingError::unsupported(
-                        "mixed dereferencing and array indexing projections are not supported yet"
+                        "mixed dereferencing and array indexing projections are not supported"
                     )),
                 }
             }
@@ -203,6 +203,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
                 (encoded_base, base_ty, Some((*variant_index).into()))
+            }
+
+            mir::ProjectionElem::OpaqueCast(cast_ty) => {
+                debug!("Opaque cast projection {:?}", cast_ty);
+                (encoded_base, *cast_ty, None)
             }
 
             mir::ProjectionElem::Index(_)
@@ -425,7 +430,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     encoded_place
                         .try_into_expr()
                         .map_err(|_| EncodingError::unsupported(
-                            "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
+                            "array indexing is not supported in arbitrary operand positions. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
                         ))?,
                     place_ty,
                 )?

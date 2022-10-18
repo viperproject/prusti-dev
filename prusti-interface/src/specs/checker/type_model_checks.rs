@@ -54,7 +54,7 @@ impl<'tcx> ModelUsageVisitor<'tcx> {
         let maybe_method_def_id = self
             .env_query
             .tcx()
-            .typeck(expr.hir_id.owner)
+            .typeck(expr.hir_id.owner.def_id)
             .type_dependent_def_id(expr.hir_id);
         if let Some(method_def_id) = maybe_method_def_id {
             let maybe_local_def_id = method_def_id.as_local();
@@ -101,8 +101,8 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
         // Mark all modelled types as "dangerous", i.e. assume they have no fields
         let mut modelled_types_has_fields: FxHashMap<HirId, bool> = collect
             .modelled_types
-            .iter()
-            .map(|(ty_hir_id, _)| (*ty_hir_id, true))
+            .keys()
+            .map(|ty_hir_id| (*ty_hir_id, true))
             .collect();
         let mut type_names: FxHashMap<HirId, String> = FxHashMap::default();
 
